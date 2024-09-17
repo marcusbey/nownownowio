@@ -2,13 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";
+import { clsx } from "clsx";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { clsx } from "clsx";
 
 // ℹ️ Update this object with the providers you want to support
-const ProviderData: Record<string, { icon: ReactNode; name: string }> = {
+const ProviderData: Record<string, { icon: ReactNode; name: string; }> = {
   github: {
     icon: (
       <svg
@@ -59,39 +59,71 @@ const ProviderData: Record<string, { icon: ReactNode; name: string }> = {
     ),
     name: "Google",
   },
+  twitter: {
+    icon: (
+      <svg
+        fill="none"
+        height="16"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 512 512"
+      >
+        <path d="M0 0h512v512H0z" fill="#000" />
+        <path
+          clipRule="evenodd"
+          d="M192.034 98H83l129.275 170.757L91.27 412h55.908l91.521-108.34 81.267 107.343H429L295.968 235.284l.236.303L410.746 99.994h-55.908l-85.062 100.694zm-48.849 29.905h33.944l191.686 253.193h-33.944z"
+          fill="#fff"
+          fillRule="evenodd"
+        />
+      </svg>
+    ),
+    name: "Twitter",
+  },
 };
 
 type ProviderButtonProps = {
   providerId: string;
+  action:  "signin" | "signup";
 };
 
-export const ProviderButton = (props: ProviderButtonProps) => {
+export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
   const searchParams = useSearchParams();
 
-  const githubSignInMutation = useMutation({
+  const providerAuthMutation = useMutation({
     mutationFn: () =>
-      signIn(props.providerId, {
-        callbackUrl: searchParams.get("callbackUrl") ?? `${getServerUrl()}/`,
+      signIn(providerId, {
+        callbackUrl: searchParams.get("callbackUrl") ?? `${getServerUrl()}/?isNewUser=true`,
+        action: action,
       }),
   });
 
-  const data = ProviderData[props.providerId];
+  const data = ProviderData[providerId];
 
+  if (!data) {
+    console.error(
+      `Provider data not found for providerId: ${providerId}`
+    );
+    return null; // or return a fallback UI
+  }
+  const buttonText = action === "signin" ? "Sign in with" : "Sign up with";
+  
   return (
     <Button
       className={clsx({
         "border-gray-500 bg-white text-black hover:bg-white":
           data.name === "Google",
+        "border-gray-400 bg-white text-black hover:bg-white":
+          data.name === "Twitter",
         "border-gray-500 bg-black text-white hover:bg-gray-950":
           data.name === "Github",
       })}
       size="lg"
       onClick={() => {
-        githubSignInMutation.mutate();
+        providerAuthMutation.mutate();
       }}
     >
-      {githubSignInMutation.isPending ? <Loader size={16} /> : data.icon}
-      <span className="ml-2 text-base">Sign in with {data.name}</span>
+      {providerAuthMutation.isPending ? <Loader size={16} /> : data.icon}
+      <span className="ml-2 text-base">{buttonText} {data.name}</span>
     </Button>
   );
 };

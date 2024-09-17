@@ -24,14 +24,18 @@ export default async function AuthSignInPage() {
     <div className="flex h-full flex-col">
       <header className="sticky top-0 z-40 w-full border-b bg-background">
         <div className="container flex h-16 items-center gap-2">
-          <Image
-            src={SiteConfig.appIcon}
-            alt="app logo"
-            width={32}
-            height={32}
-          />
-          <Link href="/" className="text-xl font-bold">
-            {SiteConfig.title}
+          <Link
+            href="/"
+            className=" flex items-center gap-1 text-base font-bold"
+          >
+            <span>N</span>
+            <Image
+              src={SiteConfig.appIcon}
+              alt="app logo"
+              width={32}
+              height={32}
+            />
+            <span>WNOWNOW</span>
           </Link>
         </div>
       </header>

@@ -1,21 +1,8 @@
-import { EmailFormSection } from "@/features/email/EmailFormSection";
-import { BentoGridSection } from "@/features/landing/BentoSection";
-import { FAQSection } from "@/features/landing/FAQSection";
-import { FeaturesSection } from "@/features/landing/FeatureSection";
 import { Hero } from "@/features/landing/Hero";
 import { LandingHeader } from "@/features/landing/LandingHeader";
-import { PainSection } from "@/features/landing/Pain";
 import { SectionDivider } from "@/features/landing/SectionDivider";
 import { StatsSection } from "@/features/landing/StatsSection";
-import { CTASectionCard } from "@/features/landing/cta/CTACardSection";
-import { CTAImageSection } from "@/features/landing/cta/CTAImageSection";
-import { CtaSection } from "@/features/landing/cta/CTASection";
-import { ReviewGrid } from "@/features/landing/review/ReviewGrid";
-import { ReviewSingle } from "@/features/landing/review/ReviewSingle";
-import { ReviewTriple } from "@/features/landing/review/ReviewTriple";
 import { Footer } from "@/features/layout/Footer";
-import { Pricing } from "@/features/plans/PricingSection";
-import Image from "next/image";
 
 export default function HomePage() {
   return (
@@ -28,13 +15,13 @@ export default function HomePage() {
 
       <StatsSection />
 
-      <BentoGridSection />
+      {/* <BentoGridSection /> */}
 
-      <PainSection />
+      {/* <PainSection /> */}
 
-      <SectionDivider />
+      {/* <SectionDivider /> */}
 
-      <ReviewTriple
+      {/* <ReviewTriple
         reviews={[
           {
             image: "https://i.pravatar.cc/300?u=a1",
@@ -55,20 +42,20 @@ export default function HomePage() {
             role: "Entrepreneur",
           },
         ]}
-      />
+      /> */}
 
       <SectionDivider />
 
-      <ReviewSingle
+      {/* <ReviewSingle
         image="https://i.pravatar.cc/300?u=5"
         name="Michel"
         review={`Threader **has completely transformed** the way I manage my social media content. The ability to schedule posts and use AI for content suggestions **has saved me hours each week.**`}
         role="Digital Marketer"
         compagnyImage="https://1000logos.net/wp-content/uploads/2017/03/McDonalds-Logo-2003.png"
         key={1}
-      />
+      /> */}
 
-      <FeaturesSection
+      {/* <FeaturesSection
         features={[
           {
             badge: "⏰ Schedule",
@@ -130,9 +117,9 @@ export default function HomePage() {
             ),
           },
         ]}
-      />
+      /> */}
 
-      <CTAImageSection />
+      {/* <CTAImageSection />
 
       <CTASectionCard />
 
@@ -178,10 +165,10 @@ export default function HomePage() {
               "Threader offers two pricing plans: THREADER FREE, perfect for tiny creators, allowing you to schedule 1 post in advance; and THREADER PREMIUM, ideal for content creators, offering unlimited scheduling, post previews, and auto-reposting features.",
           },
         ]}
-      />
+      /> */}
 
       <SectionDivider />
-
+      {/* 
       <ReviewGrid
         reviews={[
           {
@@ -259,7 +246,7 @@ export default function HomePage() {
 
       <EmailFormSection />
 
-      <SectionDivider />
+      <SectionDivider /> */}
 
       <Footer />
     </div>

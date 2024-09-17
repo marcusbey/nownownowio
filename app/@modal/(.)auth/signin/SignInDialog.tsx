@@ -1,15 +1,14 @@
 "use client";
 
+import { SignInProviders } from "@/app/auth/signin/SignInProviders";
 import { LogoSvg } from "@/components/svg/LogoSvg";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { usePathname, useRouter } from "next/navigation";
-import { SignInProviders } from "../../../auth/signin/SignInProviders";
 
 export function SignInDialog() {
   const router = useRouter();
@@ -28,9 +27,6 @@ export function SignInDialog() {
         <DialogHeader className="flex flex-col items-center justify-center gap-2">
           <LogoSvg />
           <DialogTitle>Sign in to your account</DialogTitle>
-          <DialogDescription className="sr-only">
-            Please sign in to your account to continue.
-          </DialogDescription>
         </DialogHeader>
         <SignInProviders />
       </DialogContent>

@@ -8,11 +8,14 @@ import { Typography } from "@/components/ui/typography";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { MagicLinkForm } from "./MagicLinkForm";
-import { SignInCredentialsAndMagicLinkForm } from "./SignInCredentialsAndMagicLinkForm";
+import React from "react";
 
-export const SignInProviders = () => {
-  const { data: providers, isPending } = useQuery({
+export const SignUpProviders = () => {
+  const {
+    data: providers,
+    isPending,
+    error,
+  } = useQuery({
     queryFn: () => fetch(`/api/auth/providers`).then((res) => res.json()),
     queryKey: ["providers"],
   });
@@ -27,6 +30,8 @@ export const SignInProviders = () => {
       </div>
     );
   }
+
+  if (error) return <div>Error loading providers</div>;
 
   if (typeof providers !== "object") {
     return (
@@ -48,34 +53,39 @@ export const SignInProviders = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4 lg:gap-6">
-      {providers.resend && !providers.credentials ? (
-        <div className="flex flex-col gap-2 lg:gap-4">
-          <Typography variant="small">Magic link ✨</Typography>
-          <MagicLinkForm />
-          <Divider>or</Divider>
-        </div>
-      ) : null}
-
+    <div className="flex min-w-96 flex-col gap-8">
       {providers.credentials ? (
         <>
-          <SignInCredentialsAndMagicLinkForm />
+          <div className="flex flex-col gap-2">
+            {providers.google ? (
+              <ProviderButton providerId="google" action="signup" />
+            ) : null}
+            {providers.twitter ? (
+              <ProviderButton providerId="twitter" action="signup" />
+            ) : null}
+            {providers.github ? (
+              <ProviderButton providerId="github" action="signup" />
+            ) : null}
+          </div>
           <Divider>or</Divider>
         </>
       ) : null}
-
-      <div className="flex flex-col gap-2 lg:gap-4">
-        {/* ℹ️ Add provider you want to support here */}
-        {providers.github ? <ProviderButton providerId="github" /> : null}
-        {providers.google ? <ProviderButton providerId="google" /> : null}
-        {providers.twitter ? <ProviderButton providerId="twitter" /> : null}
-      </div>
+      <Link href="/auth/signup">
+        <button type="submit" className="w-full">
+          Create account
+        </button>
+      </Link>
 
       {providers.credentials ? (
-        <Typography variant="small">
-          You don't have an account?{" "}
-          <Typography variant="link" as={Link} href="/auth/signup">
-            Sign up
+        <Typography variant="small" className="flex justify-center">
+          Already have an account?{" "}
+          <Typography
+            variant="link"
+            as={Link}
+            href="/auth/signin"
+            className="pl-2"
+          >
+            Sign in
           </Typography>
         </Typography>
       ) : null}

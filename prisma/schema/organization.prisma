@@ -5,16 +5,16 @@
 // See : https://www.flightcontrol.dev/blog/ultimate-guide-to-multi-tenant-saas-data-modeling
 
 model Organization {
-  id               String           @id @default(nanoid(11))
-  slug             String           @unique @default(nanoid(6))
+  id               String                   @id @default(nanoid(11))
+  slug             String                   @unique @default(nanoid(6))
   name             String
   image            String?
-  planId           String           @default("FREE")
-  plan             OrganizationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planId           String                   @default("FREE")
+  plan             OrganizationPlan         @relation(fields: [planId], references: [id], onDelete: Cascade)
   email            String
   stripeCustomerId String?
-
-  members OrganizationMembership[]
+  websiteUrl       String?
+  members          OrganizationMembership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,6 +1,6 @@
 import type { PageParams } from "@/types/next";
-import { SignInDialog } from "../signin/SignInDialog";
+import { SignUpDialog } from "../signup/SignUpDialog";
 
 export default async function RoutePage(props: PageParams<{}>) {
-  return <SignInDialog />;
+  return <SignUpDialog />;
 }

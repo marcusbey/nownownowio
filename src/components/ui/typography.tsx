@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-
+ 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { cn } from "@/lib/utils";
 import type { VariantProps } from "class-variance-authority";
@@ -31,7 +30,7 @@ export const typographyVariants = cva("", {
       code: "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
       lead: "text-xl text-muted-foreground",
       large: "text-lg font-semibold",
-      small: "text-sm font-medium leading-none",
+      small: "text-sm font-medium leading-none ",
       muted: "text-sm text-muted-foreground",
       link: "font-medium text-cyan-600 hover:underline dark:text-primary",
     },
@@ -84,7 +83,7 @@ const InnerTypography = <
   TAs extends ElementType,
   TVariant extends TypographyCvaProps["variant"] = "default",
 >(
-  {
+  { 
     variant = "default",
     className,
     as,

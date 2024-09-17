@@ -1,5 +1,6 @@
 "use client";
 
+import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -35,7 +36,6 @@ export const SignUpCredentialsForm = () => {
       await signIn("credentials", {
         email: values.email,
         password: values.password,
-
         callbackUrl: `${window.location.origin}/`,
       });
     },
@@ -93,7 +93,12 @@ export const SignUpCredentialsForm = () => {
           <FormItem>
             <FormLabel>Password</FormLabel>
             <FormControl>
-              <Input type="password" {...field} />
+              <PasswordInput
+                disabled={submitMutation.isPending}
+                {...field}
+                placeholder="Password"
+                onBlur={() => form.trigger("password")}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -106,7 +111,12 @@ export const SignUpCredentialsForm = () => {
           <FormItem>
             <FormLabel>Verify Password</FormLabel>
             <FormControl>
-              <Input type="password" {...field} />
+              <PasswordInput
+                {...field}
+                disabled={submitMutation.isPending}
+                placeholder="Retype password"
+                onBlur={() => form.trigger("verifyPassword")} // Trigger validation on blur
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
