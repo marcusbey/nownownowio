@@ -6,8 +6,10 @@ export const NewOrgsSchema = z.object({
   slug: z.string().refine((v) => !RESERVED_SLUGS.includes(v), {
     message: "This organization slug is reserved",
   }),
-  name: z.string(),
-  email: z.string(),
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  websiteUrl: z.string().url("Invalid URL").optional(),
+  planId: z.string(),
 });
 
 export type NewOrganizationSchemaType = z.infer<typeof NewOrgsSchema>;

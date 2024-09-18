@@ -11,6 +11,8 @@ export const createOrganizationAction = authAction
       slug: parsedInput.slug,
       name: parsedInput.name,
       email: parsedInput.email,
+      planId: parsedInput.planId,
+      websiteUrl: parsedInput.websiteUrl,
       members: {
         create: {
           userId: ctx.user.id,

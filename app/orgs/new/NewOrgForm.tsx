@@ -12,7 +12,15 @@ import {
   useZodForm,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { LoadingButton } from "@/features/form/SubmitButton";
+import { PLANS } from "@/features/plans/plans";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { formatId } from "@/lib/format/id";
 import { useMutation } from "@tanstack/react-query";
@@ -24,6 +32,12 @@ import { NewOrganizationSchemaType, NewOrgsSchema } from "./new-org.schema";
 export const NewOrganizationForm = () => {
   const form = useZodForm({
     schema: NewOrgsSchema,
+    defaultValues: {
+      planId: PLANS[0].id,
+      name: "",
+      slug: "",
+      websiteUrl: "",
+    },
   });
   const router = useRouter();
 
@@ -32,13 +46,13 @@ export const NewOrganizationForm = () => {
       const result = await createOrganizationAction(values);
 
       if (!isActionSuccessful(result)) {
-        toast.error(result?.serverError ?? "Failed to invite user");
+        toast.error(result?.serverError ?? "Failed to create organization");
         return;
       }
 
       router.refresh();
       form.reset(result.data as NewOrganizationSchemaType);
-      router.push(result.data.slug);
+      router.push(`/orgs/${result.data.slug}`);
     },
   });
 
@@ -66,6 +80,7 @@ export const NewOrganizationForm = () => {
                       field.onChange(e);
                       form.setValue("slug", formatId(e.target.value));
                     }}
+                    value={field.value || ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -88,6 +103,7 @@ export const NewOrganizationForm = () => {
                       field.onChange(e);
                       form.setValue("slug", formatId(e.target.value));
                     }}
+                    value={field.value || ""}
                   />
                 </FormControl>
                 <FormDescription>
@@ -120,9 +136,61 @@ export const NewOrganizationForm = () => {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="websiteUrl"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Website URL</FormLabel>
+                <FormControl>
+                  <Input
+                    type="url"
+                    {...field}
+                    className="input"
+                    placeholder="Enter organization website URL"
+                  />
+                </FormControl>
+                <FormDescription>
+                  The official website of your organization.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="planId"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Select Plan</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a plan" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {PLANS.map((plan) => (
+                      <SelectItem key={plan.id} value={plan.id}>
+                        {plan.name} - ${plan.price}/{plan.type || "month"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </CardContent>
         <CardFooter className="flex justify-end border-t border-border bg-background pt-6">
-          <LoadingButton type="submit" size="lg">
+          <LoadingButton
+            type="submit"
+            size="lg"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
             Create organization
           </LoadingButton>
         </CardFooter>
