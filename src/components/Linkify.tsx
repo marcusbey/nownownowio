@@ -8,11 +8,11 @@ interface LinkifyProps {
 
 export default function Linkify({ children }: LinkifyProps) {
   return (
-    <LinkifyUsername>
+    <Linkifyname>
       <LinkifyHashtag>
         <LinkifyUrl>{children}</LinkifyUrl>
       </LinkifyHashtag>
-    </LinkifyUsername>
+    </Linkifyname>
   );
 }
 
@@ -22,12 +22,12 @@ function LinkifyUrl({ children }: LinkifyProps) {
   );
 }
 
-function LinkifyUsername({ children }: LinkifyProps) {
+function Linkifyname({ children }: LinkifyProps) {
   return (
     <LinkIt
       regex={/(@[a-zA-Z0-9_-]+)/}
       component={(match, key) => (
-        <UserLinkWithTooltip key={key} username={match.slice(1)}>
+        <UserLinkWithTooltip key={key} name={match.slice(1)}>
           {match}
         </UserLinkWithTooltip>
       )}

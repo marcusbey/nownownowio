@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
           },
           {
             user: {
-              username: {
+              name: {
                 search: searchQuery,
               },
             },

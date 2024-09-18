@@ -4,7 +4,7 @@ const requiredString = z.string().trim().min(1, "Required");
 
 export const signUpSchema = z.object({
   email: requiredString.email("Invalid email address"),
-  username: requiredString.regex(
+  name: requiredString.regex(
     /^[a-zA-Z0-9_-]+$/,
     "Only letters, numbers, - and _ allowed",
   ),
@@ -14,7 +14,7 @@ export const signUpSchema = z.object({
 export type SignUpValues = z.infer<typeof signUpSchema>;
 
 export const loginSchema = z.object({
-  username: requiredString,
+  name: requiredString,
   password: requiredString,
 });
 

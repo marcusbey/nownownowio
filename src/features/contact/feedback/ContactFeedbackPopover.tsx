@@ -32,8 +32,9 @@ type ContactFeedbackPopoverProps = PropsWithChildren;
 
 export const ContactFeedbackPopover = (props: ContactFeedbackPopoverProps) => {
   const [open, setOpen] = useState(false);
-  const session = useSession();
-  const email = session.data?.user.email ?? "";
+  const { data: session } = useSession();
+  const email = session?.user?.email ?? "";
+  console.log("Session:", session);
   const form = useZodForm({
     schema: ContactFeedbackSchema,
     defaultValues: {

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 export function getUserDataSelect(loggedInUserId: string) {
   return {
     id: true,
-    username: true,
+    name: true,
     displayName: true,
     avatarUrl: true,
     bio: true,
@@ -89,7 +89,7 @@ export interface CommentsPage {
 export const notificationsInclude = {
   issuer: {
     select: {
-      username: true,
+      name: true,
       displayName: true,
       avatarUrl: true,
     },

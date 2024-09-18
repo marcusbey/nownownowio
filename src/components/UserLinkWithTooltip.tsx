@@ -9,17 +9,16 @@ import { PropsWithChildren } from "react";
 import UserTooltip from "./UserTooltip";
 
 interface UserLinkWithTooltipProps extends PropsWithChildren {
-  username: string;
+  name: string;
 }
 
 export default function UserLinkWithTooltip({
   children,
-  username,
+  name,
 }: UserLinkWithTooltipProps) {
   const { data } = useQuery({
-    queryKey: ["user-data", username],
-    queryFn: () =>
-      kyInstance.get(`/api/users/username/${username}`).json<UserData>(),
+    queryKey: ["user-data", name],
+    queryFn: () => kyInstance.get(`/api/users/name/${name}`).json<UserData>(),
     retry(failureCount, error) {
       if (error instanceof HTTPError && error.response.status === 404) {
         return false;
@@ -31,10 +30,7 @@ export default function UserLinkWithTooltip({
 
   if (!data) {
     return (
-      <Link
-        href={`/users/${username}`}
-        className="text-primary hover:underline"
-      >
+      <Link href={`/users/${name}`} className="text-primary hover:underline">
         {children}
       </Link>
     );
@@ -42,10 +38,7 @@ export default function UserLinkWithTooltip({
 
   return (
     <UserTooltip user={data}>
-      <Link
-        href={`/users/${username}`}
-        className="text-primary hover:underline"
-      >
+      <Link href={`/users/${name}`} className="text-primary hover:underline">
         {children}
       </Link>
     </UserTooltip>

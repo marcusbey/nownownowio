@@ -21,15 +21,19 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   const logout = useMutation({
     mutationFn: () => signOut(),
   });
-  const session = useSession();
+  const { data: session } = useSession();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>
-          <Typography variant="small">{session.data?.user.name}</Typography>
-          <Typography variant="muted">{session.data?.user.email}</Typography>
+          <Typography variant="small">
+            {session?.user?.name || "User"}
+          </Typography>
+          <Typography variant="muted">
+            {session?.user?.email || "No email"}
+          </Typography>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

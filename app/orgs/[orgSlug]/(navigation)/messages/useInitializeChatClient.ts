@@ -1,5 +1,4 @@
-import kyInstance from "@/lib/ky";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { StreamChat } from "stream-chat";
 import { useSession } from "../SessionProvider";
 
@@ -14,7 +13,7 @@ export default function useInitializeChatClient() {
   //     .connectUser(
   //       {
   //         id: user.id,
-  //         username: user.username,
+  //         name: user.name,
   //         name: user.displayName,
   //         image: user.avatarUrl,
   //       },
@@ -34,7 +33,7 @@ export default function useInitializeChatClient() {
   //       .catch((error) => console.error("Failed to disconnect user", error))
   //       .then(() => console.log("Connection closed"));
   //   };
-  // }, [user.id, user.username, user.displayName, user.avatarUrl]);
+  // }, [user.id, user.name, user.displayName, user.avatarUrl]);
 
   return chatClient;
 }
