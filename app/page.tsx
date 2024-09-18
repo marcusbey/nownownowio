@@ -4,7 +4,7 @@ import { SectionDivider } from "@/features/landing/SectionDivider";
 import { StatsSection } from "@/features/landing/StatsSection";
 import { Footer } from "@/features/layout/Footer";
 
-export default function HomePage() {
+export default function LandingPage() {
   return (
     <div className="relative flex h-fit flex-col bg-background text-foreground">
       <div className="mt-16"></div>
