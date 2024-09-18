@@ -1,4 +1,6 @@
 import type { User } from "@prisma/client";
+import { Session } from "next-auth";
+import { cache } from "react";
 import { baseAuth } from "./auth";
 
 export class AuthError extends Error {
@@ -27,3 +29,25 @@ export const requiredAuth = async () => {
 
   return user;
 };
+
+
+export const validateRequest = cache(
+  async (): Promise<
+    { user: User; session: Session } | { user: null; session: null }
+  > => {
+    const session = await baseAuth();
+
+    if (session?.user) {
+      const user = session.user as User;
+      return {
+        user,
+        session,
+      };
+    }
+
+    return {
+      user: null,
+      session: null,
+    };
+  }
+);

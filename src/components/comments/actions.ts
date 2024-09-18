@@ -1,6 +1,6 @@
 "use server";
 
-import { validateRequest } from "@/auth";
+import { validateRequest } from "@/lib/auth/helper";
 import prisma from "@/lib/prisma";
 import { getCommentDataInclude, PostData } from "@/lib/types";
 import { createCommentSchema } from "@/lib/validation";
@@ -29,15 +29,15 @@ export async function submitComment({
     }),
     ...(post.user.id !== user.id
       ? [
-          prisma.notification.create({
-            data: {
-              issuerId: user.id,
-              recipientId: post.user.id,
-              postId: post.id,
-              type: "COMMENT",
-            },
-          }),
-        ]
+        prisma.notification.create({
+          data: {
+            issuerId: user.id,
+            recipientId: post.user.id,
+            postId: post.id,
+            type: "COMMENT",
+          },
+        }),
+      ]
       : []),
   ]);
 

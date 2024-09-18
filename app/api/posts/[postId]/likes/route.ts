@@ -1,4 +1,4 @@
-import { validateRequest } from "@/auth";
+import { validateRequest } from "@/lib/auth/helper";
 import prisma from "@/lib/prisma";
 import { LikeInfo } from "@/lib/types";
 
@@ -86,15 +86,15 @@ export async function POST(
       }),
       ...(loggedInUser.id !== post.userId
         ? [
-            prisma.notification.create({
-              data: {
-                issuerId: loggedInUser.id,
-                recipientId: post.userId,
-                postId,
-                type: "LIKE",
-              },
-            }),
-          ]
+          prisma.notification.create({
+            data: {
+              issuerId: loggedInUser.id,
+              recipientId: post.userId,
+              postId,
+              type: "LIKE",
+            },
+          }),
+        ]
         : []),
     ]);
 

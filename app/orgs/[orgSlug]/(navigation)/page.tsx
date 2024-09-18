@@ -1,43 +1,28 @@
-import { buttonVariants } from "@/components/ui/button";
-import {
-  Layout,
-  LayoutActions,
-  LayoutContent,
-  LayoutHeader,
-  LayoutTitle,
-} from "@/features/page/layout";
-import { isInRoles } from "@/lib/organizations/isInRoles";
-import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
-import type { PageParams } from "@/types/next";
-import Link from "next/link";
-import InformationCards from "./InformationCards";
-import { SubscribersChart } from "./SubscribersChart";
+import PostEditor from "@/components/posts/editor/PostEditor";
+import TrendsSidebar from "@/components/TrendsSidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FollowingFeed from "./FollowingFeed";
+import ForYouFeed from "./ForYouFeed";
 
-export default async function RoutePage(
-  props: PageParams<{
-    orgSlug: string;
-  }>,
-) {
-  const org = await getRequiredCurrentOrgCache();
+export default function Home() {
   return (
-    <Layout>
-      <LayoutHeader>
-        <LayoutTitle>Dashboard</LayoutTitle>
-      </LayoutHeader>
-      <LayoutActions>
-        {isInRoles(org.roles, ["ADMIN"]) ? (
-          <Link
-            href={`/orgs/${props.params.orgSlug}/settings/members`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Invite member
-          </Link>
-        ) : null}
-      </LayoutActions>
-      <LayoutContent className="flex flex-col gap-4 lg:gap-8">
-        <InformationCards />
-        <SubscribersChart />
-      </LayoutContent>
-    </Layout>
+    <main className="flex w-full min-w-0 gap-5">
+      <div className="w-full min-w-0 space-y-5">
+        <PostEditor />
+        <Tabs defaultValue="for-you">
+          <TabsList>
+            <TabsTrigger value="for-you">For you</TabsTrigger>
+            <TabsTrigger value="following">Following</TabsTrigger>
+          </TabsList>
+          <TabsContent value="for-you">
+            <ForYouFeed />
+          </TabsContent>
+          <TabsContent value="following">
+            <FollowingFeed />
+          </TabsContent>
+        </Tabs>
+      </div>
+      <TrendsSidebar />
+    </main>
   );
 }

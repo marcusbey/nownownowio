@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "@/app/(main)/SessionProvider";
+import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import { FollowerInfo, UserData } from "@/lib/types";
 import Link from "next/link";
 import { PropsWithChildren } from "react";

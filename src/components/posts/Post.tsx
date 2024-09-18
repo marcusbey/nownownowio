@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "@/app/(main)/SessionProvider";
+import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import { PostData } from "@/lib/types";
 import { cn, formatRelativeDate } from "@/lib/utils";
 import { Media } from "@prisma/client";

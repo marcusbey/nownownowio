@@ -1,4 +1,4 @@
-import { useSession } from "@/app/(main)/SessionProvider";
+import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import { CommentData } from "@/lib/types";
 import { formatRelativeDate } from "@/lib/utils";
 import Link from "next/link";

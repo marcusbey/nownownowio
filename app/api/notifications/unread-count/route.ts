@@ -1,4 +1,4 @@
-import { validateRequest } from "@/auth";
+import { validateRequest } from "@/lib/auth/helper";
 import prisma from "@/lib/prisma";
 import { NotificationCountInfo } from "@/lib/types";
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { validateRequest } from "@/auth";
+import { validateRequest } from "@/lib/auth/helper";
 import prisma from "@/lib/prisma";
 import { getPostDataInclude } from "@/lib/types";
 

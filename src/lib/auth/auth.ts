@@ -71,3 +71,5 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   // 🔑 Add this line and the import to add credentials provider
   jwt: credentialsOverrideJwt,
 }));
+
+
