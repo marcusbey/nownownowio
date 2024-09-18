@@ -1,12 +1,12 @@
 "use server";
 
+import AccountAskDeletionEmail from "@/email/AccountAskDeletion.email";
+import AccountConfirmDeletionEmail from "@/email/AccountConfirmDeletion.email";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
 import { deleteOrganizationQuery } from "@/query/org/org-delete.query";
-import AccountAskDeletionEmail from "@email/AccountAskDeletion.email";
-import AccountConfirmDeletionEmail from "@email/AccountConfirmDeletion.email";
 import { addHours } from "date-fns";
 import { nanoid } from "nanoid";
 import { z } from "zod";
