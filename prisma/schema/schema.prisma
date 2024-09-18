@@ -17,15 +17,22 @@ model User {
   email           String    @unique
   emailVerified   DateTime?
   image           String?
-  // Resend email
   resendContactId String?
-  // For the Credentials provider
   passwordHash    String?
 
   sessions      Session[]
   accounts      Account[]
   feedbacks     Feedback[]
   organizations OrganizationMembership[]
+
+  posts               Post[]
+  comments            Comment[]
+  likes               Like[]
+  bookmarks           Bookmark[]
+  following           Follow[]       @relation("Following")
+  followers           Follow[]       @relation("Followers")
+  notifications       Notification[] @relation("Recipient")
+  issuedNotifications Notification[] @relation("Issuer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,4 +53,102 @@ model Feedback {
 enum UserPlan {
   FREE
   PREMIUM
+}
+
+model Follow {
+  id          String @id @default(nanoid(11))
+  followerId  String
+  followingId String
+  follower    User   @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Post {
+  id                  String         @id @default(nanoid(11))
+  content             String
+  userId              String
+  createdAt           DateTime       @default(now())
+  bookmarks           Bookmark[]
+  comments            Comment[]
+  likes               Like[]
+  linkedNotifications Notification[]
+  attachments         Media[]
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("posts")
+}
+
+model Media {
+  id        String    @id @default(nanoid(11))
+  postId    String?
+  type      MediaType
+  url       String
+  createdAt DateTime  @default(now())
+  post      Post?     @relation(fields: [postId], references: [id])
+
+  @@map("post_media")
+}
+
+model Comment {
+  id        String   @id @default(nanoid(11))
+  content   String
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Like {
+  id     String @id @default(nanoid(11))
+  userId String
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+model Bookmark {
+  id        String   @id @default(nanoid(11))
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("bookmarks")
+}
+
+model Notification {
+  id          String           @id @default(nanoid(11))
+  recipientId String
+  issuerId    String
+  postId      String?
+  type        NotificationType
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  issuer      User             @relation("Issuer", fields: [issuerId], references: [id], onDelete: Cascade)
+  post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  recipient   User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum NotificationType {
+  LIKE
+  FOLLOW
+  COMMENT
 }

@@ -12,6 +12,7 @@ import { ORGANIZATION_LINKS } from "./org-navigation.links";
 export type NavigationLink = {
   href: string;
   icon: React.ComponentType;
+  group?: string;
   label: string;
   roles?: OrganizationMembershipRole[];
 };

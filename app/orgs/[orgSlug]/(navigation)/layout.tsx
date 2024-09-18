@@ -3,61 +3,64 @@ import { buttonVariants } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { NavigationWrapper } from "@/features/navigation/NavigationWrapper";
 import { Layout } from "@/features/page/layout";
-import { auth } from "@/lib/auth/helper";
+import { auth, validateRequest } from "@/lib/auth/helper";
 import { getCurrentOrgCache } from "@/lib/react/cache";
 import type { LayoutParams } from "@/types/next";
 import { Rabbit } from "lucide-react";
 import Link from "next/link";
 import { OrgNavigation } from "./_navigation/OrgNavigation";
+import SessionProvider from "./SessionProvider";
 
 export default async function RouteLayout(
   props: LayoutParams<{ orgSlug: string }>,
 ) {
   const org = await getCurrentOrgCache();
+  const session = await validateRequest();
 
   if (!org) {
     const user = await auth();
     return (
-      <NavigationWrapper>
-        <Layout>
-          <Alert>
-            <Rabbit className="size-4" />
-            <div>
-              <Typography variant="large">
-                Oh! You are not logged in or the organization with the ID{" "}
-                <Typography variant="code">{props.params.orgSlug}</Typography>{" "}
-                was not found.
-              </Typography>
-              {user ? (
-                <Link
-                  href="/orgs"
-                  className={buttonVariants({
-                    className: "mt-2",
-                  })}
-                >
-                  Return to your organizations
-                </Link>
-              ) : (
-                <Link
-                  href="/auth/signin"
-                  className={buttonVariants({
-                    className: "mt-2",
-                  })}
-                >
-                  Sign in
-                </Link>
-              )}
-            </div>
-          </Alert>
-        </Layout>
-      </NavigationWrapper>
+      <SessionProvider value={session}>
+        <NavigationWrapper>
+          <Layout>
+            <Alert>
+              <Rabbit className="size-4" />
+              <div>
+                <Typography variant="large">
+                  Oh! You are not logged in or the organization with the ID{" "}
+                  <Typography variant="code">{props.params.orgSlug}</Typography>{" "}
+                  was not found.
+                </Typography>
+                {user ? (
+                  <Link
+                    href="/orgs"
+                    className={buttonVariants({
+                      className: "mt-2",
+                    })}
+                  >
+                    Return to your organizations
+                  </Link>
+                ) : (
+                  <Link
+                    href="/auth/signin"
+                    className={buttonVariants({
+                      className: "mt-2",
+                    })}
+                  >
+                    Sign in
+                  </Link>
+                )}
+              </div>
+            </Alert>
+          </Layout>
+        </NavigationWrapper>
+      </SessionProvider>
     );
   }
 
   return <OrgNavigation>{props.children}</OrgNavigation>;
 }
 
-// <SessionProvider value={session}>
 //   <div className="flex min-h-screen flex-col">
 //     <Navbar />
 //     <div className="mx-auto flex w-full max-w-7xl grow gap-5 p-5">
@@ -66,4 +69,3 @@ export default async function RouteLayout(
 //     </div>
 //     <MenuBar className="sticky bottom-0 flex w-full justify-center gap-5 border-t bg-card p-3 sm:hidden" />
 //   </div>
-// </SessionProvider>;
