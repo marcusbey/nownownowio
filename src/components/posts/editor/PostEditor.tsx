@@ -19,6 +19,10 @@ import useMediaUpload, { Attachment } from "./useMediaUpload";
 export default function PostEditor() {
   const { user } = useSession();
 
+  if (!user) {
+    return <div>Loading...</div>; // Or any other appropriate loading state
+  }
+
   const mutation = useSubmitPostMutation();
 
   const {
@@ -78,7 +82,10 @@ export default function PostEditor() {
   return (
     <div className="flex flex-col gap-5 rounded-2xl bg-card p-5 shadow-sm">
       <div className="flex gap-5">
-        <UserAvatar avatarUrl={user.avatarUrl} className="hidden sm:inline" />
+        <UserAvatar
+          avatarUrl={user.image ?? null}
+          className="hidden sm:inline"
+        />
         <div {...rootProps} className="w-full">
           <EditorContent
             editor={editor}

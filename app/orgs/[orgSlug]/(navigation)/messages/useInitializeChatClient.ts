@@ -15,7 +15,7 @@ export default function useInitializeChatClient() {
   //         id: user.id,
   //         name: user.name,
   //         name: user.displayName,
-  //         image: user.avatarUrl,
+  //         image: user.image,
   //       },
   //       async () =>
   //         kyInstance
@@ -33,7 +33,7 @@ export default function useInitializeChatClient() {
   //       .catch((error) => console.error("Failed to disconnect user", error))
   //       .then(() => console.log("Connection closed"));
   //   };
-  // }, [user.id, user.name, user.displayName, user.avatarUrl]);
+  // }, [user.id, user.name, user.displayName, user.image]);
 
   return chatClient;
 }

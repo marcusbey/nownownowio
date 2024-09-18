@@ -66,9 +66,15 @@ export const SignInProviders = () => {
 
       <div className="flex flex-col gap-2 lg:gap-4">
         {/* ℹ️ Add provider you want to support here */}
-        {providers.github ? <ProviderButton providerId="github" /> : null}
-        {providers.google ? <ProviderButton providerId="google" /> : null}
-        {providers.twitter ? <ProviderButton providerId="twitter" /> : null}
+        {providers.github ? (
+          <ProviderButton providerId="github" action="signin" />
+        ) : null}
+        {providers.google ? (
+          <ProviderButton providerId="google" action="signin" />
+        ) : null}
+        {providers.twitter ? (
+          <ProviderButton providerId="twitter" action="signin" />
+        ) : null}
       </div>
 
       {providers.credentials ? (

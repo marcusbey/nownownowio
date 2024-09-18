@@ -18,7 +18,7 @@ export const fileRouter = {
       return { user };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      const oldAvatarUrl = metadata.user.avatarUrl;
+      const oldAvatarUrl = metadata.user.image;
 
       if (oldAvatarUrl) {
         const key = oldAvatarUrl.split(

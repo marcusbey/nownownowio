@@ -1,6 +1,7 @@
 import type { User } from "@prisma/client";
 import { Session } from "next-auth";
 import { cache } from "react";
+import { logger } from "../logger";
 import { baseAuth } from "./auth";
 
 export class AuthError extends Error {
@@ -10,8 +11,9 @@ export class AuthError extends Error {
 }
 
 export const auth = async () => {
+  console.log("Calling baseAuth...");
   const session = await baseAuth();
-
+  console.log("Session result:", session);
   if (session?.user) {
     const user = session.user as User;
     return user;
@@ -21,13 +23,19 @@ export const auth = async () => {
 };
 
 export const requiredAuth = async () => {
-  const user = await auth();
+  try {
+    const user = await auth();
 
-  if (!user) {
-    throw new AuthError("You must be authenticated to access this resource.");
+    if (!user) {
+      logger.error("Authentication failed: No user returned from auth()");
+      throw new AuthError("You must be authenticated to access this resource.");
+    }
+
+    return user;
+  } catch (error) {
+    logger.error("Authentication error:", error);
+    throw new AuthError("An error occurred during authentication.");
   }
-
-  return user;
 };
 
 

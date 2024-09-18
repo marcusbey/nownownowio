@@ -13,19 +13,18 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - admin (admin path)
+     * - orgs and orgs/new to prevent redirect loops
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|admin).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|admin|orgs|orgs/new).*)",
   ],
 };
 
 export function middleware(req: NextRequest) {
   // Inject the current URL inside the request headers
-  // Useful to get the parameters of the current request
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
-  // This settings is used to redirect the user to the organization page if he is logged in
-  // The landing page is still accessible with the /home route
+  // Redirect to /orgs if accessing the root and landing redirection is enabled
   if (
     req.nextUrl.pathname === "/" &&
     SiteConfig.features.enableLandingRedirection
@@ -36,7 +35,7 @@ export function middleware(req: NextRequest) {
     if (authCookie) {
       const url = new URL(req.url);
       url.pathname = "/orgs";
-      return NextResponse.redirect(url.toString());
+      return NextResponse.redirect(url.toString(), { headers: requestHeaders });
     }
   }
 

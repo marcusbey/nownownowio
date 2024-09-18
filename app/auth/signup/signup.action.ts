@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/credentials-provider";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { LoginCredentialsFormScheme } from "./signup.schema";
 
 export const signUpAction = action
@@ -38,7 +39,10 @@ export const signUpAction = action
         },
       });
 
-      setupDefaultOrganizationsOrInviteUser(user);
+      await setupDefaultOrganizationsOrInviteUser(user);
+
+      // Redirect to the appropriate page
+      redirect("/orgs");
 
       return user;
     } catch {
