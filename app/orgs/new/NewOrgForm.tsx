@@ -43,16 +43,19 @@ export const NewOrganizationForm = () => {
 
   const mutation = useMutation({
     mutationFn: async (values: NewOrganizationSchemaType) => {
+      console.log("Values being sent to backend:", values);
       const result = await createOrganizationAction(values);
 
       if (!isActionSuccessful(result)) {
+        console.log("Error from backend:", result);
         toast.error(result?.serverError ?? "Failed to create organization");
         return;
       }
 
+      console.log("Successful result:", result);
       router.refresh();
       form.reset(result.data as NewOrganizationSchemaType);
-      router.push(`/orgs/${result.data.slug}`);
+      router.push(result.data.slug);
     },
   });
 
