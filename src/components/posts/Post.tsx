@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import { PostData } from "@/lib/types";
 import { cn, formatRelativeDate } from "@/lib/utils";
 import { Media } from "@prisma/client";
 import { MessageSquare } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -21,7 +21,8 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
-  const { user } = useSession();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const [showComments, setShowComments] = useState(false);
 
@@ -52,7 +53,7 @@ export default function Post({ post }: PostProps) {
             </Link>
           </div>
         </div>
-        {post.user.id === user.id && (
+        {user && post.user.id === user.id && (
           <PostMoreButton
             post={post}
             className="opacity-0 transition-opacity group-hover/post:opacity-100"
@@ -72,7 +73,9 @@ export default function Post({ post }: PostProps) {
             postId={post.id}
             initialState={{
               likes: post._count.likes,
-              isLikedByUser: post.likes.some((like) => like.userId === user.id),
+              isLikedByUser: post.likes.some(
+                (like) => like.userId === user?.id,
+              ),
             }}
           />
           <CommentButton
@@ -84,7 +87,7 @@ export default function Post({ post }: PostProps) {
           postId={post.id}
           initialState={{
             isBookmarkedByUser: post.bookmarks.some(
-              (bookmark) => bookmark.userId === user.id,
+              (bookmark) => bookmark.userId === user?.id,
             ),
           }}
         />

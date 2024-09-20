@@ -1,4 +1,3 @@
-import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import { useToast } from "@/components/ui/use-toast";
 import { PostsPage } from "@/lib/types";
 import {
@@ -7,6 +6,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { submitPost } from "./actions";
 
 export function useSubmitPostMutation() {
@@ -14,7 +14,7 @@ export function useSubmitPostMutation() {
 
   const queryClient = useQueryClient();
 
-  const { user } = useSession();
+  const { data: session } = useSession();
 
   const mutation = useMutation({
     mutationFn: submitPost,
@@ -25,7 +25,7 @@ export function useSubmitPostMutation() {
           return (
             query.queryKey.includes("for-you") ||
             (query.queryKey.includes("user-posts") &&
-              query.queryKey.includes(user.id))
+              query.queryKey.includes(session?.user?.id))
           );
         },
       } satisfies QueryFilters;

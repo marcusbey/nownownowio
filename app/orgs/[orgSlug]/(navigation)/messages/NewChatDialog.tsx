@@ -11,10 +11,10 @@ import UserAvatar from "@/components/UserAvatar";
 import useDebounce from "@/hooks/useDebounce";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, Loader2, SearchIcon, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { UserResponse } from "stream-chat";
 import { DefaultStreamChatGenerics, useChatContext } from "stream-chat-react";
-import { useSession } from "../SessionProvider";
 
 interface NewChatDialogProps {
   onOpenChange: (open: boolean) => void;
@@ -29,7 +29,8 @@ export default function NewChatDialog({
 
   const { toast } = useToast();
 
-  const { user: loggedInUser } = useSession();
+  const { data: session } = useSession();
+  const loggedInUser = session?.user;
 
   const [searchInput, setSearchInput] = useState("");
   const searchInputDebounced = useDebounce(searchInput);
@@ -43,7 +44,7 @@ export default function NewChatDialog({
     queryFn: async () =>
       client.queryUsers(
         {
-          id: { $ne: loggedInUser.id },
+          id: { $ne: loggedInUser?.id },
           role: { $ne: "admin" },
           ...(searchInputDebounced
             ? {
@@ -57,15 +58,17 @@ export default function NewChatDialog({
         { name: 1, username: 1 },
         { limit: 15 },
       ),
+    enabled: !!loggedInUser,
   });
 
   const mutation = useMutation({
     mutationFn: async () => {
+      if (!loggedInUser) throw new Error("User not logged in");
       const channel = client.channel("messaging", {
         members: [loggedInUser.id, ...selectedUsers.map((u) => u.id)],
         name:
           selectedUsers.length > 1
-            ? loggedInUser.displayName +
+            ? loggedInUser.name +
               ", " +
               selectedUsers.map((u) => u.name).join(", ")
             : undefined,
@@ -86,6 +89,10 @@ export default function NewChatDialog({
     },
   });
 
+  if (!loggedInUser) {
+    return null; // Or some loading state / redirect logic
+  }
+
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="bg-card p-0">
@@ -94,7 +101,7 @@ export default function NewChatDialog({
         </DialogHeader>
         <div>
           <div className="group relative">
-            <SearchIcon className="absolute left-5 top-1/2 size-5 -translate-y-1/2 transform text-muted-foreground group-focus-within:text-primary" />
+            <SearchIcon className="absolute left-5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary" />
             <input
               placeholder="Search users..."
               className="h-12 w-full pe-4 ps-14 focus:outline-none"

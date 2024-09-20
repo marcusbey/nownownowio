@@ -1,6 +1,6 @@
-import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import { CommentData } from "@/lib/types";
 import { formatRelativeDate } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import UserAvatar from "../UserAvatar";
 import UserTooltip from "../UserTooltip";
@@ -11,7 +11,8 @@ interface CommentProps {
 }
 
 export default function Comment({ comment }: CommentProps) {
-  const { user } = useSession();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   return (
     <div className="group/comment flex gap-3 py-3">
@@ -38,7 +39,7 @@ export default function Comment({ comment }: CommentProps) {
         </div>
         <div>{comment.content}</div>
       </div>
-      {comment.user.id === user.id && (
+      {user && comment.user.id === user.id && (
         <CommentMoreButton
           comment={comment}
           className="ms-auto opacity-0 transition-opacity group-hover/comment:opacity-100"

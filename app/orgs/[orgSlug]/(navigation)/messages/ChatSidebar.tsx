@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { MailPlus, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import {
   ChannelList,
@@ -9,7 +10,6 @@ import {
   ChannelPreviewUIComponentProps,
   useChatContext,
 } from "stream-chat-react";
-import { useSession } from "../SessionProvider";
 import NewChatDialog from "./NewChatDialog";
 
 interface ChatSidebarProps {
@@ -18,7 +18,8 @@ interface ChatSidebarProps {
 }
 
 export default function ChatSidebar({ open, onClose }: ChatSidebarProps) {
-  const { user } = useSession();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const queryClient = useQueryClient();
 
@@ -42,6 +43,10 @@ export default function ChatSidebar({ open, onClose }: ChatSidebarProps) {
     ),
     [onClose],
   );
+
+  if (!user) {
+    return null; // Or some loading state / redirect logic
+  }
 
   return (
     <div

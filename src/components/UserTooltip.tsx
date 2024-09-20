@@ -1,7 +1,7 @@
 "use client";
 
-import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import { FollowerInfo, UserData } from "@/lib/types";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 import FollowButton from "./FollowButton";
@@ -20,12 +20,13 @@ interface UserTooltipProps extends PropsWithChildren {
 }
 
 export default function UserTooltip({ children, user }: UserTooltipProps) {
-  const { user: loggedInUser } = useSession();
+  const { data: session } = useSession();
+  const loggedInUser = session?.user;
 
   const followerState: FollowerInfo = {
     followers: user._count.followers,
     isFollowedByUser: !!user.followers.some(
-      ({ followerId }) => followerId === loggedInUser.id,
+      ({ followerId }) => followerId === loggedInUser?.id,
     ),
   };
 
@@ -39,7 +40,7 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
               <Link href={`/users/${user.name}`}>
                 <UserAvatar size={70} avatarUrl={user.image} />
               </Link>
-              {loggedInUser.id !== user.id && (
+              {loggedInUser && loggedInUser.id !== user.id && (
                 <FollowButton userId={user.id} initialState={followerState} />
               )}
             </div>

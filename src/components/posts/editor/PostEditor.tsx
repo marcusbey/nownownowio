@@ -1,6 +1,5 @@
 "use client";
 
-import { useSession } from "@/app/orgs/[orgSlug]/(navigation)/SessionProvider";
 import LoadingButton from "@/components/LoadingButton";
 import { Button } from "@/components/ui/button";
 import UserAvatar from "@/components/UserAvatar";
@@ -10,6 +9,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useDropzone } from "@uploadthing/react";
 import { ImageIcon, Loader2, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { ClipboardEvent, useRef } from "react";
 import { useSubmitPostMutation } from "./mutations";
@@ -17,11 +17,8 @@ import "./styles.css";
 import useMediaUpload, { Attachment } from "./useMediaUpload";
 
 export default function PostEditor() {
-  const { user } = useSession();
-
-  if (!user) {
-    return <div>Loading...</div>; // Or any other appropriate loading state
-  }
+  const { data: session, status } = useSession();
+  const user = session?.user;
 
   const mutation = useSubmitPostMutation();
 
@@ -77,6 +74,14 @@ export default function PostEditor() {
       .filter((item) => item.kind === "file")
       .map((item) => item.getAsFile()) as File[];
     startUpload(files);
+  }
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <div>Please sign in to create a post.</div>;
   }
 
   return (

@@ -43,7 +43,7 @@ export const ORGANIZATION_LINKS = [
     title: "SETTINGS",
     links: [
       {
-        href: orgPath,
+        href: `${orgPath}/dashboard`,
         icon: LayoutDashboard,
         label: "Dashboard",
       },
