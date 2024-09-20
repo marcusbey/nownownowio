@@ -10,22 +10,23 @@ import { ACCOUNT_LINKS } from "../../../../(logged-in)/(account-layout)/account-
 import { ORGANIZATION_LINKS } from "./org-navigation.links";
 
 export type NavigationLink = {
-  href: string;
-  icon: React.ComponentType;
-  label: string;
-  roles?: OrganizationMembershipRole[];
+  title: string;
+  links: {
+    href: string;
+    icon: React.ComponentType;
+    label: string;
+    roles?: OrganizationMembershipRole[];
+  }[];
 };
 
-const useCurrentPath = (
-  links: { href: string }[],
-  organizationSlug?: string,
-) => {
+const useCurrentPath = (links: NavigationLink[], organizationSlug?: string) => {
   const currentPath = usePathname()
     .replace(`:organizationSlug`, organizationSlug ?? "")
     .split("/")
     .filter(Boolean);
 
-  const linkMatchCounts = links.map((link) => {
+  const allLinks = links.flatMap((group) => group.links);
+  const linkMatchCounts = allLinks.map((link) => {
     return {
       url: link.href,
       matchCount: link.href
@@ -43,7 +44,7 @@ const useCurrentPath = (
     { url: "", matchCount: 0 },
   );
 
-  return mostMatchingLink.url || links[0].href;
+  return mostMatchingLink.url || allLinks[0].href;
 };
 
 const NavigationLinkMapping = {
@@ -68,57 +69,69 @@ export function NavigationLinks({
 
   const currentPath = useCurrentPath(baseLinks, organizationSlug);
 
-  const links = userRoles
-    ? baseLinks.filter((link) =>
-        link.roles ? isInRoles(userRoles, link.roles) : true,
-      )
+  const filteredLinks = userRoles
+    ? baseLinks.map((group) => ({
+        ...group,
+        links: group.links.filter((link) =>
+          link.roles ? isInRoles(userRoles, link.roles) : true,
+        ),
+      }))
     : baseLinks;
 
   if (variant === "mobile") {
     return (
       <nav className="grid gap-2 text-lg font-medium">
-        {links.map((link, index) => (
-          <Link
-            key={index}
-            href={link.href.replaceAll(
-              ":organizationSlug",
-              organizationSlug ?? "",
-            )}
-            className={cn(
-              `mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2`,
-              {
-                "text-primary hover:text-primary": currentPath === link.href,
-                "text-muted-foreground hover:text-foreground":
-                  currentPath !== link.href,
-              },
-            )}
-          >
-            <link.icon className="size-5" />
-            {link.label}
-          </Link>
-        ))}
+        {filteredLinks
+          .flatMap((group) => group.links)
+          .map((link, index) => (
+            <Link
+              key={index}
+              href={link.href.replaceAll(
+                ":organizationSlug",
+                organizationSlug ?? "",
+              )}
+              className={cn(
+                `mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2`,
+                {
+                  "text-primary hover:text-primary": currentPath === link.href,
+                  "text-muted-foreground hover:text-foreground":
+                    currentPath !== link.href,
+                },
+              )}
+            >
+              <link.icon className="size-5" />
+              {link.label}
+            </Link>
+          ))}
       </nav>
     );
   }
   return (
-    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-      {links.map((link, index) => (
-        <Link
-          key={index}
-          href={link.href.replaceAll(
-            ":organizationSlug",
-            organizationSlug ?? "",
-          )}
-          className={cn(`flex items-center gap-3 rounded-lg px-3 py-2`, {
-            "text-primary hover:text-primary": currentPath === link.href,
-            "text-muted-foreground hover:text-foreground":
-              currentPath !== link.href,
-          })}
-        >
-          <link.icon className="size-4" />
-          {link.label}
-        </Link>
-      ))}
-    </nav>
+    <>
+      <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+        {filteredLinks.map((group, groupIndex) => (
+          <div key={groupIndex}>
+            <h3 className="mb-2 font-semibold">{group.title}</h3>
+            {group.links.map((link, linkIndex) => (
+              <Link
+                key={linkIndex}
+                href={link.href.replaceAll(
+                  ":organizationSlug",
+                  organizationSlug ?? "",
+                )}
+                className={cn(`flex items-center gap-3 rounded-lg px-3 py-2`, {
+                  "text-primary hover:text-primary": currentPath === link.href,
+                  "text-muted-foreground hover:text-foreground":
+                    currentPath !== link.href,
+                })}
+              >
+                <link.icon className="size-4" />
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        ))}
+      </nav>
+    </>
   );
 }
