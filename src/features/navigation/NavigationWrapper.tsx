@@ -2,6 +2,7 @@ import { LogoSvg } from "@/components/svg/LogoSvg";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Typography } from "@/components/ui/typography";
+import { ArrowUpCircle } from "lucide-react";
 import { ReactNode } from "react";
 import { ThemeToggle } from "../theme/ThemeToggle";
 import { MobileBottomMenu } from "./MobileBottomMenu";
@@ -34,12 +35,14 @@ export async function NavigationWrapper({
             </Typography>
             {logoChildren}
           </div>
-          <div className="flex-1">{navigationChildren}</div>
-          <div className="flex items-center gap-2">
+          <div className="flex-1 px-2">{navigationChildren}</div>
+          <div className="flex flex-col items-start gap-2 p-4">
             {buttomNavigationChildren}
             <ThemeToggle />
           </div>
-          <div className="mt-auto p-4">{bottomNavigationCardChildren}</div>
+          <div className="mt-auto hidden p-4 sm:block">
+            {bottomNavigationCardChildren}
+          </div>
         </div>
       </div>
       <div className="flex max-h-screen flex-col">
@@ -56,8 +59,8 @@ export async function NavigationWrapper({
             </SheetContent>
           </Sheet>
           <LogoSvg size={32} />
-          <Button size="sm" variant="outline">
-            Upgrade
+          <Button size="sm" variant="secondary" className="aspect-square p-2">
+            <ArrowUpCircle size={24} />
           </Button>
         </header>
         <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 md:gap-6 md:p-6">

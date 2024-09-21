@@ -121,14 +121,23 @@ export function NavigationLinks({
                   ":organizationSlug",
                   organizationSlug ?? "",
                 )}
-                className={cn(`flex items-center gap-3 rounded-lg px-3 py-2`, {
-                  "text-primary hover:text-primary": currentPath === link.href,
-                  "text-muted-foreground hover:text-foreground":
-                    currentPath !== link.href,
-                })}
+                className={cn(
+                  `flex items-center gap-3 rounded-lg px-3 py-2`,
+                  {
+                    "text-primary hover:text-primary":
+                      currentPath === link.href,
+                    "text-muted-foreground hover:text-foreground":
+                      currentPath !== link.href,
+                  },
+                  "justify-center md:justify-start", // Center on small screens, start-aligned on larger screens
+                )}
               >
-                <link.icon className="size-4" />
-                <span className="hidden md:inline">{link.label}</span>
+                <link.icon className="size-6 md:size-5" />{" "}
+                {/* Larger icons, especially on small screens */}
+                <span className="hidden text-base md:inline">
+                  {link.label}
+                </span>{" "}
+                {/* Slightly larger text */}
               </Link>
             ))}
           </div>
