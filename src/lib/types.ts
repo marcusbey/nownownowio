@@ -91,7 +91,7 @@ export const notificationsInclude = {
     select: {
       name: true,
       displayName: true,
-      avatarUrl: true,
+      image: true,
     },
   },
   post: {

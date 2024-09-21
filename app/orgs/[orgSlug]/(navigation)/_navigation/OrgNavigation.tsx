@@ -45,7 +45,11 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
       </div>
       <NavigationWrapper
         logoChildren={
-          <OrgsSelect currentOrgSlug={org.slug} orgs={userOrganizations} />
+          <OrgsSelect
+            currentOrgSlug={org.slug}
+            orgs={userOrganizations}
+            asTrigger={true}
+          />
         }
         navigationChildren={
           <NavigationLinks

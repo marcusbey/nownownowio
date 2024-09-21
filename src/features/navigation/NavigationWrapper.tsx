@@ -1,7 +1,10 @@
 import { LogoSvg } from "@/components/svg/LogoSvg";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Typography } from "@/components/ui/typography";
 import { ReactNode } from "react";
 import { ThemeToggle } from "../theme/ThemeToggle";
+import { MobileBottomMenu } from "./MobileBottomMenu";
 
 export async function NavigationWrapper({
   children,
@@ -40,9 +43,30 @@ export async function NavigationWrapper({
         </div>
       </div>
       <div className="flex max-h-screen flex-col">
+        {/* Mobile header */}
+        <header className="flex items-center justify-between border-b border-border p-4 sm:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <div className="flex cursor-pointer items-center">
+                {logoChildren}
+              </div>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] sm:w-[350px]">
+              {navigationChildren}
+            </SheetContent>
+          </Sheet>
+          <LogoSvg size={32} />
+          <Button size="sm" variant="outline">
+            Upgrade
+          </Button>
+        </header>
         <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 md:gap-6 md:p-6">
           {children}
         </main>
+        {/* Mobile bottom navigation */}
+        <nav className="flex items-center justify-around border-t border-border p-2 sm:hidden">
+          <MobileBottomMenu />
+        </nav>
       </div>
       <div className="hidden border-l bg-muted/40 lg:block">
         <div className="flex h-full max-h-screen flex-col px-6">
