@@ -33,19 +33,21 @@ export default function RootLayout({
         <body
           suppressHydrationWarning
           className={cn(
-            "h-full bg-background font-sans antialiased",
+            "h-full bg-background font-sans antialiased relative",
             GeistMono.variable,
             GeistSans.variable,
           )}
         >
           <Providers>
-            <NextTopLoader
-              delay={100}
-              showSpinner={false}
-              color="hsl(var(--primary))"
-            />
-            {children}
-            {modal}
+            <div className="flex h-full flex-col">
+              <NextTopLoader
+                delay={100}
+                showSpinner={false}
+                color="hsl(var(--primary))"
+              />
+              {children}
+              {modal}
+            </div>
             <TailwindIndicator />
             <FloatingLegalFooter />
           </Providers>

@@ -111,7 +111,9 @@ export function NavigationLinks({
       <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
         {filteredLinks.map((group, groupIndex) => (
           <div className="mb-4" key={groupIndex}>
-            <h3 className="mb-2 mt-4 text-xs font-semibold">{group.title}</h3>
+            <h3 className="mb-2 mt-4 hidden text-xs font-semibold md:block">
+              {group.title}
+            </h3>
             {group.links.map((link, linkIndex) => (
               <Link
                 key={linkIndex}
@@ -126,7 +128,7 @@ export function NavigationLinks({
                 })}
               >
                 <link.icon className="size-4" />
-                {link.label}
+                <span className="hidden md:inline">{link.label}</span>
               </Link>
             ))}
           </div>

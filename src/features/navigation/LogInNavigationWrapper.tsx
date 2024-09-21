@@ -23,7 +23,7 @@ export default async function AuthNavigationWrapper(props: PropsWithChildren) {
           <span>Organization...</span>
         </OrgsSelect>
       }
-      topBarCornerLeftChildren={
+      buttomNavigationChildren={
         <UserDropdown>
           <Button variant="ghost" className="size-10 rounded-full" size="sm">
             <Avatar className="size-8">

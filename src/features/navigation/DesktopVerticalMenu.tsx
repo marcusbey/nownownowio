@@ -26,7 +26,7 @@ const useCurrentPath = (links: NavigationLinkGroups[]) => {
       currentLink.matchCount > maxMatchLink.matchCount
         ? currentLink
         : maxMatchLink,
-    { url: "", matchCount: 0 }
+    { url: "", matchCount: 0 },
   );
 
   return mostMatchingLink.url;
@@ -42,34 +42,42 @@ export const DesktopVerticalMenu = ({
   const currentPath = useCurrentPath(links);
 
   return (
-    <nav className={cn("sm:flex flex-col gap-6 w-[300px] sticky top-[5.25rem] h-fit", className)}>
+    <nav
+      className={cn(
+        "sm:flex flex-col gap-6 w-[300px] sticky top-[5.25rem] h-fit",
+        className,
+      )}
+    >
       {links.map((section, index) => (
         <Fragment key={index}>
           {section.title ? (
-            <Typography variant="muted" className="px-2 hidden lg:flex mb-6 mt-6">
+            <Typography
+              variant="muted"
+              className="mb-6 mt-6 hidden px-2 lg:flex"
+            >
               {section.title}
             </Typography>
           ) : null}
-          <div className="flex flex-col gap-2 mb-6">
+          <div className="mb-6 flex flex-col gap-2">
             {section.links.map((link) => {
               const isCurrent = currentPath === link.url;
 
               return (
                 <Link
                   key={link.url}
-      className={cn(
-            "flex h-8 items-center gap-2 rounded-md px-2 text-sm transition-colors",
-            "hover:bg-gray-100 text-gray-700",
-            {
-              "bg-blue-500 hover:bg-blue-600": isCurrent,
-            }
-          )}
+                  className={cn(
+                    "flex h-8 items-center gap-2 rounded-md px-2 text-sm transition-colors",
+                    "hover:bg-gray-100 text-gray-700",
+                    {
+                      "bg-blue-500 hover:bg-blue-600": isCurrent,
+                    },
+                  )}
                   href={link.url}
                 >
                   {cloneElement(link.icon, {
                     className: "h-4 w-4",
                   })}
-                  <span className="lg:flex hidden h-8 items-center gap-2 rounded-md px-2 text-sm ">
+                  <span className="hidden h-8 items-center gap-2 rounded-md px-2 text-sm lg:flex ">
                     {link.title}
                   </span>
                 </Link>
