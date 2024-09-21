@@ -1,43 +1,18 @@
 "use client";
 
+import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/(navigation)/_navigation/org-navigation.links";
 import { cn } from "@/lib/utils";
 import { Feather } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cloneElement } from "react";
-import type { NavigationLinkGroups } from "./navigation.type";
 
-const useCurrentPath = (links: NavigationLinkGroups[] = []) => {
-  const currentPath = usePathname();
-  const pathSegments = currentPath.split("/");
-  const allDashboardLinks = links.flatMap((section) => section.links);
-
-  const linkMatchCounts = allDashboardLinks.map((link) => ({
-    url: link.url,
-    matchCount: link.url
-      .split("/")
-      .filter((segment, index) => segment === pathSegments[index]).length,
-  }));
-
-  const mostMatchingLink = linkMatchCounts.reduce(
-    (maxMatchLink, currentLink) =>
-      currentLink.matchCount > maxMatchLink.matchCount
-        ? currentLink
-        : maxMatchLink,
-    { url: "", matchCount: 0 },
-  );
-
-  return mostMatchingLink.url;
+const useCurrentPath = () => {
+  return usePathname();
 };
 
-export const MobileBottomMenu = ({
-  links = [],
-  className,
-}: {
-  links?: NavigationLinkGroups[];
-  className?: string;
-}) => {
-  const currentPath = useCurrentPath(links);
+export const MobileBottomMenu = ({ className }: { className?: string }) => {
+  const currentPath = useCurrentPath();
+  const menuItems = ORGANIZATION_LINKS[0].links.slice(0, 5);
 
   return (
     <nav
@@ -47,30 +22,28 @@ export const MobileBottomMenu = ({
       )}
     >
       <div className="flex h-16 items-center justify-around">
-        {links.flatMap((section) =>
-          section.links.map((link) => {
-            const isCurrent = currentPath === link.url;
+        {menuItems.map((link) => {
+          const isCurrent = currentPath === link.href;
 
-            return (
-              <Link
-                key={link.url}
-                className={cn(
-                  "flex flex-col items-center justify-center h-full w-full",
-                  "text-muted-foreground hover:text-foreground",
-                  {
-                    "text-primary": isCurrent,
-                  },
-                )}
-                href={link.url}
-              >
-                {cloneElement(link.icon, {
-                  className: cn("h-6 w-6", { "text-primary": isCurrent }),
-                })}
-                <span className="mt-1 text-xs">{link.title}</span>
-              </Link>
-            );
-          }),
-        )}
+          return (
+            <Link
+              key={link.href}
+              className={cn(
+                "flex flex-col items-center justify-center h-full w-full",
+                "text-muted-foreground hover:text-foreground",
+                {
+                  "text-primary": isCurrent,
+                },
+              )}
+              href={link.href}
+            >
+              <link.icon
+                className={cn("h-6 w-6", { "text-primary": isCurrent })}
+              />
+              <span className="mt-1 text-xs">{link.label}</span>
+            </Link>
+          );
+        })}
         <Link
           href="/new-post"
           className="hover:text-primary-dark flex size-full flex-col items-center justify-center text-primary"
