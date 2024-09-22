@@ -1,4 +1,6 @@
+import { generateWidgetToken } from '@/lib/widget/widgetAuth';
 import crypto from "crypto";
+import { addDays } from "date-fns";
 import { nanoid } from "nanoid";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -7,7 +9,6 @@ import type { NextRequest } from "next/server";
 import { env } from "../env";
 import { prisma } from "../prisma";
 import { AUTH_COOKIE_NAME } from "./auth.const";
-import { addDays } from "date-fns";
 
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
@@ -35,9 +36,17 @@ export const getCredentialsProvider = () => {
       password: { label: "Password", type: "password" },
     },
     async authorize(credentials) {
-      if (!credentials.email || !credentials.password) return null;
+      if (!credentials?.email || !credentials.password) {
+        return null;
+      }
 
-      // Add logic here to look up the user from the credentials supplied
+      // First, try the new credentialsSignInCallback
+      const newAuthResult = await credentialsSignInCallback(credentials);
+      if (newAuthResult) {
+        return newAuthResult;
+      }
+
+      // If the new method fails, fall back to the existing method
       const passwordHash = hashStringWithSalt(
         String(credentials.password),
         env.NEXTAUTH_SECRET,
@@ -68,49 +77,60 @@ type SignInCallback = NonNullable<NextAuthConfig["events"]>["signIn"];
 
 type JwtOverride = NonNullable<NextAuthConfig["jwt"]>;
 
-export const credentialsSignInCallback =
-  (request: NextRequest | undefined): SignInCallback =>
-  async ({ user }) => {
-    if (!request) {
-      return;
-    }
-
-    if (request.method !== "POST") {
-      return;
-    }
-
-    const currentUrl = request.url;
-
-    if (!currentUrl.includes("credentials")) {
-      return;
-    }
-
-    if (!currentUrl.includes("callback")) {
-      return;
-    }
-
-    const uuid = nanoid();
-    const expireAt = addDays(new Date(), 14);
-    await prisma.session.create({
-      data: {
-        sessionToken: uuid,
-        userId: user.id ?? "",
-        expires: expireAt,
-      },
-    });
-
-    const cookieList = cookies();
-
-    cookieList.set(AUTH_COOKIE_NAME, uuid, {
-      expires: expireAt,
-      path: "/",
-      sameSite: "lax",
-      httpOnly: true,
-      secure: env.NODE_ENV === "production",
-    });
-
+export const credentialsSignInCallback = (request: NextRequest | undefined): SignInCallback => async ({ user }) => {
+  if (!request) {
     return;
+  }
+
+  if (request.method !== "POST") {
+    return;
+  }
+
+  const currentUrl = request.url;
+
+  if (!currentUrl.includes("credentials")) {
+    return;
+  }
+
+  if (!currentUrl.includes("callback")) {
+    return;
+  }
+
+  const uuid = nanoid();
+  const expireAt = addDays(new Date(), 14);
+  await prisma.session.create({
+    data: {
+      sessionToken: uuid,
+      userId: user.id ?? "",
+      expires: expireAt,
+    },
+  });
+
+  const cookieList = cookies();
+
+  cookieList.set(AUTH_COOKIE_NAME, uuid, {
+    expires: expireAt,
+    path: "/",
+    sameSite: "lax",
+    httpOnly: true,
+    secure: env.NODE_ENV === "production",
+  });
+
+  // Generate widget token
+  const widgetToken = generateWidgetToken(user.id);
+
+  // Store the widget token in the user's session or database
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { widgetToken },
+  });
+
+  return {
+    sessionToken: uuid,
+    expiresAt: expireAt,
+    widgetToken,
   };
+};
 
 // This override cancel JWT strategy for password. (it's the default one)
 export const credentialsOverrideJwt: JwtOverride = {

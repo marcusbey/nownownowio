@@ -11,7 +11,7 @@ import Link from "next/link";
 import { MagicLinkForm } from "./MagicLinkForm";
 import { SignInCredentialsAndMagicLinkForm } from "./SignInCredentialsAndMagicLinkForm";
 
-export const SignInProviders = () => {
+const SignInProviders = () => {
   const { data: providers, isPending } = useQuery({
     queryFn: () => fetch(`/api/auth/providers`).then((res) => res.json()),
     queryKey: ["providers"],
@@ -88,3 +88,5 @@ export const SignInProviders = () => {
     </div>
   );
 };
+
+export { SignInProviders };

@@ -26,6 +26,9 @@ export function middleware(req: NextRequest) {
 
   // This settings is used to redirect the user to the organization page if he is logged in
   // The landing page is still accessible with the /home route
+
+  console.log(`Middleware processing path: ${req.nextUrl.pathname}`);
+
   if (
     req.nextUrl.pathname === "/" &&
     SiteConfig.features.enableLandingRedirection

@@ -5,6 +5,7 @@ import { LogoSvg } from "@/components/svg/LogoSvg";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -16,7 +17,7 @@ export function SignInDialog() {
 
   return (
     <Dialog
-      open={path.startsWith("/auth/signin")}
+      open={path?.startsWith("/auth/signin") ?? false}
       onOpenChange={(open) => {
         if (!open) {
           router.back();
@@ -27,6 +28,9 @@ export function SignInDialog() {
         <DialogHeader className="flex flex-col items-center justify-center gap-2">
           <LogoSvg />
           <DialogTitle>Sign in to your account</DialogTitle>
+          <DialogDescription>
+            Enter your credentials to access your account
+          </DialogDescription>
         </DialogHeader>
         <SignInProviders />
       </DialogContent>

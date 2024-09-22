@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import NowButton from "./NowButton";
 import "./NowWidgetStyle.css";
+
+const SidePanelContent = lazy(() => import("./SidePanelContent"));
 
 interface Post {
   id: string;
@@ -11,8 +13,8 @@ interface Post {
 interface WidgetConfig {
   userId: string;
   token: string;
-  theme?: 'light' | 'dark';
-  position?: 'left' | 'right';
+  theme?: "light" | "dark";
+  position?: "left" | "right";
   buttonColor?: string;
   buttonSize?: number;
 }
@@ -20,9 +22,9 @@ interface WidgetConfig {
 const NowWidget: React.FC<WidgetConfig> = ({
   userId,
   token,
-  theme = 'light',
-  position = 'right',
-  buttonColor = 'red',
+  theme = "light",
+  position = "right",
+  buttonColor = "red",
   buttonSize = 150,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,21 +33,19 @@ const NowWidget: React.FC<WidgetConfig> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    document.body.setAttribute('data-widget-theme', theme);
-    document.body.setAttribute('data-widget-position', position);
+    document.body.setAttribute("data-widget-theme", theme);
+    document.body.setAttribute("data-widget-position", position);
 
-    // Create base wrapper for main content
-    const baseWrapper = document.createElement('div');
-    baseWrapper.id = 'base__wrapper';
+    const baseWrapper = document.createElement("div");
+    baseWrapper.id = "base__wrapper";
     while (document.body.children.length > 0) {
       baseWrapper.appendChild(document.body.children[0]);
     }
     document.body.appendChild(baseWrapper);
 
-    // Cleanup function
     return () => {
-      document.body.removeAttribute('data-widget-theme');
-      document.body.removeAttribute('data-widget-position');
+      document.body.removeAttribute("data-widget-theme");
+      document.body.removeAttribute("data-widget-position");
       while (baseWrapper.children.length > 0) {
         document.body.appendChild(baseWrapper.children[0]);
       }
@@ -54,53 +54,47 @@ const NowWidget: React.FC<WidgetConfig> = ({
   }, [theme, position]);
 
   const fetchPosts = useCallback(async () => {
-    if (!isOpen) return; // Don't fetch if the panel is closed
-
+    if (!isOpen) return;
     setIsLoading(true);
     setError(null);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/widget/user-data`;
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`/api/widget/posts?userId=${userId}`, {
         headers: {
-          "x-user-id": userId,
-          "x-api-key": token,
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      if (data.success) {
-        setPosts(data.data.recentPosts);
-        // You can also use data.data.user for user information if needed
-      } else {
-        throw new Error(data.error || "Failed to load data");
-      }
+      setPosts(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [isOpen, userId, token]); // Dependencies added to useCallback
+  }, [isOpen, userId, token]);
 
   useEffect(() => {
     fetchPosts();
-  }, [fetchPosts]); // This will run when isOpen changes
+  }, [fetchPosts]);
 
   const togglePanel = () => {
-    setIsOpen(prev => !prev);
-    const baseWrapper = document.getElementById('base__wrapper');
-    const sidePanel = document.getElementById('now__sidepanel');
-    
+    setIsOpen((prev) => !prev);
+    const baseWrapper = document.getElementById("base__wrapper");
+    const sidePanel = document.getElementById("now__sidepanel");
+
     if (baseWrapper && sidePanel) {
       if (!isOpen) {
-        sidePanel.style.left = '0';
+        sidePanel.style.left = "0";
         if (window.innerWidth > 768) {
-          baseWrapper.style.transform = 'translateX(50%)';
+          baseWrapper.style.transform = "translateX(50%)";
         }
       } else {
-        sidePanel.style.left = window.innerWidth > 768 ? '-50%' : '-100%';
-        baseWrapper.style.transform = 'translateX(0)';
+        sidePanel.style.left = window.innerWidth > 768 ? "-50%" : "-100%";
+        baseWrapper.style.transform = "translateX(0)";
       }
     }
   };
@@ -123,22 +117,10 @@ const NowWidget: React.FC<WidgetConfig> = ({
         <div id="sidepanel-content">
           {isLoading && <p>Loading...</p>}
           {error && <p className="error-message">Error: {error}</p>}
-          {!isLoading && !error && (
-            <ul>
-              {posts.map((post) => (
-                <li key={post.id}>
-                  <div>
-                    <strong>{post.content}</strong>
-                  </div>
-                  <div>
-                    <em>{new Date(post.createdAt).toLocaleString()}</em>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-          {!isLoading && !error && posts.length === 0 && (
-            <p>No posts available.</p>
+          {isOpen && (
+            <Suspense fallback={<div>Loading...</div>}>
+              <SidePanelContent posts={posts} />
+            </Suspense>
           )}
         </div>
       </div>
@@ -147,8 +129,3 @@ const NowWidget: React.FC<WidgetConfig> = ({
 };
 
 export default NowWidget;
-
-// Add this at the end of the file
-if (typeof window !== 'undefined') {
-  (window as any).NowNowNowWidget = NowWidget;
-}

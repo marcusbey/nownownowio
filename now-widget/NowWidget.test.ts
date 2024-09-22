@@ -1,11 +1,10 @@
-import { generateWidgetToken } from '@/lib/widget/widgetUtils';
+import { generateWidgetToken } from '@/lib/widget/widgetAuth';
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import fetch from 'node-fetch';
 
 // Mock the fetch function
 const mockFetch = jest.fn();
-global.fetch = mockFetch;
+global.fetch = mockFetch as any;
 
 describe('NowWidget', () => {
   const mockProps = {
@@ -22,12 +21,12 @@ describe('NowWidget', () => {
   });
 
   describe('Rendering', () => {
-    test('renders NowButton', () => {
+    it('renders NowButton', () => {
       render(<NowWidget { ...mockProps } />);
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
 
-    test('applies correct theme and position', () => {
+    it('applies correct theme and position', () => {
       render(<NowWidget { ...mockProps } />);
       expect(document.body).toHaveAttribute('data-widget-theme', 'light');
       expect(document.body).toHaveAttribute('data-widget-position', 'right');
@@ -35,7 +34,7 @@ describe('NowWidget', () => {
   });
 
   describe('Interaction', () => {
-    test('opens side panel on button click', async () => {
+    it('opens side panel on button click', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ success: true, data: { recentPosts: [] } }),
@@ -50,7 +49,7 @@ describe('NowWidget', () => {
       });
     });
 
-    test('closes side panel when close button is clicked', async () => {
+    it('closes side panel when close button is clicked', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ success: true, data: { recentPosts: [] } }),
@@ -133,7 +132,7 @@ describe('Widget Integration Test', () => {
     token = generateWidgetToken(userId);
   });
 
-  test('Generate widget script', async () => {
+  it('Generate widget script', async () => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/widget/generate-script?userId=${userId}`);
     const data = await response.json();
     expect(data.script).toBeDefined();
@@ -141,7 +140,7 @@ describe('Widget Integration Test', () => {
     expect(data.script).toContain('NOW_WIDGET_CONFIG');
   });
 
-  test('Fetch user data with valid token', async () => {
+  it('Fetch user data with valid token', async () => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/widget/user-data`, {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -153,7 +152,7 @@ describe('Widget Integration Test', () => {
     expect(data.data.recentPosts).toBeDefined();
   });
 
-  test('Reject request with invalid token', async () => {
+  it('Reject request with invalid token', async () => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/widget/user-data`, {
       headers: {
         'Authorization': 'Bearer invalidtoken'
