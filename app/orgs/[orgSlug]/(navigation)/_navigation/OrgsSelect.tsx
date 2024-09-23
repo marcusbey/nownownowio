@@ -15,6 +15,7 @@ import { ReactNode } from "react";
 type OrganizationsSelectProps = {
   currentOrgSlug?: string;
   children?: ReactNode;
+  asTrigger?: boolean;
   orgs: {
     id: string;
     slug: string;
@@ -39,7 +40,9 @@ export const OrgsSelect = (props: OrganizationsSelectProps) => {
         router.push(newUrl);
       }}
     >
-      <SelectTrigger className="h-8 justify-start gap-2 border-none bg-transparent px-4 hover:bg-accent [&>span]:flex [&>svg]:hidden hover:[&>svg]:block">
+      <SelectTrigger
+        className={`h-8 justify-start gap-2 border-none bg-transparent px-4 hover:bg-accent [&>span]:flex [&>svg]:hidden hover:[&>svg]:block ${props.asTrigger ? "cursor-pointer" : ""}`}
+      >
         {props.children ? props.children : <SelectValue />}
       </SelectTrigger>
       <SelectContent>

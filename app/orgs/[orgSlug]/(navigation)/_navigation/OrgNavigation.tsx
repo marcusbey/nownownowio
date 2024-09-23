@@ -1,13 +1,13 @@
 import TrendsSidebar from "@/components/TrendsSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { UserDropdown } from "@/features/auth/UserDropdown";
 import { ContactFeedbackPopover } from "@/features/contact/feedback/ContactFeedbackPopover";
 import { NavigationWrapper } from "@/features/navigation/NavigationWrapper";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
+// import { Menu } from "lucide-react";
+// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
-import { Menu } from "lucide-react";
 import { PropsWithChildren } from "react";
 import { OrganizationCommand } from "./OrgCommand";
 import { NavigationLinks } from "./OrgLinks";
@@ -21,7 +21,7 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
 
   return (
     <>
-      <div className="sm:hidden">
+      {/* <div className="sm:hidden">
         <Sheet>
           <SheetTrigger asChild>
             <Button
@@ -42,7 +42,7 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
             />
           </SheetContent>
         </Sheet>
-      </div>
+      </div> */}
       <NavigationWrapper
         logoChildren={
           <OrgsSelect

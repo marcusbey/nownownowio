@@ -1,6 +1,6 @@
 import { OrganizationMembershipRole } from "@prisma/client";
 import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { auth } from "../auth/helper";
 import { prisma } from "../prisma";
 
@@ -38,18 +38,7 @@ export const getCurrentOrg = async (roles?: OrganizationMembershipRole[]) => {
   const organizationSlug = getOrgSlugFromUrl();
 
   if (!organizationSlug) {
-    // If no org slug in URL, check if user has any orgs
-    const userOrgs = await prisma.organizationMembership.findFirst({
-      where: { userId: user.id },
-    });
-
-    if (!userOrgs) {
-      // Redirect to create new org if user has no orgs
-      redirect("/orgs/new");
-    }
-
-    // Redirect to first org if user has orgs but no slug in URL
-    redirect("/orgs");
+    return null;
   }
 
   const org = await prisma.organization.findFirst({
