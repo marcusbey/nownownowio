@@ -14,7 +14,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - admin (admin path)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|admin).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|admin|orgs/[^/]+).*)",
   ],
 };
 
@@ -35,10 +35,12 @@ export function middleware(req: NextRequest) {
   ) {
     const cookieList = cookies();
     const authCookie = cookieList.get(AUTH_COOKIE_NAME);
+    console.log("Middleware - Auth Cookie:", authCookie);
 
     if (authCookie) {
       const url = new URL(req.url);
       url.pathname = "/orgs";
+      console.log(`Middleware - Redirecting to: ${url.toString()}`);
       return NextResponse.redirect(url.toString());
     }
   }

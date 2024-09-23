@@ -12,13 +12,13 @@ export class AuthError extends Error {
 }
 
 export const auth = async () => {
-  console.log("helper ______ Calling baseAuth...");
+  //console.log("helper ______ Calling baseAuth...");
   const session = await baseAuth();
-  console.log("helper ______ Session result:", session);
-  console.log(" user _______ user from sessions", session?.user)
+  //console.log("helper ______ Session result:", session);
+  //console.log(" user _______ user from sessions", session?.user)
   if (session?.user) {
     const user = session.user as User;
-    console.log("helper ______ User:", user);
+    //console.log("helper ______ User:", user);
     return user;
   }
 
@@ -34,7 +34,7 @@ export const requiredAuth = async () => {
       throw new AuthError("You must be authenticated to access this resource.");
     }
 
-    console.log("requiredAuth ______ User:", user);
+    //console.log("requiredAuth ______ User:", user);
     return user;
   } catch (error) {
     logger.error("Authentication error:", error);
@@ -50,7 +50,7 @@ export const validateRequest = cache(
 
     if (session?.user) {
       const user = session.user as User;
-      console.log("validateRequest ______ User:", user);
+      //console.log("validateRequest ______ User:", user);
       return {
         user,
         session,

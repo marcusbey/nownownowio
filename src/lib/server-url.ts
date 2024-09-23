@@ -14,5 +14,5 @@ export const getServerUrl = () => {
       : SiteConfig.prodUrl;
   }
 
-  return `http://localhost:${process.env.PORT || 3000}`;
+  return process.env.NEXTAUTH_URL?.replace(/\/+$/, "") || "http://localhost:3000";
 };
