@@ -6,8 +6,9 @@ import {
   LayoutHeader,
   LayoutTitle,
 } from "@/features/page/layout";
+import { AddProjectForm } from "./AddProjectForm";
 
-export default function NoOrganizationPage() {
+function NoOrganizationPage(props: Record<string, never>) {
   return (
     <AuthNavigationWrapper>
       <Layout>
@@ -25,3 +26,5 @@ export default function NoOrganizationPage() {
     </AuthNavigationWrapper>
   );
 }
+
+export default NoOrganizationPage;

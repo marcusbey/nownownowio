@@ -17,7 +17,7 @@ export default function Notification({ notification }: NotificationProps) {
     FOLLOW: {
       message: `${notification.issuer.displayName} followed you`,
       icon: <User2 className="size-7 text-primary" />,
-      href: `/users/${notification.issuer.username}`,
+      href: `/users/${notification.issuer.name}`,
     },
     COMMENT: {
       message: `${notification.issuer.displayName} commented on your post`,
@@ -43,7 +43,7 @@ export default function Notification({ notification }: NotificationProps) {
       >
         <div className="my-1">{icon}</div>
         <div className="space-y-3">
-          <UserAvatar avatarUrl={notification.issuer.avatarUrl} size={36} />
+          <UserAvatar avatarUrl={notification.issuer.image} size={36} />
           <div>
             <span className="font-bold">{notification.issuer.displayName}</span>{" "}
             <span>{message}</span>

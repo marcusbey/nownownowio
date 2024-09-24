@@ -9,7 +9,7 @@ const CreateCompanySchema = z.object({
     websiteUrl: z.string().url(),
 });
 
-export const addProjectAction = authAction
+export const AddProjectAction = authAction
     .schema(CreateCompanySchema)
     .action(async ({ parsedInput, ctx }) => {
         const org = await createOrganizationQuery({

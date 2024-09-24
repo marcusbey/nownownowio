@@ -13,6 +13,7 @@ import {
   CmdOrOption,
   KeyboardShortcut,
 } from "@/components/ui/keyboard-shortcut";
+import { NavigationLink } from "@/lib/types";
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { useKey } from "react-use";
@@ -60,14 +61,20 @@ export function OrganizationCommand() {
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Suggestions">
-            {ORGANIZATION_LINKS.map((link, index) => (
-              <CommandItem key={index}>
-                <link.icon className="mr-2 size-4" />
-                <span>{link.label}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          {ORGANIZATION_LINKS.map(
+            (group: NavigationLink, groupIndex: number) => (
+              <CommandGroup key={groupIndex} heading={group.title}>
+                {group.links.map((link, linkIndex) => (
+                  <CommandItem key={linkIndex}>
+                    <div className="mr-2 size-4">
+                      {link.icon && <link.icon />}
+                    </div>
+                    <span>{link.label}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ),
+          )}
         </CommandList>
       </CommandDialog>
     </>

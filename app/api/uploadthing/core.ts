@@ -18,17 +18,17 @@ export const fileRouter = {
       return { user };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      const oldAvatarUrl = metadata.user.image;
+      const oldImage = metadata.user.image;
 
-      if (oldAvatarUrl) {
-        const key = oldAvatarUrl.split(
+      if (oldImage) {
+        const key = oldImage.split(
           `/a/${process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID}/`,
         )[1];
 
         await new UTApi().deleteFiles(key);
       }
 
-      const newAvatarUrl = file.url.replace(
+      const newImage = file.url.replace(
         "/f/",
         `/a/${process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID}/`,
       );
@@ -37,18 +37,18 @@ export const fileRouter = {
         prisma.user.update({
           where: { id: metadata.user.id },
           data: {
-            avatarUrl: newAvatarUrl,
+            image: newImage,
           },
         }),
         streamServerClient.partialUpdateUser({
           id: metadata.user.id,
           set: {
-            image: newAvatarUrl,
+            image: newImage,
           },
         }),
       ]);
 
-      return { avatarUrl: newAvatarUrl };
+      return { avatarUrl: newImage };
     }),
   attachment: f({
     image: { maxFileSize: "4MB", maxFileCount: 5 },

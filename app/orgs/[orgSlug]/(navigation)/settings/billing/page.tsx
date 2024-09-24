@@ -16,6 +16,7 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getServerUrl } from "@/lib/server-url";
 import { stripe } from "@/lib/stripe";
 import type { PageParams } from "@/types/next";
+import { OrganizationMembershipRole } from "@prisma/client";
 import Link from "next/link";
 
 export const generateMetadata = combineWithParentMetadata({
@@ -24,7 +25,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function RoutePage(props: PageParams) {
-  const { org: organization } = await getRequiredCurrentOrgCache(["ADMIN"]);
+  const { org: organization } = await getRequiredCurrentOrgCache(undefined, [
+    OrganizationMembershipRole.ADMIN,
+  ]);
 
   if (!organization.stripeCustomerId) {
     throw new Error("Organization has no Stripe customer");
@@ -54,7 +57,9 @@ export default async function RoutePage(props: PageParams) {
 }
 
 const PremiumCard = async () => {
-  const { org: organization } = await getRequiredCurrentOrgCache(["ADMIN"]);
+  const { org: organization } = await getRequiredCurrentOrgCache(undefined, [
+    OrganizationMembershipRole.ADMIN,
+  ]);
 
   if (!organization.stripeCustomerId) {
     throw new Error("Organization has no Stripe customer");

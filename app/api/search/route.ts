@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const q = req.nextUrl.searchParams.get("q") || "";
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
 
-    const searchQuery = q.split(" ").join(" & ");
+    const searchQuery = q.trim();
 
     const pageSize = 10;
 
@@ -23,20 +23,23 @@ export async function GET(req: NextRequest) {
         OR: [
           {
             content: {
-              search: searchQuery,
+              contains: searchQuery,
+              mode: 'insensitive', // Makes the search case-insensitive
             },
           },
           {
             user: {
               displayName: {
-                search: searchQuery,
+                contains: searchQuery,
+                mode: 'insensitive',
               },
             },
           },
           {
             user: {
               name: {
-                search: searchQuery,
+                contains: searchQuery,
+                mode: 'insensitive',
               },
             },
           },
