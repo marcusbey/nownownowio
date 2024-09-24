@@ -1,14 +1,25 @@
+import { NavigationLink } from "@/lib/types";
 import { SiteConfig } from "@/site-config";
-import { Bell, Bookmark, Coins, Compass, Home, LayoutDashboard, MailIcon, Settings, User2 } from "lucide-react";
+import {
+  Bell,
+  Bookmark,
+  Coins,
+  Compass,
+  Home,
+  LayoutDashboard,
+  MailIcon,
+  Settings,
+  User2,
+} from "lucide-react";
 
 const orgPath = `/orgs/:organizationSlug`;
 
-export const ORGANIZATION_LINKS = [
+export const ORGANIZATION_LINKS: NavigationLink[] = [ // Explicitly type as NavigationLink[]
   {
     title: "ACTIVITIES",
     links: [
       {
-        href: '/',
+        href: orgPath,
         icon: Home,
         label: "Home",
       },

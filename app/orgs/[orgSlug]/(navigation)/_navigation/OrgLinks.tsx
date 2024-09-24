@@ -1,23 +1,13 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-
 import { isInRoles } from "@/lib/organizations/isInRoles";
+import { NavigationLink } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { OrganizationMembershipRole } from "@prisma/client";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ACCOUNT_LINKS } from "../../../../(logged-in)/(account-layout)/account-links";
 import { ORGANIZATION_LINKS } from "./org-navigation.links";
-
-export type NavigationLink = {
-  title: string;
-  links: {
-    href: string;
-    icon: React.ComponentType;
-    label: string;
-    roles?: OrganizationMembershipRole[];
-  }[];
-};
 
 const useCurrentPath = (links: NavigationLink[], organizationSlug?: string) => {
   const currentPath = usePathname()

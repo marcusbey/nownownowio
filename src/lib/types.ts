@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { OrganizationMembershipRole, Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
   return {
@@ -131,3 +131,13 @@ export interface NotificationCountInfo {
 export interface MessageCountInfo {
   unreadCount: number;
 }
+
+export type NavigationLink = {
+  title: string;
+  links: {
+    href: string;
+    icon: React.ComponentType;
+    label: string;
+    roles?: OrganizationMembershipRole[];
+  }[];
+};
