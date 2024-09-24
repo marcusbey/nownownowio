@@ -2,7 +2,14 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
 
-export default async function RoutePage(props: PageParams) {
-  const { org: organization } = await getRequiredCurrentOrgCache(["ADMIN"]);
+type SettingsPageParams = PageParams<{
+  orgSlug: string;
+}>;
+
+export default async function RoutePage(props: SettingsPageParams) {
+  const { org: organization } = await getRequiredCurrentOrgCache(
+    props.params.orgSlug,
+    ["ADMIN"],
+  );
   return <OrgDetailsForm defaultValues={organization} />;
 }

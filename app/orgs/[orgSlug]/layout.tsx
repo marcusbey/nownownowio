@@ -13,7 +13,7 @@ export async function generateMetadata({
 export default async function RouteLayout(
   props: LayoutParams<{ orgSlug: string }>,
 ) {
-  const org = await getCurrentOrgCache();
+  const org = await getCurrentOrgCache(props.params.orgSlug);
 
   return (
     <InjectCurrentOrgStore

@@ -13,10 +13,14 @@ import { OrgNavigation } from "./_navigation/OrgNavigation";
 export default async function RouteLayout(
   props: LayoutParams<{ orgSlug: string }>,
 ) {
-  const org = await getCurrentOrgCache();
+  const orgSlug = props.params.orgSlug;
+  console.log("orgSlug:", orgSlug);
 
+  const org = await getCurrentOrgCache(orgSlug);
+  console.log("Organization:", org);
   if (!org) {
     const user = await auth();
+    console.log("User:", user);
     return (
       <NavigationWrapper>
         <Layout>

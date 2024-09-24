@@ -14,7 +14,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - admin (admin path)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|admin|orgs/[^/]+).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|admin).*)",
   ],
 };
 
