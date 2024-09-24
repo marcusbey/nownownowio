@@ -1,3 +1,4 @@
+// Start of Selection
 "use client";
 
 import { isInRoles } from "@/lib/organizations/isInRoles";
@@ -73,26 +74,32 @@ export function NavigationLinks({
       <nav className="grid gap-2 text-lg font-medium">
         {filteredLinks
           .flatMap((group) => group.links)
-          .map((link, index) => (
-            <Link
-              key={index}
-              href={link.href.replaceAll(
-                ":organizationSlug",
-                organizationSlug ?? "",
-              )}
-              className={cn(
-                `mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2`,
-                {
-                  "text-primary hover:text-primary": currentPath === link.href,
-                  "text-muted-foreground hover:text-foreground":
-                    currentPath !== link.href,
-                },
-              )}
-            >
-              <link.icon className="size-5" />
-              {link.label}
-            </Link>
-          ))}
+          .map((link, index) => {
+            const Icon = link.icon as React.ComponentType<{
+              className?: string;
+            }>;
+            return (
+              <Link
+                key={index}
+                href={link.href.replaceAll(
+                  ":organizationSlug",
+                  organizationSlug ?? "",
+                )}
+                className={cn(
+                  `mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2`,
+                  {
+                    "text-primary hover:text-primary":
+                      currentPath === link.href,
+                    "text-muted-foreground hover:text-foreground":
+                      currentPath !== link.href,
+                  },
+                )}
+              >
+                <Icon className="size-5" />
+                {link.label}
+              </Link>
+            );
+          })}
       </nav>
     );
   }
@@ -104,32 +111,37 @@ export function NavigationLinks({
             <h3 className="mb-2 mt-4 hidden text-xs font-semibold md:block">
               {group.title}
             </h3>
-            {group.links.map((link, linkIndex) => (
-              <Link
-                key={linkIndex}
-                href={link.href.replaceAll(
-                  ":organizationSlug",
-                  organizationSlug ?? "",
-                )}
-                className={cn(
-                  `flex items-center gap-3 rounded-lg px-3 py-2`,
-                  {
-                    "text-primary hover:text-primary":
-                      currentPath === link.href,
-                    "text-muted-foreground hover:text-foreground":
-                      currentPath !== link.href,
-                  },
-                  "justify-center md:justify-start", // Center on small screens, start-aligned on larger screens
-                )}
-              >
-                <link.icon className="size-6 md:size-5" />{" "}
-                {/* Larger icons, especially on small screens */}
-                <span className="hidden text-base md:inline">
-                  {link.label}
-                </span>{" "}
-                {/* Slightly larger text */}
-              </Link>
-            ))}
+            {group.links.map((link, linkIndex) => {
+              const Icon = link.icon as React.ComponentType<{
+                className?: string;
+              }>;
+              return (
+                <Link
+                  key={linkIndex}
+                  href={link.href.replaceAll(
+                    ":organizationSlug",
+                    organizationSlug ?? "",
+                  )}
+                  className={cn(
+                    `flex items-center gap-3 rounded-lg px-3 py-2`,
+                    {
+                      "text-primary hover:text-primary":
+                        currentPath === link.href,
+                      "text-muted-foreground hover:text-foreground":
+                        currentPath !== link.href,
+                    },
+                    "justify-center md:justify-start", // Center on small screens, start-aligned on larger screens
+                  )}
+                >
+                  <Icon className="size-6 md:size-5" />{" "}
+                  {/* Larger icons, especially on small screens */}
+                  <span className="hidden text-base md:inline">
+                    {link.label}
+                  </span>{" "}
+                  {/* Slightly larger text */}
+                </Link>
+              );
+            })}
           </div>
         ))}
       </nav>
