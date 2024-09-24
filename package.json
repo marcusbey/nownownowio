@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run build-widget",
+    "build-widget": "webpack --config webpack.config.js",
     "start": "next start",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
@@ -93,6 +94,7 @@
     "remark-gfm": "^4.0.0",
     "resend": "^4.0.0",
     "sass": "^1.78.0",
+    "sharp": "^0.33.5",
     "sonner": "^1.5.0",
     "stream-chat": "^8.37.0",
     "stream-chat-react": "^11.23.0",

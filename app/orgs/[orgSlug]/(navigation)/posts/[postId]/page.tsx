@@ -1,10 +1,10 @@
-import { validateRequest } from "@/auth";
 import FollowButton from "@/components/FollowButton";
 import Linkify from "@/components/Linkify";
 import Post from "@/components/posts/Post";
 import UserAvatar from "@/components/UserAvatar";
 import UserTooltip from "@/components/UserTooltip";
-import prisma from "@/lib/prisma";
+import { validateRequest } from "@/lib/auth/helper";
+import { prisma } from "@/lib/prisma";
 import { getPostDataInclude, UserData } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { Metadata } from "next";
@@ -83,17 +83,14 @@ async function UserInfoSidebar({ user }: UserInfoSidebarProps) {
     <div className="space-y-5 rounded-2xl bg-card p-5 shadow-sm">
       <div className="text-xl font-bold">About this user</div>
       <UserTooltip user={user}>
-        <Link
-          href={`/users/${user.username}`}
-          className="flex items-center gap-3"
-        >
-          <UserAvatar avatarUrl={user.avatarUrl} className="flex-none" />
+        <Link href={`/users/${user.name}`} className="flex items-center gap-3">
+          <UserAvatar avatarUrl={user.image} className="flex-none" />
           <div>
             <p className="line-clamp-1 break-all font-semibold hover:underline">
               {user.displayName}
             </p>
             <p className="line-clamp-1 break-all text-muted-foreground">
-              @{user.username}
+              @{user.name}
             </p>
           </div>
         </Link>

@@ -1,5 +1,5 @@
 import { validateRequest } from "@/lib/auth/helper";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { FollowerInfo } from "@/lib/types";
 
 export async function GET(

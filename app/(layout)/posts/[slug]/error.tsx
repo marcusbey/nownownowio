@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 export default function RouteError({ error, reset }: ErrorParams) {
   useEffect(() => {
-    logger.error(error);
+    logger.error("An error occurred in RouteError component", error);
   }, [error]);
 
   return (

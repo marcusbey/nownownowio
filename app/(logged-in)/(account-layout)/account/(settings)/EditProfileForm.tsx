@@ -31,6 +31,7 @@ import { ImageFormItem } from "@/features/images/ImageFormItem";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { displayName } from "@/lib/format/displayName";
 import type { User } from "@prisma/client";
+import { TooltipContent, TooltipTrigger } from "@radix-ui/react-tooltip";
 import { useMutation } from "@tanstack/react-query";
 import { differenceInMinutes } from "date-fns";
 import { BadgeCheck } from "lucide-react";
@@ -160,8 +161,14 @@ export const EditProfileCardForm = ({
                   <FormLabel className="flex items-center gap-1">
                     <span>Email</span>
                     {defaultValues.emailVerified ? (
-                      <InlineTooltip title="Email verified. If you change your email, you will need to verify it again.">
-                        <BadgeCheck size={16} />
+                      <InlineTooltip>
+                        <TooltipTrigger>
+                          <BadgeCheck size={16} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Email verified. If you change your email, you will
+                          need to verify it again.
+                        </TooltipContent>
                       </InlineTooltip>
                     ) : null}
                   </FormLabel>

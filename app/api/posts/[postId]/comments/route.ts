@@ -1,5 +1,5 @@
 import { validateRequest } from "@/lib/auth/helper";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { CommentsPage, getCommentDataInclude } from "@/lib/types";
 import { NextRequest } from "next/server";
 

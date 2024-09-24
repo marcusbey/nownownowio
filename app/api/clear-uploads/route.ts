@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { UTApi } from "uploadthing/server";
 
 export async function GET(req: Request) {
@@ -17,10 +17,10 @@ export async function GET(req: Request) {
         postId: null,
         ...(process.env.NODE_ENV === "production"
           ? {
-              createdAt: {
-                lte: new Date(Date.now() - 1000 * 60 * 60 * 24),
-              },
-            }
+            createdAt: {
+              lte: new Date(Date.now() - 1000 * 60 * 60 * 24),
+            },
+          }
           : {}),
       },
       select: {

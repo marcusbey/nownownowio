@@ -1,5 +1,5 @@
 import { validateRequest } from "@/lib/auth/helper";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function PATCH() {
   try {
