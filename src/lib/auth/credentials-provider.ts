@@ -1,3 +1,4 @@
+// Start of Selection
 import { generateWidgetToken } from '@/lib/widget/widgetAuth';
 import crypto from "crypto";
 import { addDays } from "date-fns";
@@ -6,27 +7,29 @@ import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
+import { z } from "zod"; // Added zod import
 import { env } from "../env";
 import { prisma } from "../prisma";
 import { AUTH_COOKIE_NAME } from "./auth.const";
 
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
-export const validatePassword = (password: string) => {
+export const validatePassword = (password: string): boolean => {
   return PASSWORD_REGEX.test(password);
 };
 
-export const hashStringWithSalt = (string: string, salt: string) => {
+export const hashStringWithSalt = (string: string, salt: string): string => {
   const hash = crypto.createHash("sha256");
-
   const saltedString = salt + string;
-
   hash.update(saltedString);
-
-  const hashedString = hash.digest("hex");
-
-  return hashedString;
+  return hash.digest("hex");
 };
+
+// Define a Zod schema for credentials
+const credentialsSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8).regex(PASSWORD_REGEX, "Password must be at least 8 characters long and include letters and numbers."),
+});
 
 export const getCredentialsProvider = () => {
   return CredentialsProvider({
@@ -36,25 +39,31 @@ export const getCredentialsProvider = () => {
       password: { label: "Password", type: "password" },
     },
     async authorize(credentials) {
-      if (!credentials?.email || !credentials.password) {
+      if (!credentials) {
         return null;
       }
 
-      // First, try the new credentialsSignInCallback
-      const newAuthResult = await credentialsSignInCallback(credentials);
-      if (newAuthResult) {
-        return newAuthResult;
+      // Validate credentials using Zod
+      const parsed = credentialsSchema.safeParse(credentials);
+      if (!parsed.success) {
+        // You can handle validation errors here if needed
+        return null;
       }
 
-      // If the new method fails, fall back to the existing method
+      const { email, password } = parsed.data;
+
+      if (!env.NEXTAUTH_SECRET) {
+        throw new Error("NEXTAUTH_SECRET is not defined");
+      }
+
       const passwordHash = hashStringWithSalt(
-        String(credentials.password),
-        env.NEXTAUTH_SECRET,
+        password,
+        env.NEXTAUTH_SECRET
       );
 
       const user = await prisma.user.findFirst({
         where: {
-          email: credentials.email,
+          email: email,
           passwordHash: passwordHash,
         },
       });
@@ -88,11 +97,7 @@ export const credentialsSignInCallback = (request: NextRequest | undefined): Sig
 
   const currentUrl = request.url;
 
-  if (!currentUrl.includes("credentials")) {
-    return;
-  }
-
-  if (!currentUrl.includes("callback")) {
+  if (!currentUrl.includes("credentials") || !currentUrl.includes("callback")) {
     return;
   }
 
@@ -101,8 +106,8 @@ export const credentialsSignInCallback = (request: NextRequest | undefined): Sig
   await prisma.session.create({
     data: {
       sessionToken: uuid,
-      userId: user.id ?? "",
       expires: expireAt,
+      user: { connect: { id: user.id } },
     },
   });
 
@@ -117,22 +122,16 @@ export const credentialsSignInCallback = (request: NextRequest | undefined): Sig
   });
 
   // Generate widget token
-  const widgetToken = generateWidgetToken(user.id);
+  const widgetToken = generateWidgetToken(user.id!);
 
   // Store the widget token in the user's session or database
   await prisma.user.update({
     where: { id: user.id },
     data: { widgetToken },
   });
-
-  return {
-    sessionToken: uuid,
-    expiresAt: expireAt,
-    widgetToken,
-  };
 };
 
-// This override cancel JWT strategy for password. (it's the default one)
+// This override cancels JWT strategy for password. (it's the default one)
 export const credentialsOverrideJwt: JwtOverride = {
   encode() {
     return "";

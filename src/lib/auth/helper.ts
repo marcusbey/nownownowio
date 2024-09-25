@@ -87,7 +87,7 @@ export async function getSession(): Promise<ISession | null> {
     //console.log("authSession:", authSession);
     if (authSession && authSession.user) {
       const sessionDoc: ISession = {
-        id: authSession.id || nanoid(11),
+        id: authSession.user.id || nanoid(11),
         sessionToken: authSession.sessionToken || '',
         userId: authSession.user.id,
         expires: new Date(authSession.expires),

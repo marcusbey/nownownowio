@@ -1,4 +1,4 @@
- 
+
 import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
@@ -9,5 +9,6 @@ declare module "next-auth" {
       name?: string;
       image?: string;
     };
+    sessionToken: string;
   }
 }
