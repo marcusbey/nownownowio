@@ -2,23 +2,26 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import NowWidget from './NowWidget';
 
-interface WidgetConfig {
-    userId: string;
-    token: string;
-    theme?: 'light' | 'dark';
-    position?: 'left' | 'right';
-    buttonColor?: string;
-    buttonSize?: number;
-}
+function init() {
+    const script = document.currentScript as HTMLScriptElement;
+    const userId = script.getAttribute('data-user-id');
+    const token = script.getAttribute('data-token');
 
-function init(config: WidgetConfig) {
+    if (!userId || !token) {
+        console.error('NowNowNow Widget: Missing user ID or token');
+        return;
+    }
+
     const widgetContainer = document.createElement('div');
     widgetContainer.id = 'nownownow-widget-container';
     document.body.appendChild(widgetContainer);
 
     createRoot(widgetContainer).render(
-        React.createElement(NowWidget, config)
+        React.createElement(NowWidget, { userId, token })
     );
 }
+
+// Initialize the widget when the script loads
+init();
 
 export { init };

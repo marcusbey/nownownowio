@@ -13,9 +13,22 @@ export function WidgetScriptGenerator({ userId }: { userId: string }) {
     try {
       const response = await fetch(
         `/api/widget/generate-script?userId=${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // We're using POST to send the request securely
+        },
       );
       const data = await response.json();
-      setScript(data.script);
+      if (data.script && data.token) {
+        setScript(
+          `<script src="${process.env.NEXT_PUBLIC_WIDGET_URL}/nownownow-widget-bundle.js" data-user-id="${userId}" data-token="${data.token}"></script>`,
+        );
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (error) {
       console.error("Error generating widget script:", error);
       toast({

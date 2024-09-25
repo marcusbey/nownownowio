@@ -39,4 +39,4 @@ yarn-error.log*
 .cursorrules
 
 # Ignore all .txt files
-# *.txt
+*.txt
