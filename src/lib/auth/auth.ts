@@ -28,7 +28,15 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     strategy: "database",
   },
   secret: env.NEXTAUTH_SECRET,
+  trustHost: process.env.NODE_ENV === "development",
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allow redirects to localhost during development
+      if (process.env.NODE_ENV === "development") {
+        return url.startsWith("/") ? `${baseUrl}${url}` : url;
+      }
+      return baseUrl;
+    },
     session(params) {
       if (params.newSession) return params.session;
 

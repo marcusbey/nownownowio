@@ -10,6 +10,8 @@ export const generateMetadata = combineWithParentMetadata({
   description: "Update your profile.",
 });
 
+export const dynamic = "force-dynamic";
+
 export default async function EditProfilePage() {
   const user = await requiredAuth();
 

@@ -12,6 +12,8 @@ export const generateMetadata = combineWithParentMetadata({
   description: "Verify your email address.",
 });
 
+export const dynamic = "force-dynamic";
+
 export default async function RoutePage(props: PageParams) {
   const token =
     typeof props.searchParams.token === "string"

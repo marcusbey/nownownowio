@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { NextApiRequest, NextApiResponse } from 'next';
 
@@ -6,13 +7,17 @@ const limiter = rateLimit({
     max: 100, // Limit each IP to 100 requests per windowMs
 });
 
-export function runRateLimit(req: NextApiRequest, res: NextApiResponse) {
+export function runRateLimit(req: NextApiRequest, res: NextApiResponse): Promise<void> {
     return new Promise((resolve, reject) => {
-        limiter(req, res, (result: any) => {
-            if (result instanceof Error) {
-                return reject(result);
-            }
-            return resolve(result);
-        });
+        limiter(
+            req as unknown as Request,
+            res as unknown as Response,
+            ((error: unknown) => {
+                if (error) {
+                    return reject(error);
+                }
+                resolve();
+            }) as NextFunction
+        );
     });
 }

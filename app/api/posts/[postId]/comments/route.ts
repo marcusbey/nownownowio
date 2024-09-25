@@ -1,7 +1,7 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { CommentsPage, getCommentDataInclude } from "@/lib/types";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
@@ -15,27 +15,26 @@ export async function GET(
     const { user } = await validateRequest();
 
     if (!user) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const comments = await prisma.comment.findMany({
       where: { postId },
       include: getCommentDataInclude(user.id),
       orderBy: { createdAt: "asc" },
-      take: -pageSize - 1,
+      take: pageSize + 1,
       cursor: cursor ? { id: cursor } : undefined,
     });
 
-    const previousCursor = comments.length > pageSize ? comments[0].id : null;
-
+    const hasMore = comments.length > pageSize;
     const data: CommentsPage = {
-      comments: comments.length > pageSize ? comments.slice(1) : comments,
-      previousCursor,
+      comments: hasMore ? comments.slice(0, pageSize) : comments,
+      previousCursor: hasMore ? comments[pageSize].id : null,
     };
 
-    return Response.json(data);
+    return NextResponse.json(data);
   } catch (error) {
     console.error(error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

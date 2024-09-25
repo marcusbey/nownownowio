@@ -12,6 +12,8 @@ import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
 import { toast } from "sonner";
 import { accountAskDeletionAction } from "./delete-account.action";
 
+export const dynamic = "force-dynamic";
+
 export default function DeleteProfilePage() {
   return (
     <Card>

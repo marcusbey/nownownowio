@@ -12,6 +12,8 @@ import { SiteConfig } from "@/site-config";
 import { redirect } from "next/navigation";
 import { NewOrganizationForm } from "./NewOrgForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function RoutePage() {
   await requiredAuth();
 

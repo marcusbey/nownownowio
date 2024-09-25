@@ -13,6 +13,8 @@ import { resend } from "@/lib/mail/resend";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { ToggleEmailCheckbox } from "./ToggleEmailCheckbox";
 
+export const dynamic = "force-dynamic";
+
 export const generateMetadata = combineWithParentMetadata({
   title: "Email",
   description: "Update your email notifications settings.",
