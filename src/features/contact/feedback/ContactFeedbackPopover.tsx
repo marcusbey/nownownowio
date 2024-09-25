@@ -17,7 +17,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { InlineTooltip } from "@/components/ui/tooltip";
+import {
+  InlineTooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Angry, Frown, Meh, SmilePlus } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -34,7 +38,7 @@ export const ContactFeedbackPopover = (props: ContactFeedbackPopoverProps) => {
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
   const email = session?.user?.email ?? "";
-  console.log("Session:", session);
+  //console.log("Session:", session);
   const form = useZodForm({
     schema: ContactFeedbackSchema,
     defaultValues: {
@@ -159,18 +163,21 @@ const ReviewInput = ({
   return (
     <>
       {ReviewInputItems.map((item) => (
-        <InlineTooltip key={item.value} title={item.tooltip}>
-          <button
-            type="button"
-            onClick={() => {
-              onChange(item.value);
-            }}
-            className={cn("hover:rotate-12 hover:scale-110 transition", {
-              "text-primary scale-110": value === item.value,
-            })}
-          >
-            <item.icon size={24} />
-          </button>
+        <InlineTooltip key={item.value}>
+          <TooltipTrigger>
+            <button
+              type="button"
+              onClick={() => {
+                onChange(item.value);
+              }}
+              className={cn("hover:rotate-12 hover:scale-110 transition", {
+                "text-primary scale-110": value === item.value,
+              })}
+            >
+              <item.icon size={24} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{item.tooltip}</TooltipContent>
         </InlineTooltip>
       ))}
     </>

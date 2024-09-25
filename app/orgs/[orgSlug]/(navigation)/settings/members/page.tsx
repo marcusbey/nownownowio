@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getOrgsMembers } from "@/query/org/get-orgs-members";
 import type { PageParams } from "@/types/next";
+import { OrganizationMembershipRole } from "@prisma/client";
 import { OrgMembersForm } from "./OrgMembersForm";
 
 export const generateMetadata = combineWithParentMetadata({
@@ -11,7 +12,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function RoutePage(props: PageParams) {
-  const { org } = await getRequiredCurrentOrgCache(["ADMIN"]);
+  const { org } = await getRequiredCurrentOrgCache(undefined, [
+    OrganizationMembershipRole.ADMIN,
+  ]);
 
   const members = await getOrgsMembers(org.id);
 

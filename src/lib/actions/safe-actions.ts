@@ -70,7 +70,7 @@ export const orgAction = createSafeActionClient({
   },
 }).use(async ({ next, metadata = { roles: [] } }) => {
   try {
-    const org = await getRequiredCurrentOrg(metadata.roles);
+    const org = await getRequiredCurrentOrg(metadata.roles.join(','));
     return next({
       ctx: org,
     });

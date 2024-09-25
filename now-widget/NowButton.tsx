@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { HiArrowRight } from "react-icons/hi";
+import React, { useEffect, useState } from "react";
+import { HiArrowRight } from "react-icons/hi2";
 
 interface NowButtonProps {
   updated?: boolean;
@@ -87,7 +87,7 @@ const NowButton: React.FC<NowButtonProps> = ({
         }}
         onClick={onClick}
       >
-        <div className="absolute top-0 left-0">
+        <div className="absolute left-0 top-0">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 100 100"
@@ -136,6 +136,9 @@ const NowButton: React.FC<NowButtonProps> = ({
         </div>
         <style jsx>{`
           @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
             to {
               transform: rotate(360deg);
             }

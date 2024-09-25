@@ -78,13 +78,13 @@ const CACHE_DURATION = 60000; // 1 minute in milliseconds
 export async function getSession(): Promise<ISession | null> {
   const now = Date.now();
   if (cachedSession && (now - lastFetchTime) < CACHE_DURATION) {
-    console.log("Returning cached session:", cachedSession);
+    //console.log("Returning cached session:", cachedSession);
     return cachedSession;
   }
 
   try {
     const authSession = await baseAuth();
-    console.log("authSession:", authSession);
+    //console.log("authSession:", authSession);
     if (authSession && authSession.user) {
       const sessionDoc: ISession = {
         id: authSession.id || nanoid(11),
@@ -96,7 +96,7 @@ export async function getSession(): Promise<ISession | null> {
 
       cachedSession = sessionDoc;
       lastFetchTime = now;
-      console.log("New session cached:", sessionDoc);
+      //console.log("New session cached:", sessionDoc);
       return sessionDoc;
     }
 

@@ -43,7 +43,7 @@ export const NewOrganizationForm = () => {
 
   const mutation = useMutation({
     mutationFn: async (values: NewOrganizationSchemaType) => {
-      console.log("Values being sent to backend:", values);
+      //console.log("Values being sent to backend:", values);
       const result = await createOrganizationAction(values);
 
       if (!isActionSuccessful(result)) {
@@ -52,7 +52,7 @@ export const NewOrganizationForm = () => {
         return;
       }
 
-      console.log("Successful result:", result);
+      //console.log("Successful result:", result);
       router.refresh();
       form.reset(result.data as NewOrganizationSchemaType);
       router.push(result.data.slug);

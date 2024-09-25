@@ -4,9 +4,6 @@ import streamServerClient from "@/lib/stream";
 export async function GET() {
   try {
     const { user } = await validateRequest();
-
-    console.log("Calling get-token for user: ", user?.id);
-
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }

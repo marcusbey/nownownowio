@@ -37,9 +37,9 @@ export const MobileBottomMenu = ({ className }: { className?: string }) => {
               )}
               href={link.href}
             >
-              <link.icon
-                className={cn("h-6 w-6", { "text-primary": isCurrent })}
-              />
+              <div className={cn("h-6 w-6", { "text-primary": isCurrent })}>
+                <link.icon />
+              </div>
               <span className="mt-1 text-xs">{link.label}</span>
             </Link>
           );

@@ -15,14 +15,18 @@ interface User {
 interface SidePanelContentProps {
   userId: string;
   token: string;
+  posts: Post[];
+  user: User | null;
 }
 
 const SidePanelContent: React.FC<SidePanelContentProps> = ({
   userId,
   token,
+  posts: initialPosts,
+  user: initialUser,
 }) => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [user, setUser] = useState<User | null>(initialUser);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

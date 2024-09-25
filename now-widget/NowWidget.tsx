@@ -1,4 +1,5 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { getCachedData } from "@/lib/cache";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import NowButton from "./NowButton";
 import "./NowWidgetStyle.css";
 
@@ -8,6 +9,11 @@ interface Post {
   id: string;
   content: string;
   createdAt: string;
+}
+
+interface User {
+  displayName: string;
+  avatarUrl: string;
 }
 
 interface WidgetConfig {
@@ -28,9 +34,10 @@ const NowWidget: React.FC<WidgetConfig> = ({
   buttonSize = 150,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [posts, setPosts] = useState<Post[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     document.body.setAttribute("data-widget-theme", theme);
@@ -53,33 +60,44 @@ const NowWidget: React.FC<WidgetConfig> = ({
     };
   }, [theme, position]);
 
-  const fetchPosts = useCallback(async () => {
-    if (!isOpen) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`/api/widget/posts?userId=${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setPosts(data);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isOpen, userId, token]);
-
   useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+    const fetchData = async () => {
+      if (!isOpen) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getCachedData(`userData_${userId}`, async () => {
+          const response = await fetch(
+            `/api/widget/userData?userId=${userId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        });
+
+        if (data.success) {
+          setPosts(data.data.recentPosts);
+          setUser(data.data.user);
+        } else {
+          throw new Error(data.error || "Failed to fetch data");
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "An unexpected error occurred",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isOpen, userId, token]);
 
   const togglePanel = () => {
     setIsOpen((prev) => !prev);
@@ -117,9 +135,14 @@ const NowWidget: React.FC<WidgetConfig> = ({
         <div id="sidepanel-content">
           {isLoading && <p>Loading...</p>}
           {error && <p className="error-message">Error: {error}</p>}
-          {isOpen && (
+          {isOpen && !isLoading && !error && (
             <Suspense fallback={<div>Loading...</div>}>
-              <SidePanelContent posts={posts} />
+              <SidePanelContent
+                userId={userId}
+                token={token}
+                posts={posts}
+                user={user}
+              />
             </Suspense>
           )}
         </div>

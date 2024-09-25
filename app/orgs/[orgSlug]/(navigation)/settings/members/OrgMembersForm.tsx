@@ -20,7 +20,11 @@ import {
   MultiSelectorTrigger,
 } from "@/components/ui/multi-select";
 import { Progress } from "@/components/ui/progress";
-import { InlineTooltip } from "@/components/ui/tooltip";
+import {
+  InlineTooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
 import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
 import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
@@ -105,10 +109,15 @@ export const OrgMembersForm = ({
                   </div>
                   <div className="flex-1"></div>
                   {baseMember.roles.includes("OWNER") ? (
-                    <InlineTooltip title="You can't change the role of an owner">
-                      <Button type="button" variant="outline">
-                        OWNER
-                      </Button>
+                    <InlineTooltip>
+                      <TooltipContent>
+                        You can't change the role of an owner
+                      </TooltipContent>
+                      <TooltipTrigger asChild>
+                        <Button type="button" variant="outline">
+                          OWNER
+                        </Button>
+                      </TooltipTrigger>
                     </InlineTooltip>
                   ) : (
                     <FormField

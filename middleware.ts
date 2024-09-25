@@ -27,7 +27,6 @@ export function middleware(req: NextRequest) {
   // This settings is used to redirect the user to the organization page if he is logged in
   // The landing page is still accessible with the /home route
 
-  console.log(`Middleware processing path: ${req.nextUrl.pathname}`);
 
   if (
     req.nextUrl.pathname === "/" &&
@@ -35,12 +34,10 @@ export function middleware(req: NextRequest) {
   ) {
     const cookieList = cookies();
     const authCookie = cookieList.get(AUTH_COOKIE_NAME);
-    console.log("Middleware - Auth Cookie:", authCookie);
 
     if (authCookie) {
       const url = new URL(req.url);
       url.pathname = "/orgs";
-      console.log(`Middleware - Redirecting to: ${url.toString()}`);
       return NextResponse.redirect(url.toString());
     }
   }

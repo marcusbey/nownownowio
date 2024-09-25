@@ -7,7 +7,7 @@ import { prisma } from "../prisma";
 const getOrgSlugFromUrl = (): string | undefined => {
   const headerList = headers();
   const xURL = headerList.get("x-url");
-  console.log("x-URL header:", xURL);
+  //console.log("x-URL header:", xURL);
   if (!xURL) {
     return undefined;
   }
@@ -32,7 +32,7 @@ export const getCurrentOrg = async (orgSlug?: string, roles?: OrganizationMember
   const user = await auth();
 
   if (!user) {
-    console.log("No user found");
+    //console.log("No user found");
     return null;
   }
 
@@ -41,12 +41,12 @@ export const getCurrentOrg = async (orgSlug?: string, roles?: OrganizationMember
   if (!organizationSlug) {
     organizationSlug = getOrgSlugFromUrl();
     if (!organizationSlug) {
-      console.log("No orgSlug found in URL");
+      //console.log("No orgSlug found in URL");
       return null;
     }
   }
 
-  console.log("Searching for organization with slug:", organizationSlug);
+  //console.log("Searching for organization with slug:", organizationSlug);
 
   const org = await prisma.organization.findFirst({
     where: {
@@ -84,7 +84,7 @@ export const getCurrentOrg = async (orgSlug?: string, roles?: OrganizationMember
   if (!org) {
     return null;
   }
-  console.log("Fetched organization:", org);
+  //console.log("Fetched organization:", org);
   return {
     org,
     user,
