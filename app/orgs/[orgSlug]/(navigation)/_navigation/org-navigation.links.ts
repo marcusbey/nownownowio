@@ -9,7 +9,8 @@ import {
   LayoutDashboard,
   MailIcon,
   Settings,
-  User2,
+  User,
+  User2
 } from "lucide-react";
 
 const orgPath = `/orgs/:organizationSlug`;
@@ -31,7 +32,7 @@ export const ORGANIZATION_LINKS: NavigationLink[] = [ // Explicitly type as Navi
       {
         href: `${orgPath}/profile`,
         icon: User2,
-        label: "Panel",
+        label: "Profile",
       },
       {
         href: `${orgPath}/notifications`,
@@ -53,6 +54,11 @@ export const ORGANIZATION_LINKS: NavigationLink[] = [ // Explicitly type as Navi
   {
     title: "SETTINGS",
     links: [
+      {
+        href: `${orgPath}/users`,
+        icon: User,
+        label: "Panel",
+      },
       {
         href: `${orgPath}/dashboard`,
         icon: LayoutDashboard,

@@ -7,12 +7,16 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { Suspense } from "react";
 import FollowButton from "./FollowButton";
+import SearchField from "./SearchField"; // Adjust the path if necessary
 import UserAvatar from "./UserAvatar";
 import UserTooltip from "./UserTooltip";
 
 export default function TrendsSidebar() {
   return (
     <div className="sticky top-[5.25rem] h-fit w-full space-y-5">
+      {/* Add SearchField at the top of the sidebar */}
+      <SearchField />
+
       <Suspense fallback={<Loader2 className="mx-auto animate-spin" />}>
         <WhoToFollow />
         <TrendingTopics />
