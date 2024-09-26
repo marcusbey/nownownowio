@@ -1,10 +1,11 @@
 import { generateWidgetToken } from '@/lib/widget/widgetAuth';
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 // Mock the fetch function
 const mockFetch = jest.fn();
-global.fetch = mockFetch as any;
+global.fetch = mockFetch as unknown as typeof fetch;
 
 describe('NowWidget', () => {
   const mockProps = {
@@ -42,11 +43,9 @@ describe('NowWidget', () => {
 
       render(<NowWidget { ...mockProps } />);
       const button = screen.getByRole('button');
-      fireEvent.click(button);
+      await userEvent.click(button);
 
-      await waitFor(() => {
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Loading...')).toBeInTheDocument();
     });
 
     it('closes side panel when close button is clicked', async () => {
@@ -57,13 +56,11 @@ describe('NowWidget', () => {
 
       render(<NowWidget { ...mockProps } />);
       const openButton = screen.getByRole('button');
-      fireEvent.click(openButton);
+      await userEvent.click(openButton);
 
-      await waitFor(() => {
-        const closeButton = screen.getByText('×');
-        fireEvent.click(closeButton);
-        expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-      });
+      const closeButton = await screen.findByText('×');
+      await userEvent.click(closeButton);
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
   });
 
@@ -83,11 +80,9 @@ describe('NowWidget', () => {
 
       render(<NowWidget { ...mockProps } />);
       const button = screen.getByRole('button');
-      fireEvent.click(button);
+      await userEvent.click(button);
 
-      await waitFor(() => {
-        expect(screen.getByText('Test post')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('Test post')).toBeInTheDocument();
     });
 
     test('displays error message on fetch failure', async () => {
@@ -95,11 +90,9 @@ describe('NowWidget', () => {
 
       render(<NowWidget { ...mockProps } />);
       const button = screen.getByRole('button');
-      fireEvent.click(button);
+      await userEvent.click(button);
 
-      await waitFor(() => {
-        expect(screen.getByText(/Error:/)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/Error:/)).toBeInTheDocument();
     });
 
     test('displays no posts message when no posts are available', async () => {
@@ -115,11 +108,9 @@ describe('NowWidget', () => {
 
       render(<NowWidget { ...mockProps } />);
       const button = screen.getByRole('button');
-      fireEvent.click(button);
+      await userEvent.click(button);
 
-      await waitFor(() => {
-        expect(screen.getByText('No posts available.')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('No posts available.')).toBeInTheDocument();
     });
   });
 });
