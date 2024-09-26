@@ -65,7 +65,7 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
           </div>
         }
         bottomNavigationChildren={
-          <>
+          <div className="flex w-full flex-col items-start gap-2">
             <ContactFeedbackPopover>
               <Button size="sm" variant="outline" className="hidden md:flex">
                 Feedback
@@ -85,10 +85,10 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
                 </Avatar>
               </Button>
             </UserDropdown>
-            <div className="md:hidden">
+            <div className="mt-auto w-full md:hidden">
               <UpgradeCard />
             </div>
-          </>
+          </div>
         }
         topBarChildren={<OrganizationCommand />}
         rightSideBar={<TrendsSidebar />}
