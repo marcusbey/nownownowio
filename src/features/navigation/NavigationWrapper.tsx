@@ -1,9 +1,13 @@
+"use client";
+
+import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/(navigation)/_navigation/org-navigation.links";
 import { LogoSvg } from "@/components/svg/LogoSvg";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Typography } from "@/components/ui/typography";
 import { ArrowUpCircle } from "lucide-react";
-import { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { ReactNode, useEffect, useState } from "react";
 import { ThemeToggle } from "../theme/ThemeToggle";
 import { MobileBottomMenu } from "./MobileBottomMenu";
 
@@ -12,9 +16,8 @@ interface NavigationWrapperProps {
   logoChildren?: ReactNode;
   navigationChildren?: ReactNode;
   bottomNavigationCardChildren?: ReactNode;
-  buttomNavigationChildren?: ReactNode;
+  bottomNavigationChildren?: ReactNode;
   rightSideBar?: ReactNode;
-  hideSidebar?: boolean;
   topBarChildren?: ReactNode;
 }
 
@@ -23,11 +26,49 @@ export function NavigationWrapper({
   logoChildren,
   navigationChildren,
   bottomNavigationCardChildren,
-  buttomNavigationChildren,
+  bottomNavigationChildren,
   rightSideBar,
-  hideSidebar = false,
   // topBarChildren,
 }: NavigationWrapperProps) {
+  const pathname = usePathname();
+  const [hideSidebar, setHideSidebar] = useState(false);
+
+  useEffect(() => {
+    if (!pathname) return;
+
+    const getRoutesWithoutSidebar = () => {
+      const settingsSection = ORGANIZATION_LINKS.find(
+        (section) => section.title === "SETTINGS",
+      );
+      return settingsSection?.links.map((link) => link.href) || [];
+    };
+
+    const shouldHideSidebar = (routes: string[]) => {
+      return routes.some((route) => {
+        const normalizedRoute = route.replace(
+          ":organizationSlug",
+          getOrgSlugFromPath(pathname),
+        );
+        return pathname.startsWith(normalizedRoute.replace(/\/+/g, "/"));
+      });
+    };
+
+    const routesWithoutSidebar = getRoutesWithoutSidebar();
+    console.log(routesWithoutSidebar);
+    const shouldHide = shouldHideSidebar(routesWithoutSidebar);
+
+    setHideSidebar(shouldHide);
+  }, [pathname]);
+
+  // Helper function to extract orgSlug from pathname
+  const getOrgSlugFromPath = (path: string): string => {
+    const parts = path.split("/");
+    const orgIndex = parts.findIndex((part) => part === "orgs");
+    return orgIndex !== -1 && parts.length > orgIndex + 1
+      ? parts[orgIndex + 1]
+      : "";
+  };
+
   const gridCols = hideSidebar
     ? "grid-cols-[1fr_3fr]" // 1/4 - 3/4 layout
     : "grid-cols-[1fr_2fr_1fr]"; // 1/4 - 2/4 - 1/4 layout
@@ -46,7 +87,7 @@ export function NavigationWrapper({
           </div>
           <div className="flex-1 px-2">{navigationChildren}</div>
           <div className="flex flex-col items-start gap-2 p-4">
-            {buttomNavigationChildren}
+            {bottomNavigationChildren}
             <ThemeToggle />
           </div>
           <div className="mt-auto hidden p-4 sm:block">
@@ -85,7 +126,7 @@ export function NavigationWrapper({
 
       {/* Right Sidebar */}
       {!hideSidebar && rightSideBar && (
-        <div className="border-l bg-muted/40">
+        <div className="hidden border-l bg-muted/40 lg:block">
           <div className="flex h-full max-h-screen flex-col px-6">
             {rightSideBar}
           </div>

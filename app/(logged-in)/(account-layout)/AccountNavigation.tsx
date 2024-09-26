@@ -25,7 +25,7 @@ export async function AccountNavigation({ children }: PropsWithChildren) {
         </OrgsSelect>
       }
       navigationChildren={<NavigationLinks links="account" variant="default" />}
-      buttomNavigationChildren={
+      bottomNavigationChildren={
         <UserDropdown>
           <Button variant="ghost" className="size-10 rounded-full" size="sm">
             <Avatar className="size-8">
