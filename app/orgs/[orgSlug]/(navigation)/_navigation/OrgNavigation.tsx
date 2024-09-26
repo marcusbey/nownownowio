@@ -8,6 +8,7 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 // import { Menu } from "lucide-react";
 // import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
+import { headers } from "next/headers";
 import { PropsWithChildren } from "react";
 import { OrganizationCommand } from "./OrgCommand";
 import { NavigationLinks } from "./OrgLinks";
@@ -19,6 +20,29 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
 
   const userOrganizations = await getUsersOrgs();
 
+  // Retrieve the injected 'x-url' header from the middleware
+  const requestHeaders = headers();
+  const xUrl = requestHeaders.get("x-url");
+
+  let hideSidebar = false;
+
+  if (xUrl) {
+    const url = new URL(xUrl);
+    const pathname = url.pathname;
+
+    // Define your conditions based on the pathname
+    // For example, show the sidebar on specific routes
+    const routesWithoutSidebar = [
+      `/orgs/${org.slug}/users`,
+      `/orgs/${org.slug}/activities`,
+      `/orgs/${org.slug}/settings`,
+      // Add other routes where you want the sidebar
+    ];
+
+    hideSidebar = routesWithoutSidebar.some((route) =>
+      pathname.startsWith(route),
+    );
+  }
   return (
     <>
       {/* <div className="sm:hidden">
@@ -44,6 +68,7 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
         </Sheet>
       </div> */}
       <NavigationWrapper
+        hideSidebar={hideSidebar}
         logoChildren={
           <OrgsSelect
             currentOrgSlug={org.slug}
@@ -91,7 +116,7 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
           </>
         }
         topBarChildren={<OrganizationCommand />}
-        rightSideBar={<TrendsSidebar />}
+        rightSideBar={!hideSidebar ? <TrendsSidebar /> : null}
       >
         {children}
       </NavigationWrapper>

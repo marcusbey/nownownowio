@@ -7,26 +7,35 @@ import { ReactNode } from "react";
 import { ThemeToggle } from "../theme/ThemeToggle";
 import { MobileBottomMenu } from "./MobileBottomMenu";
 
-export async function NavigationWrapper({
+interface NavigationWrapperProps {
+  children: ReactNode;
+  logoChildren?: ReactNode;
+  navigationChildren?: ReactNode;
+  bottomNavigationCardChildren?: ReactNode;
+  buttomNavigationChildren?: ReactNode;
+  rightSideBar?: ReactNode;
+  hideSidebar?: boolean;
+  topBarChildren?: ReactNode;
+}
+
+export function NavigationWrapper({
   children,
   logoChildren,
   navigationChildren,
   bottomNavigationCardChildren,
   buttomNavigationChildren,
   rightSideBar,
+  hideSidebar = false,
   // topBarChildren,
-}: {
-  children: ReactNode;
-  logoChildren?: ReactNode;
-  navigationChildren?: ReactNode;
-  bottomNavigationCardChildren?: ReactNode;
-  topBarChildren?: ReactNode;
-  buttomNavigationChildren?: ReactNode;
-  rightSideBar?: ReactNode;
-}) {
+}: NavigationWrapperProps) {
+  const gridCols = hideSidebar
+    ? "grid-cols-[1fr_3fr]" // 1/4 - 3/4 layout
+    : "grid-cols-[1fr_2fr_1fr]"; // 1/4 - 2/4 - 1/4 layout
+
   return (
-    <div className="grid min-h-screen w-full grid-cols-[1fr] sm:grid-cols-[20%_80%] md:grid-cols-[33.33%_66.67%] lg:grid-cols-[1fr_2fr_1fr]">
-      <div className="hidden border-r bg-muted/40 sm:block">
+    <div className={`grid min-h-screen w-full ${gridCols} gap-4`}>
+      {/* Left Sidebar */}
+      <div className="hidden border-r bg-muted/40 lg:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center gap-2 border-b px-4 lg:h-[60px] lg:px-6">
             <LogoSvg size={32} />
@@ -45,8 +54,10 @@ export async function NavigationWrapper({
           </div>
         </div>
       </div>
-      <div className="flex max-h-screen flex-col">
-        {/* Mobile header */}
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col">
+        {/* Mobile Header */}
         <header className="flex items-center justify-between border-b border-border p-4 sm:hidden">
           <Sheet>
             <SheetTrigger asChild>
@@ -66,16 +77,20 @@ export async function NavigationWrapper({
         <main className="flex flex-1 flex-col gap-4 overflow-auto p-4 md:gap-6 md:p-6">
           {children}
         </main>
-        {/* Mobile bottom navigation */}
+        {/* Mobile Bottom Navigation */}
         <nav className="flex items-center justify-around border-t border-border p-2 sm:hidden">
           <MobileBottomMenu />
         </nav>
       </div>
-      <div className="hidden border-l bg-muted/40 lg:block">
-        <div className="flex h-full max-h-screen flex-col px-6">
-          {rightSideBar}
+
+      {/* Right Sidebar */}
+      {!hideSidebar && rightSideBar && (
+        <div className="border-l bg-muted/40">
+          <div className="flex h-full max-h-screen flex-col px-6">
+            {rightSideBar}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

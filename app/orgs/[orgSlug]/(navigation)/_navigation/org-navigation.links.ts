@@ -3,7 +3,7 @@ import { SiteConfig } from "@/site-config";
 import {
   Bell,
   Bookmark,
-  Coins,
+  // Coins,
   Compass,
   Home,
   LayoutDashboard,
@@ -63,11 +63,11 @@ export const ORGANIZATION_LINKS: NavigationLink[] = [ // Explicitly type as Navi
         icon: LayoutDashboard,
         label: "Dashboard",
       },
-      {
-        href: `${orgPath}/billing`,
-        icon: Coins,
-        label: "Billing",
-      },
+      // {
+      //   href: `${orgPath}/billing`,
+      //   icon: Coins,
+      //   label: "Billing",
+      // },
       {
         href: SiteConfig.features.enableSingleMemberOrg
           ? "/account"
