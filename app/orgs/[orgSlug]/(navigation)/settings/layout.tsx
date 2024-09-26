@@ -7,17 +7,20 @@ import {
   LayoutTitle,
 } from "@/features/page/layout";
 import { createSearchParamsMessageUrl } from "@/features/searchparams-message/createSearchParamsMessageUrl";
-import { combineWithParentMetadata } from "@/lib/metadata";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getServerUrl } from "@/lib/server-url";
 import { SiteConfig } from "@/site-config";
 import type { LayoutParams } from "@/types/next";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-export const generateMetadata = combineWithParentMetadata({
-  title: "Settings",
-  description: "Manage your organization settings.",
-});
+// Update the generateMetadata function
+export const generateMetadata = async (): Promise<Metadata> => {
+  return {
+    title: "Settings",
+    description: "Manage your organization settings.",
+  };
+};
 
 export default async function RouteLayout(
   props: LayoutParams<{ productId: string; orgSlug: string }>,

@@ -10,7 +10,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="flex w-full min-w-0">
+    <main className="flex w-full min-w-0 gap-5">
       <div className="w-full min-w-0">
         {/* Profile Header displaying user info, bio, and photo */}
         <div className="sticky top-0 z-10 border-b border-border bg-background pb-8">
