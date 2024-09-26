@@ -70,13 +70,15 @@ export function NavigationWrapper({
   };
 
   const gridCols = hideSidebar
-    ? "grid-cols-[1fr_3fr]" // 1/4 - 3/4 layout
-    : "grid-cols-[1fr_2fr_1fr]"; // 1/4 - 2/4 - 1/4 layout
+    ? "grid-cols-[1fr] sm:grid-cols-[1fr] md:grid-cols-[1fr] lg:grid-cols-[1fr_3fr]"
+    : "grid-cols-[1fr] sm:grid-cols-[20%_80%] md:grid-cols-[33.33%_66.67%] lg:grid-cols-[1fr_2fr_1fr]";
 
   return (
-    <div className={`grid min-h-screen w-full ${gridCols} gap-4`}>
+    <div className={`grid min-h-screen w-full ${gridCols}`}>
       {/* Left Sidebar */}
-      <div className="hidden border-r bg-muted/40 lg:block">
+      <div
+        className={`hidden border-r bg-muted/40 ${hideSidebar ? "lg:block" : "sm:block"}`}
+      >
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center gap-2 border-b px-4 lg:h-[60px] lg:px-6">
             <LogoSvg size={32} />
@@ -97,7 +99,7 @@ export function NavigationWrapper({
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex max-h-screen flex-col">
         {/* Mobile Header */}
         <header className="flex items-center justify-between border-b border-border p-4 sm:hidden">
           <Sheet>
