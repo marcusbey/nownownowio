@@ -11,7 +11,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ user }: ProfileHeaderProps) {
   return (
-    <div className="flex items-center space-x-4 rounded-2xl bg-card p-5 shadow-sm">
+    <div className="flex items-center space-x-4 rounded-2xl bg-card p-8 shadow-sm">
       <UserAvatar avatarUrl={user.image} size={80} />
       <div className="flex-1">
         <h1 className="text-2xl font-bold">
