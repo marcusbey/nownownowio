@@ -10,13 +10,17 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="flex w-full min-w-0 gap-5">
-      <div className="w-full min-w-0 space-y-5">
+    <main className="flex w-full min-w-0">
+      <div className="w-full min-w-0">
         {/* Profile Header displaying user info, bio, and photo */}
-        <ProfileHeader user={user} />
+        <div className="sticky top-0 z-10 border-b border-border bg-background pb-8">
+          <ProfileHeader user={user} />
+        </div>
 
-        {/* User's own posts feed */}
-        <MyPostsFeed userId={user.id} />
+        <div className="mt-16">
+          {/* User's own posts feed */}
+          <MyPostsFeed userId={user.id} />
+        </div>
       </div>
     </main>
   );

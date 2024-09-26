@@ -26,7 +26,7 @@
 //   </Sheet>
 //   <div className="w-full flex-1">{topBarChildren}</div>
 //   <div className="flex items-center gap-2">
-//     {buttomNavigationChildren}
+//     {bottomNavigationChildren}
 //     <ThemeToggle />
 //   </div>
 // </header>;
