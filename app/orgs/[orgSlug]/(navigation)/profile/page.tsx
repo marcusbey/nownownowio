@@ -1,51 +1,23 @@
-import SearchField from "@/components/SearchField"; // Adjust the path if necessary
+import MyPostsFeed from "@/app/orgs/[orgSlug]/(navigation)/profile/MyPostsFeed";
+import ProfileHeader from "@/app/orgs/[orgSlug]/(navigation)/profile/ProfileHeader";
+import { requiredAuth } from "@/lib/auth/helper";
 
-export default async function RoutePage(props: PageParams) {
-  const tags = await getPostsTags();
-  const posts = await getPosts();
+export default async function ProfilePage() {
+  const user = await requiredAuth();
+
+  if (!user) {
+    return <p className="text-destructive">Unauthorized access.</p>;
+  }
 
   return (
-    <Layout>
-      <LayoutHeader>
-        <LayoutTitle>Blog</LayoutTitle>
-      </LayoutHeader>
-      <LayoutContent className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <Link key={tag} href={`/posts/categories/${tag}`}>
-            <Badge variant="outline">{tag}</Badge>
-          </Link>
-        ))}
-      </LayoutContent>
+    <main className="flex w-full min-w-0 gap-5">
+      <div className="w-full min-w-0 space-y-5">
+        {/* Profile Header displaying user info, bio, and photo */}
+        <ProfileHeader user={user} />
 
-      <div className="flex">
-        {/* Main Content */}
-        {posts.length === 0 ? (
-          <LayoutContent className="flex flex-col items-center justify-center">
-            <div className="flex flex-col items-center rounded-lg border-2 border-dashed p-4 lg:gap-6 lg:p-8">
-              <FileQuestion />
-              <Typography variant="h2">No posts found</Typography>
-              <Link
-                className={buttonVariants({ variant: "link" })}
-                href="/posts"
-              >
-                View all posts
-              </Link>
-            </div>
-          </LayoutContent>
-        ) : (
-          <LayoutContent className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            {posts.map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </LayoutContent>
-        )}
-
-        {/* Right Panel */}
-        <div className="ml-4 w-1/4">
-          <SearchField />
-          {/* You can add more components to the right panel here */}
-        </div>
+        {/* User's own posts feed */}
+        <MyPostsFeed userId={user.id} />
       </div>
-    </Layout>
+    </main>
   );
 }
