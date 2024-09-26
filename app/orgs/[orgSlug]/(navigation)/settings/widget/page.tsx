@@ -6,19 +6,21 @@ import { useToast } from "@/components/ui/use-toast";
 import { Check } from "lucide-react";
 import { useState } from "react";
 
-function WidgetScriptGenerator({ userId }: { userId: string }) {
+function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   const [script, setScript] = useState("");
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const generateScript = async () => {
+    setLoading(true);
     try {
       const response = await fetch("/api/widget/generate-script", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ orgSlug }),
       });
       const data = await response.json();
       if (data.script) {
@@ -34,6 +36,8 @@ function WidgetScriptGenerator({ userId }: { userId: string }) {
         description: "Failed to generate widget script. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,13 +52,22 @@ function WidgetScriptGenerator({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
-      <Button onClick={generateScript}>Generate Widget Script</Button>
+      <Button
+        onClick={generateScript}
+        disabled={loading}
+        className="relative overflow-hidden"
+      >
+        <span className="relative z-10">Generate Widget Script</span>
+        {loading && (
+          <span className="absolute inset-0 size-full animate-fill-left-to-right bg-primary/50" />
+        )}
+      </Button>
       {script && (
         <div className="flex space-x-2">
           <Input value={script} readOnly className="grow" />
           <Button
             onClick={copyToClipboard}
-            className={copied ? "bg-green-500 hover:bg-green-600" : ""}
+            className={copied ? "bg-yellow-500 hover:bg-yellow-600" : ""}
           >
             {copied ? <Check className="size-4" /> : "Copy"}
           </Button>
@@ -69,5 +82,5 @@ export default function WidgetPage({
 }: {
   params: { orgSlug: string };
 }) {
-  return <WidgetScriptGenerator userId={params.orgSlug} />;
+  return <WidgetScriptGenerator orgSlug={params.orgSlug} />;
 }
