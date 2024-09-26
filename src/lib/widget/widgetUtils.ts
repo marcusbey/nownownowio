@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
+const SECRET_KEY = process.env.WIDGET_SECRET_KEY!;
+
+
 interface ApiKeyOptions {
     userId: string;
     expiresIn?: number; // in seconds
@@ -41,4 +44,13 @@ export function generateWidgetToken(userId: string): string {
         throw new Error('WIDGET_SECRET_KEY is not defined');
     }
     return jwt.sign({ userId }, secret, { expiresIn: '30d' });
+}
+
+export function verifyWidgetToken(token: string, userId: string): boolean {
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY) as { userId: string };
+        return decoded.userId === userId;
+    } catch (error) {
+        return false;
+    }
 }

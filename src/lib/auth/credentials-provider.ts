@@ -1,5 +1,5 @@
 // Start of Selection
-import { generateWidgetToken } from '@/lib/widget/widgetAuth';
+import { generateWidgetToken } from '@/lib/widget/widgetUtils';
 import crypto from "crypto";
 import { addDays } from "date-fns";
 import { nanoid } from "nanoid";

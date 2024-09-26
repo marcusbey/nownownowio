@@ -1,7 +1,7 @@
 import cors, { runMiddleware } from '@/lib/cors';
 import { prisma } from '@/lib/prisma';
 import { runRateLimit } from '@/lib/rateLimit';
-import { verifyWidgetToken } from '@/lib/widget/widgetAuth';
+import { verifyWidgetToken } from '@/lib/widget/widgetUtils';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 async function getUserData(userId: string) {

@@ -17,6 +17,7 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "postinstall": "prisma generate",
     "clean": "next lint --fix && tsc --noEmit && prettier --write .",
+    "generate-widget": "node generate-widget-script.js",
     "knip": "knip"
   },
   "dependencies": {

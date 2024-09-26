@@ -59,6 +59,11 @@ export default async function RouteLayout(
               roles: ["ADMIN"],
             },
             {
+              href: `${orgPath}/settings/widget`,
+              label: "Widget",
+              roles: ["ADMIN"],
+            },
+            {
               href: `${orgPath}/settings/members`,
               label: "Members",
               roles: ["ADMIN"],
