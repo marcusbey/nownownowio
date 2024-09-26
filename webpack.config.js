@@ -7,8 +7,8 @@ module.exports = {
   mode: 'production',
   entry: './now-widget/index.ts',
   output: {
-    filename: 'now-widget-bundle.js',
-    path: path.resolve(__dirname, 'public'),
+    filename: 'now-bundle.js',
+    path: path.resolve(__dirname, 'public/widget'),
     library: 'NowNowNowWidget',
     libraryTarget: 'umd',
     globalObject: 'this'
@@ -48,14 +48,12 @@ module.exports = {
       'process.env.NEXT_PUBLIC_WIDGET_URL': JSON.stringify(process.env.NEXT_PUBLIC_WIDGET_URL),
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
     }),
-    new MiniCssExtractPlugin({
-      filename: 'nownownow-widget-styles.css',
-    }),
   ],
-  externals: {
-    react: 'React',
-    'react-dom': 'ReactDOM'
-  },
+  // Remove or comment out the externals section
+  // externals: {
+  //   react: 'React',
+  //   'react-dom': 'ReactDOM'
+  // },
   optimization: {
     minimizer: [new TerserPlugin()],
   },

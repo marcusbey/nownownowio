@@ -1,12 +1,17 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import NowWidget from './NowWidget';
+
+console.log('Widget bundle loaded');
+console.log('React version:', React.version);
+console.log('ReactDOM version:', ReactDOM.version);
 
 function init() {
     console.log('NowNowNow Widget: Initializing');
-    const script = document.currentScript as HTMLScriptElement;
-    const userId = script.getAttribute('data-user-id');
-    const token = script.getAttribute('data-token');
+    const scripts = document.getElementsByTagName('script');
+    const currentScript = scripts[scripts.length - 1];
+    const userId = currentScript.getAttribute('data-user-id');
+    const token = currentScript.getAttribute('data-token');
 
     console.log('NowNowNow Widget: User ID:', userId);
     console.log('NowNowNow Widget: Token:', token);
@@ -22,14 +27,14 @@ function init() {
 
     console.log('NowNowNow Widget: Container created');
 
-    createRoot(widgetContainer).render(
-        React.createElement(NowWidget, { userId, token })
-    );
+    const root = ReactDOM.createRoot(widgetContainer);
+    root.render(React.createElement(NowWidget, { userId, token }));
 
     console.log('NowNowNow Widget: Rendered');
 }
 
-// Initialize the widget when the script loads
+// Initialize the widget immediately
 init();
 
-export { init };
+// Make init function available globally if needed
+(window as any).NowNowNowWidget = { init };
