@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
-export function WidgetScriptGenerator({ userId }: { userId: string }) {
+function WidgetScriptGenerator({ userId }: { userId: string }) {
   const [script, setScript] = useState("");
   const { toast } = useToast();
 
@@ -58,4 +58,8 @@ export function WidgetScriptGenerator({ userId }: { userId: string }) {
       )}
     </div>
   );
+}
+
+export default function WidgetPage({ params }: { params: { userId: string } }) {
+  return <WidgetScriptGenerator userId={params.userId} />;
 }

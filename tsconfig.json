@@ -15,7 +15,7 @@
     "baseUrl": ".",
     "incremental": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "forceConsistentCasingInFileNames": true,
     "plugins": [
       {
@@ -38,5 +38,5 @@
     "tailwind.config.js",
     "site-config.ts"
   ],
-  "exclude": ["node_modules", ".next", "tailwind.config.js"]
+  "exclude": ["node_modules", "tailwind.config.js"]
 }
