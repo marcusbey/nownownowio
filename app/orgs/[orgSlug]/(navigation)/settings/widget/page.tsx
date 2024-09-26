@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Check } from "lucide-react";
 import { useState } from "react";
 
-function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
+export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   const [script, setScript] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);

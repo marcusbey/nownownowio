@@ -7,7 +7,7 @@ module.exports = {
   mode: 'production',
   entry: './now-widget/index.ts',
   output: {
-    filename: 'nownownow-widget-bundle.js',
+    filename: 'now-widget-bundle.js',
     path: path.resolve(__dirname, 'public'),
     library: 'NowNowNowWidget',
     libraryTarget: 'umd',
