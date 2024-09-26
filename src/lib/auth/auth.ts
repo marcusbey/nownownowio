@@ -28,7 +28,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     strategy: "database",
   },
   secret: env.NEXTAUTH_SECRET,
-  trustHost: true,
+  trustHost: process.env.NODE_ENV === "development",
   callbacks: {
     async redirect({ url, baseUrl }) {
       // Allow redirects to localhost during development
