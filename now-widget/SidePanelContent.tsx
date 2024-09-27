@@ -68,7 +68,7 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
         <div className="user-info">
           <img
             src={user.image || ""}
-            alt={user.displayName || user.name}
+            alt={user.displayName || user.name || ""}
             className="avatar"
           />
           <h2>{user.displayName || user.name}</h2>
