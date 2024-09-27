@@ -55,9 +55,11 @@ export async function GET(req: NextRequest) {
                 content: true,
                 createdAt: true,
                 _count: {
-                    comments: true,
-                    bookmarks: true,
-                    likes: true, // Include if necessary
+                    select: {
+                        comments: true,
+                        bookmarks: true,
+                        likes: true, // Include if necessary
+                    },
                 },
             },
         });
