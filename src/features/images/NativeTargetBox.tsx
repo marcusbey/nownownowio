@@ -31,14 +31,17 @@ type DragAndDropProps = {
  * @param props - The rest of the props that will be passed to the div element.
  */
 export const NativeTargetBox = forwardRef<HTMLDivElement, DragAndDropProps>(
-  ({
-    onDrop,
-    children,
-    className,
-    isLoading,
-    accept,
-    ...props
-  }: DragAndDropProps) => {
+  (
+    {
+      onDrop,
+      children,
+      className,
+      isLoading,
+      accept,
+      ...props
+    }: DragAndDropProps,
+    ref,
+  ) => {
     const [isDrop, setIsDrop] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -84,6 +87,7 @@ export const NativeTargetBox = forwardRef<HTMLDivElement, DragAndDropProps>(
 
     return (
       <div
+        ref={ref}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
