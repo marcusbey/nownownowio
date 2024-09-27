@@ -62,6 +62,8 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
+  console.log(user);
+
   return (
     <div className="sidepanel-content">
       {user && (

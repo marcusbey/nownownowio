@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
                 ? {
                     name: user.name,
                     displayName: user.displayName,
-                    avatarUrl: user.image,
+                    image: user.image,
                     bio: user.bio,
                     // Include other fields as needed
                 }
