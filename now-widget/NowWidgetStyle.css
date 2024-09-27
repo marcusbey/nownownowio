@@ -1,14 +1,30 @@
 #now__sidepanel {
   height: 100vh;
-  width: 50%;
+  width: 30%; /* 30% width on large screens */
   position: fixed;
   z-index: 1000;
   top: 0;
-  left: -50%;
+  left: -30%; /* Hide side panel to the left */
   background-color: #111;
   overflow-x: hidden;
-  transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  transition: left 0.5s ease;
   padding-top: 60px;
+}
+
+/* Medium screens */
+@media screen and (max-width: 1200px) {
+  #now__sidepanel {
+    width: 50%; /* 50% width on medium screens */
+    left: -50%; /* Adjust left position */
+  }
+}
+
+/* Small and extra small screens */
+@media screen and (max-width: 768px) {
+  #now__sidepanel {
+    width: 80%; /* 80% width on small screens */
+    left: -80%; /* Adjust left position */
+  }
 }
 
 #now__sidepanel a {
@@ -38,24 +54,17 @@
   color: #f1f1f1;
 }
 
+/* Page wrapper styles */
 #base__wrapper {
-  transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  transition: transform 0.5s ease;
   width: 100%;
+  position: relative;
+  left: 0;
 }
 
 #now-button-container {
   position: fixed;
-  left: 20%;
-  bottom: 20%;
+  right: 20%;
+  top: 20%;
   z-index: 999;
-}
-
-@media screen and (max-width: 768px) {
-  #now__sidepanel {
-    width: 100%;
-    left: -100%;
-  }
-  #base__wrapper {
-    transform: none !important;
-  }
 }

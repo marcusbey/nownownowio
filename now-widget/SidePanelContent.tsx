@@ -35,7 +35,7 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
       try {
         const data = await getCachedData(`userData_${userId}`, async () => {
           const response = await fetch(
-            `/api/widget/userData?userId=${userId}`,
+            `/api/widget/user-data?userId=${userId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

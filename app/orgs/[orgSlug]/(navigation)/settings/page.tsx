@@ -8,7 +8,7 @@ import {
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
-import { WidgetScriptGenerator } from "./widget/page";
+import { WidgetScriptGenerator } from "./widget/GenerateScript";
 
 type SettingsPageParams = PageParams<{
   orgSlug: string;

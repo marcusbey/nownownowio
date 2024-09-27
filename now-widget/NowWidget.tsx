@@ -1,4 +1,3 @@
-import { getCachedData } from "@/lib/cache";
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import NowButton from "./NowButton";
 import "./NowWidgetStyle.css";
@@ -50,36 +49,26 @@ const NowWidget: React.FC<WidgetConfig> = ({
     }
     document.body.appendChild(baseWrapper);
 
-    return () => {
-      document.body.removeAttribute("data-widget-theme");
-      document.body.removeAttribute("data-widget-position");
-      while (baseWrapper.children.length > 0) {
-        document.body.appendChild(baseWrapper.children[0]);
-      }
-      baseWrapper.remove();
-    };
-  }, [theme, position]);
+    // Fetch data when the widget initializes
+    const API_BASE_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  useEffect(() => {
     const fetchData = async () => {
-      if (!isOpen) return;
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getCachedData(`userData_${userId}`, async () => {
-          const response = await fetch(
-            `/api/widget/userData?userId=${userId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+        const response = await fetch(
+          `${API_BASE_URL}/api/widget/user-data?userId=${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        });
+          },
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
 
         if (data.success) {
           setPosts(data.data.recentPosts);
@@ -97,7 +86,47 @@ const NowWidget: React.FC<WidgetConfig> = ({
     };
 
     fetchData();
-  }, [isOpen, userId, token]);
+
+    const handleResize = () => {
+      const baseWrapper = document.getElementById("base__wrapper");
+      const sidePanel = document.getElementById("now__sidepanel");
+
+      if (baseWrapper && sidePanel) {
+        const translatePercentage = getTranslatePercentage();
+        if (isOpen) {
+          baseWrapper.style.transform = `translateX(${translatePercentage}%)`;
+          sidePanel.style.width = `${translatePercentage}%`;
+        } else {
+          baseWrapper.style.transform = "translateX(0)";
+          sidePanel.style.left = `-${translatePercentage}%`;
+          sidePanel.style.width = `${translatePercentage}%`;
+        }
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      document.body.removeAttribute("data-widget-theme");
+      document.body.removeAttribute("data-widget-position");
+      while (baseWrapper.children.length > 0) {
+        document.body.appendChild(baseWrapper.children[0]);
+      }
+      baseWrapper.remove();
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [theme, position, isOpen]);
+
+  const getTranslatePercentage = () => {
+    const screenWidth = window.innerWidth;
+    if (screenWidth <= 768) {
+      return 80;
+    } else if (screenWidth <= 1200) {
+      return 50;
+    } else {
+      return 30;
+    }
+  };
 
   const togglePanel = () => {
     setIsOpen((prev) => !prev);
@@ -105,13 +134,13 @@ const NowWidget: React.FC<WidgetConfig> = ({
     const sidePanel = document.getElementById("now__sidepanel");
 
     if (baseWrapper && sidePanel) {
+      const translatePercentage = getTranslatePercentage();
+
       if (!isOpen) {
         sidePanel.style.left = "0";
-        if (window.innerWidth > 768) {
-          baseWrapper.style.transform = "translateX(50%)";
-        }
+        baseWrapper.style.transform = `translateX(${translatePercentage}%)`;
       } else {
-        sidePanel.style.left = window.innerWidth > 768 ? "-50%" : "-100%";
+        sidePanel.style.left = `-${translatePercentage}%`;
         baseWrapper.style.transform = "translateX(0)";
       }
     }
@@ -135,7 +164,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
         <div id="sidepanel-content">
           {isLoading && <p>Loading...</p>}
           {error && <p className="error-message">Error: {error}</p>}
-          {isOpen && !isLoading && !error && (
+          {!isLoading && !error && (
             <Suspense fallback={<div>Loading...</div>}>
               <SidePanelContent
                 userId={userId}

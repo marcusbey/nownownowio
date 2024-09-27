@@ -13,12 +13,5 @@ const nextConfig = {
     },
 };
 
-const config = withPlausibleProxy()({
-    ...nextConfig,
-    experimental: {
-        trustHost: true,
-    },
-});
 
-
-module.exports = config;
+module.exports = nextConfig;

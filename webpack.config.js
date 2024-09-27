@@ -49,11 +49,7 @@ module.exports = {
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
     }),
   ],
-  // Remove or comment out the externals section
-  // externals: {
-  //   react: 'React',
-  //   'react-dom': 'ReactDOM'
-  // },
+
   optimization: {
     minimizer: [new TerserPlugin()],
   },
