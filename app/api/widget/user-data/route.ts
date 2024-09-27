@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
                 name: true,
                 displayName: true,
                 image: true,
-                bio: true, // Add other fields as needed
+                bio: true,
                 // ... any other required fields
             },
         });
@@ -50,7 +50,16 @@ export async function GET(req: NextRequest) {
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: 5,
-            select: { id: true, content: true, createdAt: true },
+            select: {
+                id: true,
+                content: true,
+                createdAt: true,
+                _count: {
+                    comments: true,
+                    bookmarks: true,
+                    likes: true, // Include if necessary
+                },
+            },
         });
 
         const data = {
@@ -67,6 +76,7 @@ export async function GET(req: NextRequest) {
                 id: post.id,
                 content: post.content,
                 createdAt: post.createdAt,
+                _count: post._count,
             })),
         };
 

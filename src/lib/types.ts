@@ -1,3 +1,4 @@
+// Start of Selection
 import { OrganizationMembershipRole, Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
@@ -141,3 +142,25 @@ export type NavigationLink = {
     roles?: OrganizationMembershipRole[];
   }[];
 };
+
+export type User = Prisma.UserGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    displayName: true;
+    image: true;
+    bio: true;
+    // Add other fields as needed
+  };
+}>;
+
+export interface Post {
+  id: string;
+  content: string;
+  createdAt: string;
+  _count: {
+    comments: number;
+    bookmarks: number;
+    likes: number;
+  };
+}

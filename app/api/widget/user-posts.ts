@@ -29,7 +29,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             where: { userId },
             orderBy: { createdAt: 'desc' },
             take: 5,
-            select: { id: true, content: true, createdAt: true },
+            select: {
+                id: true,
+                content: true,
+                createdAt: true,
+                _count: {
+                    select: {
+                        comments: true,
+                        bookmarks: true,
+                        likes: true,
+                    },
+                },
+            },
         });
 
         res.status(200).json(posts);
