@@ -1,20 +1,7 @@
+import { Post, User } from "@/lib/types/prisma"; // Use shared types
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import NowButton from "./NowButton";
 import "./NowWidgetStyle.css";
-
-const SidePanelContent = lazy(() => import("./SidePanelContent"));
-
-interface Post {
-  id: string;
-  content: string;
-  createdAt: string;
-}
-
-interface User {
-  name: string;
-  displayName: string;
-  avatarUrl: string;
-}
 
 interface WidgetConfig {
   userId: string;
@@ -24,6 +11,8 @@ interface WidgetConfig {
   buttonColor?: string;
   buttonSize?: number;
 }
+
+const SidePanelContent = lazy(() => import("./SidePanelContent"));
 
 const NowWidget: React.FC<WidgetConfig> = ({
   userId,

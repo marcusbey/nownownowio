@@ -1,17 +1,6 @@
 import { getCachedData } from "@/lib/cache";
+import { Post, User } from "@/lib/types/prisma";
 import React, { useEffect, useState } from "react";
-
-interface Post {
-  id: string;
-  content: string;
-  createdAt: string;
-}
-
-interface User {
-  name: string;
-  displayName: string;
-  avatarUrl: string;
-}
 
 interface SidePanelContentProps {
   userId: string;
@@ -31,12 +20,15 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getCachedData(`userData_${userId}`, async () => {
           const response = await fetch(
-            `/api/widget/user-data?userId=${userId}`,
+            `${API_BASE_URL}/api/widget/user-data?userId=${userId}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -65,7 +57,7 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
     };
 
     fetchData();
-  }, [userId, token]);
+  }, [userId, token, API_BASE_URL]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -74,8 +66,13 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
     <div className="sidepanel-content">
       {user && (
         <div className="user-info">
-          <img src={user.avatarUrl} alt={user.displayName} className="avatar" />
-          <h2>{user.displayName}</h2>
+          <img
+            src={user.image || ""}
+            alt={user.displayName || user.name}
+            className="avatar"
+          />
+          <h2>{user.displayName || user.name}</h2>
+          {user.bio && <p>{user.bio}</p>}
         </div>
       )}
       <h3>Recent Posts</h3>

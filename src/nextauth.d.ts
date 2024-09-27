@@ -8,6 +8,8 @@ declare module "next-auth" {
       email: string;
       name?: string;
       image?: string;
+      displayName?: string;
+      bio?: string;
     };
     sessionToken: string;
   }

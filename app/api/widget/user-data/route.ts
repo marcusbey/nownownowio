@@ -37,7 +37,13 @@ export async function GET(req: NextRequest) {
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { displayName: true, image: true },
+            select: {
+                name: true,
+                displayName: true,
+                image: true,
+                bio: true, // Add other fields as needed
+                // ... any other required fields
+            },
         });
 
         const recentPosts = await prisma.post.findMany({
@@ -53,6 +59,8 @@ export async function GET(req: NextRequest) {
                     name: user.name,
                     displayName: user.displayName,
                     avatarUrl: user.image,
+                    bio: user.bio,
+                    // Include other fields as needed
                 }
                 : null,
             recentPosts: recentPosts.map((post) => ({
