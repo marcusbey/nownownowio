@@ -8,6 +8,7 @@ interface Post {
 }
 
 interface User {
+  name: string;
   displayName: string;
   avatarUrl: string;
 }

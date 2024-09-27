@@ -18,7 +18,7 @@ export async function GET() {
       expirationTime,
       issuedAt,
     );
-
+    console.log(token);
     return Response.json({ token });
   } catch (error) {
     console.error(error);

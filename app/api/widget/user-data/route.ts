@@ -3,17 +3,14 @@ import { verifyWidgetToken } from '@/lib/widget/widgetUtils';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS() {
-    return NextResponse.json(
-        {},
-        {
-            status: 204,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            },
-        }
-    );
+    return new NextResponse(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+    });
 }
 
 export async function GET(req: NextRequest) {
@@ -53,6 +50,7 @@ export async function GET(req: NextRequest) {
         const data = {
             user: user
                 ? {
+                    name: user.name,
                     displayName: user.displayName,
                     avatarUrl: user.image,
                 }
