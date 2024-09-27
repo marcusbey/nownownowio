@@ -1,4 +1,4 @@
-import { Post, User } from "@/lib/types/prisma"; // Use shared types
+import { Post, User } from "@/lib/types";
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import NowButton from "./NowButton";
 import "./NowWidgetStyle.css";
