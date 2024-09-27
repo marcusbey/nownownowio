@@ -1,5 +1,6 @@
 import { Post, User } from "@/lib/types";
 import React, { lazy, Suspense, useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 import NowButton from "./NowButton";
 import "./NowWidgetStyle.css";
 
@@ -105,7 +106,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
       baseWrapper.remove();
       window.removeEventListener("resize", handleResize);
     };
-  }, [theme, position, isOpen]);
+  }, [theme, position, isOpen, userId, token]);
 
   const getTranslatePercentage = () => {
     const screenWidth = window.innerWidth;
@@ -128,15 +129,15 @@ const NowWidget: React.FC<WidgetConfig> = ({
 
       if (!isOpen) {
         sidePanel.style.left = "0";
-        baseWrapper.style.transform = `translateX(${translatePercentage}%)`;
+        sidePanel.style.width = `${translatePercentage}%`;
       } else {
         sidePanel.style.left = `-${translatePercentage}%`;
-        baseWrapper.style.transform = "translateX(0)";
+        sidePanel.style.width = `${translatePercentage}%`;
       }
     }
   };
 
-  return (
+  const widgetContent = (
     <div className={`now-widget-wrapper ${theme} ${position}`}>
       <div id="now-button-container">
         <NowButton
@@ -168,6 +169,8 @@ const NowWidget: React.FC<WidgetConfig> = ({
       </div>
     </div>
   );
+
+  return ReactDOM.createPortal(widgetContent, document.body);
 };
 
 export default NowWidget;
