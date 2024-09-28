@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import NowWidget from './NowWidget';
+import './NowWidgetStyle.css'; // Import Tailwind CSS and custom styles
 
 function init() {
     const scripts = document.getElementsByTagName('script');
     const currentScript = scripts[scripts.length - 1];
     const userId = currentScript.getAttribute('data-user-id');
     const token = currentScript.getAttribute('data-token');
-
 
     if (!userId || !token) {
         return;

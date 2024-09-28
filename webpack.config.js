@@ -1,36 +1,39 @@
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
-  mode: 'production',
+  mode: 'production', // Enables optimizations like minification
   entry: './now-widget/index.ts',
   output: {
     filename: 'now-bundle.js',
     path: path.resolve(__dirname, 'public/widget'),
     library: 'NowNowNowWidget',
     libraryTarget: 'umd',
-    globalObject: 'this'
+    globalObject: 'this',
   },
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.tsx?$/, // Handles TypeScript files
         use: {
           loader: 'ts-loader',
           options: {
-            transpileOnly: true,
+            transpileOnly: true, // Speeds up compilation
             compilerOptions: {
-              jsx: 'react'
-            }
-          }
+              jsx: 'react',
+            },
+          },
         },
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
       {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        test: /\.css$/, // Handles CSS files with Tailwind
+        use: [
+          'style-loader', // Injects CSS into the DOM
+          'css-loader',
+          'postcss-loader', // Processes CSS with PostCSS and Tailwind
+        ],
       },
     ],
   },
@@ -41,17 +44,19 @@ module.exports = {
       '@/lib': path.resolve(__dirname, './src/lib'),
       '@/email': path.resolve(__dirname, './emails'),
       '@/app': path.resolve(__dirname, './app'),
-    }
+    },
   },
   plugins: [
     new webpack.DefinePlugin({
       'process.env.NEXT_PUBLIC_WIDGET_URL': JSON.stringify(process.env.NEXT_PUBLIC_WIDGET_URL),
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
     }),
+    // Removed MiniCssExtractPlugin
   ],
-
   optimization: {
-    minimizer: [new TerserPlugin()],
+    minimizer: [new TerserPlugin()], // Minifies JavaScript
+    // Disable code splitting to prevent multiple chunks
+    splitChunks: false,
   },
-  devtool: 'source-map'
+  devtool: 'source-map', // Generates source maps for debugging
 };

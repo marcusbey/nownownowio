@@ -2,7 +2,7 @@
 module.exports = {
 
   mode: 'jit', // Optional: Tailwind v3 uses JIT by default
-  purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+  purge: ['./now-widget/**/*.{js,jsx,ts,tsx,css}', './public/index.html'],
   darkMode: 'class',
 
   content: [

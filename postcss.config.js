@@ -1,6 +1,6 @@
 module.exports = {
   plugins: {
-    tailwindcss: {},
+    tailwindcss: {config: './now-widget/tailwind.config.js'},
     autoprefixer: {},
   },
 };
