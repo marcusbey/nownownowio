@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import NowWidget from './NowWidget';
-import './NowWidgetStyle.css'; // Import Tailwind CSS and custom styles
 
 function init() {
     const scripts = document.getElementsByTagName('script');

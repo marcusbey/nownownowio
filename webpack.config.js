@@ -1,7 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 module.exports = {
   mode: 'production', // Enables optimizations like minification
@@ -52,19 +52,29 @@ module.exports = {
       'process.env.NEXT_PUBLIC_WIDGET_URL': JSON.stringify(process.env.NEXT_PUBLIC_WIDGET_URL),
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
     }),
-  new webpack.ProgressPlugin(),
-      {
-        apply: (compiler) => {
-          compiler.hooks.done.tap('DonePlugin', (stats) => {
-            console.log('✅ Build complete!');
-          });
-        },
+    new webpack.ProgressPlugin(),
+    {
+      apply: (compiler) => {
+        compiler.hooks.done.tap('DonePlugin', (stats) => {
+          console.log('✅ Build complete!');
+        });
       },
+    },
     // new BundleAnalyzerPlugin(),
   ],
   optimization: {
-    minimize: false,
-    minimizer: [new TerserPlugin()],
+    minimize: true, // Enable minimization
+    minimizer: [
+      new TerserPlugin({
+        parallel: true, // Use multi-process parallel running to improve the build speed
+        terserOptions: {
+          compress: {
+            drop_console: true, // Removes console logs
+          },
+        },
+      }),
+      new CssMinimizerPlugin(), // Minify CSS
+    ],
     splitChunks: {
       chunks: 'all',
       maxInitialRequests: Infinity,
