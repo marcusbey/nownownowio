@@ -1,21 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-
-  mode: 'jit', // Optional: Tailwind v3 uses JIT by default
-  purge: ['./now-widget/**/*.{js,jsx,ts,tsx,css}', './public/index.html'],
-  darkMode: 'class',
-
+  darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./now-widget/**/*.{js,jsx,ts,tsx,css}",
-  ],
-  safelist: [
-    'bg-red-500',
-    'text-center',
-    // Add any other dynamic classes
   ],
   theme: {
     container: {
@@ -92,15 +82,10 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
-        fillLeftToRight: {
-          '0%': { width: '0%' },
-          '100%': { width: '100%' },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        'fill-left-to-right': 'fillLeftToRight 2s ease-in-out infinite',
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
