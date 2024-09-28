@@ -1,5 +1,5 @@
 import { Post, User } from "@/lib/types";
-import React, { lazy, Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import NowButton from "./NowButton";
 import "./NowWidgetStyle.css";
@@ -13,7 +13,7 @@ interface WidgetConfig {
   buttonSize?: number;
 }
 
-const SidePanelContent = lazy(() => import("./SidePanelContent"));
+const SidePanelContent = React.lazy(() => import("./SidePanelContent"));
 
 const NowWidget: React.FC<WidgetConfig> = ({
   userId,

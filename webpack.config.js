@@ -52,6 +52,14 @@ module.exports = {
       'process.env.NEXT_PUBLIC_WIDGET_URL': JSON.stringify(process.env.NEXT_PUBLIC_WIDGET_URL),
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
     }),
+  new webpack.ProgressPlugin(),
+      {
+        apply: (compiler) => {
+          compiler.hooks.done.tap('DonePlugin', (stats) => {
+            console.log('✅ Build complete!');
+          });
+        },
+      },
     // new BundleAnalyzerPlugin(),
   ],
   optimization: {
@@ -71,6 +79,11 @@ module.exports = {
         },
       },
     },
+  },
+  performance: {
+    hints: 'warning',
+    maxAssetSize: 244000, // 244 KiB
+    maxEntrypointSize: 244000,
   },
   devtool: 'source-map', // Generates source maps for debugging
 };
