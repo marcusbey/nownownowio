@@ -1,11 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+
+  mode: 'jit', // Optional: Tailwind v3 uses JIT by default
+  purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+  darkMode: 'class',
+
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./now-widget/**/*.{js,jsx,ts,tsx,css}",
+  ],
+  safelist: [
+    'bg-red-500',
+    'text-center',
+    // Add any other dynamic classes
   ],
   theme: {
     container: {
