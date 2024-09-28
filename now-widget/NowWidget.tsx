@@ -30,9 +30,11 @@ const NowWidget: React.FC<WidgetConfig> = ({
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    // Set theme and position attributes
     document.body.setAttribute("data-widget-theme", theme);
     document.body.setAttribute("data-widget-position", position);
 
+    // Create a base wrapper to manage DOM manipulations
     const baseWrapper = document.createElement("div");
     baseWrapper.id = "base__wrapper";
     while (document.body.children.length > 0) {
@@ -78,6 +80,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
 
     fetchData();
 
+    // Handle window resize
     const handleResize = () => {
       const baseWrapper = document.getElementById("base__wrapper");
       const sidePanel = document.getElementById("now__sidepanel");
@@ -98,6 +101,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
     window.addEventListener("resize", handleResize);
 
     return () => {
+      // Clean up attributes
       document.body.removeAttribute("data-widget-theme");
       document.body.removeAttribute("data-widget-position");
       while (baseWrapper.children.length > 0) {
