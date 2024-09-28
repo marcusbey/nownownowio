@@ -67,7 +67,7 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
   if (error) return <div className="text-white">Error: {error}</div>;
 
   return (
-    <div className="h-screen w-80 border-r border-red-800 bg-gray-900">
+    <div className="size-full border-r bg-gray-900">
       <div className="border-b border-gray-800 p-4">
         <div className="flex items-center space-x-4">
           <Avatar>
