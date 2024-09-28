@@ -17,6 +17,7 @@
     "outDir": "./dist",
     "rootDir": ".",
     "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["./node_modules/@types", "./types"],
     "plugins": [
       {
         "name": "next"

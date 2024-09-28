@@ -6,6 +6,8 @@ module.exports = {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
+    "./NowWidget.tsx",
+    "./now-widget/**/*.{js,jsx,ts,tsx,css}",
   ],
   theme: {
     container: {
@@ -27,9 +29,15 @@ module.exports = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          '80': 'rgba(var(--primary), 0.8)', // Added for ring-primary/80
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -38,10 +46,6 @@ module.exports = {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
@@ -67,6 +71,10 @@ module.exports = {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+      },
+      ringColor: {
+        'primary-80': 'rgba(var(--primary), 0.8)',
+        // Add other ring colors if needed
       },
       borderRadius: {
         lg: "var(--radius)",

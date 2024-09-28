@@ -12,9 +12,4 @@ module.exports = {
       // Add widget-specific customizations here
     },
   },
-  plugins: [
-    require('tailwindcss-animate'),
-    require('@tailwindcss/typography'),
-    // Include only necessary plugins to keep the CSS footprint small
-  ],
 };

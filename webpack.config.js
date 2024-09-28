@@ -1,12 +1,13 @@
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
   mode: 'production', // Enables optimizations like minification
   entry: './now-widget/index.ts',
   output: {
-    filename: 'now-bundle.js',
+    filename: 'now-bundle.[contenthash].js',
     path: path.resolve(__dirname, 'public/widget'),
     library: 'NowNowNowWidget',
     libraryTarget: 'umd',
@@ -51,12 +52,25 @@ module.exports = {
       'process.env.NEXT_PUBLIC_WIDGET_URL': JSON.stringify(process.env.NEXT_PUBLIC_WIDGET_URL),
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
     }),
-    // Removed MiniCssExtractPlugin
+    // new BundleAnalyzerPlugin(),
   ],
   optimization: {
-    minimizer: [new TerserPlugin()], // Minifies JavaScript
-    // Disable code splitting to prevent multiple chunks
-    splitChunks: false,
+    minimize: false,
+    minimizer: [new TerserPlugin()],
+    splitChunks: {
+      chunks: 'all',
+      maxInitialRequests: Infinity,
+      minSize: 0,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name(module) {
+            const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+            return `npm.${packageName.replace('@', '')}`;
+          },
+        },
+      },
+    },
   },
   devtool: 'source-map', // Generates source maps for debugging
 };
