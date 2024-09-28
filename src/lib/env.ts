@@ -10,8 +10,8 @@ export const env = createEnv({
   server: {
     DATABASE_URL: z.string().url(),
     NEXTAUTH_URL: z.string().url(),
-    // GITHUB_ID: z.string().optional(),
-    // GITHUB_SECRET: z.string().optional(),
+    GITHUB_ID: z.string().optional(),
+    GITHUB_SECRET: z.string().optional(),
     TWITTER_ID: z.string().optional(),
     TWITTER_SECRET: z.string().optional(),
     GOOGLE_ID: z.string().optional(),
