@@ -74,7 +74,7 @@ export function NavigationWrapper({
     : "grid-cols-[1fr] sm:grid-cols-[20%_80%] md:grid-cols-[33.33%_66.67%] lg:grid-cols-[1fr_2fr_1fr]";
 
   return (
-    <div className={`grid min-h-screen w-full ${gridCols}`}>
+    <div className={`mx-auto grid min-h-screen w-full max-w-7xl ${gridCols}`}>
       {/* Left Sidebar */}
       <div
         className={`hidden border-r bg-muted/40 ${hideSidebar ? "lg:block" : "sm:block"}`}
