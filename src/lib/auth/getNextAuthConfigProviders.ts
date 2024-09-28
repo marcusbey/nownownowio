@@ -38,7 +38,6 @@ export const getNextAuthConfigProviders = (): Providers => {
       GitHub({
         clientId: env.GITHUB_ID,
         clientSecret: env.GITHUB_SECRET,
-        allowDangerousEmailAccountLinking: true,
       }),
     );
   }

@@ -1,3 +1,4 @@
+import config from "@/config";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { User } from "@prisma/client";
 import type { Session } from "next-auth";
@@ -28,7 +29,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     strategy: "database",
   },
   secret: env.NEXTAUTH_SECRET,
-  trustHost: process.env.NODE_ENV === "development",
+  trustHost: true,
   callbacks: {
     async redirect({ url, baseUrl }) {
       // Allow redirects to localhost during development
@@ -78,6 +79,12 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   },
   // 🔑 Add this line and the import to add credentials provider
   jwt: credentialsOverrideJwt,
+  // debug: process.env.NODE_ENV === "development",
+  debug: true,
+  theme: {
+    brandColor: config.colors.main,
+    logo: `https://${config.domainName}/logo.png`,
+  },
 }));
 
 

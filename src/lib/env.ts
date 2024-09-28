@@ -36,7 +36,7 @@ export const env = createEnv({
     NEXT_PUBLIC_BASE_URL: z.string().url(),
     NEXT_PUBLIC_WIDGET_URL: z.string().url(),
     NEXT_PUBLIC_API_URL: z.string().url(),
-    NEXT_PUBLIC_UPLOADTHING_SECRET: z.string().optional(),
+    // NEXT_PUBLIC_UPLOADTHING_SECRET: z.string().optional(),
   },
   experimental__runtimeEnv: {
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
@@ -45,6 +45,6 @@ export const env = createEnv({
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     NEXT_PUBLIC_WIDGET_URL: process.env.NEXT_PUBLIC_WIDGET_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_UPLOADTHING_SECRET: process.env.NEXT_PUBLIC_UPLOADTHING_SECRET,
+    // NEXT_PUBLIC_UPLOADTHING_SECRET: process.env.NEXT_PUBLIC_UPLOADTHING_SECRET,
   },
 });
