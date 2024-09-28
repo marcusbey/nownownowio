@@ -82,7 +82,6 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   // debug: process.env.NODE_ENV === "development",
   debug: true,
   theme: {
-    brandColor: config.colors.main,
     logo: `https://${config.domainName}/logo.png`,
   },
 }));
