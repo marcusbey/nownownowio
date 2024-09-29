@@ -8,7 +8,6 @@
   <body>
     <h1>Testing NowNowNow Widget</h1>
 
-    <!-- Paste your generated script here -->
     <script>
       console.log("Before widget script");
     </script>
@@ -19,6 +18,24 @@
     ></script>
     <script>
       console.log("After widget script");
+      console.log("NowNowNowWidget object:", window.NowNowNowWidget);
+
+      // Check if the widget is initialized
+      setTimeout(() => {
+        console.log("Checking widget container after 1 second");
+        const container = document.getElementById("nownownow-widget-container");
+        console.log("Widget container:", container);
+        if (!container) {
+          console.log(
+            "Widget container not found, attempting manual initialization",
+          );
+          if (window.NowNowNowWidget && window.NowNowNowWidget.init) {
+            window.NowNowNowWidget.init();
+          } else {
+            console.error("NowNowNowWidget.init is not available");
+          }
+        }
+      }, 1000);
     </script>
   </body>
 </html>

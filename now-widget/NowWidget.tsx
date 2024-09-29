@@ -83,7 +83,7 @@ const NowWidget = ({
     // Handle window resize
     const handleResize = () => {
       const baseWrapper = document.getElementById("base__wrapper");
-      const sidePanel = document.getElementById("now__sidepanel");
+      const sidePanel = document.getElementById("now-sidepanel");
 
       if (baseWrapper && sidePanel) {
         const translatePercentage = getTranslatePercentage();
@@ -126,7 +126,7 @@ const NowWidget = ({
   const togglePanel = () => {
     setIsOpen((prev) => !prev);
     const baseWrapper = document.getElementById("base__wrapper");
-    const sidePanel = document.getElementById("now__sidepanel");
+    const sidePanel = document.getElementById("now-sidepanel");
 
     if (baseWrapper && sidePanel) {
       const translatePercentage = getTranslatePercentage();
@@ -152,11 +152,11 @@ const NowWidget = ({
           updated={posts.length > 0}
         />
       </div>
-      <div id="now__sidepanel" className={isOpen ? "open" : ""}>
+      <div id="now-sidepanel" className={isOpen ? "open" : ""}>
         <span className="closebtn" onClick={togglePanel}>
           &times;
         </span>
-        <div id="now__sidepanel-content">
+        <div id="now-sidepanel-content">
           {isLoading && <p>Loading...</p>}
           {error && <p className="error-message">Error: {error}</p>}
           {!isLoading && !error && (

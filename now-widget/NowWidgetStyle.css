@@ -13,13 +13,18 @@
   transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
 }
 
-#now__sidepanel.open {
+#now-sidepanel.open {
   left: 0;
+}
+
+#now-sidepanel-content {
+  height: 100%;
+  overflow-y: auto;
 }
 
 /* Medium screens */
 @media screen and (max-width: 1200px) {
-  #now__sidepanel {
+  #now-sidepanel {
     width: 50%; /* 50% width on medium screens */
     left: -50%; /* Adjust left position */
   }
@@ -27,13 +32,13 @@
 
 /* Small and extra small screens */
 @media screen and (max-width: 768px) {
-  #now__sidepanel {
+  #now-sidepanel {
     width: 80%; /* 80% width on small screens */
     left: -80%; /* Adjust left position */
   }
 }
 
-#now__sidepanel a {
+#now-sidepanel a {
   padding: 8px 8px 8px 32px;
   text-decoration: none;
   font-size: 25px;
@@ -42,7 +47,7 @@
   transition: 0.3s;
 }
 
-#now__sidepanel a:hover {
+#now-sidepanel a:hover {
   color: #f1f1f1;
 }
 
@@ -86,7 +91,7 @@
 }
 
 @media screen and (max-width: 768px) {
-  #now__sidepanel {
+  #now-sidepanel {
     width: 80%;
     left: -80%;
   }
@@ -95,7 +100,7 @@
   }
 }
 @media screen and (max-width: 992px) {
-  #now__sidepanel {
+  #now-sidepanel {
     width: 50%;
     left: -50%;
   }
@@ -237,7 +242,7 @@
 }
 
 /* Side Panel */
-#now__sidepanel {
+#now-sidepanel {
   height: 100vh;
   width: 30%; /* 30% width on large screens */
   position: fixed;
@@ -248,7 +253,7 @@
   transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
 }
 
-#now__sidepanel.open {
+#now-sidepanel.open {
   left: 0;
 }
 
@@ -266,7 +271,7 @@
   .now-widget-wrapper.left {
     width: 50%;
   }
-  #now__sidepanel {
+  #now-sidepanel {
     width: 50%;
     left: -50%;
   }
@@ -277,7 +282,7 @@
   .now-widget-wrapper.left {
     width: 80%;
   }
-  #now__sidepanel {
+  #now-sidepanel {
     width: 80%;
     left: -80%;
   }

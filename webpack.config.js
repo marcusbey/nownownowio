@@ -1,4 +1,3 @@
- // Start of Selection
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -6,13 +5,17 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 module.exports = {
   mode: 'production', // Enables optimizations like minification
-  entry: './now-widget/index.ts',
+  entry: {
+    'now-bundle': './now-widget/index.ts', // Changed entry point name
+  },
   output: {
-    filename: 'now-bundle.[contenthash].js',
+    filename: '[name].js', // This will create now-bundle.js for the main entry
+    chunkFilename: 'chunks/[name].[contenthash].js', // Unique names for other chunks
     path: path.resolve(__dirname, 'public/widget'),
     library: 'NowNowNowWidget',
     libraryTarget: 'umd',
     globalObject: 'this',
+    clean: true, // Cleans the output directory before emit
   },
   module: {
     rules: [
@@ -60,6 +63,7 @@ module.exports = {
         });
       },
     },
+    // Uncomment the next line if you plan to analyze your bundle
     // new BundleAnalyzerPlugin(),
   ],
   optimization: {
@@ -83,12 +87,28 @@ module.exports = {
         vendor: {
           test: /[\\/]node_modules[\\/]/,
           name(module) {
+            // Extract the package name from the path
             const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
-            return `npm.${packageName.replace('@', '')}`;
+            // Replace scope (@) if present and prefix with 'npm.'
+            return `vendor.${packageName.replace('@', '')}`;
           },
+          enforce: true,
+          priority: 10, // Higher priority to ensure this group is selected first
         },
+        commons: {
+          test: /[\\/]src[\\/]/,
+          name(module) {
+            const moduleName = module.identifier().split('/').slice(-3, -1).join('/');
+            return `commons.${moduleName}`;
+          },
+          minChunks: 2,
+          priority: 5,
+          reuseExistingChunk: true,
+        },
+        // Additional cache groups can be added here
       },
     },
+    runtimeChunk: 'single', // Creates a runtime file to be shared for all generated chunks
   },
   performance: {
     hints: 'warning',
