@@ -8,6 +8,13 @@
   font-size: 16px;
   line-height: 1.5;
   color: #333;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 999;
 }
 
 .now-widget-wrapper * {
@@ -154,7 +161,7 @@
 .now-widget-close:hover {
   color: #f1f1f1;
 }
-
+/* 
 .now-widget-sidepanel a {
   padding: 8px 8px 8px 32px;
   text-decoration: none;
@@ -166,7 +173,7 @@
 
 .now-widget-sidepanel a:hover {
   color: #f1f1f1;
-}
+} */
 
 /* Theme styles */
 .now-widget-wrapper.light {

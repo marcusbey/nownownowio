@@ -24,7 +24,7 @@ const NowButton: React.FC<NowButtonProps> = ({
   }, []);
 
   const nowText = updated
-    ? "NEW.NEW.NEW.NEW.NEW.NEW."
+    ? "NOW.NEW.NOW.NEW.NOW.NEW."
     : "NOW.NOW.NOW.NOW.NOW.NOW.";
 
   const chars = nowText.split("");
@@ -63,9 +63,9 @@ const NowButton: React.FC<NowButtonProps> = ({
     fontSize: "1.1rem",
     fontWeight: "bold",
     background: `linear-gradient(45deg, ${color}, #FF4500)`,
-    WebkitBackgroundClip: "nowText",
+    WebkitBackgroundClip: "text", // Corrected from "nowText" to "text"
     WebkitTextFillColor: "transparent",
-    backgroundClip: "nowText",
+    backgroundClip: "text", // Corrected from "nowText" to "text"
     color: "transparent",
     transform: `
       translate(-50%, -50%)

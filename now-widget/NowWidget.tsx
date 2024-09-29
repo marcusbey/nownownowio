@@ -19,7 +19,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
   userId,
   token,
   theme = "light",
-  position = "leff", // Changed default position to 'left'
+  position = "left",
   buttonColor = "red",
   buttonSize = 150,
 }) => {
