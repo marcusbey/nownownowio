@@ -7,6 +7,11 @@ interface NowButtonProps {
   size?: number;
 }
 
+/* Extend CSSProperties to include custom CSS variables */
+interface ExtendedCSSProperties extends React.CSSProperties {
+  [key: string]: string | number;
+}
+
 const NowButton: React.FC<NowButtonProps> = ({
   updated = false,
   onClick,
@@ -32,7 +37,7 @@ const NowButton: React.FC<NowButtonProps> = ({
     background: "transparent",
   };
 
-  const textRingStyle: React.CSSProperties = {
+  const textRingStyle: ExtendedCSSProperties = {
     "--total": totalChars,
     "--character-width": 1,
     "--inner-angle": `calc((360 / var(--total)) * 1deg)`,
@@ -46,9 +51,9 @@ const NowButton: React.FC<NowButtonProps> = ({
     height: "100%",
     animation: `spin ${isHovered ? "60s" : "15s"} linear infinite`,
     transition: "animation-duration 2s ease-in-out",
-  } as React.CSSProperties;
+  };
 
-  const charStyle = (index: number): React.CSSProperties => ({
+  const charStyle = (index: number): ExtendedCSSProperties => ({
     "--index": index,
     position: "absolute",
     top: "50%",
@@ -79,7 +84,8 @@ const NowButton: React.FC<NowButtonProps> = ({
   return (
     <div style={containerStyle}>
       <button
-        className="now-relative now-cursor-pointer now-overflow-hidden"
+        id="now-widget-button"
+        className="now-widget-relative now-widget-cursor-pointer now-widget-overflow-hidden"
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -106,17 +112,9 @@ const NowButton: React.FC<NowButtonProps> = ({
               position: "absolute",
               width: `${size * 0.3}px`,
               height: `${size * 0.3}px`,
-              fill: "url(#gradient)",
+              fill: "#FF0000", // Red color for the arrow
             }}
           />
-          <svg width="0" height="0">
-            <defs>
-              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FF0000" />
-                <stop offset="100%" stopColor="#FF4500" />
-              </linearGradient>
-            </defs>
-          </svg>
         </div>
       </button>
     </div>

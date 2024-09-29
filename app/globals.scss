@@ -198,3 +198,15 @@ progress::-webkit-progress-value {
     }
   }
 }
+
+/* Global styles */
+
+/* Reset some default styles to prevent conflicts */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Other global styles as needed, ensuring they don't interfere with widget classes */

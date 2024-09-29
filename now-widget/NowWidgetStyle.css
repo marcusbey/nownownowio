@@ -1,3 +1,5 @@
+/* Prefix all classes with 'now-widget-' to avoid conflicts */
+
 /* Base styles */
 .now-widget-wrapper {
   font-family: Arial, sans-serif;
@@ -7,12 +9,12 @@
 }
 
 .now-widget-wrapper * {
-  box-sizing: border-box;
+  box-sizing: unset;
 }
 
 /* Layout */
 .now-widget-relative {
-  position: relative;
+  position: fixed; /* Fixed to overlay on top */
 }
 
 .now-widget-absolute {
@@ -79,53 +81,63 @@
   cursor: pointer;
 }
 
-.now-widget-overflow-visible {
-  overflow: visible;
+.now-widget-overflow-hidden {
+  overflow: hidden;
 }
 
 /* Button styles */
-.now-widget-button {
+.now-widget-button-container {
   position: fixed;
-  right: 20%;
-  top: 20%;
-  z-index: 999;
-  width: 100px;
-  height: 100px;
-  background-color: transparent;
-  border: none;
-  outline: none;
+  z-index: 1001;
   cursor: pointer;
-  overflow: visible;
 }
 
-.now-widget-button-container {
-  height: 100%;
-  width: 100%;
-  position: fixed;
-  right: 20%;
-  top: 20%;
-  z-index: 999;
+.now-widget-button-container.left {
+  left: 20px;
+  bottom: 20px;
+}
+
+.now-widget-button-container.right {
+  right: 20px;
+  bottom: 20px;
 }
 
 /* Sidepanel styles */
 .now-widget-sidepanel {
   height: 100vh;
-  width: 30%;
   position: fixed;
   z-index: 1000;
   top: 0;
-  left: -30%;
   overflow-x: hidden;
-  transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  background-color: #111; /* Dark background for visibility */
 }
 
-.now-widget-sidepanel.open {
+.now-widget-sidepanel.left {
   left: 0;
+  transform: translateX(-100%);
+  width: 30%; /* Default width for large screens */
 }
 
+.now-widget-sidepanel.left.open {
+  transform: translateX(0%);
+}
+
+.now-widget-sidepanel.right {
+  right: 0;
+  transform: translateX(100%);
+  width: 30%; /* Adjust as needed */
+  background-color: #111;
+}
+
+.now-widget-sidepanel.right.open {
+  transform: translateX(0%);
+}
+
+/* Content styles */
 .now-widget-content {
-  height: 100%;
-  overflow-y: auto;
+  padding: 20px;
+  color: #fff; /* Light text for contrast */
 }
 
 .now-widget-close {
@@ -191,15 +203,6 @@
 }
 
 /* Animations */
-@keyframes now-widget-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -209,65 +212,41 @@
   }
 }
 
-/* Base wrapper styles */
-.now-widget-base-wrapper {
-  transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
-  transform: translateX(0);
-  width: 100%;
-  position: relative;
-  left: 0;
-}
-
-.now-widget-base-wrapper.slide-right {
-  transform: translateX(50%);
-}
-
-/* Media queries */
-@media (max-width: 1200px) {
-  .now-widget-wrapper.right,
-  .now-widget-wrapper.left,
-  .now-widget-sidepanel {
-    width: 50%;
-  }
-  .now-widget-sidepanel {
-    left: -50%;
-  }
-}
-
-@media (max-width: 768px) {
-  .now-widget-wrapper.right,
-  .now-widget-wrapper.left,
-  .now-widget-sidepanel {
-    width: 80%;
-  }
-  .now-widget-sidepanel {
-    left: -80%;
-  }
-}
-
-@media screen and (max-width: 992px) {
-  .now-widget-base-wrapper {
-    transform: none !important;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .now-widget-base-wrapper {
-    transform: none !important;
-  }
-}
-
-/* New animation styles */
+/* Animation for text ring */
 .text-ring {
   animation: spin 15s linear infinite;
   transition: animation-duration 2s ease-in-out;
 }
 
-.text-ring:hover {
-  animation-duration: 60s;
+/* Cursor change on hover for button */
+.now-widget-button-container:hover,
+.now-widget-button-container a:hover {
+  cursor: pointer; /* Change cursor to pointer on hover */
 }
 
-/* Remove gradient animation */
-@keyframes gradientShift {
-  /* Remove this if you're not using it elsewhere */
+/* Responsive widths for sidepanel and content translation */
+@media (max-width: 1200px) {
+  .now-widget-sidepanel.left {
+    width: 50%; /* Medium screens */
+  }
+  .now-widget-wrapper.left.open #now-widget-basewrapper {
+    transform: translateX(50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .now-widget-sidepanel.left {
+    width: 80%; /* Small screens */
+  }
+  .now-widget-wrapper.left.open #now-widget-basewrapper {
+    transform: translateX(80%);
+  }
+}
+
+/* Ensure no borders or shadows on container and button */
+.now-widget-button-container,
+.now-widget-sidepanel,
+.now-widget-close {
+  border: none;
+  box-shadow: none;
 }

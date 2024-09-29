@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Widget Test</title>
   </head>
-  <body>
-    <h1>Testing NowNowNow Widget</h1>
+  <body style="background-color: #333333; margin: 0; padding: 0">
+    <h1 style="text-align: center; font-size: 24px; margin-top: 20px">
+      Testing NowNowNow Widget
+    </h1>
 
     <script>
       console.log("Before widget script");
@@ -16,26 +18,5 @@
       data-user-id="ErOeaXjKcLJ"
       data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJFck9lYVhqS2NMSiIsImlhdCI6MTcyNzU1MTA5NywiZXhwIjoxNzMwMTQzMDk3fQ.g7bQVdZ1vrZp1xJ_rpEXZzU73vemNV4fshZMHzJuqvE"
     ></script>
-    <script>
-      console.log("After widget script");
-      console.log("NowNowNowWidget object:", window.NowNowNowWidget);
-
-      // Check if the widget is initialized
-      setTimeout(() => {
-        console.log("Checking widget container after 1 second");
-        const container = document.getElementById("nownownow-widget-container");
-        console.log("Widget container:", container);
-        if (!container) {
-          console.log(
-            "Widget container not found, attempting manual initialization",
-          );
-          if (window.NowNowNowWidget && window.NowNowNowWidget.init) {
-            window.NowNowNowWidget.init();
-          } else {
-            console.error("NowNowNowWidget.init is not available");
-          }
-        }
-      }, 1000);
-    </script>
   </body>
 </html>
