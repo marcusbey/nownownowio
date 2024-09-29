@@ -1,57 +1,134 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Base styles */
+.now-widget-wrapper {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+}
 
-#now__sidepanel {
+.now-widget-wrapper * {
+  box-sizing: border-box;
+}
+
+/* Layout */
+.now-widget-relative {
+  position: relative;
+}
+
+.now-widget-absolute {
+  position: absolute;
+}
+
+.now-widget-fixed {
+  position: fixed;
+}
+
+/* Dimensions */
+.now-widget-w-100px {
+  width: 100px;
+}
+
+.now-widget-h-100px {
+  height: 100px;
+}
+
+/* Positioning */
+.now-widget-left-0 {
+  left: 0;
+}
+
+.now-widget-top-0 {
+  top: 0;
+}
+
+.now-widget-top-1-2 {
+  top: 50%;
+}
+
+.now-widget-left-1-2 {
+  left: 50%;
+}
+
+/* Transforms */
+.now-widget-transform {
+  transform: translate(-50%, -50%);
+}
+
+.now-widget--translate-x-1-2 {
+  transform: translateX(-50%);
+}
+
+.now-widget--translate-y-1-2 {
+  transform: translateY(-50%);
+}
+
+/* Visual styles */
+.now-widget-rounded-full {
+  border-radius: 9999px;
+}
+
+.now-widget-bg-transparent {
+  background-color: transparent;
+}
+
+.now-widget-border-none {
+  border: none;
+}
+
+.now-widget-cursor-pointer {
+  cursor: pointer;
+}
+
+.now-widget-overflow-visible {
+  overflow: visible;
+}
+
+/* Button styles */
+.now-widget-button {
+  position: fixed;
+  right: 20%;
+  top: 20%;
+  z-index: 999;
+  width: 100px;
+  height: 100px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  overflow: visible;
+}
+
+.now-widget-button-container {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  right: 20%;
+  top: 20%;
+  z-index: 999;
+}
+
+/* Sidepanel styles */
+.now-widget-sidepanel {
   height: 100vh;
-  width: 30%; /* 30% width on large screens */
+  width: 30%;
   position: fixed;
   z-index: 1000;
   top: 0;
-  left: -30%; /* Hide side panel to the left */
+  left: -30%;
   overflow-x: hidden;
   transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
 }
 
-#now-sidepanel.open {
+.now-widget-sidepanel.open {
   left: 0;
 }
 
-#now-sidepanel-content {
+.now-widget-content {
   height: 100%;
   overflow-y: auto;
 }
 
-/* Medium screens */
-@media screen and (max-width: 1200px) {
-  #now-sidepanel {
-    width: 50%; /* 50% width on medium screens */
-    left: -50%; /* Adjust left position */
-  }
-}
-
-/* Small and extra small screens */
-@media screen and (max-width: 768px) {
-  #now-sidepanel {
-    width: 80%; /* 80% width on small screens */
-    left: -80%; /* Adjust left position */
-  }
-}
-
-#now-sidepanel a {
-  padding: 8px 8px 8px 32px;
-  text-decoration: none;
-  font-size: 25px;
-  color: #818181;
-  display: block;
-  transition: 0.3s;
-}
-
-#now-sidepanel a:hover {
-  color: #f1f1f1;
-}
-
-.closebtn {
+.now-widget-close {
   position: absolute;
   top: 20px;
   right: 25px;
@@ -61,147 +138,36 @@
   transition: color 0.3s;
 }
 
-.closebtn:hover {
+.now-widget-close:hover {
   color: #f1f1f1;
 }
 
-/* Page wrapper styles */
-#base__wrapper {
-  transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
-  transform: translateX(0);
-  width: 100%;
-  position: relative;
-  left: 0;
+.now-widget-sidepanel a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
 }
 
-#now-button-container {
-  height: 100%;
-  width: 100%;
+.now-widget-sidepanel a:hover {
+  color: #f1f1f1;
 }
 
-#now-button-container {
-  position: fixed;
-  right: 20%;
-  top: 20%;
-  z-index: 999;
-}
-
-#base__wrapper.slide-right {
-  transform: translateX(50%);
-}
-
-@media screen and (max-width: 768px) {
-  #now-sidepanel {
-    width: 80%;
-    left: -80%;
-  }
-  #base__wrapper {
-    transform: none !important;
-  }
-}
-@media screen and (max-width: 992px) {
-  #now-sidepanel {
-    width: 50%;
-    left: -50%;
-  }
-  #base__wrapper {
-    transform: none !important;
-  }
-}
-
-/* Existing styles */
-
-/* Now Button Styles */
-.now-relative {
-  position: relative;
-}
-
-.now-w-100px {
-  width: 100px;
-}
-
-.now-h-100px {
-  height: 100px;
-}
-
-.now-rounded-full {
-  border-radius: 9999px;
-}
-
-.now-bg-transparent {
-  background-color: transparent;
-}
-
-.now-border-none {
-  border: none;
-}
-
-.now-cursor-pointer {
-  cursor: pointer;
-}
-
-.now-overflow-visible {
-  overflow: visible;
-}
-
-.now-absolute {
-  position: absolute;
-}
-
-.now-left-0 {
-  left: 0;
-}
-
-.now-top-0 {
-  top: 0;
-}
-
-.now-top-1-2 {
-  top: 50%;
-}
-
-.now-left-1-2 {
-  left: 50%;
-}
-
-.now-transform {
-  transform: translate(-50%, -50%);
-}
-
-.now--translate-x-1-2 {
-  transform: translateX(-50%);
-}
-
-.now--translate-y-1-2 {
-  transform: translateY(-50%);
-}
-
-/* Keyframes spin */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Now Widget Wrapper */
+/* Theme styles */
 .now-widget-wrapper.light {
-  /* Define light theme styles */
   background-color: #ffffff;
   color: #000000;
 }
 
 .now-widget-wrapper.dark {
-  /* Define dark theme styles */
   background-color: #333333;
   color: #ffffff;
 }
 
+/* Position styles */
 .now-widget-wrapper.right {
-  /* Positioning styles when position is right */
-  /* Example: align to the right */
   position: fixed;
   top: 0;
   right: 0;
@@ -211,7 +177,6 @@
 }
 
 .now-widget-wrapper.left {
-  /* Positioning styles when position is left */
   position: fixed;
   top: 0;
   left: 0;
@@ -220,70 +185,89 @@
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
 }
 
-/* Close Button */
-.closebtn {
-  position: absolute;
-  top: 20px;
-  right: 25px;
-  font-size: 36px;
-  cursor: pointer;
-  color: #818181;
-  transition: color 0.3s;
-}
-
-.closebtn:hover {
-  color: #f1f1f1;
-}
-
-/* Error Message */
-.error-message {
+/* Utility classes */
+.now-widget-error {
   color: #ff0000;
-  /* Add additional styles as needed */
 }
 
-/* Side Panel */
-#now-sidepanel {
-  height: 100vh;
-  width: 30%; /* 30% width on large screens */
-  position: fixed;
-  z-index: 1000;
-  top: 0;
-  left: -30%; /* Hide side panel to the left */
-  overflow-x: hidden;
-  transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+/* Animations */
+@keyframes now-widget-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-#now-sidepanel.open {
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Base wrapper styles */
+.now-widget-base-wrapper {
+  transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  transform: translateX(0);
+  width: 100%;
+  position: relative;
   left: 0;
 }
 
-/* Now Button Container */
-#now-button-container {
-  position: fixed;
-  right: 20%;
-  top: 20%;
-  z-index: 999;
+.now-widget-base-wrapper.slide-right {
+  transform: translateX(50%);
 }
 
-/* Media Queries */
-@media screen and (max-width: 1200px) {
+/* Media queries */
+@media (max-width: 1200px) {
   .now-widget-wrapper.right,
-  .now-widget-wrapper.left {
+  .now-widget-wrapper.left,
+  .now-widget-sidepanel {
     width: 50%;
   }
-  #now-sidepanel {
-    width: 50%;
+  .now-widget-sidepanel {
     left: -50%;
   }
 }
 
-@media screen and (max-width: 768px) {
+@media (max-width: 768px) {
   .now-widget-wrapper.right,
-  .now-widget-wrapper.left {
+  .now-widget-wrapper.left,
+  .now-widget-sidepanel {
     width: 80%;
   }
-  #now-sidepanel {
-    width: 80%;
+  .now-widget-sidepanel {
     left: -80%;
   }
+}
+
+@media screen and (max-width: 992px) {
+  .now-widget-base-wrapper {
+    transform: none !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .now-widget-base-wrapper {
+    transform: none !important;
+  }
+}
+
+/* New animation styles */
+.text-ring {
+  animation: spin 15s linear infinite;
+  transition: animation-duration 2s ease-in-out;
+}
+
+.text-ring:hover {
+  animation-duration: 60s;
+}
+
+/* Remove gradient animation */
+@keyframes gradientShift {
+  /* Remove this if you're not using it elsewhere */
 }

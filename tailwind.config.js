@@ -100,5 +100,10 @@ module.exports = {
       },
     },
   },
+  variants: {
+    extend: {
+      animation: ['group-hover'],
+    }
+  },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
