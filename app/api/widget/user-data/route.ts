@@ -15,23 +15,29 @@ export async function OPTIONS() {
 
 export async function GET(req: NextRequest) {
     // Set CORS headers
-    const headers = new Headers({
+    const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    });
+    };
 
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
     const token = req.headers.get('Authorization')?.split(' ')[1];
 
     if (!userId || !token) {
-        return NextResponse.json({ error: 'Invalid request' }, { status: 400, headers });
+        return NextResponse.json(
+            { error: 'Invalid request' },
+            { status: 400, headers }
+        );
     }
 
     const isValid = verifyWidgetToken(token, userId);
     if (!isValid) {
-        return NextResponse.json({ error: 'Invalid token' }, { status: 401, headers });
+        return NextResponse.json(
+            { error: 'Invalid token' },
+            { status: 401, headers }
+        );
     }
 
     try {
@@ -82,7 +88,10 @@ export async function GET(req: NextRequest) {
             })),
         };
 
-        return NextResponse.json({ success: true, data }, { headers });
+        return NextResponse.json(
+            { success: true, data },
+            { headers }
+        );
     } catch (error) {
         console.error('Error fetching user data:', error);
         return NextResponse.json(

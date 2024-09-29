@@ -6,8 +6,6 @@ module.exports = {
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./NowWidget.tsx",
-    "./now-widget/**/*.{js,jsx,ts,tsx,css}",
   ],
   theme: {
     container: {

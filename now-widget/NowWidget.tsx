@@ -15,7 +15,7 @@ interface WidgetConfig {
 
 const SidePanelContent = React.lazy(() => import("./SidePanelContent"));
 
-const NowWidget: React.FC<WidgetConfig> = ({
+const NowWidget = ({
   userId,
   token,
   theme = "light",
@@ -24,10 +24,10 @@ const NowWidget: React.FC<WidgetConfig> = ({
   buttonSize = 150,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [posts, setPosts] = useState<Post[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Set theme and position attributes
@@ -156,7 +156,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
         <span className="closebtn" onClick={togglePanel}>
           &times;
         </span>
-        <div id="sidepanel-content">
+        <div id="now__sidepanel-content">
           {isLoading && <p>Loading...</p>}
           {error && <p className="error-message">Error: {error}</p>}
           {!isLoading && !error && (

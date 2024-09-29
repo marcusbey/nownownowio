@@ -1,3 +1,4 @@
+ // Start of Selection
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -29,11 +30,10 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.css$/, // Handles CSS files with Tailwind
+        test: /\.css$/, // Handles CSS files
         use: [
           'style-loader', // Injects CSS into the DOM
           'css-loader',
-          'postcss-loader', // Processes CSS with PostCSS and Tailwind
         ],
       },
     ],
