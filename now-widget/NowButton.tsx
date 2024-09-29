@@ -5,17 +5,16 @@ interface NowButtonProps {
   updated?: boolean;
   onClick?: () => void;
   size?: number;
-}
-
-/* Extend CSSProperties to include custom CSS variables */
-interface ExtendedCSSProperties extends React.CSSProperties {
-  [key: string]: string | number;
+  color?: string;
+  backgroundColor?: string;
 }
 
 const NowButton: React.FC<NowButtonProps> = ({
   updated = false,
   onClick,
   size = 100,
+  color = "red",
+  backgroundColor = "transparent",
 }) => {
   const [supportsTrig, setSupportsTrig] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -24,8 +23,11 @@ const NowButton: React.FC<NowButtonProps> = ({
     setSupportsTrig(CSS.supports("(top: calc(sin(1) * 1px))"));
   }, []);
 
-  const text = "NOW.NOW.NOW.NOW.NOW.NOW.";
-  const chars = text.split("");
+  const nowText = updated
+    ? "NEW.NEW.NEW.NEW.NEW.NEW."
+    : "NOW.NOW.NOW.NOW.NOW.NOW.";
+
+  const chars = nowText.split("");
   const totalChars = chars.length;
 
   const containerStyle: React.CSSProperties = {
@@ -34,10 +36,10 @@ const NowButton: React.FC<NowButtonProps> = ({
     alignItems: "center",
     boxShadow: "none",
     border: "none",
-    background: "transparent",
+    background: backgroundColor,
   };
 
-  const textRingStyle: ExtendedCSSProperties = {
+  const textRingStyle: React.CSSProperties = {
     "--total": totalChars,
     "--character-width": 1,
     "--inner-angle": `calc((360 / var(--total)) * 1deg)`,
@@ -53,17 +55,17 @@ const NowButton: React.FC<NowButtonProps> = ({
     transition: "animation-duration 2s ease-in-out",
   };
 
-  const charStyle = (index: number): ExtendedCSSProperties => ({
+  const charStyle = (index: number): React.CSSProperties => ({
     "--index": index,
     position: "absolute",
     top: "50%",
     left: "50%",
     fontSize: "1.1rem",
     fontWeight: "bold",
-    background: "linear-gradient(45deg, #FF0000, #FF4500)",
-    WebkitBackgroundClip: "text",
+    background: `linear-gradient(45deg, ${color}, #FF4500)`,
+    WebkitBackgroundClip: "nowText",
     WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
+    backgroundClip: "nowText",
     color: "transparent",
     transform: `
       translate(-50%, -50%)
@@ -92,17 +94,18 @@ const NowButton: React.FC<NowButtonProps> = ({
         style={{
           width: `${size}px`,
           height: `${size}px`,
-          background: "transparent",
+          background: backgroundColor,
           border: "none",
           padding: 0,
           outline: "none",
           boxShadow: "none",
+          position: "relative",
         }}
       >
         <div style={contentStyle}>
           <span style={textRingStyle} className="text-ring">
             {chars.map((char, index) => (
-              <span key={index} style={charStyle(index)}>
+              <span key={index} style={charStyle(index)} className="now-text">
                 {char}
               </span>
             ))}
@@ -112,7 +115,7 @@ const NowButton: React.FC<NowButtonProps> = ({
               position: "absolute",
               width: `${size * 0.3}px`,
               height: `${size * 0.3}px`,
-              fill: "#FF0000", // Red color for the arrow
+              fill: color, // Use the passed color prop
             }}
           />
         </div>
