@@ -23,10 +23,13 @@ const NowButton: React.FC<NowButtonProps> = ({
   const chars = text.split("");
   const totalChars = chars.length;
 
-  const containerStyle = {
+  const containerStyle: React.CSSProperties = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    boxShadow: "none",
+    border: "none",
+    background: "transparent",
   };
 
   const textRingStyle: React.CSSProperties = {
@@ -45,21 +48,24 @@ const NowButton: React.FC<NowButtonProps> = ({
     transition: "animation-duration 2s ease-in-out",
   } as React.CSSProperties;
 
-  const charStyle = (index: number): React.CSSProperties =>
-    ({
-      "--index": index,
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      fontSize: "1.1rem",
-      fontWeight: "normal",
-      color: "#333", // Dark gray color
-      transform: `
+  const charStyle = (index: number): React.CSSProperties => ({
+    "--index": index,
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    fontSize: "1.1rem",
+    fontWeight: "bold",
+    background: "linear-gradient(45deg, #FF0000, #FF4500)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+    color: "transparent",
+    transform: `
       translate(-50%, -50%)
       rotate(calc(var(--inner-angle) * var(--index)))
       translateY(var(--radius, -4ch))
     `,
-    }) as React.CSSProperties;
+  });
 
   const contentStyle: React.CSSProperties = {
     position: "relative",
@@ -83,7 +89,8 @@ const NowButton: React.FC<NowButtonProps> = ({
           background: "transparent",
           border: "none",
           padding: 0,
-          outline: "none", // Remove focus outline
+          outline: "none",
+          boxShadow: "none",
         }}
       >
         <div style={contentStyle}>
@@ -99,9 +106,17 @@ const NowButton: React.FC<NowButtonProps> = ({
               position: "absolute",
               width: `${size * 0.3}px`,
               height: `${size * 0.3}px`,
-              fill: "#333", // Changed to dark gray to match the text
+              fill: "url(#gradient)",
             }}
           />
+          <svg width="0" height="0">
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FF0000" />
+                <stop offset="100%" stopColor="#FF4500" />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
       </button>
     </div>
