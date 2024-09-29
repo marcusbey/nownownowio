@@ -15,11 +15,11 @@ interface WidgetConfig {
 
 const SidePanelContent = React.lazy(() => import("./SidePanelContent"));
 
-const NowWidget = ({
+const NowWidget: React.FC<WidgetConfig> = ({
   userId,
   token,
   theme = "light",
-  position = "right",
+  position = "leff", // Changed default position to 'left'
   buttonColor = "red",
   buttonSize = 150,
 }) => {
@@ -36,7 +36,7 @@ const NowWidget = ({
 
     // Create a base wrapper to manage DOM manipulations
     const baseWrapper = document.createElement("div");
-    baseWrapper.id = "base__wrapper";
+    baseWrapper.id = "now-widget-basewrapper";
     while (document.body.children.length > 0) {
       baseWrapper.appendChild(document.body.children[0]);
     }
@@ -82,7 +82,7 @@ const NowWidget = ({
 
     // Handle window resize
     const handleResize = () => {
-      const baseWrapper = document.getElementById("base__wrapper");
+      const baseWrapper = document.getElementById("now-widget-basewrapper");
       const sidePanel = document.getElementById("now-sidepanel");
 
       if (baseWrapper && sidePanel) {
@@ -101,7 +101,7 @@ const NowWidget = ({
     window.addEventListener("resize", handleResize);
 
     return () => {
-      // Clean up attributes
+      // Clean up attributes and elements
       document.body.removeAttribute("data-widget-theme");
       document.body.removeAttribute("data-widget-position");
       while (baseWrapper.children.length > 0) {
@@ -125,7 +125,7 @@ const NowWidget = ({
 
   const togglePanel = () => {
     setIsOpen((prev) => !prev);
-    const baseWrapper = document.getElementById("base__wrapper");
+    const baseWrapper = document.getElementById("now-widget-basewrapper");
     const sidePanel = document.getElementById("now-sidepanel");
 
     if (baseWrapper && sidePanel) {
@@ -134,16 +134,23 @@ const NowWidget = ({
       if (!isOpen) {
         sidePanel.style.left = "0";
         sidePanel.style.width = `${translatePercentage}%`;
+        if (window.innerWidth > 768) {
+          baseWrapper.style.transform = `translateX(${translatePercentage}%)`;
+        }
       } else {
         sidePanel.style.left = `-${translatePercentage}%`;
         sidePanel.style.width = `${translatePercentage}%`;
+        baseWrapper.style.transform = "translateX(0)";
       }
     }
   };
 
   const widgetContent = (
     <div className={`now-widget-wrapper ${theme} ${position}`}>
-      <div id="now-button-container">
+      <div
+        id="now-button-container"
+        className={`now-widget-button-container ${position}`}
+      >
         <NowButton
           onClick={togglePanel}
           size={buttonSize}
@@ -152,13 +159,16 @@ const NowWidget = ({
           updated={posts.length > 0}
         />
       </div>
-      <div id="now-sidepanel" className={isOpen ? "open" : ""}>
-        <span className="closebtn" onClick={togglePanel}>
+      <div
+        id="now-sidepanel"
+        className={`now-widget-sidepanel ${position} ${isOpen ? "open" : ""}`}
+      >
+        <span className="now-widget-close" onClick={togglePanel}>
           &times;
         </span>
         <div id="now-sidepanel-content">
           {isLoading && <p>Loading...</p>}
-          {error && <p className="error-message">Error: {error}</p>}
+          {error && <p className="now-widget-error">Error: {error}</p>}
           {!isLoading && !error && (
             <Suspense fallback={<div>Loading...</div>}>
               <SidePanelContent

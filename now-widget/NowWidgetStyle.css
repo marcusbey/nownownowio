@@ -1,3 +1,5 @@
+/* now-widget/NowWidgetStyle.css */
+
 /* Prefix all classes with 'now-widget-' to avoid conflicts */
 
 /* Base styles */
@@ -9,7 +11,7 @@
 }
 
 .now-widget-wrapper * {
-  box-sizing: unset;
+  box-sizing: border-box; /* Changed from 'unset' to 'border-box' for better layout handling */
 }
 
 /* Layout */
@@ -127,7 +129,6 @@
   right: 0;
   transform: translateX(100%);
   width: 30%; /* Adjust as needed */
-  background-color: #111;
 }
 
 .now-widget-sidepanel.right.open {
@@ -249,4 +250,10 @@
 .now-widget-close {
   border: none;
   box-shadow: none;
+}
+
+/* Additional styles for NowButton hover effects */
+.now-widget-button-container.left:hover,
+.now-widget-button-container.right:hover {
+  /* Any additional hover styles can be added here */
 }

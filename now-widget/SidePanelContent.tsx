@@ -92,8 +92,8 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
     }
   }, []);
 
-  if (isLoading) return <div className="p-6 text-white">Loading...</div>;
-  if (error) return <div className="p-6 text-white">Error: {error}</div>;
+  if (isLoading) return <div className="now-widget-content">Loading...</div>;
+  if (error) return <div className="now-widget-error">Error: {error}</div>;
 
   return (
     <div className="relative h-screen w-80 border-r bg-red-600">
@@ -175,7 +175,7 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="absolute bottom-4 right-4 rounded-full bg-primary p-2 text-primary-foreground shadow-lg transition-opacity duration-300 hover:opacity-80"
+          className="absolute bottom-4 left-4 rounded-full bg-primary p-2 text-primary-foreground shadow-lg transition-opacity duration-300 hover:opacity-80"
           aria-label="Scroll to top"
         >
           <ArrowUp className="size-4" />
