@@ -105,7 +105,7 @@ const NowButton: React.FC<NowButtonProps> = ({
         <div style={contentStyle}>
           <span style={textRingStyle} className="text-ring">
             {chars.map((char, index) => (
-              <span key={index} style={charStyle(index)}>
+              <span key={index} style={charStyle(index)} className="now-text">
                 {char}
               </span>
             ))}
