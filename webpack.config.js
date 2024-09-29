@@ -17,7 +17,7 @@ module.exports = {
     globalObject: 'this',
     clean: true, // Cleans the output directory before emit
     // Ensure no code splitting by disabling chunking
-    chunkFilename: '[name].js',
+    chunkFilename: 'now-bundle-[name].js',
   },
   module: {
     rules: [
