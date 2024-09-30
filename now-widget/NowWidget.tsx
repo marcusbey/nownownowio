@@ -122,6 +122,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
       return 30;
     }
   };
+  const translatePercentage = getTranslatePercentage();
 
   const togglePanel = () => {
     setIsOpen((prev) => !prev);
@@ -129,8 +130,6 @@ const NowWidget: React.FC<WidgetConfig> = ({
     const sidePanel = document.getElementById("now-sidepanel");
 
     if (baseWrapper && sidePanel) {
-      const translatePercentage = getTranslatePercentage();
-
       if (!isOpen) {
         sidePanel.style.left = "0";
         sidePanel.style.width = `${translatePercentage}%`;
@@ -159,7 +158,10 @@ const NowWidget: React.FC<WidgetConfig> = ({
           updated={posts.length > 0}
         />
       </div>
-      <div className={`now-widget-wrapper`}>
+      <div
+        className={`now-widget-wrapper`}
+        style={{ left: `${translatePercentage}%` }}
+      >
         <div
           id="now-sidepanel"
           className={`now-widget-sidepanel ${position} ${isOpen ? "open" : ""}`}
