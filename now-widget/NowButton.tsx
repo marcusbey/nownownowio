@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { HiArrowRight } from "react-icons/hi2";
 
 interface NowButtonProps {
@@ -17,7 +17,9 @@ const NowButton: React.FC<NowButtonProps> = ({
   backgroundColor = "transparent",
 }) => {
   const [supportsTrig, setSupportsTrig] = useState(false);
+  const [isNear, setIsNear] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setSupportsTrig(CSS.supports("(top: calc(sin(1) * 1px))"));
@@ -29,6 +31,51 @@ const NowButton: React.FC<NowButtonProps> = ({
 
   const chars = nowText.split("");
   const totalChars = chars.length;
+  const [textRingSpeed, setTextRingSpeed] = useState(60);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        const buttonCenterX = rect.left + rect.width / 2;
+        const buttonCenterY = rect.top + rect.height / 2;
+        const distance = Math.sqrt(
+          Math.pow(e.clientX - buttonCenterX, 2) +
+            Math.pow(e.clientY - buttonCenterY, 2),
+        );
+        const proximityThreshold = 200; // Adjust this value to change the proximity sensitivity
+        setIsNear(distance < proximityThreshold);
+      }
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
+  useEffect(() => {
+    let animationFrameId: number;
+    const animate = () => {
+      if (isNear || isHovered) {
+        setTextRingSpeed((prevSpeed) => {
+          const targetSpeed = isHovered ? 5 : 30;
+          const newSpeed = prevSpeed + (targetSpeed - prevSpeed) * 0.1;
+          return Math.abs(newSpeed - targetSpeed) < 0.1
+            ? targetSpeed
+            : newSpeed;
+        });
+      } else {
+        setTextRingSpeed((prevSpeed) => {
+          const newSpeed = prevSpeed + (60 - prevSpeed) * 0.1;
+          return Math.abs(newSpeed - 60) < 0.1 ? 60 : newSpeed;
+        });
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    animate();
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isNear, isHovered]);
 
   const containerStyle: React.CSSProperties = {
     display: "flex",
@@ -51,28 +98,29 @@ const NowButton: React.FC<NowButtonProps> = ({
     left: "0",
     width: "100%",
     height: "100%",
-    animation: `spin ${isHovered ? "60s" : "15s"} linear infinite`,
-    transition: "animation-duration 2s ease-in-out",
-  };
+    animation: `spin ${textRingSpeed}s linear infinite`,
+    transition: "animation-duration 0.3s ease-in-out",
+  } as React.CSSProperties;
 
-  const charStyle = (index: number): React.CSSProperties => ({
-    "--index": index,
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    fontSize: "1.1rem",
-    fontWeight: "bold",
-    background: `linear-gradient(45deg, ${color}, #FF4500)`,
-    WebkitBackgroundClip: "text", // Corrected from "nowText" to "text"
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text", // Corrected from "nowText" to "text"
-    color: "transparent",
-    transform: `
+  const charStyle = (index: number): React.CSSProperties =>
+    ({
+      "--index": index,
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      fontSize: "1.1rem",
+      fontWeight: "bold",
+      background: `linear-gradient(45deg, ${color}, #FF4500)`,
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
+      color: "transparent",
+      transform: `
       translate(-50%, -50%)
       rotate(calc(var(--inner-angle) * var(--index)))
       translateY(var(--radius, -4ch))
     `,
-  });
+    }) as React.CSSProperties;
 
   const contentStyle: React.CSSProperties = {
     position: "relative",
@@ -86,6 +134,7 @@ const NowButton: React.FC<NowButtonProps> = ({
   return (
     <div style={containerStyle}>
       <button
+        ref={buttonRef}
         id="now-widget-button"
         className="now-widget-relative now-widget-cursor-pointer now-widget-overflow-hidden"
         onClick={onClick}
@@ -115,7 +164,7 @@ const NowButton: React.FC<NowButtonProps> = ({
               position: "absolute",
               width: `${size * 0.3}px`,
               height: `${size * 0.3}px`,
-              fill: color, // Use the passed color prop
+              fill: color,
             }}
           />
         </div>
