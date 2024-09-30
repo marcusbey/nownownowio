@@ -80,7 +80,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   // 🔑 Add this line and the import to add credentials provider
   jwt: credentialsOverrideJwt,
   // debug: process.env.NODE_ENV === "development",
-  debug: true,
+  debug: false,
   theme: {
     logo: `https://${config.domainName}/logo.png`,
   },

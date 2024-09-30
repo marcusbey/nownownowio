@@ -1,4 +1,5 @@
 import { buttonVariants } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/features/layout/Header";
 import {
   Layout,
@@ -24,7 +25,9 @@ export default function NewUserPage(props: PageParams) {
 
   return (
     <>
-      <Header />
+      <TooltipProvider>
+        <Header />
+      </TooltipProvider>
       <Layout>
         <LayoutHeader>
           <LayoutTitle>Successfully login</LayoutTitle>
