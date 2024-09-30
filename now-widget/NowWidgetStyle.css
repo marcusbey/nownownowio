@@ -3,6 +3,7 @@
 /* Prefix all classes with 'now-widget-' to avoid conflicts */
 
 /* Base styles */
+
 .now-widget-wrapper {
   font-family: Arial, sans-serif;
   font-size: 16px;
@@ -95,7 +96,7 @@
 
 /* Button styles */
 .now-widget-button-container {
-  position: fixed;
+  position: relative;
   z-index: 1001;
   cursor: pointer;
 }
