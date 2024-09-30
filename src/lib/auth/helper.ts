@@ -12,16 +12,11 @@ export class AuthError extends Error {
 }
 
 export const auth = async () => {
-  //console.log("helper ______ Calling baseAuth...");
   const session = await baseAuth();
-  //console.log("helper ______ Session result:", session);
-  //console.log(" user _______ user from sessions", session?.user)
   if (session?.user) {
     const user = session.user as User;
-    //console.log("helper ______ User:", user);
     return user;
   }
-
   return null;
 };
 
@@ -34,7 +29,6 @@ export const requiredAuth = async () => {
       throw new AuthError("You must be authenticated to access this resource.");
     }
 
-    //console.log("requiredAuth ______ User:", user);
     return user;
   } catch (error) {
     logger.error("Authentication error:", error);
@@ -50,7 +44,6 @@ export const validateRequest = cache(
 
     if (session?.user) {
       const user = session.user as User;
-      //console.log("validateRequest ______ User:", user);
       return {
         user,
         session,
@@ -63,6 +56,7 @@ export const validateRequest = cache(
     };
   }
 );
+
 interface ISession {
   id: string;
   sessionToken: string;
@@ -77,14 +71,12 @@ const CACHE_DURATION = 60000; // 1 minute in milliseconds
 
 export async function getSession(): Promise<ISession | null> {
   const now = Date.now();
-  if (cachedSession && (now - lastFetchTime) < CACHE_DURATION) {
-    //console.log("Returning cached session:", cachedSession);
+  if (cachedSession && now - lastFetchTime < CACHE_DURATION) {
     return cachedSession;
   }
 
   try {
     const authSession = await baseAuth();
-    //console.log("authSession:", authSession);
     if (authSession && authSession.user) {
       const sessionDoc: ISession = {
         id: authSession.user.id || nanoid(11),
@@ -96,7 +88,6 @@ export async function getSession(): Promise<ISession | null> {
 
       cachedSession = sessionDoc;
       lastFetchTime = now;
-      //console.log("New session cached:", sessionDoc);
       return sessionDoc;
     }
 
