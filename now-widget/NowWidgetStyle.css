@@ -8,19 +8,14 @@
   font-size: 16px;
   line-height: 1.5;
   color: #333;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   z-index: 999;
 }
 
 .now-widget-wrapper * {
-  box-sizing: border-box;
-  border: none;
-  outline: none;
+  box-sizing: unset;
+  border: 0;
+  outline: 0;
 }
 
 /* Layout */
@@ -192,7 +187,7 @@
 .now-widget-wrapper.right {
   position: fixed;
   top: 0;
-  right: 0;
+  right: -30%;
   height: 100vh;
   width: 30%;
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
@@ -201,7 +196,7 @@
 .now-widget-wrapper.left {
   position: fixed;
   top: 0;
-  left: 0;
+  left: -30%;
   height: 100vh;
   width: 30%;
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);

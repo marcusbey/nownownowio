@@ -146,7 +146,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
   };
 
   const widgetContent = (
-    <div className={`now-widget-wrapper ${theme} ${position}`}>
+    <>
       <div
         id="now-button-container"
         className={`now-widget-button-container ${position}`}
@@ -159,29 +159,31 @@ const NowWidget: React.FC<WidgetConfig> = ({
           updated={posts.length > 0}
         />
       </div>
-      <div
-        id="now-sidepanel"
-        className={`now-widget-sidepanel ${position} ${isOpen ? "open" : ""}`}
-      >
-        <span className="now-widget-close" onClick={togglePanel}>
-          &times;
-        </span>
-        <div id="now-sidepanel-content">
-          {isLoading && <p>Loading...</p>}
-          {error && <p className="now-widget-error">Error: {error}</p>}
-          {!isLoading && !error && (
-            <Suspense fallback={<div>Loading...</div>}>
-              <SidePanelContent
-                userId={userId}
-                token={token}
-                posts={posts}
-                user={user}
-              />
-            </Suspense>
-          )}
+      <div className={`now-widget-wrapper`}>
+        <div
+          id="now-sidepanel"
+          className={`now-widget-sidepanel ${position} ${isOpen ? "open" : ""}`}
+        >
+          <span className="now-widget-close" onClick={togglePanel}>
+            &times;
+          </span>
+          <div id="now-sidepanel-content">
+            {isLoading && <p>Loading...</p>}
+            {error && <p className="now-widget-error">Error: {error}</p>}
+            {!isLoading && !error && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <SidePanelContent
+                  userId={userId}
+                  token={token}
+                  posts={posts}
+                  user={user}
+                />
+              </Suspense>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 
   return ReactDOM.createPortal(widgetContent, document.body);
