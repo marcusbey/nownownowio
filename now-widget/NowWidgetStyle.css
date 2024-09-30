@@ -16,7 +16,10 @@
 }
 
 .now-widget-wrapper * {
-  box-sizing: unset;
+  box-sizing: border-box; /* Utiliser border-box au lieu de unset */
+}
+
+.now-widget-wrapper *:not(.now-widget-wrapper) {
   border: 0;
   outline: 0;
 }

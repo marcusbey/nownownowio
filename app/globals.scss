@@ -5,6 +5,9 @@
 html,
 body {
   scroll-behavior: smooth !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* It makes the HTML progress bar filling smooth when value change. */
@@ -88,7 +91,7 @@ progress::-webkit-progress-value {
     @apply bg-background text-foreground;
   }
   .btn-gradient {
-    @apply bg-gradient-to-r from-blue-500 to-green-500 bg-[length:300%_300%] hover:saturate-150 shadow duration-100 border-0 bg-transparent animate-shimmer disabled:bg-gray-500/30 text-white;
+    @apply bg-gradient-to-r from-blue-500 to-green-500 bg-[length:300%_300%] hover:saturate-150 shadow duration-100 border-0 bg-transparent disabled:bg-gray-500/30 text-white;
   }
 }
 
@@ -96,13 +99,15 @@ progress::-webkit-progress-value {
   .text-gradient {
     @apply text-transparent bg-clip-text;
   }
-
-  // .btn {
-  //   @apply capitalize;
-  // }
+  .animate-shimmer {
+    animation: shimmer 1.5s linear infinite;
+  }
+  .animate-shimmer-custom {
+    animation: shimmer 0.6s ease-out;
+  }
 }
 
-/* Add the shimmer animation manually since @apply might not work as intended */
+/* Shimmer Animation */
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -113,6 +118,7 @@ progress::-webkit-progress-value {
 }
 
 .citation {
+  /* Your existing styles */
   position: relative;
   display: inline-block;
   padding: 4px;
@@ -123,7 +129,7 @@ progress::-webkit-progress-value {
 }
 
 .citation::before {
-  content: "“";
+  content: "";
   font-size: 3rem;
   position: absolute;
   top: -12px;
@@ -133,7 +139,7 @@ progress::-webkit-progress-value {
 }
 
 .citation::after {
-  content: "”";
+  content: "";
   font-size: 3rem;
   position: absolute;
   bottom: -16px;
@@ -141,7 +147,6 @@ progress::-webkit-progress-value {
   line-height: 1;
   color: hsl(var(--primary));
 }
-
 .citation strong {
   font-weight: 700;
   background: hsl(var(--primary) / 0.5);
@@ -201,12 +206,6 @@ progress::-webkit-progress-value {
 
 /* Global styles */
 
-/* Reset some default styles to prevent conflicts */
-body,
-html {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 /* Other global styles as needed, ensuring they don't interfere with widget classes */
+
+/* Ensure that tint is within a @layer directive if you're adding custom utilities */

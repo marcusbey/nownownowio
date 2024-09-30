@@ -2,10 +2,10 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./now-widget/**/*.{ts,tsx}",
+    "./pages/**/*.{ts,tsx,scss}",
+    "./components/**/*.{ts,tsx,scss}",
+    "./app/**/*.{ts,tsx,scss}",
+    "./src/**/*.{ts,tsx,scss}",
   ],
   theme: {
     container: {
@@ -72,7 +72,6 @@ module.exports = {
       },
       ringColor: {
         'primary-80': 'rgba(var(--primary), 0.8)',
-        // Add other ring colors if needed
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -88,10 +87,15 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "shimmer": "shimmer 1.5s linear infinite",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
