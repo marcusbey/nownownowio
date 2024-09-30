@@ -2,21 +2,34 @@ import { prisma } from '@/lib/prisma';
 import { verifyWidgetToken } from '@/lib/widget/widgetUtils';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function OPTIONS() {
-    return new NextResponse(null, {
-        status: 204,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-    });
+const ALLOWED_ORIGINS = ['http://127.0.0.1:5500', 'http://localhost:3000'];
+
+export async function OPTIONS(req: NextRequest) {
+    const origin = req.headers.get('origin');
+
+    if (ALLOWED_ORIGINS.includes(origin || '')) {
+        return new NextResponse(null, {
+            status: 204,
+            headers: {
+                'Access-Control-Allow-Origin': origin!,
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
+        });
+    }
+
+    return new NextResponse(null, { status: 403 });
 }
 
 export async function GET(req: NextRequest) {
-    // Set CORS headers
+    const origin = req.headers.get('origin');
+
+    if (!ALLOWED_ORIGINS.includes(origin || '')) {
+        return new NextResponse(null, { status: 403 });
+    }
+
     const headers = {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': origin!,
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
@@ -48,7 +61,6 @@ export async function GET(req: NextRequest) {
                 displayName: true,
                 image: true,
                 bio: true,
-                // ... any other required fields
             },
         });
 
@@ -64,7 +76,7 @@ export async function GET(req: NextRequest) {
                     select: {
                         comments: true,
                         bookmarks: true,
-                        likes: true, // Include if necessary
+                        likes: true,
                     },
                 },
             },
@@ -77,7 +89,6 @@ export async function GET(req: NextRequest) {
                     displayName: user.displayName,
                     image: user.image,
                     bio: user.bio,
-                    // Include other fields as needed
                 }
                 : null,
             recentPosts: recentPosts.map((post) => ({

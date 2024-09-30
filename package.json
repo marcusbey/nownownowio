@@ -79,6 +79,7 @@
     "next-safe-action": "^7.9.2",
     "next-themes": "^0.3.0",
     "next-zod-route": "^0.0.9",
+    "nextjs-cors": "^2.2.0",
     "node-cache": "^5.1.2",
     "npm": "^10.8.3",
     "nprogress": "^0.2.0",
