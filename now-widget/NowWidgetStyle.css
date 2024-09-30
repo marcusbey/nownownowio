@@ -18,7 +18,9 @@
 }
 
 .now-widget-wrapper * {
-  box-sizing: border-box; /* Changed from 'unset' to 'border-box' for better layout handling */
+  box-sizing: border-box;
+  border: none;
+  outline: none;
 }
 
 /* Layout */
