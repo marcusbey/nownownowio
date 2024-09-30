@@ -135,11 +135,13 @@ const NowWidget: React.FC<WidgetConfig> = ({
           color: #f1f1f1;
         }
         #now-widget-basewrapper {
+          position: relative; /* Added for proper positioning */
           transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0);
-          width: 100%;
+          width: 100vw;
+          height: 100vh;
         }
         #now-button-container {
-          position: fixed;
+          position: absolute; /* Changed from fixed to absolute */
           right: 20%;
           bottom: 20%;
           z-index: 999;
@@ -177,10 +179,10 @@ const NowWidget: React.FC<WidgetConfig> = ({
       }
       document.body.appendChild(baseWrapper);
 
-      // Create container for NowButton
+      // Create container for NowButton inside baseWrapper
       const nowButtonContainer = document.createElement("div");
       nowButtonContainer.id = "now-button-container";
-      document.body.appendChild(nowButtonContainer);
+      baseWrapper.appendChild(nowButtonContainer);
 
       // Render NowButton
       nowButtonRootRef.current = createRoot(nowButtonContainer);
@@ -193,30 +195,6 @@ const NowWidget: React.FC<WidgetConfig> = ({
           updated={posts.length > 0}
         />,
       );
-
-      // Render SidePanelContent
-      const sidepanelContentDiv = sideNav.querySelector(
-        "#now-sidepanel-content",
-      );
-      if (sidepanelContentDiv) {
-        sidePanelRootRef.current = createRoot(sidepanelContentDiv);
-        sidePanelRootRef.current.render(
-          <>
-            {isLoading && <p>Loading...</p>}
-            {error && <p className="now-widget-error">Error: {error}</p>}
-            {!isLoading && !error && (
-              <Suspense fallback={<div>Loading...</div>}>
-                <SidePanelContent
-                  userId={userId}
-                  token={token}
-                  posts={posts}
-                  user={user}
-                />
-              </Suspense>
-            )}
-          </>,
-        );
-      }
 
       // Event listeners for closing the panel
       const closeBtn = sideNav.querySelector(".closebtn");
@@ -234,6 +212,30 @@ const NowWidget: React.FC<WidgetConfig> = ({
         e.stopPropagation();
       });
 
+      // Render SidePanelContent
+      const sidepanelContentDiv = sideNav.querySelector(
+        "#now-sidepanel-content",
+      );
+      if (sidepanelContentDiv) {
+        sidePanelRootRef.current = createRoot(sidepanelContentDiv);
+        sidePanelRootRef.current.render(
+          <div id="now-sidepanel-content">
+            {isLoading && <p>Loading...</p>}
+            {error && <p className="now-widget-error">Error: {error}</p>}
+            {!isLoading && !error && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <SidePanelContent
+                  userId={userId}
+                  token={token}
+                  posts={posts}
+                  user={user}
+                />
+              </Suspense>
+            )}
+          </div>,
+        );
+      }
+
       // Animation handler
       const animatePanel = () => {
         requestAnimationFrame(() => {
@@ -247,6 +249,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
         });
       };
 
+      // Initial animation
       animatePanel();
     };
 

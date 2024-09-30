@@ -29,7 +29,7 @@ function init() {
 
     try {
         const root = ReactDOM.createRoot(widgetContainer);
-        root.render(React.createElement(NowWidget, { userId, token }));
+        root.render(React.createElement(NowWidget, { userId, token, pathname: window.location.pathname }));
         console.log("Widget rendered successfully");
     } catch (error) {
         console.error("Error rendering widget:", error);
