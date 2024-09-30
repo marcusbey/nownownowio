@@ -96,6 +96,22 @@ const NowWidget: React.FC<WidgetConfig> = ({
       const style = document.createElement("style");
       style.innerHTML = `
         /* Styles for NowWidget */
+        #now__overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0);
+          z-index: 998;
+        }
+        #now__overlay.active {
+          opacity: 1;
+          visibility: visible;
+        }
         #now__sidepanel {
           height: 100vh;
           width: 30%;
@@ -105,7 +121,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
           left: -30%;
           background-color: #111;
           overflow-x: hidden;
-          transition: right 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0);
+          transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0);
           padding-top: 60px;
         }
         #now__sidepanel.open {
@@ -139,6 +155,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
           transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0);
           width: 100vw;
           height: 100vh;
+          overflow: hidden;
         }
         #now-button-container {
           position: absolute; /* Changed from fixed to absolute */
@@ -162,6 +179,11 @@ const NowWidget: React.FC<WidgetConfig> = ({
       `;
       document.head.appendChild(style);
 
+      // Create overlay
+      const overlay = document.createElement("div");
+      overlay.id = "now__overlay";
+      document.body.insertBefore(overlay, document.body.firstChild);
+
       // Create side panel
       const sideNav = document.createElement("div");
       sideNav.id = "now__sidepanel";
@@ -169,15 +191,15 @@ const NowWidget: React.FC<WidgetConfig> = ({
         <span class="closebtn">&times;</span>
         <div id="now-sidepanel-content"></div>
       `;
-      document.body.insertBefore(sideNav, document.body.firstChild);
+      document.body.insertBefore(sideNav, overlay.nextSibling);
 
       // Create base wrapper
       const baseWrapper = document.createElement("div");
       baseWrapper.id = "now-widget-basewrapper";
-      while (document.body.children.length > 1) {
-        baseWrapper.appendChild(document.body.children[1]);
+      while (document.body.children.length > 2) {
+        baseWrapper.appendChild(document.body.children[2]);
       }
-      document.body.appendChild(baseWrapper);
+      document.body.insertBefore(baseWrapper, document.body.children[2]);
 
       // Create container for NowButton inside baseWrapper
       const nowButtonContainer = document.createElement("div");
@@ -200,8 +222,8 @@ const NowWidget: React.FC<WidgetConfig> = ({
       const closeBtn = sideNav.querySelector(".closebtn");
       closeBtn?.addEventListener("click", () => setIsOpen(false));
 
-      // Close panel when clicking outside
-      baseWrapper.addEventListener("click", () => {
+      // Close panel when clicking on overlay
+      overlay.addEventListener("click", () => {
         if (isOpen) {
           setIsOpen(false);
         }
@@ -239,11 +261,14 @@ const NowWidget: React.FC<WidgetConfig> = ({
       // Animation handler
       const animatePanel = () => {
         requestAnimationFrame(() => {
+          const overlayElement = document.getElementById("now__overlay");
           if (isOpen) {
             sideNav.classList.add("open");
+            overlayElement?.classList.add("active");
             baseWrapper.style.transform = "translateX(30%)";
           } else {
             sideNav.classList.remove("open");
+            overlayElement?.classList.remove("active");
             baseWrapper.style.transform = "translateX(0)";
           }
         });
@@ -263,6 +288,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
       const nowButtonContainer = document.getElementById(
         "now-button-container",
       );
+      const overlay = document.getElementById("now__overlay");
 
       if (sideNav) sideNav.remove();
       if (baseWrapper) {
@@ -276,6 +302,7 @@ const NowWidget: React.FC<WidgetConfig> = ({
         nowButtonRootRef.current?.unmount();
         nowButtonContainer.remove();
       }
+      if (overlay) overlay.remove();
 
       // Unmount SidePanelContent
       if (sidePanelRootRef.current) {
@@ -298,25 +325,28 @@ const NowWidget: React.FC<WidgetConfig> = ({
   // Trigger animation when isOpen changes
   useEffect(() => {
     // if (pathname !== "/") return;
+    // if (pathname !== "/") return;
     const animatePanel = () => {
       requestAnimationFrame(() => {
         const sideNav = document.getElementById("now__sidepanel");
         const baseWrapper = document.getElementById("now-widget-basewrapper");
-        if (sideNav && baseWrapper) {
+        const overlay = document.getElementById("now__overlay");
+        if (sideNav && baseWrapper && overlay) {
           if (isOpen) {
             sideNav.classList.add("open");
+            overlay.classList.add("active");
             baseWrapper.style.transform = "translateX(30%)";
           } else {
             sideNav.classList.remove("open");
+            overlay.classList.remove("active");
             baseWrapper.style.transform = "translateX(0)";
           }
         }
       });
     };
     animatePanel();
+    // if (pathname !== "/") return null;
   }, [isOpen, pathname]);
-
-  // if (pathname !== "/") return null;
 
   return null;
 };
