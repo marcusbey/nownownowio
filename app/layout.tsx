@@ -9,6 +9,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import PlausibleProvider from "next-plausible";
+import Script from "next/script";
 import type { ReactNode } from "react";
 import "./code-theme.scss";
 import "./globals.scss";
@@ -51,6 +52,11 @@ export default function RootLayout({
             <TailwindIndicator />
             <FloatingLegalFooter />
           </Providers>
+          <Script
+            src="http://nownownow.io/widget/now-bundle.js"
+            data-user-id="7Q4EsdXVcAB"
+            data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3UTRFc2RYVmNBQiIsImlhdCI6MTcyNzcyNjA0NywiZXhwIjoxNzMwMzE4MDQ3fQ.lStSrCTqMA3tUccrTVLR0et8xFcW60T8hN57dA-WnJs"
+          />
         </body>
       </html>
     </>
