@@ -1,4 +1,3 @@
-// Start of Selection
 import { OrganizationMembershipRole, Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
@@ -6,9 +5,14 @@ export function getUserDataSelect(loggedInUserId: string) {
     id: true,
     name: true,
     displayName: true,
+    email: true,
+    emailVerified: true,
     image: true,
     bio: true,
+    resendContactId: true,
+    widgetToken: true,
     createdAt: true,
+    updatedAt: true,
     followers: {
       where: {
         followerId: loggedInUserId,
@@ -21,6 +25,7 @@ export function getUserDataSelect(loggedInUserId: string) {
       select: {
         posts: true,
         followers: true,
+        following: true,
       },
     },
   } satisfies Prisma.UserSelect;
@@ -52,10 +57,13 @@ export function getPostDataInclude(loggedInUserId: string) {
         userId: true,
       },
     },
+    comments: true,
+    linkedNotifications: true,
     _count: {
       select: {
         likes: true,
         comments: true,
+        bookmarks: true,
       },
     },
   } satisfies Prisma.PostInclude;
@@ -75,6 +83,7 @@ export function getCommentDataInclude(loggedInUserId: string) {
     user: {
       select: getUserDataSelect(loggedInUserId),
     },
+    post: true,
   } satisfies Prisma.CommentInclude;
 }
 
@@ -90,6 +99,15 @@ export interface CommentsPage {
 export const notificationsInclude = {
   issuer: {
     select: {
+      id: true,
+      name: true,
+      displayName: true,
+      image: true,
+    },
+  },
+  recipient: {
+    select: {
+      id: true,
       name: true,
       displayName: true,
       image: true,
@@ -97,6 +115,7 @@ export const notificationsInclude = {
   },
   post: {
     select: {
+      id: true,
       content: true,
     },
   },
@@ -148,19 +167,39 @@ export type User = Prisma.UserGetPayload<{
     id: true;
     name: true;
     displayName: true;
+    email: true;
+    emailVerified: true;
     image: true;
     bio: true;
-    // Add other fields as needed
+    resendContactId: true;
+    widgetToken: true;
+    createdAt: true;
+    updatedAt: true;
+    followers: true;
+    following: true;
+    posts: true;
+    comments: true;
+    likes: true;
+    bookmarks: true;
+    notifications: true;
+    issuedNotifications: true;
   };
 }>;
 
-export interface Post {
-  id: string;
-  content: string;
-  createdAt: string;
-  _count: {
-    comments: number;
-    bookmarks: number;
-    likes: number;
+export type Post = Prisma.PostGetPayload<{
+  include: {
+    user: true;
+    attachments: true;
+    likes: true;
+    bookmarks: true;
+    comments: true;
+    linkedNotifications: true;
+    _count: {
+      select: {
+        likes: true;
+        comments: true;
+        bookmarks: true;
+      };
+    };
   };
-}
+}>;

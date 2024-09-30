@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.59",
-    "@auth/prisma-adapter": "^2.4.2",
+    "@auth/prisma-adapter": "^2.5.3",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.19.1",
     "@radix-ui/react-accordion": "^1.2.0",

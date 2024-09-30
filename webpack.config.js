@@ -1,8 +1,8 @@
- // Start of Selection
 const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
   mode: 'production', // Enables optimizations like minification
@@ -56,6 +56,8 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.NEXT_PUBLIC_WIDGET_URL': JSON.stringify(process.env.NEXT_PUBLIC_WIDGET_URL),
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
+      // Define other environment variables as needed
+      'process.env.NODE_ENV': JSON.stringify('production'), // Define NODE_ENV
     }),
     new webpack.ProgressPlugin(),
     {
@@ -80,7 +82,7 @@ module.exports = {
       }),
       new CssMinimizerPlugin(), // Minify CSS
     ],
-    splitChunks:false,
+    splitChunks: false,
   },
   performance: {
     hints: 'warning',
