@@ -9,7 +9,7 @@
   font-size: 16px;
   position: fixed;
   line-height: 1.5;
-  color: #333;
+  color: #ffffff; /* Default to white text */
   overflow-x: hidden;
   z-index: 999;
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
@@ -122,7 +122,10 @@
   top: 0;
   overflow-x: hidden;
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
-  background-color: #111; /* Dark background for visibility */
+  background-color: #111;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%; /* Ensure it doesn't exceed viewport */
 }
 
 .now-widget-sidepanel.left {
@@ -145,10 +148,37 @@
   transform: translateX(0%);
 }
 
+.now-widget-flex {
+  display: flex;
+}
+
+.now-widget-flex-col {
+  flex-direction: column;
+}
+
+.now-widget-flex-1 {
+  flex: 1 1 0%;
+}
+
+.now-widget-h-full {
+  height: 100%;
+}
+
+.now-widget-overflow-y-auto {
+  overflow-y: auto;
+}
+
+.now-widget-break-words {
+  word-wrap: break-word;
+}
+
 /* Content styles */
 .now-widget-content {
-  padding: 20px;
+  padding: 1.5rem;
   color: #fff; /* Light text for contrast */
+  word-wrap: break-word; /* Allows long words to break and wrap to the next line */
+  /* Alternatively, you can use word-break */
+  /* word-break: break-word; */
 }
 
 .now-widget-close {
@@ -224,7 +254,8 @@
 
 /* Responsive widths for sidepanel and content translation */
 @media (max-width: 1200px) {
-  .now-widget-sidepanel.left {
+  .now-widget-sidepanel.left,
+  .now-widget-wrapper {
     width: 50%; /* Medium screens */
   }
   .now-widget-wrapper.left.open #now-widget-basewrapper {
@@ -233,7 +264,8 @@
 }
 
 @media (max-width: 768px) {
-  .now-widget-sidepanel.left {
+  .now-widget-sidepanel.left,
+  .now-widget-wrapper {
     width: 80%; /* Small screens */
   }
   .now-widget-wrapper.left.open #now-widget-basewrapper {
@@ -258,4 +290,214 @@
 /* New styles for baseWrapper translation */
 #now-widget-basewrapper {
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+}
+
+/* Additional Tailwind Equivalent Classes */
+
+/* Space Between Items */
+.now-widget-space-x-4 > * + * {
+  margin-left: 1rem;
+}
+
+.now-widget-space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.now-widget-space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+.now-widget-space-x-1 > * + * {
+  margin-left: 0.25rem;
+}
+
+/* Text Styles */
+.now-widget-text-lg {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+}
+
+.now-widget-text-sm {
+  font-size: 0.875rem; /* 14px */
+}
+
+.now-widget-text-xs {
+  font-size: 0.75rem; /* 12px */
+}
+
+.now-widget-text-white {
+  color: #ffffff;
+}
+
+.now-widget-text-muted-foreground {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.now-widget-text-blue-500 {
+  color: #3b82f6; /* Blue color */
+  word-break: break-all; /* Ensure long words break */
+}
+
+/* Typography */
+.now-widget-font-semibold {
+  font-weight: 600;
+}
+
+/* Background */
+.now-widget-bg-background {
+  background-color: #1f2937; /* Example dark background */
+}
+
+.now-widget-bg-primary {
+  background-color: #3b82f6; /* Primary color */
+}
+
+/* Border */
+.now-widget-border-b {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.now-widget-border-r {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Padding */
+.now-widget-p-6 {
+  padding: 1.5rem;
+  max-width: 100%; /* Prevent padding from causing overflow */
+}
+
+.now-widget-p-2 {
+  padding: 0.5rem;
+}
+
+.now-widget-p-4 {
+  padding: 1rem;
+}
+
+.now-widget-p-20px {
+  padding: 20px;
+}
+
+/* Margin */
+.now-widget-mt-1 {
+  margin-top: 0.25rem;
+}
+
+.now-widget-mt-4 {
+  margin-top: 1rem;
+}
+
+/* Rounded */
+.now-widget-rounded-md {
+  border-radius: 0.375rem; /* 6px */
+}
+
+.now-widget-rounded {
+  border-radius: 0.25rem;
+}
+
+/* Shadow */
+.now-widget-shadow-lg {
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Transition */
+.now-widget-transition-opacity {
+  transition-property: opacity;
+}
+
+.now-widget-duration-300 {
+  transition-duration: 300ms;
+}
+
+.now-widget-hover-opacity-80:hover {
+  opacity: 0.8;
+}
+
+.now-widget-hover-underline:hover {
+  text-decoration: underline;
+}
+
+/* Button Styles */
+.now-widget-button {
+  background-color: #3b82f6; /* Primary color */
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: opacity 300ms;
+}
+
+.now-widget-button:hover {
+  opacity: 0.8;
+}
+
+/* Spinner */
+.now-widget-animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Dimensions */
+.now-widget-w-16 {
+  width: 4rem; /* 64px */
+}
+
+.now-widget-h-16 {
+  height: 4rem; /* 64px */
+}
+
+.now-widget-w-3 {
+  width: 0.75rem; /* 12px */
+}
+
+.now-widget-h-3 {
+  height: 0.75rem; /* 12px */
+}
+
+.now-widget-w-4 {
+  width: 1rem; /* 16px */
+}
+
+.now-widget-h-4 {
+  height: 1rem; /* 16px */
+}
+
+.now-widget-w-full {
+  width: 100%;
+}
+
+.now-widget-h-auto {
+  height: auto;
+}
+
+/* Positioning */
+.now-widget-bottom-4 {
+  bottom: 1rem;
+}
+
+.now-widget-right-4 {
+  right: 1rem;
+}
+
+/* Flex */
+.now-widget-items-center {
+  align-items: center;
+}
+
+/* Text */
+.now-widget-text-primary-foreground {
+  color: #ffffff; /* Primary foreground */
+}
+
+/* ScrollArea */
+.now-widget-scrollarea {
+  overflow: hidden; /* Combination of y-auto and x-hidden */
+}
+
+.now-widget-wrapper.left.open {
+  transform: translateX(0%);
 }

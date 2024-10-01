@@ -47,8 +47,9 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
           }
           return response.json();
         });
-
+        console.log("----------user information");
         if (data.success) {
+          console.log("Received user data:", data.data.user);
           setPosts(data.data.recentPosts);
           setUser(data.data.user);
         } else {
@@ -92,14 +93,29 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
     }
   }, []);
 
+  const highlightHashtags = (content: string) => {
+    return content.split(" ").map((word, index) =>
+      word.startsWith("#") ? (
+        <span
+          key={index}
+          className="now-widget-text-blue-500 now-widget-hover-underline"
+        >
+          <a href={`/hashtag/${word.slice(1)}`}>{word}</a>
+        </span>
+      ) : (
+        word + " "
+      ),
+    );
+  };
+
   if (isLoading) return <div className="now-widget-content">Loading...</div>;
   if (error) return <div className="now-widget-error">Error: {error}</div>;
 
   return (
-    <div className="relative h-screen w-80 border-r bg-red-600">
-      <div className="sticky top-0 z-10 border-b bg-background p-6">
-        <div className="flex items-center space-x-4">
-          <Avatar className="size-16">
+    <div className="now-widget-wrapper now-widget-left now-widget-h-full now-widget-flex now-widget-flex-col">
+      <div className="now-widget-p-6 now-widget-border-b now-widget-sticky now-widget-top-0 now-widget-bg-background now-widget-z-10">
+        <div className="now-widget-flex now-widget-items-center now-widget-space-x-4">
+          <Avatar className="now-widget-w-16 now-widget-h-16">
             <AvatarImage
               src={user?.image || "/placeholder-user.jpg"}
               alt={user?.displayName || user?.name || "User Avatar"}
@@ -121,64 +137,71 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
           <div>
             <Typography
               variant="h2"
-              className="text-lg font-semibold text-white"
+              className="now-widget-text-lg now-widget-font-semibold now-widget-text-white"
             >
               {user?.displayName || user?.name}
             </Typography>
-            <Typography variant="p" className="text-sm text-muted-foreground">
+            <Typography
+              variant="p"
+              className="now-widget-text-sm now-widget-text-muted-foreground"
+            >
               {user?.bio}
             </Typography>
             {/* <Typography
               variant="p"
-              className="mt-1 text-xs text-muted-foreground"
+              className="now-widget-text-xs now-widget-text-muted-foreground now-widget-mt-1"
             >
-              {user?.followers} followers
+              {user?.followers.length} followers
             </Typography> */}
           </div>
         </div>
       </div>
       <ScrollArea
-        className="h-[calc(100vh-120px)] space-y-8 p-6"
+        className="now-widget-flex-1 now-widget-overflow-y-auto now-widget-overflow-x-hidden"
         ref={scrollAreaRef}
       >
-        {posts.map((post) => (
-          <div key={post.id} className="space-y-2">
-            <div className="text-xs text-muted-foreground">
-              {new Date(post.createdAt).toLocaleString()}
+        <div className="now-widget-p-6 now-widget-space-y-8">
+          {posts.map((post) => (
+            <div key={post.id} className="now-widget-space-y-2">
+              {/* <div className="now-widget-text-xs now-widget-text-muted-foreground">
+                {post.createdAt.toLocaleDateString()}
+              </div> */}
+              {/* {post.type === "text" ? ( */}
+              <p className="now-widget-text-sm now-widget-break-words">
+                {highlightHashtags(post.content)}
+              </p>
+              {/* ) : (
+                <img
+                  src={post.content}
+                  alt="Post content"
+                  className="now-widget-w-full now-widget-h-auto now-widget-rounded-md now-widget-max-w-full"
+                />
+              )} */}
+              <div className="now-widget-flex now-widget-items-center now-widget-space-x-4 now-widget-text-xs now-widget-text-muted-foreground">
+                <div className="now-widget-flex now-widget-items-center now-widget-space-x-1">
+                  <MessageSquare className="now-widget-w-3 now-widget-h-3" />
+                  <span>{post._count.comments}</span>
+                </div>
+                <div className="now-widget-flex now-widget-items-center now-widget-space-x-1">
+                  <Bookmark className="now-widget-w-3 now-widget-h-3" />
+                  <span>{post._count.bookmarks}</span>
+                </div>
+                <div className="now-widget-flex now-widget-items-center now-widget-space-x-1">
+                  <ThumbsUp className="now-widget-w-3 now-widget-h-3" />
+                  <span>{post._count.likes}</span>
+                </div>
+              </div>
             </div>
-            {/* {post.content !== "text" ? ( */}
-            <p className="text-sm text-white">{post.content}</p>
-            {/* // ) : (
-            //   <img
-            //     src={post.content}
-            //     alt="Post content"
-            //     className="h-auto w-full rounded-md"
-            //   />
-            // )} */}
-            <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-              <div className="flex items-center space-x-1">
-                <MessageSquare className="size-3" />
-                <span>{post._count.comments}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Bookmark className="size-3" />
-                <span>{post._count.bookmarks}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <ThumbsUp className="size-3" />
-                <span>{post._count.likes}</span>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </ScrollArea>
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="absolute bottom-4 left-4 rounded-full bg-primary p-2 text-primary-foreground shadow-lg transition-opacity duration-300 hover:opacity-80"
+          className="now-widget-absolute now-widget-bottom-4 now-widget-right-4 now-widget-bg-primary now-widget-text-primary-foreground now-widget-rounded-full now-widget-p-2 now-widget-shadow-lg now-widget-transition-opacity now-widget-duration-300 now-widget-hover-opacity-80"
           aria-label="Scroll to top"
         >
-          <ArrowUp className="size-4" />
+          <ArrowUp className="now-widget-w-4 now-widget-h-4" />
         </button>
       )}
     </div>
