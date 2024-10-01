@@ -96,26 +96,23 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
   const highlightHashtags = (content: string) => {
     return content.split(" ").map((word, index) =>
       word.startsWith("#") ? (
-        <span
-          key={index}
-          className="now-widget-text-blue-500 now-widget-hover-underline"
-        >
+        <span key={index} className="now-widget-hashtag">
           <a href={`/hashtag/${word.slice(1)}`}>{word}</a>
         </span>
       ) : (
-        word + " "
+        <span key={index}>{word} </span>
       ),
     );
   };
 
-  if (isLoading) return <div className="now-widget-content">Loading...</div>;
+  if (isLoading) return <div className="now-widget-loading">Loading...</div>;
   if (error) return <div className="now-widget-error">Error: {error}</div>;
 
   return (
-    <div className="now-widget-wrapper now-widget-left now-widget-h-full now-widget-flex now-widget-flex-col">
-      <div className="now-widget-p-6 now-widget-border-b now-widget-sticky now-widget-top-0 now-widget-bg-background now-widget-z-10">
-        <div className="now-widget-flex now-widget-items-center now-widget-space-x-4">
-          <Avatar className="now-widget-w-16 now-widget-h-16">
+    <div className="now-widget-sidepanel-wrapper">
+      <div className="now-widget-header">
+        <div className="now-widget-user-info">
+          <Avatar className="now-widget-avatar">
             <AvatarImage
               src={user?.image || "/placeholder-user.jpg"}
               alt={user?.displayName || user?.name || "User Avatar"}
@@ -134,60 +131,51 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
                   : "??"}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <Typography
-              variant="h2"
-              className="now-widget-text-lg now-widget-font-semibold now-widget-text-white"
-            >
+          <div className="now-widget-user-details">
+            <Typography variant="h2" className="now-widget-user-name">
               {user?.displayName || user?.name}
             </Typography>
-            <Typography
-              variant="p"
-              className="now-widget-text-sm now-widget-text-muted-foreground"
-            >
+            <Typography variant="p" className="now-widget-user-bio">
               {user?.bio}
             </Typography>
             {/* <Typography
               variant="p"
-              className="now-widget-text-xs now-widget-text-muted-foreground now-widget-mt-1"
+              className="now-widget-user-followers"
             >
               {user?.followers.length} followers
             </Typography> */}
           </div>
         </div>
       </div>
-      <ScrollArea
-        className="now-widget-flex-1 now-widget-overflow-y-auto now-widget-overflow-x-hidden"
-        ref={scrollAreaRef}
-      >
-        <div className="now-widget-p-6 now-widget-space-y-8">
+      <ScrollArea className="now-widget-posts-container" ref={scrollAreaRef}>
+        <div className="now-widget-posts-list">
           {posts.map((post) => (
-            <div key={post.id} className="now-widget-space-y-2">
-              {/* <div className="now-widget-text-xs now-widget-text-muted-foreground">
+            <div key={post.id} className="now-widget-post-item">
+              {/* <div className="now-widget-post-date">
                 {post.createdAt.toLocaleDateString()}
               </div> */}
               {/* {post.type === "text" ? ( */}
-              <p className="now-widget-text-sm now-widget-break-words">
+              <p className="now-widget-post-content">
                 {highlightHashtags(post.content)}
               </p>
               {/* ) : (
                 <img
                   src={post.content}
                   alt="Post content"
-                  className="now-widget-w-full now-widget-h-auto now-widget-rounded-md now-widget-max-w-full"
+                  className="now-widget-post-image"
                 />
               )} */}
-              <div className="now-widget-flex now-widget-items-center now-widget-space-x-4 now-widget-text-xs now-widget-text-muted-foreground">
-                <div className="now-widget-flex now-widget-items-center now-widget-space-x-1">
-                  <MessageSquare className="now-widget-w-3 now-widget-h-3" />
+              <div className="now-widget-post-footer">
+                <div className="now-widget-post-interaction">
+                  <MessageSquare className="now-widget-icon" />
                   <span>{post._count.comments}</span>
                 </div>
-                <div className="now-widget-flex now-widget-items-center now-widget-space-x-1">
-                  <Bookmark className="now-widget-w-3 now-widget-h-3" />
+                <div className="now-widget-post-interaction">
+                  <Bookmark className="now-widget-icon" />
                   <span>{post._count.bookmarks}</span>
                 </div>
-                <div className="now-widget-flex now-widget-items-center now-widget-space-x-1">
-                  <ThumbsUp className="now-widget-w-3 now-widget-h-3" />
+                <div className="now-widget-post-interaction">
+                  <ThumbsUp className="now-widget-icon" />
                   <span>{post._count.likes}</span>
                 </div>
               </div>
@@ -198,10 +186,10 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className="now-widget-absolute now-widget-bottom-4 now-widget-right-4 now-widget-bg-primary now-widget-text-primary-foreground now-widget-rounded-full now-widget-p-2 now-widget-shadow-lg now-widget-transition-opacity now-widget-duration-300 now-widget-hover-opacity-80"
+          className="now-widget-scroll-top-button"
           aria-label="Scroll to top"
         >
-          <ArrowUp className="now-widget-w-4 now-widget-h-4" />
+          <ArrowUp className="now-widget-arrow-up-icon" />
         </button>
       )}
     </div>
