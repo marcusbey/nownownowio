@@ -59,7 +59,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
       >
         <span className="relative z-10">Generate Widget Script</span>
         {loading && (
-          <span className="absolute inset-0 size-full animate-fill-left-to-right bg-primary/50" />
+          <span className="animate-fill-left-to-right absolute inset-0 size-full bg-primary/50" />
         )}
       </Button>
       {script && (

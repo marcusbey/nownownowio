@@ -2,7 +2,11 @@ const path = require('path');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const dotenv = require('dotenv');
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
+// Load environment variables from .env file
+dotenv.config();
 
 module.exports = {
   mode: 'production', // Enables optimizations like minification
@@ -56,8 +60,7 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.NEXT_PUBLIC_WIDGET_URL': JSON.stringify(process.env.NEXT_PUBLIC_WIDGET_URL),
       'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL),
-      // Define other environment variables as needed
-      'process.env.NODE_ENV': JSON.stringify('production'), // Define NODE_ENV
+      'process.env.NEXTAUTH_URL': JSON.stringify(process.env.NEXTAUTH_URL),
     }),
     new webpack.ProgressPlugin(),
     {

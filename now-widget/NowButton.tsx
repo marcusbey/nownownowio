@@ -152,7 +152,7 @@ const NowButton: React.FC<NowButtonProps> = ({
         }}
       >
         <div style={contentStyle}>
-          <span style={textRingStyle} className="text-ring">
+          <span style={textRingStyle} className="animate-shimmer text-ring">
             {chars.map((char, index) => (
               <span key={index} style={charStyle(index)} className="now-text">
                 {char}

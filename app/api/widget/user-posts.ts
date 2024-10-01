@@ -1,30 +1,58 @@
-import cors, { runMiddleware } from '@/lib/cors';
 import { prisma } from '@/lib/prisma';
-import { runRateLimit } from '@/lib/rateLimit';
 import { verifyWidgetToken } from '@/lib/widget/widgetUtils';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    await runMiddleware(req, res, cors);
-    await runRateLimit(req, res);
+export async function OPTIONS(req: NextRequest) {
+    const origin = req.headers.get('origin');
 
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed' });
+    if (origin) {
+        return new NextResponse(null, {
+            status: 204,
+            headers: {
+                'Access-Control-Allow-Origin': origin,
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                'Access-Control-Max-Age': '86400',
+            },
+        });
     }
 
-    const { userId } = req.query;
-    const token = req.headers.authorization?.split(' ')[1];
+    return new NextResponse(null, { status: 403 });
+}
 
-    if (!userId || typeof userId !== 'string' || !token) {
-        return res.status(400).json({ error: 'Invalid request' });
+export async function GET(req: NextRequest) {
+    const origin = req.headers.get('origin');
+
+    if (!origin) {
+        return new NextResponse(null, { status: 403 });
+    }
+
+    const headers = {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('userId');
+    const token = req.headers.get('Authorization')?.split(' ')[1];
+
+    if (!userId || !token) {
+        return NextResponse.json(
+            { error: 'Invalid request' },
+            { status: 400, headers }
+        );
+    }
+
+    const isValid = verifyWidgetToken(token, userId);
+    if (!isValid) {
+        return NextResponse.json(
+            { error: 'Invalid token' },
+            { status: 401, headers }
+        );
     }
 
     try {
-        const isValid = verifyWidgetToken(token, userId);
-        if (!isValid) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-
         const posts = await prisma.post.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
@@ -43,9 +71,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
         });
 
-        res.status(200).json(posts);
+        return NextResponse.json(posts, { headers });
     } catch (error) {
         console.error('Error fetching posts:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        return NextResponse.json(
+            { error: 'Internal server error' },
+            { status: 500, headers }
+        );
     }
 }

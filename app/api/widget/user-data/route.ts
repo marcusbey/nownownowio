@@ -2,18 +2,17 @@ import { prisma } from '@/lib/prisma';
 import { verifyWidgetToken } from '@/lib/widget/widgetUtils';
 import { NextRequest, NextResponse } from 'next/server';
 
-const ALLOWED_ORIGINS = ['http://127.0.0.1:5500', 'http://localhost:3000'];
-
 export async function OPTIONS(req: NextRequest) {
     const origin = req.headers.get('origin');
 
-    if (ALLOWED_ORIGINS.includes(origin || '')) {
+    if (origin) {
         return new NextResponse(null, {
             status: 204,
             headers: {
-                'Access-Control-Allow-Origin': origin!,
+                'Access-Control-Allow-Origin': origin,
                 'Access-Control-Allow-Methods': 'GET, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                'Access-Control-Max-Age': '86400', // Optional: Cache preflight response for 1 day
             },
         });
     }
@@ -24,12 +23,12 @@ export async function OPTIONS(req: NextRequest) {
 export async function GET(req: NextRequest) {
     const origin = req.headers.get('origin');
 
-    if (!ALLOWED_ORIGINS.includes(origin || '')) {
+    if (!origin) {
         return new NextResponse(null, { status: 403 });
     }
 
     const headers = {
-        'Access-Control-Allow-Origin': origin!,
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
