@@ -27,8 +27,8 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  // const API_BASE_URL = "https://nownownow.io";
+  const API_BASE_URL = "http://localhost:3000";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +47,6 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
           }
           return response.json();
         });
-        console.log("----------user information");
         if (data.success) {
           console.log("Received user data:", data.data.user);
           setPosts(data.data.recentPosts);
