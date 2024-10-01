@@ -53,7 +53,7 @@ export default function RootLayout({
             <FloatingLegalFooter />
           </Providers>
           <Script
-            src="http://nownownow.io/widget/now-bundle.js"
+            src="https://nownownow.io/widget/now-bundle.js"
             data-user-id="7Q4EsdXVcAB"
             data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3UTRFc2RYVmNBQiIsImlhdCI6MTcyNzcyNjA0NywiZXhwIjoxNzMwMzE4MDQ3fQ.lStSrCTqMA3tUccrTVLR0et8xFcW60T8hN57dA-WnJs"
           />
