@@ -1,8 +1,8 @@
-import { generateWidgetToken } from "@/lib/widget/widgetUtils";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import NowWidget from "./NowWidget";
+import { generateWidgetToken } from "now-widget/widget/widgetUtils";
+import NowWidget from "./components/NowWidget";
 
 // Mock the fetch function
 const mockFetch = jest.fn();

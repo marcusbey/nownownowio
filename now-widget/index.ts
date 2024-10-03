@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import NowWidget from './NowWidget';
+import NowWidget from './components/NowWidget';
 
 function init() {
     const scripts = document.getElementsByTagName('script');

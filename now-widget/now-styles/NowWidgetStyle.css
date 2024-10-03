@@ -1,0 +1,81 @@
+/* Styles for NowWidget */
+#now__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  z-index: 998;
+}
+#now__overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+#now__nowpanel {
+  height: 100vh;
+  width: 30%;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: -30%;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: left 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  padding-top: 60px;
+}
+#now__nowpanel.open {
+  left: 0;
+}
+#now__nowpanel a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+#now__nowpanel a:hover {
+  color: #f1f1f1;
+}
+.closebtn {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  font-size: 36px;
+  cursor: pointer;
+  color: #818181;
+  transition: color 0.3s;
+}
+.closebtn:hover {
+  color: #f1f1f1;
+}
+#now-widget-basewrapper {
+  position: relative; /* Added for proper positioning */
+  transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+#now-button-container {
+  position: absolute; /* Changed from fixed to absolute */
+  right: 20%;
+  bottom: 20%;
+  z-index: 999;
+}
+@media screen and (max-width: 768px) {
+  #now__nowpanel {
+    width: 100%;
+    left: -100%;
+  }
+  #now-widget-basewrapper {
+    transform: none !important;
+  }
+  #now-button-container {
+    right: 10%;
+    bottom: 10%;
+  }
+}

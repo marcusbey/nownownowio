@@ -116,7 +116,7 @@
 }
 
 /* Sidepanel styles */
-.now-widget-sidepanel {
+.now-widget-nowpanel {
   height: 100vh;
   position: fixed;
   z-index: 1000;
@@ -129,23 +129,23 @@
   max-width: 100%; /* Ensure it doesn't exceed viewport */
 }
 
-.now-widget-sidepanel.left {
+.now-widget-nowpanel.left {
   left: 0;
   transform: translateX(-100%);
   width: 30%; /* Default width for large screens */
 }
 
-.now-widget-sidepanel.left.open {
+.now-widget-nowpanel.left.open {
   transform: translateX(0%);
 }
 
-.now-widget-sidepanel.right {
+.now-widget-nowpanel.right {
   right: 0;
   transform: translateX(100%);
   width: 30%; /* Adjust as needed */
 }
 
-.now-widget-sidepanel.right.open {
+.now-widget-nowpanel.right.open {
   transform: translateX(0%);
 }
 
@@ -253,9 +253,9 @@
   cursor: pointer; /* Change cursor to pointer on hover */
 }
 
-/* Responsive widths for sidepanel and content translation */
+/* Responsive widths for nowpanel and content translation */
 @media (max-width: 1200px) {
-  .now-widget-sidepanel.left,
+  .now-widget-nowpanel.left,
   .now-widget-wrapper {
     width: 50%; /* Medium screens */
   }
@@ -265,7 +265,7 @@
 }
 
 @media (max-width: 768px) {
-  .now-widget-sidepanel.left,
+  .now-widget-nowpanel.left,
   .now-widget-wrapper {
     width: 80%; /* Small screens */
   }
@@ -276,7 +276,7 @@
 
 /* Ensure no borders or shadows on container and button */
 .now-widget-button-container,
-.now-widget-sidepanel,
+.now-widget-nowpanel,
 .now-widget-close {
   border: none;
   box-shadow: none;
@@ -503,10 +503,10 @@
   transform: translateX(0%);
 }
 
-/* New Styles for SidePanelContent */
+/* New Styles for NowPanelContent */
 
 /* Sidepanel Wrapper */
-.now-widget-sidepanel-wrapper {
+.now-widget-nowpanel-wrapper {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -655,13 +655,13 @@
 
 /* Responsive Styles */
 @media (max-width: 1200px) {
-  .now-widget-sidepanel-wrapper {
+  .now-widget-nowpanel-wrapper {
     max-width: 50vw;
   }
 }
 
 @media (max-width: 768px) {
-  .now-widget-sidepanel-wrapper {
+  .now-widget-nowpanel-wrapper {
     max-width: 80vw;
   }
 }

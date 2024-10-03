@@ -5,16 +5,16 @@ import { getCachedData } from "@/lib/cache";
 import { Post, User } from "@/lib/types";
 import { ArrowUp, Bookmark, MessageSquare, ThumbsUp } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import "./NowWidgetStyle.css";
+import "./NowWidgetPanelStyle.css";
 
-interface SidePanelContentProps {
+interface NowPanelContentProps {
   userId: string;
   token: string;
   posts: Post[];
   user: User | null;
 }
 
-const SidePanelContent: React.FC<SidePanelContentProps> = ({
+const NowPanelContent: React.FC<NowPanelContentProps> = ({
   userId,
   token,
   posts: initialPosts,
@@ -108,7 +108,7 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
   if (error) return <div className="now-widget-error">Error: {error}</div>;
 
   return (
-    <div className="now-widget-sidepanel-wrapper">
+    <div className="now-widget-nowpanel-wrapper">
       <div className="now-widget-header">
         <div className="now-widget-user-info">
           <Avatar className="now-widget-avatar">
@@ -195,4 +195,4 @@ const SidePanelContent: React.FC<SidePanelContentProps> = ({
   );
 };
 
-export default SidePanelContent;
+export default NowPanelContent;

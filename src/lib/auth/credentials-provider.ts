@@ -1,5 +1,4 @@
 // Start of Selection
-import { generateWidgetToken } from '@/lib/widget/widgetUtils';
 import crypto from "crypto";
 import { addDays } from "date-fns";
 import { nanoid } from "nanoid";
@@ -7,6 +6,7 @@ import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
+import { generateWidgetToken } from 'now-widget/widget/widgetUtils';
 import { z } from "zod"; // Added zod import
 import { env } from "../env";
 import { prisma } from "../prisma";
