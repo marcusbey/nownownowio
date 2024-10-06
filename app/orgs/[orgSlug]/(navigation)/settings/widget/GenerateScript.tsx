@@ -76,3 +76,17 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
     </div>
   );
 }
+
+//  app.get("/get-widget-script", (req, res) => {
+//    const { userId, token, theme, position, buttonColor, buttonSize } =
+//      req.query;
+//    ..const scriptTag = `<script src="https://yourdomain.com/dist/bundle.js"
+//      data-user-id="${userId}"
+//      data-token="${token}"
+//      data-theme="${theme || "light"}"
+//      data-position="${position || "left"}"
+//      data-button-color="${buttonColor || "#007bff"}"
+//      data-button-size="${buttonSize || "60"}"
+//    ></script>`;
+//    res.send(scriptTag);
+//

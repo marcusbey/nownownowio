@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { generateWidgetToken } from 'now-widget/widget/widgetUtils';
+import { generateWidgetToken } from 'now-widget/now-utils/widgetUtils';
 
 export async function POST(request: Request) {
     const { orgSlug } = await request.json();
