@@ -4,7 +4,13 @@ import jwt from 'jsonwebtoken';
 import React from "react";
 import { Root, createRoot } from "react-dom/client";
 
+const NowPanelContent = React.lazy(() => import("../now-components/NowPanelContent"));
+
 const SECRET_KEY = process.env.WIDGET_SECRET_KEY!;
+
+if (!SECRET_KEY) {
+    throw new Error('WIDGET_SECRET_KEY is not defined');
+}
 
 interface InitializeWidgetParams {
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -16,6 +22,8 @@ interface InitializeWidgetParams {
     user: User | null;
     isLoading: boolean;
     error: string | null;
+    userId: string;
+    token: string;
 }
 
 interface CleanupWidgetParams {
@@ -25,7 +33,7 @@ interface CleanupWidgetParams {
 
 interface ApiKeyOptions {
     userId: string;
-    expiresIn?: number; // in seconds
+    expiresIn?: number;
 }
 
 export const initializeWidget = ({
@@ -38,12 +46,14 @@ export const initializeWidget = ({
     user,
     isLoading,
     error,
-}: InitializeWidgetParams) => {
+    userId,
+    token,
+}: InitializeWidgetParams): { nowButtonRoot: Root; nowPanelRoot: Root | null } => {
     // Inject custom styles if needed
     const style = document.createElement("style");
     style.innerHTML = `
     /* Additional dynamic styles can be added here */
-  `;
+    `;
     document.head.appendChild(style);
 
     // Create overlay
@@ -55,9 +65,9 @@ export const initializeWidget = ({
     const sideNav = document.createElement("div");
     sideNav.id = "now__nowpanel";
     sideNav.innerHTML = `
-    <span class="closebtn">&times;</span>
-    <div id="now-nowpanel-content"></div>
-  `;
+        <span class="closebtn">&times;</span>
+        <div id="now-nowpanel-content"></div>
+    `;
     document.body.insertBefore(sideNav, overlay.nextSibling);
 
     // Create base wrapper
@@ -78,13 +88,13 @@ export const initializeWidget = ({
     const nowButtonRoot = createRoot(nowButtonContainer);
     nowButtonRoot.render(
         <NowButton
-      onClick={() => setIsOpen(true)}
+            onClick={() => setIsOpen(true)}
 size = { buttonSize }
 color = { buttonColor }
 backgroundColor = "transparent"
 updated = { posts.length > 0 }
-    />,
-  );
+    />
+    );
 
 // Event listeners for closing the panel
 const closeBtn = sideNav.querySelector(".closebtn");
@@ -104,27 +114,22 @@ sideNav.addEventListener("click", (e) => {
 
 // Render NowPanelContent
 const nowpanelContentDiv = sideNav.querySelector("#now-nowpanel-content");
+let nowPanelRoot: Root | null = null;
 if (nowpanelContentDiv) {
-    const nowPanelRoot = createRoot(nowpanelContentDiv);
+    nowPanelRoot = createRoot(nowpanelContentDiv);
     nowPanelRoot.render(
-        <div id="now-nowpanel-content" >
-        { isLoading && <p>Loading...</p>}
-{ error && <p className="now-widget-error" > Error: { error } </p> }
-{
-    !isLoading && !error && (
-        <Suspense fallback={ <div>Loading...</div> }>
+        <Suspense fallback={< div > Loading...</div>}>
             <NowPanelContent
-              userId=""
-    token = ""
-    posts = { posts }
-    user = { user }
-        />
-        </Suspense>
-        )
-}
-</div>,
-    );
-  }
+                    userId={ userId }
+token = { token }
+posts = { posts }
+user = { user }
+    />
+    </Suspense>
+        );
+    }
+
+return { nowButtonRoot, nowPanelRoot };
 };
 
 export const animatePanel = (isOpen: boolean, position: "left" | "right") => {
