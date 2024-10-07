@@ -17,7 +17,7 @@ export default function UserLinkWithTooltip({
   name,
 }: UserLinkWithTooltipProps) {
   const { data } = useQuery({
-    queryKey: ["user-data", name],
+    queryKey: ["user-posts", name],
     queryFn: () => kyInstance.get(`/api/users/name/${name}`).json<UserData>(),
     retry(failureCount, error) {
       if (error instanceof HTTPError && error.response.status === 404) {

@@ -12,7 +12,7 @@ export async function OPTIONS(req: NextRequest) {
                 'Access-Control-Allow-Origin': origin,
                 'Access-Control-Allow-Methods': 'GET, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-                'Access-Control-Max-Age': '86400',
+                'Access-Control-Max-Age': '86400', // Cache preflight response for 1 day
             },
         });
     }
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
         const posts = await prisma.post.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
-            take: 5,
+            take: 5, // Limit to the latest 5 posts
             select: {
                 id: true,
                 content: true,
@@ -71,7 +71,10 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        return NextResponse.json(posts, { headers });
+        return NextResponse.json(
+            { posts },
+            { headers }
+        );
     } catch (error) {
         console.error('Error fetching posts:', error);
         return NextResponse.json(
