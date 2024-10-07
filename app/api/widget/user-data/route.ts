@@ -1,6 +1,6 @@
+import { verifyWidgetToken } from '@/lib/now-widget';
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyWidgetToken } from 'now-widget/now-utils/widgetUtils';
 
 export async function OPTIONS(req: NextRequest) {
     const origin = req.headers.get('origin');
