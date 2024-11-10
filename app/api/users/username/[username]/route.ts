@@ -1,6 +1,6 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { getUserDataSelect, User } from "@/lib/types";
+import { getUserDataSelect, UserData } from "@/lib/types";
 
 export async function GET(
   req: Request,
@@ -13,7 +13,7 @@ export async function GET(
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user: User | null = await prisma.user.findFirst({
+    const user: UserData | null = await prisma.user.findFirst({
       where: {
         name: {
           equals: name,

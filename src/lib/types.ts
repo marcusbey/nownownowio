@@ -26,8 +26,17 @@ export function getUserDataSelect(loggedInUserId: string) {
         posts: true,
         followers: true,
         following: true,
+        comments: true,
+        likes: true,
+        bookmarks: true,
       },
     },
+    posts: true,
+    comments: true,
+    likes: true,
+    bookmarks: true,
+    notifications: true,
+    issuedNotifications: true,
   } satisfies Prisma.UserSelect;
 }
 
