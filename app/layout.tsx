@@ -9,7 +9,6 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import PlausibleProvider from "next-plausible";
-import Script from "next/script";
 import type { ReactNode } from "react";
 import "./code-theme.scss";
 import "./globals.scss";
@@ -52,11 +51,22 @@ export default function RootLayout({
             <TailwindIndicator />
             <FloatingLegalFooter />
           </Providers>
-          <Script
-            src="https://nownownow.io/widget/now-bundle.js"
-            data-user-id="7Q4EsdXVcAB"
-            data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3UTRFc2RYVmNBQiIsImlhdCI6MTcyNzcyNjA0NywiZXhwIjoxNzMwMzE4MDQ3fQ.lStSrCTqMA3tUccrTVLR0et8xFcW60T8hN57dA-WnJs"
-          />
+          <script
+            defer
+            src="https://localhost:3000/widget/now-bundle.js"
+            data-user-id="ErOeaXjKcLJ"
+            data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJFck9lYVhqS2NMSiIsImlhdCI6MTcyNzU1MTA5NywiZXhwIjoxNzMwMTQzMDk3fQ.g7bQVdZ1vrZp1xJ_rpEXZzU73vemNV4fshZMHzJuqvE"
+            data-theme="dark"
+            data-position="left"
+            data-button-color="yellow"
+            data-button-size="90"
+          ></script>
+          <script
+            defer
+            data-website-id="671fb98a7acececdf6464e99"
+            data-domain="nownownow.io"
+            src="https://datafa.st/js/script.js"
+          ></script>
         </body>
       </html>
     </>
