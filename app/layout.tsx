@@ -53,7 +53,7 @@ export default function RootLayout({
           </Providers>
           <script
             defer
-            src="https://widget.nownownow.io/now-bundle.js"
+            src="https://widget.nownownow.io/now-widget.js"
             data-user-id="ErOeaXjKcLJ"
             data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJFck9lYVhqS2NMSiIsImlhdCI6MTcyNzU1MTA5NywiZXhwIjoxNzMwMTQzMDk3fQ.g7bQVdZ1vrZp1xJ_rpEXZzU73vemNV4fshZMHzJuqvE"
             data-theme="dark"

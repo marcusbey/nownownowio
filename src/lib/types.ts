@@ -47,7 +47,19 @@ export type UserData = Prisma.UserGetPayload<{
 export function getPostDataInclude(loggedInUserId: string) {
   return {
     user: {
-      select: getUserDataSelect(loggedInUserId),
+      select: {
+        ...getUserDataSelect(loggedInUserId),
+        organizations: {
+          select: {
+            organization: {
+              select: {
+                slug: true,
+                name: true
+              }
+            }
+          }
+        }
+      }
     },
     attachments: true,
     likes: {
@@ -205,8 +217,8 @@ export type Post = Prisma.PostGetPayload<{
     linkedNotifications: true;
     _count: {
       select: {
-        likes: true;
-        comments: true;
+        likes: true,
+        comments: true,
         bookmarks: true;
       };
     };
