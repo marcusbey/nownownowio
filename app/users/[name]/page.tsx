@@ -49,7 +49,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params: { name } }) {
+export default async function Page({ params: { name } }: PageProps) {
   const { user: loggedInUser } = await validateRequest();
 
   if (!loggedInUser) {

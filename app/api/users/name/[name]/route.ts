@@ -16,7 +16,7 @@ export async function GET(
     const user: UserData | null = await prisma.user.findFirst({
       where: {
         name: {
-          equals: name,
+          equals: decodeURIComponent(name),
           mode: "insensitive",
         },
         organizations: {
@@ -48,4 +48,3 @@ export async function GET(
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
