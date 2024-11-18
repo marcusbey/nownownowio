@@ -1,5 +1,6 @@
 import { verifyWidgetToken } from '@/lib/now-widget';
 import { prisma } from '@/lib/prisma';
+import { getUserDataSelect } from '@/lib/types';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS(req: NextRequest) {
@@ -47,12 +48,7 @@ export async function GET(req: NextRequest) {
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: {
-                name: true,
-                displayName: true,
-                image: true,
-                bio: true,
-            },
+            select: getUserDataSelect(userId),
         });
 
         if (!user) {

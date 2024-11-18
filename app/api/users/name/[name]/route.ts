@@ -19,8 +19,23 @@ export async function GET(
           equals: name,
           mode: "insensitive",
         },
+        organizations: {
+          some: {
+            organization: {
+              id: {
+                not: null,
+              },
+            },
+          },
+        },
       },
-      select: getUserDataSelect(loggedInUser.id),
+      select: {
+        ...getUserDataSelect(loggedInUser.id),
+        organizations: true,
+        posts: true,
+        comments: true,
+        likes: true,
+      },
     });
 
     if (!user) {
@@ -33,3 +48,4 @@ export async function GET(
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+

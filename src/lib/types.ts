@@ -10,6 +10,7 @@ export function getUserDataSelect(loggedInUserId: string) {
     image: true,
     bio: true,
     resendContactId: true,
+    passwordHash: true,
     widgetToken: true,
     createdAt: true,
     updatedAt: true,
@@ -19,6 +20,23 @@ export function getUserDataSelect(loggedInUserId: string) {
       },
       select: {
         followerId: true,
+      },
+    },
+    notifications: true,
+    issuedNotifications: true,
+    posts: true,
+    following: true,
+    comments: true,
+    likes: true,
+    bookmarks: true,
+    organizations: {
+      select: {
+        organization: {
+          select: {
+            slug: true,
+            name: true,
+          },
+        },
       },
     },
     _count: {
@@ -31,12 +49,6 @@ export function getUserDataSelect(loggedInUserId: string) {
         bookmarks: true,
       },
     },
-    posts: true,
-    comments: true,
-    likes: true,
-    bookmarks: true,
-    notifications: true,
-    issuedNotifications: true,
   } satisfies Prisma.UserSelect;
 }
 
@@ -54,12 +66,12 @@ export function getPostDataInclude(loggedInUserId: string) {
             organization: {
               select: {
                 slug: true,
-                name: true
-              }
-            }
-          }
-        }
-      }
+                name: true,
+              },
+            },
+          },
+        },
+      },
     },
     attachments: true,
     likes: {
@@ -193,17 +205,18 @@ export type User = Prisma.UserGetPayload<{
     image: true;
     bio: true;
     resendContactId: true;
-    widgetToken: true;
-    createdAt: true;
-    updatedAt: true;
-    followers: true;
-    following: true;
-    posts: true;
-    comments: true;
-    likes: true;
-    bookmarks: true;
-    notifications: true;
-    issuedNotifications: true;
+    passwordHash: true,
+    widgetToken: true,
+    createdAt: true,
+    updatedAt: true,
+    followers: true,
+    following: true,
+    posts: true,
+    comments: true,
+    likes: true,
+    bookmarks: true,
+    notifications: true,
+    issuedNotifications: true,
   };
 }>;
 
@@ -212,15 +225,15 @@ export type Post = Prisma.PostGetPayload<{
     user: true;
     attachments: true;
     likes: true;
-    bookmarks: true;
-    comments: true;
-    linkedNotifications: true;
+    bookmarks: true,
+    comments: true,
+    linkedNotifications: true,
     _count: {
       select: {
         likes: true,
         comments: true,
-        bookmarks: true;
-      };
-    };
+        bookmarks: true,
+      },
+    },
   };
 }>;

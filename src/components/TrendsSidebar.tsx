@@ -7,7 +7,7 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import { Suspense } from "react";
 import FollowButton from "./FollowButton";
-import SearchField from "./SearchField"; // Adjust the path if necessary
+import SearchField from "./SearchField";
 import UserAvatar from "./UserAvatar";
 import UserTooltip from "./UserTooltip";
 

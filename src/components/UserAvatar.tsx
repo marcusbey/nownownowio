@@ -1,4 +1,3 @@
-import avatarPlaceholder from "@/assets/avatar-placeholder.png";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -15,7 +14,7 @@ export default function UserAvatar({
 }: UserAvatarProps) {
   return (
     <Image
-      src={avatarUrl || avatarPlaceholder}
+      src={avatarUrl || "/images/avatar-placeholder.png"}
       alt="User avatar"
       width={size ?? 48}
       height={size ?? 48}

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const token = generateWidgetToken(userId);
 
     return NextResponse.json({
-        script: `<script src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-bundle.js" data-user-id="${userId}" data-token="${token}"></script>`,
+        script: `<script src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" data-user-id="${userId}" data-token="${token}"></script>`,
         token
     });
 }

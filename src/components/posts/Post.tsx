@@ -26,9 +26,10 @@ export default function Post({ post }: PostProps) {
 
   const [showComments, setShowComments] = useState(false);
 
-  const userProfileLink = post.user.organizations?.[0]?.organization?.slug
-    ? `/${post.user.organizations[0].organization.slug}/${post.user.name}`
-    : `/u/${post.user.name}`;
+  const userProfileLink =
+    user && post.user.id === user.id
+      ? `/orgs/${post.user.organizations?.[0]?.organization?.slug || ""}/profile`
+      : `/users/${post.user.name}`;
 
   return (
     <article className="group/post space-y-3 rounded-2xl bg-card p-5 shadow-sm">
