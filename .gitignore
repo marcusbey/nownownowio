@@ -40,3 +40,4 @@ yarn-error.log*
 
 # Ignore all .txt files
 *.txt
+.aider*
