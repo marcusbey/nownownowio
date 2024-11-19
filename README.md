@@ -1,167 +1,186 @@
-    # NOWNOWNOW
+# NOWNOWNOW
 
-    NOWNOWNOW is a versatile website widget designed to help you share live updates with your audience and build trust effortlessly. Whether you're managing a blog, an organization, or any interactive platform, NOWNOWNOW provides the tools you need to keep your audience engaged and informed in real-time.
+NOWNOWNOW is a versatile website widget designed to help you share live updates with your audience and build trust effortlessly. Whether you're managing a blog, an organization, or any interactive platform, NOWNOWNOW provides the tools you need to keep your audience engaged and informed in real-time.
 
-    ## Features
+## Features
 
-    - **Live Updates**: Share real-time updates seamlessly.
-    - **User Authentication**: Secure login with OAuth providers.
-    - **Prisma Integration**: Robust database management with Prisma.
-    - **Tailwind CSS**: Stylish and responsive design out of the box.
-    - **Email Integration**: Automated emails using Resend.
-    - **Stripe Integration**: Handle subscriptions and payments effortlessly.
-    - **Customizable Layouts**: Easily modify layouts to suit your brand.
+- **Live Updates**: Share real-time updates seamlessly.
+- **User Authentication**: Secure login with OAuth providers.
+- **Prisma Integration**: Robust database management with Prisma.
+- **Tailwind CSS**: Stylish and responsive design out of the box.
+- **Email Integration**: Automated emails using Resend.
+- **Stripe Integration**: Handle subscriptions and payments effortlessly.
+- **Customizable Layouts**: Easily modify layouts to suit your brand.
 
-    ## Tech Stack
+## Tech Stack
 
-    - **Framework**: Next.js
-    - **Language**: TypeScript
-    - **Styling**: Tailwind CSS
-    - **Database**: Prisma with PostgreSQL
-    - **Authentication**: NextAuth.js
-    - **Email Service**: Resend
-    - **Payments**: Stripe
-    - **State Management**: Zustand
-    - **UI Components**: Radix UI, ShadCN UI
-    - **Other Tools**: UploadThing, Stream Chat
+- **Framework**: Next.js
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Prisma with PostgreSQL
+- **Authentication**: NextAuth.js
+- **Email Service**: Resend
+- **Payments**: Stripe
+- **State Management**: Zustand
+- **UI Components**: Radix UI, ShadCN UI
+- **Other Tools**: UploadThing, Stream Chat
 
-    ## Getting Started
+## Getting Started
 
-    ### Prerequisites
+### Prerequisites
 
-    - Node.js v20.14.0
-    - pnpm package manager
+- Node.js v20.14.0
+- pnpm package manager
 
-    ### Installation
+### Installation
 
-    1. **Clone the repository:**
+1. **Clone the repository:**
 
-        ```bash
-        nownownow
-        ```
+   ```bash
+   git clone https://github.com/yourusername/nownownow.git
+   cd nownownow
+   ```
 
-    2. **Install dependencies using pnpm:**
+2. **Install dependencies using pnpm:**
 
-        ```bash
-        install
-        ```
+   ```bash
+   pnpm install
+   ```
 
-    3. **Set up environment variables:**
+3. **Set up environment variables:**
 
-        Create a `.env` file in the root directory and add the following variables:
+   Create a `.env` file in the root directory and add the following variables:
 
-        ```bash
-        api
-        ```
+   ```env
+   # Example .env file
 
-        > **Note:** Ensure you replace the placeholder values with your actual configuration details.
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your_nextauth_secret
+   DATABASE_URL=your_database_url
+   # Add other necessary environment variables here
+   ```
 
-    4. **Run Prisma migrations:**
+   > **Note:** Replace placeholder values with your actual configuration details.
 
-        ```bash
-        deploy
-        ```
+4. **Run Prisma migrations:**
 
-    ## Running the Development Server
+   ```bash
+   pnpm prisma migrate deploy
+   ```
 
-    Start the development server with:
+## Running the Development Server
 
-    ```bash
-    dev
-    ```
+Start the development server with:
 
-    Open [http://localhost:3000](http://localhost:3000) in your browser to see the application in action.
+```bash
+pnpm dev
+```
 
-    ## Building for Production
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application in action.
 
-    To build the application for production:
+## Building for Production
 
-    ```bash
-    build
-    ```
+To build the application for production:
 
-    Start the production server:
+```bash
+pnpm build
+```
 
-    ```bash
-    start
-    ```
+Start the production server:
 
-    ## Linting and Formatting
+```bash
+pnpm start
+```
 
-    - **Lint the code:**
+## Linting and Formatting
 
-        ```bash
-        lint
-        ```
+- **Lint the code:**
 
-    - **Format the code:**
+  ```bash
+  pnpm lint
+  ```
 
-        ```bash
-        format
-        ```
+- **Format the code:**
 
-    ## Running Tests
+  ```bash
+  pnpm format
+  ```
 
-    Execute the test suite with:
+## Running Tests
 
-    ```bash
-    test
-    ```
+Execute the test suite with:
 
-    ## Scripts
+```bash
+pnpm test
+```
 
-    Here's a quick overview of the available scripts:
+## Scripts
 
-    - `pnpm dev` - Starts the development server.
-    - `pnpm build` - Builds the application for production.
-    - `pnpm start` - Runs the production server.
-    - `pnpm lint` - Runs ESLint to analyze code quality.
-    - `pnpm format` - Formats the codebase using Prettier.
-    - `pnpm ts` - Checks TypeScript types.
-    - `pnpm email` - Starts email development tools.
-    - `pnpm stripe-webhooks` - Listens to Stripe webhooks.
-    - `pnpm vercel-build` - Prepares the app for deployment on Vercel.
-    - `pnpm postinstall` - Generates Prisma client.
-    - `pnpm clean` - Cleans the project by fixing lint issues, checking types, and formatting code.
-    - `pnpm knip` - Runs Knip for maintaining code snippets.
+Here's a quick overview of the available scripts:
 
-    ## Project Structure
+- `pnpm dev` - Starts the development server.
+- `pnpm build` - Builds the application for production.
+- `pnpm start` - Runs the production server.
+- `pnpm lint` - Runs ESLint to analyze code quality.
+- `pnpm format` - Formats the codebase using Prettier.
+- `pnpm ts` - Checks TypeScript types.
+- `pnpm email` - Starts email development tools.
+- `pnpm stripe-webhooks` - Listens to Stripe webhooks.
+- `pnpm vercel-build` - Prepares the app for deployment on Vercel.
+- `pnpm postinstall` - Generates Prisma client.
+- `pnpm clean` - Fixes lint issues, checks types, and formats code.
+- `pnpm knip` - Runs Knip for maintaining code snippets.
 
-    Here's a high-level overview of the project's structure:
+## Project Structure
 
-    ```
-    .
-    ```
+Here's a high-level overview of the project's structure:
 
-    ## Configuration
+```
+.
+├── app
+├── components
+├── content
+├── emails
+├── prisma
+├── public
+├── src
+├── .env.example
+├── next.config.js
+├── package.json
+├── pnpm-lock.yaml
+├── README.md
+└── ...
+```
 
-    ### Environment Variables
+## Configuration
 
-    Ensure all necessary environment variables are set in the `.env` file as outlined in the Installation section.
+### Environment Variables
 
-    ### Tailwind CSS
+Ensure all necessary environment variables are set in the `.env` file as outlined in the Installation section.
 
-    Tailwind is configured via `tailwind.config.js`. Customize the design tokens and extend the default theme as needed.
+### Tailwind CSS
 
-    ## Contributing
+Tailwind is configured via `tailwind.config.js`. Customize the design tokens and extend the default theme as needed.
 
-    Contributions are welcome! Please follow these steps:
+## Contributing
 
-    1. Fork the repository.
-    2. Create a new branch: `git checkout -b feature/YourFeature`.
-    3. Make your changes.
-    4. Commit your changes: `git commit -m 'Add some feature'`.
-    5. Push to the branch: `git push origin feature/YourFeature`.
-    6. Open a pull request.
+Contributions are welcome! Please follow these steps:
 
-    ## License
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature/YourFeature`.
+3. Make your changes.
+4. Commit your changes: `git commit -m 'Add some feature'`.
+5. Push to the branch: `git push origin feature/YourFeature`.
+6. Open a pull request.
 
-    This project is licensed under the MIT License.
+## License
 
-    ## Contact
+This project is licensed under the MIT License.
 
-    For any questions or feedback, feel free to reach out at [contact@nownownow.io](mailto:contact@nownownow.io).
+## Contact
 
-    ---
+For any questions or feedback, feel free to reach out at [contact@nownownow.io](mailto:contact@nownownow.io).
 
-    Built with ❤️ by BASE32 Inc.
+---
+
+Built with ❤️ by BASE32 Inc.
