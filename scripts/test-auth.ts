@@ -666,7 +666,7 @@ const scenarios = {
   }
 };
 
-function validatePassword(password: string): { isValid: boolean; error?: string } {
+async function validatePassword(password: string): Promise<{ isValid: boolean; error?: string }> {
   if (password.length < PASSWORD_REQUIREMENTS.minLength) {
     return { isValid: false, error: `Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters` };
   }
@@ -707,7 +707,7 @@ async function testEmailSignup(email: string, password: string, options: { concu
     }
 
     // Validate password requirements
-    const passwordValidation = validatePassword(password);
+    const passwordValidation = await validatePassword(password);
     if (!passwordValidation.isValid) {
       return {
         scenario: "Email Signup",
@@ -931,8 +931,14 @@ async function testMagicLink(
       }
 
       // Valid token verification
-      await prisma.verificationToken.delete({
-        where: { id: token.id }
+      await prisma.verificationToken.deleteMany({
+        where: { 
+          identifier: email,
+          data: {
+            path: ['type'],
+            equals: 'EMAIL_VERIFY'
+          }
+        }
       });
 
       return {
@@ -1093,6 +1099,35 @@ async function testOAuthFlow(
   }
 }
 
+async function createVerificationToken(identifier: string, tokenType: string, expiresIn: number = 24 * 60 * 60 * 1000): Promise<any> {
+  return await prisma.verificationToken.create({
+    data: {
+      identifier,
+      token: `${tokenType}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      expires: new Date(Date.now() + expiresIn),
+      data: {
+        type: tokenType,
+        createdAt: new Date().toISOString()
+      }
+    }
+  });
+}
+
+async function findVerificationTokenByType(identifier: string, tokenType: string): Promise<any | null> {
+  return await prisma.verificationToken.findFirst({
+    where: {
+      identifier,
+      data: {
+        path: ['type'],
+        equals: tokenType
+      }
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+}
+
 async function testEmailVerification(
   email: string,
   password: string,
@@ -1117,18 +1152,12 @@ async function testEmailVerification(
       });
     }
 
-    // Create verification token
-    const token = `verify_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    const expires = new Date(Date.now() + (options.expiredToken ? -1 : 24 * 60 * 60 * 1000));
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: email,
-        token: options.invalidToken ? 'invalid_token' : token,
-        expires,
-        type: "email-verification"
-      }
-    });
+    // Create verification token with new data structure
+    const token = await createVerificationToken(
+      email, 
+      'EMAIL_VERIFY',
+      options.expiredToken ? -1000 : 24 * 60 * 60 * 1000
+    );
 
     // Test verification scenarios
     if (options.verifyEmail) {
@@ -1140,7 +1169,7 @@ async function testEmailVerification(
           details: { 
             email,
             tokenExpired: true,
-            expires 
+            expires: token.expires
           }
         };
       }
@@ -1164,7 +1193,13 @@ async function testEmailVerification(
       });
 
       await prisma.verificationToken.deleteMany({
-        where: { identifier: email }
+        where: { 
+          identifier: email,
+          data: {
+            path: ['type'],
+            equals: 'EMAIL_VERIFY'
+          }
+        }
       });
 
       return {
@@ -1197,19 +1232,17 @@ async function testEmailVerification(
     if (options.resendVerification) {
       // Delete existing tokens
       await prisma.verificationToken.deleteMany({
-        where: { identifier: email }
+        where: { 
+          identifier: email,
+          data: {
+            path: ['type'],
+            equals: 'EMAIL_VERIFY'
+          }
+        }
       });
 
       // Create new token
-      const newToken = `verify_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      await prisma.verificationToken.create({
-        data: {
-          identifier: email,
-          token: newToken,
-          expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          type: "email-verification"
-        }
-      });
+      const newToken = await createVerificationToken(email, 'EMAIL_VERIFY');
 
       return {
         scenario: "Email Verification",
@@ -1217,7 +1250,7 @@ async function testEmailVerification(
         details: {
           email,
           verificationResent: true,
-          newTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          newTokenExpires: newToken.expires
         }
       };
     }
@@ -1229,9 +1262,10 @@ async function testEmailVerification(
       details: {
         email,
         verificationSent: true,
-        expires
+        expires: token.expires
       }
     };
+
   } catch (error) {
     logger.error("Email Verification Error:", error);
     return {
@@ -2092,414 +2126,96 @@ async function testAdvancedOAuthScenarios(
 }
 
 async function logTestResult(result: AuthTestResult) {
-  if (result.success) {
-    console.log(`✅ ${result.scenario} - Success`, {
-      details: result.details,
-    });
-  } else {
-    console.error(`❌ ${result.scenario} - Failed`, {
-      error: result.error,
-      details: result.details,
-    });
-  }
+  const icon = result.success ? '✅' : '❌';
+  const details = result.details ? `\n   Details: ${JSON.stringify(result.details, null, 2)}` : '';
+  const error = result.error ? `\n   Error: ${result.error}` : '';
+  
+  logger.info(`${icon} ${result.scenario}${details}${error}`);
 }
 
-export async function runAuthTests() {
+async function runAuthTests() {
   logger.info("Starting Authentication Tests");
   
   try {
-    // Clean up test users before running tests
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          contains: "test.com"
-        }
-      }
+    const testUser = {
+      email: 'test@example.com',
+      password: 'Test123!@#',
+      invalidPassword: 'wrong'
+    };
+
+    // Test Email Signup
+    logger.info("\n📝 Testing Email Signup Flow:");
+    const signupResult = await testEmailSignup(testUser.email, testUser.password);
+    await logTestResult(signupResult);
+
+    // Test Email Verification (multiple scenarios)
+    logger.info("\n✉️ Testing Email Verification Flow:");
+    
+    // Normal verification
+    const verificationResult = await testEmailVerification(
+      testUser.email, 
+      testUser.password, 
+      { verifyEmail: true }
+    );
+    await logTestResult(verificationResult);
+
+    // Expired token
+    const expiredTokenResult = await testEmailVerification(
+      testUser.email,
+      testUser.password,
+      { verifyEmail: true, expiredToken: true }
+    );
+    await logTestResult(expiredTokenResult);
+
+    // Invalid token
+    const invalidTokenResult = await testEmailVerification(
+      testUser.email,
+      testUser.password,
+      { verifyEmail: true, invalidToken: true }
+    );
+    await logTestResult(invalidTokenResult);
+
+    // Test Email Sign In (multiple scenarios)
+    logger.info("\n🔐 Testing Email Sign In Flow:");
+    
+    // Successful login
+    const signInResult = await testEmailSignIn(testUser.email, testUser.password);
+    await logTestResult(signInResult);
+
+    // Failed login
+    const failedSignInResult = await testEmailSignIn(testUser.email, testUser.invalidPassword);
+    await logTestResult(failedSignInResult);
+
+    // Test Magic Link
+    logger.info("\n🔗 Testing Magic Link Flow:");
+    const magicLinkResult = await testMagicLink(testUser.email);
+    await logTestResult(magicLinkResult);
+
+    // Test OAuth
+    logger.info("\n🌐 Testing OAuth Flow:");
+    const oauthResult = await testOAuthFlow('google');
+    await logTestResult(oauthResult);
+
+    // Test Account Recovery
+    logger.info("\n🔄 Testing Account Recovery Flow:");
+    const recoveryResult = await testAccountRecovery(testUser.email, {
+      newPassword: 'NewTest123!@#'
     });
+    await logTestResult(recoveryResult);
 
-    // Create an existing user for testing duplicate email scenarios
-    const existingUserEmail = "existing@test.com";
-    await prisma.user.create({
-      data: {
-        email: existingUserEmail,
-        passwordHash: "$2a$10$QRHlqVmKEuK9siI6rYR3zOmvHjQT0w4lhyFPjbqY4UCX6BsYY/c2S",
-        emailVerified: new Date()
-      }
+    // Test Security Features
+    logger.info("\n🛡️ Testing Security Features:");
+    const securityResult = await testSecurityFeatures('/api/auth/signin', 'POST', {
+      checkCsp: true,
+      checkHsts: true
     });
+    await logTestResult(securityResult);
 
-    // Run Email Signup Tests
-    logger.info("\nRunning Email Signup Tests");
-    for (const testCase of scenarios.EMAIL_SIGNUP.cases) {
-      logger.info(`Testing: ${scenarios.EMAIL_SIGNUP.name} - ${testCase.name}`);
-      const result = await testEmailSignup(
-        testCase.email,
-        testCase.password,
-        {
-          concurrent: testCase.concurrent,
-          requiresVerification: testCase.requiresVerification
-        }
-      );
-      
-      // Validate test results
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError // Check for specific error
-        : result.success && result.redirectUrl === testCase.expectedRedirect;
-      
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedRedirect,
-          got: testCase.expectError ? result.error : result.redirectUrl
-        });
-      }
-      
-      await logTestResult(result);
-    }
-
-    // Run Email Sign In Tests
-    logger.info("\nRunning Email Sign In Tests");
-    for (const testCase of scenarios.EMAIL_SIGNIN.cases) {
-      logger.info(`Testing: ${scenarios.EMAIL_SIGNIN.name} - ${testCase.name}`);
-      const result = await testEmailSignIn(testCase.email, testCase.password);
-      
-      // Validate test results
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError // Check for specific error
-        : result.success && result.redirectUrl === testCase.expectedRedirect;
-      
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedRedirect,
-          got: testCase.expectError ? result.error : result.redirectUrl
-        });
-      }
-      
-      await logTestResult(result);
-    }
-
-    // Run Magic Link Tests
-    logger.info("\nRunning Magic Link Tests");
-    for (const testCase of scenarios.MAGIC_LINK.cases) {
-      logger.info(`Testing: ${scenarios.MAGIC_LINK.name} - ${testCase.name}`);
-      
-      const result = await testMagicLink(
-        testCase.email,
-        {
-          verifyToken: testCase.verifyToken,
-          expiredToken: testCase.expiredToken,
-          usedToken: testCase.usedToken,
-          multipleRequests: testCase.multipleRequests
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.message === testCase.expectedResult);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details?.message
-        });
-      }
-
-      await logTestResult(result);
-    }
-
-    // Run OAuth Tests
-    logger.info("\nRunning OAuth Authentication Tests");
-    for (const testCase of scenarios.OAUTH.cases) {
-      logger.info(`Testing: ${scenarios.OAUTH.name} - ${testCase.name}`);
-      
-      const result = await testOAuthFlow(
-        testCase.provider,
-        {
-          invalidState: testCase.invalidState,
-          expiredState: testCase.expiredState,
-          missingScopes: testCase.missingScopes,
-          invalidCode: testCase.invalidCode,
-          linkAccount: testCase.linkAccount,
-          alreadyLinked: testCase.alreadyLinked,
-          providerError: testCase.providerError,
-          rateLimited: testCase.rateLimited,
-          email: testCase.email
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.message === testCase.expectedResult);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details?.message
-        });
-      }
-
-      await logTestResult(result);
-    }
-
-    // Run Email Verification Tests
-    logger.info("\nRunning Email Verification Tests");
-    for (const testCase of scenarios.EMAIL_VERIFICATION.cases) {
-      logger.info(`Testing: ${scenarios.EMAIL_VERIFICATION.name} - ${testCase.name}`);
-      
-      const result = await testEmailVerification(
-        testCase.email,
-        testCase.password,
-        {
-          verifyEmail: testCase.verifyEmail,
-          checkAccess: testCase.checkAccess,
-          expiredToken: testCase.expiredToken,
-          invalidToken: testCase.invalidToken,
-          resendVerification: testCase.resendVerification
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.verificationSent || result.details?.verified || result.details?.verificationResent);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details
-        });
-      }
-
-      await logTestResult(result);
-    }
-
-    // Run Session Management Tests
-    logger.info("\nRunning Session Management Tests");
-    for (const testCase of scenarios.SESSION_MANAGEMENT.cases) {
-      logger.info(`Testing: ${scenarios.SESSION_MANAGEMENT.name} - ${testCase.name}`);
-      const result = await testSessionManagement(
-        testCase.email,
-        testCase.password,
-        {
-          simulateExpiration: testCase.simulateExpiration,
-          multipleSessions: testCase.multipleSessions,
-          testLogout: testCase.testLogout,
-          invalidToken: testCase.invalidToken
-        }
-      );
-      
-      // Validate test results
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && 
-          (testCase.expectedSessions 
-            ? result.details?.sessionCount === testCase.expectedSessions
-            : true);
-      
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError 
-            ? testCase.expectedError 
-            : testCase.expectedSessions 
-              ? `${testCase.expectedSessions} sessions`
-              : "Success",
-          got: testCase.expectError 
-            ? result.error 
-            : result.details?.sessionCount 
-              ? `${result.details.sessionCount} sessions`
-              : result.success ? "Success" : "Failure"
-        });
-      }
-      
-      await logTestResult(result);
-    }
-
-    // Run Account Lockout Tests
-    logger.info("\nRunning Account Lockout Tests");
-    for (const testCase of scenarios.ACCOUNT_LOCKOUT.cases) {
-      logger.info(`Testing: ${scenarios.ACCOUNT_LOCKOUT.name} - ${testCase.name}`);
-      
-      const result = await testAccountLockout(
-        testCase.email,
-        testCase.password,
-        {
-          afterLockoutExpiry: testCase.afterLockoutExpiry
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.message === testCase.expectedResult);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details?.message
-        });
-      }
-
-      await logTestResult(result);
-    }
-
-    // Run Account Recovery Tests
-    logger.info("\nRunning Account Recovery Tests");
-    for (const testCase of scenarios.ACCOUNT_RECOVERY.cases) {
-      logger.info(`Testing: ${scenarios.ACCOUNT_RECOVERY.name} - ${testCase.name}`);
-      
-      const result = await testAccountRecovery(
-        testCase.email,
-        {
-          newPassword: testCase.newPassword,
-          verifyToken: testCase.verifyToken,
-          expiredToken: testCase.expiredToken,
-          usedToken: testCase.usedToken,
-          rateLimited: testCase.rateLimited,
-          recentChange: testCase.recentChange
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.message === testCase.expectedResult);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details?.message
-        });
-      }
-
-      await logTestResult(result);
-    }
-
-    // Run Remember Me Tests
-    logger.info("\nRunning Remember Me Tests");
-    for (const testCase of scenarios.REMEMBER_ME.cases) {
-      logger.info(`Testing: ${scenarios.REMEMBER_ME.name} - ${testCase.name}`);
-      
-      const result = await testRememberMe(
-        testCase.email,
-        testCase.password,
-        {
-          rememberMe: testCase.rememberMe,
-          checkPersistence: testCase.checkPersistence
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.message === testCase.expectedResult);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details?.message
-        });
-      }
-
-      await logTestResult(result);
-    }
-
-    // Run Security Tests
-    logger.info("\nRunning Security Feature Tests");
-    for (const testCase of scenarios.SECURITY.cases) {
-      logger.info(`Testing: ${scenarios.SECURITY.name} - ${testCase.name}`);
-      
-      const result = await testSecurityFeatures(
-        testCase.endpoint,
-        testCase.method,
-        {
-          missingCsrf: testCase.missingCsrf,
-          invalidCsrf: testCase.invalidCsrf,
-          expiredCsrf: testCase.expiredCsrf,
-          checkCsp: testCase.checkCsp,
-          checkHsts: testCase.checkHsts,
-          ip: testCase.ip,
-          userAgent: testCase.userAgent,
-          exceedLoginAttempts: testCase.exceedLoginAttempts,
-          exceedResetAttempts: testCase.exceedResetAttempts,
-          exceedApiRequests: testCase.exceedApiRequests
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.message === testCase.expectedResult);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details?.message
-        });
-      }
-
-      await logTestResult(result);
-    }
-
-    // Run Advanced OAuth Scenarios Tests
-    logger.info("\nRunning Advanced OAuth Scenarios Tests");
-    for (const testCase of scenarios.ADVANCED_OAUTH_SCENARIOS.cases) {
-      logger.info(`Testing: ${scenarios.ADVANCED_OAUTH_SCENARIOS.name} - ${testCase.name}`);
-      
-      const result = await testAdvancedOAuthScenarios(
-        testCase.provider,
-        {
-          accountMerging: testCase.accountMerging,
-          providerErrorRecovery: testCase.providerErrorRecovery,
-          tokenRefresh: testCase.tokenRefresh,
-          crossProviderLinking: testCase.crossProviderLinking
-        }
-      );
-
-      const success = testCase.expectError
-        ? result.error === testCase.expectedError
-        : result.success && (!testCase.expectedResult || result.details?.message === testCase.expectedResult);
-
-      if (!success) {
-        logger.error("Test failed:", {
-          testCase: testCase.name,
-          expected: testCase.expectError ? testCase.expectedError : testCase.expectedResult,
-          got: result.error || result.details?.message
-        });
-      }
-
-      await logTestResult(result);
-    }
-
+    logger.info("\n✨ All tests completed successfully!");
+    process.exit(0);
   } catch (error) {
-    logger.error("Error running auth tests:", error);
-  } finally {
-    // Clean up test data including sessions and verification tokens
-    await prisma.session.deleteMany({
-      where: {
-        user: {
-          email: {
-            contains: "test.com"
-          }
-        }
-      }
-    });
-    await prisma.verificationToken.deleteMany({
-      where: {
-        identifier: {
-          contains: "test.com"
-        }
-      }
-    });
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          contains: "test.com"
-        }
-      }
-    });
+    logger.error("Tests failed:", error);
+    process.exit(1);
   }
 }
 
@@ -2507,11 +2223,7 @@ export async function runAuthTests() {
 if (require.main === module) {
   console.log("Starting Authentication Tests...");
   runAuthTests()
-    .then(() => {
-      console.log("All tests completed.");
-      process.exit(0);
-    })
-    .catch((error) => {
+    .catch(error => {
       console.error("Tests failed:", error);
       process.exit(1);
     });

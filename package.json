@@ -15,7 +15,8 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "postinstall": "prisma generate",
     "clean": "next lint --fix && tsc --noEmit && prettier --write .",
-    "knip": "knip"
+    "knip": "knip",
+    "test": "tsx scripts/test-auth.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.59",
@@ -124,10 +125,11 @@
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/canvas-confetti": "^1.6.4",
     "@types/cookies": "^0.9.0",
     "@types/cors": "^2.8.17",
-    "@types/jest": "^29.5.13",
+    "@types/jest": "^29.5.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.5.4",
     "@types/nprogress": "^0.2.3",
@@ -144,12 +146,14 @@
     "eslint-plugin-react-hooks": "5.1.0-rc-d025ddd3-20240722",
     "eslint-plugin-tailwindcss": "^3.17.4",
     "globals": "^15.9.0",
-    "jest": "^29.7.0",
+    "jest": "^29.5.0",
     "knip": "^5.30.1",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "prisma": "^5.19.1",
     "tailwindcss": "^3.4.13",
+    "tsx": "^4.19.2",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.3.0",
     "unified": "^11.0.5"

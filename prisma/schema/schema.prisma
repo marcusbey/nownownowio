@@ -144,13 +144,12 @@ model Session {
 
 model VerificationToken {
   id         String   @id @default(nanoid(11))
-  identifier String   
+  identifier String
   token      String   @unique
   expires    DateTime
+  data       Json?    // For storing token type and additional data
   createdAt  DateTime @default(now())
-  type       String   // For different token types: email-verification, password-reset, etc.
-  attempts   Int      @default(0)
-  used       Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
 
   @@unique([identifier, token])
 }
