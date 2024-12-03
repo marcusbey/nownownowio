@@ -1,6 +1,6 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { getUserDataSelect, UserData } from "@/lib/types";
+import { getUserDataSelect } from "@/lib/types";
 
 export async function GET(
   req: Request,
@@ -13,7 +13,7 @@ export async function GET(
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user: UserData | null = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         name: {
           equals: decodeURIComponent(name),
@@ -21,20 +21,31 @@ export async function GET(
         },
         organizations: {
           some: {
-            organization: {
-              id: {
-                not: null,
-              },
+            organizationId: {
+              not: "",
             },
           },
         },
       },
       select: {
         ...getUserDataSelect(loggedInUser.id),
-        organizations: true,
+        organizations: {
+          include: {
+            organization: true,
+          },
+        },
         posts: true,
         comments: true,
         likes: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+            posts: true,
+            comments: true,
+            likes: true,
+          },
+        },
       },
     });
 

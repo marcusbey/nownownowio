@@ -21,6 +21,7 @@ import {
   OAuthTokens
 } from "./helper";
 import { getUserById, getAccountByProvider } from '../cache/auth-cache'
+import logger from '../logger'; // Assuming you have a logger setup in your project
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   pages: {
@@ -62,16 +63,37 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       };
     },
     async signIn({ user, account }) {
-      if (!user?.email) return false;
+      if (!user?.email) {
+        logger.error("[Auth] SignIn failed: No email provided", { user });
+        return false;
+      }
 
-      // Check if user exists using cached query
+      // For Resend provider, we don't need to check for linked accounts
+      if (account?.provider === "resend") {
+        const existingUser = await getUserById(user.id);
+        if (!existingUser) {
+          logger.error("[Auth] SignIn failed: User not found for magic link", { userId: user.id });
+          return false;
+        }
+        return true;
+      }
+
+      // For other providers, check both user and linked accounts
       const existingUser = await getUserById(user.id);
-      if (!existingUser) return false;
+      if (!existingUser) {
+        logger.error("[Auth] SignIn failed: User not found", { userId: user.id });
+        return false;
+      }
 
-      // Check account using cached query
       if (account?.provider) {
         const linkedAccount = await getAccountByProvider(user.id, account.provider);
-        if (!linkedAccount) return false;
+        if (!linkedAccount) {
+          logger.error("[Auth] SignIn failed: No linked account", { 
+            userId: user.id, 
+            provider: account.provider 
+          });
+          return false;
+        }
       }
 
       return true;

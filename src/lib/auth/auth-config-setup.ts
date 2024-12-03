@@ -5,26 +5,40 @@ import { env } from "../env";
 import { getNameFromEmail, getSlugFromUser } from "../format/id";
 import { resend } from "../mail/resend";
 import { prisma } from "../prisma";
+import { logger } from "../logger"; // Assuming logger is imported from another file
 
 export const setupResendCustomer = async (user: User) => {
-  if (!user.email) {
+  try {
+    if (!user.email) {
+      logger.error("setupResendCustomer: No email provided", { user });
+      return;
+    }
+
+    if (!env.RESEND_AUDIENCE_ID) {
+      logger.error("setupResendCustomer: No RESEND_AUDIENCE_ID configured");
+      return;
+    }
+
+    const contact = await resend.contacts.create({
+      audienceId: env.RESEND_AUDIENCE_ID,
+      email: user.email,
+      firstName: user.name ?? "",
+      unsubscribed: false,
+    });
+
+    if (!contact.data) {
+      logger.error("setupResendCustomer: Failed to create contact", { 
+        error: contact.error,
+        email: user.email 
+      });
+      return;
+    }
+
+    return contact.data.id;
+  } catch (error) {
+    logger.error("setupResendCustomer: Unexpected error", { error, user });
     return;
   }
-
-  if (!env.RESEND_AUDIENCE_ID) {
-    return;
-  }
-
-  const contact = await resend.contacts.create({
-    audienceId: env.RESEND_AUDIENCE_ID,
-    email: user.email,
-    firstName: user.name ?? "",
-    unsubscribed: false,
-  });
-
-  if (!contact.data) return;
-
-  return contact.data.id;
 };
 
 const TokenSchema = z.object({

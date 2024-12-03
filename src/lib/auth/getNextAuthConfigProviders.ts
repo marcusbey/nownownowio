@@ -17,17 +17,30 @@ export const getNextAuthConfigProviders = cache((): Providers => {
     Resend({
       apiKey: env.RESEND_API_KEY,
       sendVerificationRequest: async ({ identifier: email, url }) => {
-        const result = await sendEmail({
-          to: email,
-          subject: `Sign in to ${SiteConfig.domain}`,
-          react: MagicLinkMail({
-            url,
-          }),
-        });
+        try {
+          const result = await sendEmail({
+            to: email,
+            subject: `Sign in to ${SiteConfig.domain}`,
+            react: MagicLinkMail({
+              url,
+            }),
+          });
 
-        if (result.error) {
-          logger.error("Auth Resend Provider Error", result.error);
-          throw new Error(`Failed to send email: ${result.error}`);
+          if (result.error) {
+            logger.error("[Auth] Resend Provider Error", { 
+              error: result.error,
+              email 
+            });
+            throw new Error(`Failed to send email: ${result.error}`);
+          }
+
+          logger.info("[Auth] Magic link email sent successfully", { email });
+        } catch (error) {
+          logger.error("[Auth] Failed to send magic link email", { 
+            error,
+            email 
+          });
+          throw error;
         }
       },
     }),
