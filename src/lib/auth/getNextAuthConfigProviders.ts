@@ -13,6 +13,14 @@ import { cache } from 'react';
 type Providers = NonNullable<NextAuthConfig["providers"]>;
 
 export const getNextAuthConfigProviders = cache((): Providers => {
+  // Debug logging
+  logger.info('[Auth] Checking environment variables', {
+    hasResendApiKey: !!env.RESEND_API_KEY,
+    hasResendEmailFrom: !!env.RESEND_EMAIL_FROM,
+    hasNextAuthSecret: !!env.NEXTAUTH_SECRET,
+    hasNextAuthUrl: !!env.NEXTAUTH_URL,
+  });
+
   const providers: Providers = [
     Resend({
       apiKey: env.RESEND_API_KEY,

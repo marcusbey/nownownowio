@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["prismaSchemaFolder"]
@@ -47,6 +44,87 @@ model User {
   @@index([resendContactId])
   @@index([failedAttempts, lockedUntil])
   @@index([createdAt])
+}
+
+model Account {
+  id                    String  @id @default(nanoid(11))
+  userId                String
+  type                  String
+  provider              String
+  providerAccountId     String
+  refreshTokenExpiresIn String?
+  refresh_token         String?
+  access_token          String?
+  expires_at            Int?
+  token_type            String?
+  scope                 String?
+  id_token              String?
+  session_state         String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId, provider])
+  @@index([userId, expires_at])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(nanoid(11))
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([userId, expires])
+  @@index([expires])
+  @@map("sessions")
+}
+
+model Organization {
+  id               String                   @id @default(nanoid(11))
+  slug             String                   @unique @default(nanoid(6))
+  name             String
+  image            String?
+  planId           String                   @default("FREE")
+  plan             OrganizationPlan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  email            String
+  stripeCustomerId String?
+  websiteUrl       String?
+  members          OrganizationMembership[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model OrganizationMembership {
+  id    String                       @id @default(nanoid(11))
+  roles OrganizationMembershipRole[] @default([MEMBER])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Membership")
+}
+
+model OrganizationPlan {
+  id             String @id @default(nanoid(11))
+  name           String
+  maximumMembers Int    @default(1)
+
+  organization Organization[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Feedback {
@@ -133,53 +211,6 @@ model Bookmark {
   @@map("bookmarks")
 }
 
-model Session {
-  id           String   @id @default(nanoid(11))
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-
-  @@index([userId, expires])
-  @@index([expires])
-}
-
-model VerificationToken {
-  id         String   @id @default(nanoid(11))
-  identifier String
-  token      String   @unique
-  expires    DateTime
-  data       Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@unique([identifier, token])
-  @@index([identifier, expires])
-  @@index([expires])
-}
-
-model Account {
-  id                String  @id @default(nanoid(11))
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@index([userId, provider])
-  @@index([userId, expires_at])
-}
-
 model Notification {
   id          String           @id @default(nanoid(11))
   recipientId String
@@ -195,6 +226,16 @@ model Notification {
   @@map("notifications")
 }
 
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  data       Json?    // Added optional JSON field for storing additional data
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
 enum MediaType {
   IMAGE
   VIDEO
@@ -204,4 +245,10 @@ enum NotificationType {
   LIKE
   FOLLOW
   COMMENT
+}
+
+enum OrganizationMembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
 }

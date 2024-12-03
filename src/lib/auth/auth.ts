@@ -1,9 +1,9 @@
 import config from "@/config";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import type { User } from "@prisma/client";
-import type { Session } from "next-auth";
 import NextAuth from "next-auth";
+import { getAccountByProvider, getUserById } from '../cache/auth-cache';
 import { env } from "../env";
+import { logger } from '../logger';
 import { prisma } from "../prisma";
 import {
   setupDefaultOrganizationsOrInviteUser,
@@ -14,14 +14,11 @@ import {
   credentialsSignInCallback,
 } from "./credentials-provider";
 import { getNextAuthConfigProviders } from "./getNextAuthConfigProviders";
-import { 
-  OAuthProvider, 
-  isValidProvider, 
+import {
   getProviderConfig,
+  isValidProvider,
   OAuthTokens
 } from "./helper";
-import { getUserById, getAccountByProvider } from '../cache/auth-cache'
-import logger from '../logger'; // Assuming you have a logger setup in your project
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   pages: {
@@ -68,13 +65,25 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         return false;
       }
 
-      // For Resend provider, we don't need to check for linked accounts
+      // For Resend provider (magic link), always allow sign in and create user if needed
       if (account?.provider === "resend") {
-        const existingUser = await getUserById(user.id);
+        logger.info("[Auth] Magic link sign in attempt", { 
+          email: user.email,
+          userId: user.id 
+        });
+
+        // Try to get existing user
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email }
+        });
+
         if (!existingUser) {
-          logger.error("[Auth] SignIn failed: User not found for magic link", { userId: user.id });
-          return false;
+          logger.info("[Auth] Creating new user for magic link", { email: user.email });
+          // Let NextAuth create the user
+          return true;
         }
+
+        logger.info("[Auth] Existing user found for magic link", { email: user.email });
         return true;
       }
 
@@ -88,9 +97,9 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       if (account?.provider) {
         const linkedAccount = await getAccountByProvider(user.id, account.provider);
         if (!linkedAccount) {
-          logger.error("[Auth] SignIn failed: No linked account", { 
-            userId: user.id, 
-            provider: account.provider 
+          logger.error("[Auth] SignIn failed: No linked account", {
+            userId: user.id,
+            provider: account.provider
           });
           return false;
         }

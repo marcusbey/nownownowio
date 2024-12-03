@@ -15,6 +15,12 @@ import { hashStringWithSalt } from "./helper";
 // Password validation
 const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
 
+export const validatePassword = (password: string): boolean => {
+  return passwordRegex.test(password);
+};
+
+export { hashStringWithSalt } from './helper';
+
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string()
