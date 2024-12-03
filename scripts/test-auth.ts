@@ -850,7 +850,10 @@ async function testMagicLink(
       await prisma.verificationToken.deleteMany({
         where: {
           identifier: email,
-          type: "magic-link"
+          data: {
+            path: ['type'],
+            equals: 'magic-link'
+          }
         }
       });
 
@@ -861,7 +864,7 @@ async function testMagicLink(
           identifier: email,
           token,
           expires: new Date(Date.now() + MAGIC_LINK_CONFIG.tokenExpiration),
-          type: "magic-link",
+          data: { type: 'magic-link' },
           userId: user.id
         }
       });
@@ -882,7 +885,10 @@ async function testMagicLink(
       const token = await prisma.verificationToken.findFirst({
         where: {
           identifier: email,
-          type: "magic-link"
+          data: {
+            path: ['type'],
+            equals: 'magic-link'
+          }
         }
       });
 
@@ -960,7 +966,10 @@ async function testMagicLink(
       const activeTokens = await prisma.verificationToken.findMany({
         where: {
           identifier: email,
-          type: "magic-link"
+          data: {
+            path: ['type'],
+            equals: 'magic-link'
+          }
         }
       });
 
@@ -968,7 +977,10 @@ async function testMagicLink(
         await prisma.verificationToken.deleteMany({
           where: {
             identifier: email,
-            type: "magic-link"
+            data: {
+              path: ['type'],
+              equals: 'magic-link'
+            }
           }
         });
       }
@@ -980,8 +992,10 @@ async function testMagicLink(
         identifier: email,
         token,
         expires: new Date(Date.now() + MAGIC_LINK_CONFIG.tokenExpiration),
-        type: "magic-link",
-        userId: user.id
+        data: { 
+          type: 'magic-link',
+          userId: user.id
+        }
       }
     });
 
@@ -1055,7 +1069,7 @@ async function testOAuthFlow(
         identifier: provider,
         token: `oauth-state-${Date.now()}`,
         expires: new Date(Date.now() + OAUTH_CONFIG.stateExpiration),
-        type: "oauth-state"
+        data: { type: 'oauth-state' }
       }
     });
 
@@ -1105,10 +1119,7 @@ async function createVerificationToken(identifier: string, tokenType: string, ex
       identifier,
       token: `${tokenType}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
       expires: new Date(Date.now() + expiresIn),
-      data: {
-        type: tokenType,
-        createdAt: new Date().toISOString()
-      }
+      data: { type: tokenType }
     }
   });
 }
@@ -1557,7 +1568,7 @@ async function testAccountRecovery(
         identifier: email,
         token,
         expires: tokenExpiration,
-        type: "password-reset"
+        data: { type: 'password-reset' }
       }
     });
 
@@ -1565,8 +1576,11 @@ async function testAccountRecovery(
     if (options.verifyToken && options.newPassword) {
       const storedToken = await prisma.verificationToken.findFirst({
         where: {
-          type: "password-reset",
-          identifier: email
+          identifier: email,
+          data: {
+            path: ['type'],
+            equals: 'password-reset'
+          }
         }
       });
 
@@ -1768,10 +1782,10 @@ async function testSecurityFeatures(
 
       await prisma.verificationToken.create({
         data: {
-          identifier: "csrf",
+          identifier: 'csrf',
           token: csrfToken,
           expires: tokenExpiration,
-          type: "csrf-token"
+          data: { type: 'csrf-token' }
         }
       });
 
