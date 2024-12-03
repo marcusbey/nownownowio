@@ -42,6 +42,11 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([email, emailVerified])
+  @@index([resendContactId])
+  @@index([failedAttempts, lockedUntil])
+  @@index([createdAt])
 }
 
 model Feedback {
@@ -54,11 +59,6 @@ model Feedback {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-enum UserPlan {
-  FREE
-  PREMIUM
 }
 
 model Follow {
@@ -140,6 +140,9 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
+
+  @@index([userId, expires])
+  @@index([expires])
 }
 
 model VerificationToken {
@@ -147,11 +150,13 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  data       Json?    // For storing token type and additional data
+  data       Json?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@unique([identifier, token])
+  @@index([identifier, expires])
+  @@index([expires])
 }
 
 model Account {
@@ -171,6 +176,8 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId, provider])
+  @@index([userId, expires_at])
 }
 
 model Notification {

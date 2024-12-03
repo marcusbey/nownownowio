@@ -7,42 +7,11 @@ import { baseAuth } from "./auth";
 import crypto from "crypto";
 import { env } from "../env";
 
-// Password validation
-export const PASSWORD_REQUIREMENTS = {
-  minLength: 8,
-  requireUppercase: true,
-  requireLowercase: true,
-  requireNumbers: true,
-  requireSpecialChars: true
-};
-
-export const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-export const validatePassword = (password: string): { isValid: boolean; error?: string } => {
-  if (!password) {
-    return { isValid: false, error: "Password is required" };
-  }
-
-  if (password.length < PASSWORD_REQUIREMENTS.minLength) {
-    return { isValid: false, error: `Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters` };
-  }
-
-  if (!PASSWORD_REGEX.test(password)) {
-    return {
-      isValid: false,
-      error: "Password must contain at least one letter, one number, and one special character"
-    };
-  }
-
-  return { isValid: true };
-};
-
 // Hash utilities
 export const hashStringWithSalt = (string: string, salt: string): string => {
-  const hash = crypto.createHash("sha256");
-  const saltedString = salt + string;
-  hash.update(saltedString);
-  return hash.digest("hex");
+  const hash = crypto.createHash('sha256');
+  hash.update(string + salt);
+  return hash.digest('hex');
 };
 
 // Session management

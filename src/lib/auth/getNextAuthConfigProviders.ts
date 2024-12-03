@@ -8,10 +8,11 @@ import { env } from "../env";
 import { logger } from "../logger";
 import { sendEmail } from "../mail/sendEmail";
 import { getCredentialsProvider } from "./credentials-provider";
+import { cache } from 'react';
 
 type Providers = NonNullable<NextAuthConfig["providers"]>;
 
-export const getNextAuthConfigProviders = (): Providers => {
+export const getNextAuthConfigProviders = cache((): Providers => {
   const providers: Providers = [
     Resend({
       apiKey: env.RESEND_API_KEY,
@@ -89,4 +90,4 @@ export const getNextAuthConfigProviders = (): Providers => {
   }
 
   return providers;
-};
+});

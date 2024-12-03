@@ -28,6 +28,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClientSingleton | undefined;
 };
 
-export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+export { prisma } from './prisma/connection-manager'
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Re-export types
+export type * from '@prisma/client'

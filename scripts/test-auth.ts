@@ -2147,6 +2147,30 @@ async function logTestResult(result: AuthTestResult) {
   logger.info(`${icon} ${result.scenario}${details}${error}`);
 }
 
+async function cleanupTestData(email: string) {
+  logger.info("🧹 Cleaning up test data...");
+  
+  try {
+    // Delete verification tokens for the test user
+    await prisma.verificationToken.deleteMany({
+      where: {
+        identifier: email
+      }
+    });
+
+    // Delete the test user
+    await prisma.user.deleteMany({
+      where: {
+        email: email
+      }
+    });
+
+    logger.info("✨ Test data cleanup complete");
+  } catch (error) {
+    logger.error("Cleanup failed:", error);
+  }
+}
+
 async function runAuthTests() {
   logger.info("Starting Authentication Tests");
   
@@ -2156,6 +2180,9 @@ async function runAuthTests() {
       password: 'Test123!@#',
       invalidPassword: 'wrong'
     };
+
+    // Clean up any existing test data
+    await cleanupTestData(testUser.email);
 
     // Test Email Signup
     logger.info("\n📝 Testing Email Signup Flow:");
@@ -2226,6 +2253,10 @@ async function runAuthTests() {
     await logTestResult(securityResult);
 
     logger.info("\n✨ All tests completed successfully!");
+    
+    // Clean up test data after all tests
+    await cleanupTestData(testUser.email);
+    
     process.exit(0);
   } catch (error) {
     logger.error("Tests failed:", error);

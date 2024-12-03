@@ -20,6 +20,7 @@ import {
   getProviderConfig,
   OAuthTokens
 } from "./helper";
+import { getUserById, getAccountByProvider } from '../cache/auth-cache'
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   pages: {
@@ -33,6 +34,8 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   providers: getNextAuthConfigProviders(),
   session: {
     strategy: "database",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   secret: env.NEXTAUTH_SECRET,
   trustHost: true,
@@ -43,17 +46,35 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       }
       return baseUrl;
     },
-    session(params) {
+    async session(params) {
       if (params.newSession) return params.session;
 
-      const typedParams = params as unknown as {
-        session: Session;
-        user?: User;
-      };
+      // Use cached user data
+      const user = await getUserById(params.session.user.id);
+      if (!user) return null;
 
-      if (!typedParams.user) return typedParams.session;
-      typedParams.user.passwordHash = null;
-      return typedParams.session;
+      return {
+        ...params.session,
+        user: {
+          ...params.session.user,
+          ...user,
+        },
+      };
+    },
+    async signIn({ user, account }) {
+      if (!user?.email) return false;
+
+      // Check if user exists using cached query
+      const existingUser = await getUserById(user.id);
+      if (!existingUser) return false;
+
+      // Check account using cached query
+      if (account?.provider) {
+        const linkedAccount = await getAccountByProvider(user.id, account.provider);
+        if (!linkedAccount) return false;
+      }
+
+      return true;
     },
   },
   events: {

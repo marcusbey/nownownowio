@@ -10,11 +10,19 @@ import { z } from "zod";
 import { env } from "../env";
 import { prisma } from "../prisma";
 import { AUTH_COOKIE_NAME } from "./auth.const";
-import { hashStringWithSalt, validatePassword, PASSWORD_REGEX } from "./helper";
+import { hashStringWithSalt } from "./helper";
+
+// Password validation
+const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
 
 const credentialsSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8).regex(PASSWORD_REGEX, "Password must be at least 8 characters long and include letters and numbers."),
+  password: z.string()
+    .min(8)
+    .regex(
+      passwordRegex,
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    ),
 });
 
 export const getCredentialsProvider = () => {
@@ -36,12 +44,6 @@ export const getCredentialsProvider = () => {
       }
 
       const { email, password } = parsed.data;
-
-      // Validate password
-      const passwordValidation = validatePassword(password);
-      if (!passwordValidation) {
-        return null;
-      }
 
       if (!env.NEXTAUTH_SECRET) {
         throw new Error("NEXTAUTH_SECRET is not defined");

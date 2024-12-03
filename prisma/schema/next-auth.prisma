@@ -20,6 +20,9 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId, provider])
+  @@index([userId, expires_at])
+  @@map("accounts")
 }
 
 model VerificationToken {
@@ -29,6 +32,8 @@ model VerificationToken {
   data       Json?
 
   @@unique([identifier, token])
+  @@index([identifier, expires])
+  @@index([expires])
   @@map("verificationtokens")
 }
 
@@ -40,5 +45,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now()) @map("created_at")
 
+  @@index([userId, expires])
+  @@index([expires])
   @@map("sessions")
 }
