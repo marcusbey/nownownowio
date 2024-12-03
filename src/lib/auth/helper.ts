@@ -4,10 +4,52 @@ import { Session } from "next-auth";
 import { cache } from "react";
 import { logger } from "../logger";
 import { baseAuth } from "./auth";
+import crypto from "crypto";
+import { env } from "../env";
 
+// Password validation
+export const PASSWORD_REQUIREMENTS = {
+  minLength: 8,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireNumbers: true,
+  requireSpecialChars: true
+};
+
+export const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+export const validatePassword = (password: string): { isValid: boolean; error?: string } => {
+  if (!password) {
+    return { isValid: false, error: "Password is required" };
+  }
+
+  if (password.length < PASSWORD_REQUIREMENTS.minLength) {
+    return { isValid: false, error: `Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters` };
+  }
+
+  if (!PASSWORD_REGEX.test(password)) {
+    return {
+      isValid: false,
+      error: "Password must contain at least one letter, one number, and one special character"
+    };
+  }
+
+  return { isValid: true };
+};
+
+// Hash utilities
+export const hashStringWithSalt = (string: string, salt: string): string => {
+  const hash = crypto.createHash("sha256");
+  const saltedString = salt + string;
+  hash.update(saltedString);
+  return hash.digest("hex");
+};
+
+// Session management
 export class AuthError extends Error {
   constructor(message: string) {
     super(message);
+    this.name = "AuthError";
   }
 }
 
@@ -37,23 +79,15 @@ export const requiredAuth = async () => {
 };
 
 export const validateRequest = cache(
-  async (): Promise<
-    { user: User; session: Session } | { user: null; session: null }
-  > => {
+  async (): Promise<{ user: User; session: Session } | { user: null; session: null }> => {
     const session = await baseAuth();
 
     if (session?.user) {
       const user = session.user as User;
-      return {
-        user,
-        session,
-      };
+      return { user, session };
     }
 
-    return {
-      user: null,
-      session: null,
-    };
+    return { user: null, session: null };
   }
 );
 
@@ -94,8 +128,47 @@ export async function getSession(): Promise<ISession | null> {
     cachedSession = null;
     return null;
   } catch (error) {
-    console.error("[getSession] Error in getSession function:", error);
+    logger.error("[getSession] Error in getSession function:", error);
     cachedSession = null;
     return null;
   }
 }
+
+// OAuth utilities
+export const OAUTH_CONFIG = {
+  stateExpiration: 10 * 60 * 1000, // 10 minutes
+  providers: ['google', 'twitter'] as const,
+  requiredScopes: {
+    google: ['openid', 'profile', 'email'],
+    twitter: ['users.read', 'tweet.read', 'offline.access']
+  }
+};
+
+export type OAuthProvider = typeof OAUTH_CONFIG.providers[number];
+
+export interface OAuthTokens {
+  access_token: string;
+  refresh_token?: string;
+  expires_at: number;
+}
+
+export const isValidProvider = (provider: string): provider is OAuthProvider => {
+  return OAUTH_CONFIG.providers.includes(provider as OAuthProvider);
+};
+
+export const getProviderConfig = (provider: OAuthProvider) => {
+  const configs = {
+    google: {
+      tokenEndpoint: 'https://oauth2.googleapis.com/token',
+      clientId: env.GOOGLE_ID,
+      clientSecret: env.GOOGLE_SECRET,
+    },
+    twitter: {
+      tokenEndpoint: 'https://api.twitter.com/2/oauth2/token',
+      clientId: env.TWITTER_ID,
+      clientSecret: env.TWITTER_SECRET,
+    },
+  };
+
+  return configs[provider];
+};

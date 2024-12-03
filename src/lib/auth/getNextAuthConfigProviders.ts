@@ -41,7 +41,18 @@ export const getNextAuthConfigProviders = (): Providers => {
           params: {
             scope: "users.read tweet.read offline.access",
           }
-        }
+        },
+        async profile(profile, tokens) {
+          return {
+            id: profile.id_str,
+            email: profile.email,
+            name: profile.name,
+            image: profile.profile_image_url_https,
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at: Math.floor(Date.now() / 1000 + (tokens.expires_in || 3600)),
+          };
+        },
       }),
     );
   }
@@ -51,6 +62,24 @@ export const getNextAuthConfigProviders = (): Providers => {
       Google({
         clientId: env.GOOGLE_ID,
         clientSecret: env.GOOGLE_SECRET,
+        authorization: {
+          params: {
+            access_type: "offline", // Enable refresh token
+            prompt: "consent",      // Force consent screen
+            scope: "openid email profile"
+          }
+        },
+        async profile(profile, tokens) {
+          return {
+            id: profile.sub,
+            email: profile.email,
+            name: profile.name,
+            image: profile.picture,
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            expires_at: Math.floor(Date.now() / 1000 + (tokens.expires_in || 3600)),
+          };
+        },
       }),
     );
   }

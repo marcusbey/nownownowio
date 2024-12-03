@@ -1,6 +1,5 @@
 // Start of Selection
 import { generateWidgetToken } from '@/lib/now-widget';
-import crypto from "crypto";
 import { addDays } from "date-fns";
 import { nanoid } from "nanoid";
 import type { NextAuthConfig } from "next-auth";
@@ -11,21 +10,8 @@ import { z } from "zod";
 import { env } from "../env";
 import { prisma } from "../prisma";
 import { AUTH_COOKIE_NAME } from "./auth.const";
+import { hashStringWithSalt, validatePassword, PASSWORD_REGEX } from "./helper";
 
-const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
-
-export const validatePassword = (password: string): boolean => {
-  return PASSWORD_REGEX.test(password);
-};
-
-export const hashStringWithSalt = (string: string, salt: string): string => {
-  const hash = crypto.createHash("sha256");
-  const saltedString = salt + string;
-  hash.update(saltedString);
-  return hash.digest("hex");
-};
-
-// Define a Zod schema for credentials
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).regex(PASSWORD_REGEX, "Password must be at least 8 characters long and include letters and numbers."),
@@ -46,20 +32,22 @@ export const getCredentialsProvider = () => {
       // Validate credentials using Zod
       const parsed = credentialsSchema.safeParse(credentials);
       if (!parsed.success) {
-        // You can handle validation errors here if needed
         return null;
       }
 
       const { email, password } = parsed.data;
 
+      // Validate password
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation) {
+        return null;
+      }
+
       if (!env.NEXTAUTH_SECRET) {
         throw new Error("NEXTAUTH_SECRET is not defined");
       }
 
-      const passwordHash = hashStringWithSalt(
-        password,
-        env.NEXTAUTH_SECRET
-      );
+      const passwordHash = hashStringWithSalt(password, env.NEXTAUTH_SECRET);
 
       const user = await prisma.user.findFirst({
         where: {
@@ -83,7 +71,6 @@ export const getCredentialsProvider = () => {
 };
 
 type SignInCallback = NonNullable<NextAuthConfig["events"]>["signIn"];
-
 type JwtOverride = NonNullable<NextAuthConfig["jwt"]>;
 
 export const credentialsSignInCallback = (request: NextRequest | undefined): SignInCallback => async ({ user }) => {
@@ -101,42 +88,24 @@ export const credentialsSignInCallback = (request: NextRequest | undefined): Sig
     return;
   }
 
-  const uuid = nanoid();
-  const expireAt = addDays(new Date(), 14);
-  await prisma.session.create({
-    data: {
-      sessionToken: uuid,
-      expires: expireAt,
-      user: { connect: { id: user.id } },
-    },
-  });
+  const cookieStore = cookies();
 
-  const cookieList = cookies();
+  const token = generateWidgetToken(user.id!);
 
-  cookieList.set(AUTH_COOKIE_NAME, uuid, {
-    expires: expireAt,
-    path: "/",
-    sameSite: "lax",
+  cookieStore.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
     secure: env.NODE_ENV === "production",
-  });
-
-  // Generate widget token
-  const widgetToken = generateWidgetToken(user.id!);
-
-  // Store the widget token in the user's session or database
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { widgetToken },
+    sameSite: "lax",
+    expires: addDays(new Date(), 30),
   });
 };
 
-// This override cancels JWT strategy for password. (it's the default one)
+// This override cancels JWT strategy for password (it's the default one)
 export const credentialsOverrideJwt: JwtOverride = {
   encode() {
     return "";
   },
-  async decode() {
+  decode() {
     return null;
   },
 };
