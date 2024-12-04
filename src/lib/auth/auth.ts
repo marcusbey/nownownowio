@@ -60,67 +60,241 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       };
     },
     async signIn({ user, account }) {
-      if (!user?.email) {
+      if (!account || !user) {
+        logger.error("[Auth] SignIn failed: Missing account or user data");
+        return false;
+      }
+
+      // For Twitter, if email is not available, create a placeholder
+      if (account.provider === "twitter" && !user.email) {
+        user.email = `${user.id}@twitter.placeholder.com`;
+        logger.info("[Auth] Created placeholder email for Twitter user", { 
+          userId: user.id,
+          email: user.email 
+        });
+      }
+
+      if (!user.email) {
         logger.error("[Auth] SignIn failed: No email provided", { user });
         return false;
       }
 
-      // For Resend provider (magic link), always allow sign in and create user if needed
-      if (account?.provider === "resend") {
-        logger.info("[Auth] Magic link sign in attempt", { 
-          email: user.email,
-          userId: user.id 
-        });
-
-        // Try to get existing user
+      try {
+        // Try to find an existing user with the same email
         const existingUser = await prisma.user.findUnique({
-          where: { email: user.email }
+          where: { email: user.email },
+          include: { 
+            accounts: true,
+            organizations: {
+              include: {
+                organization: true
+              }
+            },
+            posts: true
+          }
         });
 
-        if (!existingUser) {
-          logger.info("[Auth] Creating new user for magic link", { email: user.email });
-          // Let NextAuth create the user
+        if (existingUser) {
+          // Check if this provider is already linked
+          const hasProvider = existingUser.accounts.some(
+            acc => acc.provider === account.provider
+          );
+
+          if (!hasProvider) {
+            // Link the new provider to the existing account
+            await prisma.account.create({
+              data: {
+                userId: existingUser.id,
+                type: account.type || "oauth",
+                provider: account.provider,
+                providerAccountId: account.providerAccountId || user.id,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state
+              }
+            });
+
+            // Update user profile with merged data
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                // Keep existing name if available, otherwise use the new name
+                name: existingUser.name || user.name,
+                // Keep existing image if available, otherwise use the new image
+                image: existingUser.image || user.image,
+              }
+            });
+
+            logger.info(`[Auth] Linked ${account.provider} to existing account`, {
+              email: user.email,
+              provider: account.provider,
+              userId: existingUser.id
+            });
+          }
+
+          // Return true to allow sign in with the existing user
           return true;
         }
 
-        logger.info("[Auth] Existing user found for magic link", { email: user.email });
-        return true;
-      }
+        // If no existing user, check for any user with the same email domain
+        const emailDomain = user.email.split('@')[1];
+        const userWithSameEmailDomain = await prisma.user.findFirst({
+          where: { 
+            email: {
+              endsWith: `@${emailDomain}`
+            }
+          },
+          include: {
+            organizations: {
+              include: {
+                organization: true
+              }
+            },
+            posts: true
+          }
+        });
 
-      // For other providers, check both user and linked accounts
-      const existingUser = await getUserById(user.id);
-      if (!existingUser) {
-        logger.error("[Auth] SignIn failed: User not found", { userId: user.id });
+        if (userWithSameEmailDomain?.organizations.length > 0) {
+          // Get the organization of the existing user
+          const existingOrg = userWithSameEmailDomain.organizations[0].organization;
+          
+          // Create new user and link to existing organization
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              organizations: {
+                create: {
+                  organizationId: existingOrg.id,
+                  role: 'MEMBER'
+                }
+              }
+            }
+          });
+
+          logger.info(`[Auth] Created new user and linked to existing organization`, {
+            email: user.email,
+            organizationId: existingOrg.id
+          });
+
+          return true;
+        }
+
+        // If no existing organization, create new user with new organization
+        logger.info(`[Auth] Creating new user and organization for ${account.provider}`, { 
+          email: user.email,
+          provider: account.provider 
+        });
+        return true;
+      } catch (error) {
+        logger.error("[Auth] Error during sign in", {
+          error,
+          email: user.email,
+          provider: account.provider
+        });
         return false;
       }
-
-      if (account?.provider) {
-        const linkedAccount = await getAccountByProvider(user.id, account.provider);
-        if (!linkedAccount) {
-          logger.error("[Auth] SignIn failed: No linked account", {
-            userId: user.id,
-            provider: account.provider
-          });
-          return false;
-        }
-      }
-
-      return true;
     },
   },
   events: {
     signIn: credentialsSignInCallback(req),
-    createUser: async (message) => {
-      const user = message.user;
-      if (!user.email) return;
+    createUser: async (user) => {
+      logger.info("[Auth] Creating new user", { user });
 
-      const resendContactId = await setupResendCustomer(user);
-      await setupDefaultOrganizationsOrInviteUser(user);
+      try {
+        // Check for existing user with same email
+        const existingUser = await prisma.user.findFirst({
+          where: { 
+            email: user.email 
+          },
+          include: {
+            organizations: {
+              include: {
+                organization: true
+              }
+            },
+            posts: true
+          }
+        });
 
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { resendContactId },
-      });
+        if (existingUser) {
+          // Merge the accounts by moving all posts to the existing user
+          if (existingUser.posts.length > 0) {
+            await prisma.post.updateMany({
+              where: { authorId: existingUser.id },
+              data: { authorId: user.id }
+            });
+          }
+
+          // Use existing organization
+          const existingOrg = existingUser.organizations[0].organization;
+          
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email,
+              // Keep the name from the existing user if available
+              name: existingUser.name || user.name,
+              // Keep the image from the existing user if available
+              image: existingUser.image || user.image,
+              organizations: {
+                create: {
+                  organizationId: existingOrg.id,
+                  role: 'MEMBER'
+                }
+              }
+            }
+          });
+
+          logger.info("[Auth] Created new user in existing organization", {
+            userId: newUser.id,
+            organizationId: existingOrg.id
+          });
+
+          return newUser;
+        }
+
+        // Create new user with new organization
+        const newUser = await prisma.user.create({
+          data: {
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            organizations: {
+              create: {
+                organization: {
+                  create: {
+                    name: user.name ? `${user.name}'s Organization` : 'My Organization',
+                    slug: generateSlug(),
+                  }
+                },
+                role: 'OWNER'
+              }
+            }
+          },
+          include: {
+            organizations: {
+              include: {
+                organization: true
+              }
+            }
+          }
+        });
+
+        logger.info("[Auth] Created new user with new organization", {
+          userId: newUser.id,
+          organizationId: newUser.organizations[0].organizationId
+        });
+
+        return newUser;
+      } catch (error) {
+        logger.error("[Auth] Error creating user", { error, user });
+        throw error;
+      }
     },
   },
   jwt: credentialsOverrideJwt,

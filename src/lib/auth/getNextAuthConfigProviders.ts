@@ -59,20 +59,30 @@ export const getNextAuthConfigProviders = cache((): Providers => {
       Twitter({
         clientId: env.TWITTER_ID,
         clientSecret: env.TWITTER_SECRET,
+        version: "2.0",
         authorization: {
+          url: "https://twitter.com/i/oauth2/authorize",
           params: {
-            scope: "users.read tweet.read offline.access",
+            scope: "users.read tweet.read email offline.access",
+            code_challenge_method: "S256",
+            code_challenge: "challenge",
           }
         },
-        async profile(profile, tokens) {
+        userinfo: {
+          url: 'https://api.twitter.com/2/users/me',
+          params: { 'user.fields': 'name,profile_image_url,email' }
+        },
+        async profile(profile) {
+          logger.info("[Auth] Twitter profile data", { profile });
+          
+          // Handle case where email might not be available
+          const email = profile.data.email || `${profile.data.id}@twitter.placeholder.com`;
+          
           return {
-            id: profile.id_str,
-            email: profile.email,
-            name: profile.name,
-            image: profile.profile_image_url_https,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_at: Math.floor(Date.now() / 1000 + (tokens.expires_in || 3600)),
+            id: profile.data.id,
+            name: profile.data.name,
+            email: email,
+            image: profile.data.profile_image_url,
           };
         },
       }),
