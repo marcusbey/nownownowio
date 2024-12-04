@@ -80,8 +80,8 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       }
 
       try {
-        // Try to find an existing user with the same email
-        const existingUser = await prisma.user.findUnique({
+        // First try to find a user with the same email
+        let existingUser = await prisma.user.findUnique({
           where: { email: user.email },
           include: { 
             accounts: true,
@@ -93,6 +93,40 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
             posts: true
           }
         });
+
+        // If no user found and this is a Twitter placeholder email,
+        // try to find a matching user by name
+        if (!existingUser && user.email?.includes('@twitter.placeholder.com')) {
+          const normalizedNewName = user.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
+          
+          // Find all users and check for name similarity
+          const allUsers = await prisma.user.findMany({
+            include: {
+              accounts: true,
+              organizations: {
+                include: {
+                  organization: true
+                }
+              },
+              posts: true
+            }
+          });
+
+          // Find a user with a similar name
+          existingUser = allUsers.find(u => {
+            const normalizedExistingName = u.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return normalizedExistingName && normalizedNewName &&
+                   (normalizedExistingName.includes(normalizedNewName) ||
+                    normalizedNewName.includes(normalizedExistingName));
+          });
+
+          if (existingUser) {
+            logger.info('[Auth] Found matching user by name similarity', {
+              newUser: user.name,
+              existingUser: existingUser.name
+            });
+          }
+        }
 
         if (existingUser) {
           // Check if this provider is already linked
@@ -118,13 +152,23 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
               }
             });
 
+            // If this was a Twitter placeholder email, update it with the real email
+            if (existingUser.email?.includes('@twitter.placeholder.com') && !user.email?.includes('@twitter.placeholder.com')) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: { email: user.email }
+              });
+              logger.info('[Auth] Updated Twitter placeholder email with real email', {
+                oldEmail: existingUser.email,
+                newEmail: user.email
+              });
+            }
+
             // Update user profile with merged data
             await prisma.user.update({
               where: { id: existingUser.id },
               data: {
-                // Keep existing name if available, otherwise use the new name
                 name: existingUser.name || user.name,
-                // Keep existing image if available, otherwise use the new image
                 image: existingUser.image || user.image,
               }
             });
