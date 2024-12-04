@@ -30,20 +30,21 @@ export async function GET(
       select: {
         ...getUserDataSelect(loggedInUser.id),
         organizations: {
-          include: {
-            organization: true,
+          select: {
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              }
+            },
           },
         },
-        posts: true,
-        comments: true,
-        likes: true,
         _count: {
           select: {
             followers: true,
             following: true,
             posts: true,
-            comments: true,
-            likes: true,
           },
         },
       },
@@ -53,7 +54,20 @@ export async function GET(
       return Response.json({ error: "User not found" }, { status: 404 });
     }
 
-    return Response.json(user);
+    // Fetch additional data only if needed
+    const [postsCount, commentsCount] = await Promise.all([
+      prisma.post.count({ where: { authorId: user?.id } }),
+      prisma.comment.count({ where: { authorId: user?.id } }),
+    ]);
+
+    return Response.json({
+      ...user,
+      _count: {
+        ...user?._count,
+        posts: postsCount,
+        comments: commentsCount,
+      }
+    });
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Internal server error" }, { status: 500 });

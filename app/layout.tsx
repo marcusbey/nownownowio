@@ -10,6 +10,7 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import PlausibleProvider from "next-plausible";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import "./code-theme.scss";
 import "./globals.scss";
 import { Providers } from "./providers";
@@ -19,6 +20,13 @@ export const metadata: Metadata = {
   description: SiteConfig.description,
   metadataBase: new URL(getServerUrl()),
 };
+
+const NonCriticalUI = () => (
+  <Suspense fallback={null}>
+    <TailwindIndicator />
+    <FloatingLegalFooter />
+  </Suspense>
+);
 
 export default function RootLayout({
   children,
@@ -44,28 +52,25 @@ export default function RootLayout({
               showSpinner={false}
               color="hsl(var(--primary))"
             />
-            {children}
-            {modal}
+            <Suspense fallback={
+              <div className="flex h-full items-center justify-center">
+                <div className="animate-pulse">Loading...</div>
+              </div>
+            }>
+              {children}
+            </Suspense>
+            <Suspense fallback={null}>
+              {modal}
+            </Suspense>
           </div>
-          <TailwindIndicator />
-          <FloatingLegalFooter />
+          <NonCriticalUI />
         </Providers>
-        {/* <script
-          defer
-          src="https://widget.nownownow.io/now-widget.js"
-          data-user-id="ErOeaXjKcLJ"
-          data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJFck9lYVhqS2NMSiIsImlhdCI6MTcyNzU1MTA5NywiZXhwIjoxNzMwMTQzMDk3fQ.g7bQVdZ1vrZp1xJ_rpEXZzU73vemNV4fshZMHzJuqvE"
-          data-theme="dark"
-          data-position="left"
-          data-button-color="yellow"
-          data-button-size="90"
-          id="now-widget-script"
-        /> */}
         <script
           defer
           data-website-id="671fb98a7acececdf6464e99"
           data-domain="nownownow.io"
           src="https://datafa.st/js/script.js"
+          strategy="lazyOnload"
         />
       </body>
     </html>

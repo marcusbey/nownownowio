@@ -8,16 +8,23 @@ import { getCurrentOrgCache } from "@/lib/react/cache";
 import type { LayoutParams } from "@/types/next";
 import { Rabbit } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { OrgNavigation } from "./_navigation/OrgNavigation";
+
+async function loadData(orgSlug: string) {
+  const [org, user] = await Promise.all([
+    getCurrentOrgCache(orgSlug),
+    auth()
+  ]);
+  return { org, user };
+}
 
 export default async function RouteLayout(
   props: LayoutParams<{ orgSlug: string }>,
 ) {
-  const orgSlug = props.params.orgSlug;
+  const { org, user } = await loadData(props.params.orgSlug);
 
-  const org = await getCurrentOrgCache(orgSlug);
   if (!org) {
-    const user = await auth();
     return (
       <NavigationWrapper>
         <Layout>
@@ -55,5 +62,13 @@ export default async function RouteLayout(
     );
   }
 
-  return <OrgNavigation>{props.children}</OrgNavigation>;
+  return (
+    <Suspense fallback={
+      <div className="flex h-full items-center justify-center">
+        <div className="animate-pulse">Loading organization...</div>
+      </div>
+    }>
+      <OrgNavigation>{props.children}</OrgNavigation>
+    </Suspense>
+  );
 }
