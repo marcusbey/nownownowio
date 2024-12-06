@@ -12,17 +12,39 @@ import { Suspense } from "react";
 import { OrgNavigation } from "./_navigation/OrgNavigation";
 
 async function loadData(orgSlug: string) {
-  const [org, user] = await Promise.all([
-    getCurrentOrgCache(orgSlug),
-    auth()
-  ]);
-  return { org, user };
+  try {
+    const [org, user] = await Promise.allSettled([
+      getCurrentOrgCache(orgSlug),
+      auth()
+    ]);
+
+    return {
+      org: org.status === 'fulfilled' ? org.value : null,
+      user: user.status === 'fulfilled' ? user.value : null,
+      error: org.status === 'rejected' ? org.reason : null
+    };
+  } catch (error) {
+    console.error('Error loading data:', error);
+    return { org: null, user: null, error };
+  }
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="animate-pulse">Loading organization...</div>
+    </div>
+  );
 }
 
 export default async function RouteLayout(
   props: LayoutParams<{ orgSlug: string }>,
 ) {
-  const { org, user } = await loadData(props.params.orgSlug);
+  const { org, user, error } = await loadData(props.params.orgSlug);
+
+  if (error) {
+    console.error('Error in RouteLayout:', error);
+  }
 
   if (!org) {
     return (
@@ -32,9 +54,9 @@ export default async function RouteLayout(
             <Rabbit className="size-4" />
             <div>
               <Typography variant="large">
-                Oh! You are not logged in or the organization with the ID{" "}
-                <Typography variant="code">{props.params.orgSlug}</Typography>{" "}
-                was not found.
+                {error ? 'An error occurred while loading the organization.' : 
+                  `Oh! You are not logged in or the organization with the ID 
+                  ${props.params.orgSlug} was not found.`}
               </Typography>
               {user ? (
                 <Link
@@ -63,12 +85,12 @@ export default async function RouteLayout(
   }
 
   return (
-    <Suspense fallback={
-      <div className="flex h-full items-center justify-center">
-        <div className="animate-pulse">Loading organization...</div>
-      </div>
-    }>
-      <OrgNavigation>{props.children}</OrgNavigation>
+    <Suspense fallback={<LoadingFallback />}>
+      <OrgNavigation>
+        <Suspense fallback={<LoadingFallback />}>
+          {props.children}
+        </Suspense>
+      </OrgNavigation>
     </Suspense>
   );
 }

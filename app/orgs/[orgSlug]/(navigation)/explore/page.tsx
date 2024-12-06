@@ -1,18 +1,10 @@
+"use client";
+
 import SearchField from "@/components/SearchField";
-import { Metadata } from "next";
-import SearchResults from "./SearchResults";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TabsContent } from "@radix-ui/react-tabs";
-
-interface PageProps {
-  searchParams: { q?: string; topic?: string };
-}
-
-export function generateMetadata({ searchParams: { q } }: PageProps): Metadata {
-  return {
-    title: q ? `Search results for "${q}"` : "Explore",
-  };
-}
+import { useRouter, useSearchParams } from "next/navigation";
+import SearchResults from "./SearchResults";
 
 const topics = [
   { id: "all", label: "All" },
@@ -25,7 +17,18 @@ const topics = [
   { id: "design", label: "Design" },
 ];
 
-export default function Page({ searchParams: { q, topic = "all" } }: PageProps) {
+export default function Page() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const q = searchParams.get("q");
+  const topic = searchParams.get("topic") || "all";
+
+  const handleTopicChange = (newTopic: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("topic", newTopic);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
   return (
     <main className="flex w-full min-w-0 gap-5">
       <div className="w-full min-w-0 space-y-5">
@@ -42,16 +45,15 @@ export default function Page({ searchParams: { q, topic = "all" } }: PageProps) 
           </>
         ) : (
           <>
-            <Tabs defaultValue={topic} className="w-full">
+            <Tabs value={topic} onValueChange={handleTopicChange} className="w-full">
               <TabsList className="w-full justify-start overflow-x-auto">
                 {topics.map((t) => (
                   <TabsTrigger
                     key={t.id}
                     value={t.id}
                     className="min-w-max"
-                    asChild
                   >
-                    <a href={`?topic=${t.id}`}>{t.label}</a>
+                    {t.label}
                   </TabsTrigger>
                 ))}
               </TabsList>
