@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import PostComposer from "@/components/posts/PostComposer";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 const topics = [
   { id: "all", label: "All" },
@@ -44,9 +45,9 @@ export default function ExplorePage() {
               className="rounded-full"
               asChild
             >
-              <a href={`?topic=${t.id}`}>
+              <Link href={`?topic=${t.id}`}>
                 {t.label}
-              </a>
+              </Link>
             </Button>
           ))}
         </div>

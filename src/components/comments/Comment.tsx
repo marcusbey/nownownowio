@@ -1,8 +1,8 @@
-"use client";
-
+import { deleteComment } from "@/lib/api/comments";
 import { CommentData } from "@/lib/types";
-import { formatRelativeDate } from "@/lib/utils";
-import { MoreHorizontal } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { useToast } from "../ui/use-toast";
 import Linkify from "../Linkify";
 import UserAvatar from "../UserAvatar";
 import UserTooltip from "../UserTooltip";
@@ -24,6 +25,8 @@ interface CommentProps {
 
 export default function Comment({ comment }: CommentProps) {
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isHovered, setIsHovered] = useState(false);
 
   const userProfileLink =
@@ -31,9 +34,24 @@ export default function Comment({ comment }: CommentProps) {
       ? `/orgs/${comment.user.organizations?.[0]?.organization?.slug || ""}/profile`
       : `/users/${comment.user.name}`;
 
+  const handleDelete = async () => {
+    try {
+      await deleteComment(comment.id);
+      queryClient.invalidateQueries({
+        queryKey: ["comments", comment.postId],
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete comment",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <motion.div 
-      className="flex gap-3"
+      className="group flex gap-3 pl-4"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
@@ -58,7 +76,9 @@ export default function Comment({ comment }: CommentProps) {
               </Link>
             </UserTooltip>
             <span className="text-xs text-muted-foreground" suppressHydrationWarning>
-              {formatRelativeDate(comment.createdAt)}
+              {formatDistanceToNow(new Date(comment.createdAt), {
+                addSuffix: true,
+              })}
             </span>
           </div>
 
@@ -76,7 +96,11 @@ export default function Comment({ comment }: CommentProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -85,9 +109,7 @@ export default function Comment({ comment }: CommentProps) {
         </div>
 
         <Linkify>
-          <div className="text-sm leading-relaxed">
-            {comment.content}
-          </div>
+          <p className="text-sm leading-relaxed">{comment.content}</p>
         </Linkify>
       </div>
     </motion.div>

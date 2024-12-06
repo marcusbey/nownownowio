@@ -7,11 +7,12 @@ import { Eye, MessageSquare, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Comments from "../comments/Comments";
 import Linkify from "../Linkify";
 import UserAvatar from "../UserAvatar";
 import UserTooltip from "../UserTooltip";
+import { Button } from "../ui/button";
 import BookmarkButton from "./BookmarkButton";
 import LikeButton from "./LikeButton";
 import PostMoreButton from "./PostMoreButton";
@@ -26,6 +27,18 @@ export default function Post({ post }: PostProps) {
   const user = session?.user;
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const handleCommentClick = useCallback((e: React.MouseEvent) => {
+    if (!isClient) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setShowComments((prev) => !prev);
+  }, [isClient]);
 
   const userProfileLink =
     user && post.user.id === user.id
@@ -37,8 +50,9 @@ export default function Post({ post }: PostProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="group/post space-y-4 rounded-xl bg-card p-6 shadow-sm hover:shadow-md transition-all duration-200"
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverStart={() => isClient && setIsHovered(true)}
+      onHoverEnd={() => isClient && setIsHovered(false)}
+      suppressHydrationWarning
     >
       <div className="flex justify-between gap-4">
         <div className="flex items-start gap-4">
@@ -111,12 +125,20 @@ export default function Post({ post }: PostProps) {
           />
           <CommentButton
             post={post}
-            onClick={() => setShowComments(!showComments)}
+            onClick={handleCommentClick}
           />
-          <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-200">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              // TODO: Implement share functionality
+            }}
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+          >
             <Share2 className="h-5 w-5" />
             <span className="text-sm font-medium">Share</span>
-          </button>
+          </Button>
         </div>
         <BookmarkButton
           postId={post.id}
@@ -184,17 +206,19 @@ function MediaPreview({ media }: MediaPreviewProps) {
 
 interface CommentButtonProps {
   post: PostData;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 }
 
 function CommentButton({ post, onClick }: CommentButtonProps) {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={onClick}
-      className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-200"
+      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
     >
       <MessageSquare className="h-5 w-5" />
       <span className="text-sm font-medium">{post._count.comments}</span>
-    </button>
+    </Button>
   );
 }

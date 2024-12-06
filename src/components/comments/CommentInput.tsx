@@ -3,7 +3,7 @@
 import { createComment } from "@/lib/api/comments";
 import { PostData } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { Camera, FileImage, Laugh, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Button } from "../ui/button";
@@ -41,9 +41,6 @@ export default function CommentInput({ post }: CommentInputProps) {
       queryClient.invalidateQueries({
         queryKey: ["comments", post.id],
       });
-      toast({
-        description: "Comment added successfully",
-      });
     } catch (error) {
       toast({
         title: "Error",
@@ -64,59 +61,32 @@ export default function CommentInput({ post }: CommentInputProps) {
 
   return (
     <motion.div 
-      className="flex gap-3"
+      className="flex gap-3 pl-4"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
       <UserAvatar 
         avatarUrl={session.user.image} 
-        className="h-8 w-8 ring-1 ring-offset-2 ring-primary/10" 
+        className="h-8 w-8 flex-shrink-0" 
       />
       
-      <div className="flex-1 space-y-2">
+      <div className="relative flex-1">
         <Textarea
           placeholder="Write a comment..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="min-h-[60px] resize-none rounded-xl border-none bg-muted px-4 py-3 text-sm focus-visible:ring-1 focus-visible:ring-ring"
+          className="min-h-[44px] resize-none rounded-xl border-none bg-muted/50 pr-12 text-sm focus-visible:ring-1 focus-visible:ring-primary"
         />
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-0.5">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary"
-            >
-              <FileImage className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary"
-            >
-              <Camera className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary"
-            >
-              <Laugh className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <Button
-            size="sm"
-            className="rounded-full px-4"
-            disabled={!content.trim() || isSubmitting}
-            onClick={handleSubmit}
-          >
-            <Send className="mr-2 h-3 w-3" />
-            Reply
-          </Button>
-        </div>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground disabled:pointer-events-none disabled:opacity-50"
+          disabled={!content.trim() || isSubmitting}
+          onClick={handleSubmit}
+        >
+          <Send className="h-4 w-4" />
+        </Button>
       </div>
     </motion.div>
   );
