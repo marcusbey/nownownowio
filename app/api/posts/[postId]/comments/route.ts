@@ -38,3 +38,39 @@ export async function GET(
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function POST(
+  req: NextRequest,
+  { params: { postId } }: { params: { postId: string } },
+) {
+  try {
+    const { user } = await validateRequest();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { content } = await req.json();
+
+    if (!content?.trim()) {
+      return NextResponse.json(
+        { error: "Comment content is required" },
+        { status: 400 }
+      );
+    }
+
+    const comment = await prisma.comment.create({
+      data: {
+        content: content.trim(),
+        userId: user.id,
+        postId,
+      },
+      include: getCommentDataInclude(user.id),
+    });
+
+    return NextResponse.json(comment);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

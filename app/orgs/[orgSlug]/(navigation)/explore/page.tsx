@@ -1,15 +1,19 @@
 "use client";
 
-import SearchField from "@/components/SearchField";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TabsContent } from "@radix-ui/react-tabs";
-import { useRouter, useSearchParams } from "next/navigation";
-import SearchResults from "./SearchResults";
+import { useInfinitePosts } from "@/lib/api/posts";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import Post from "@/components/posts/Post";
+import { useInView } from "react-intersection-observer";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import PostComposer from "@/components/posts/PostComposer";
+import { motion } from "framer-motion";
 
 const topics = [
   { id: "all", label: "All" },
-  { id: "hot", label: "Hot " },
-  { id: "startup", label: "Startups" },
+  { id: "hot", label: "Hot" },
+  { id: "startups", label: "Startups" },
   { id: "fundraising", label: "Fundraising" },
   { id: "tech", label: "Tech" },
   { id: "ai", label: "AI" },
@@ -17,55 +21,75 @@ const topics = [
   { id: "design", label: "Design" },
 ];
 
-export default function Page() {
-  const router = useRouter();
+export default function ExplorePage() {
   const searchParams = useSearchParams();
-  const q = searchParams.get("q");
   const topic = searchParams.get("topic") || "all";
+  const { data, fetchNextPage, hasNextPage, isLoading } = useInfinitePosts();
+  const { ref, inView } = useInView();
 
-  const handleTopicChange = (newTopic: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("topic", newTopic);
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, fetchNextPage]);
 
   return (
-    <main className="flex w-full min-w-0 gap-5">
-      <div className="w-full min-w-0 space-y-5">
-        <SearchField />
-        
-        {q ? (
-          <>
-            <div className="rounded-2xl bg-card p-5 shadow-sm">
-              <h1 className="line-clamp-2 break-all text-center text-2xl font-bold">
-                Search results for &quot;{q}&quot;
-              </h1>
-            </div>
-            <SearchResults query={q} />
-          </>
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+      <nav className="sticky top-0 -mx-4 bg-background/80 px-4 pb-4 pt-2 backdrop-blur-sm">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto">
+          {topics.map((t) => (
+            <Button
+              key={t.id}
+              variant={topic === t.id ? "default" : "ghost"}
+              className="rounded-full"
+              asChild
+            >
+              <a href={`?topic=${t.id}`}>
+                {t.label}
+              </a>
+            </Button>
+          ))}
+        </div>
+      </nav>
+
+      <PostComposer />
+
+      <div className="space-y-6">
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <Skeleton className="h-[200px] w-full rounded-xl" />
+            </motion.div>
+          ))
         ) : (
-          <>
-            <Tabs value={topic} onValueChange={handleTopicChange} className="w-full">
-              <TabsList className="w-full justify-start overflow-x-auto">
-                {topics.map((t) => (
-                  <TabsTrigger
-                    key={t.id}
-                    value={t.id}
-                    className="min-w-max"
-                  >
-                    {t.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {topics.map((t) => (
-                <TabsContent key={t.id} value={t.id}>
-                  <SearchResults topic={t.id} />
-                </TabsContent>
+          data?.pages.map((page, i) => (
+            <div key={i} className="space-y-6">
+              {page.posts.map((post) => (
+                <Post key={post.id} post={post} />
               ))}
-            </Tabs>
-          </>
+            </div>
+          ))
+        )}
+        
+        <div ref={ref} className="h-20" />
+        
+        {hasNextPage && (
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              onClick={() => fetchNextPage()}
+              className="animate-pulse"
+            >
+              Loading more posts...
+            </Button>
+          </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }
