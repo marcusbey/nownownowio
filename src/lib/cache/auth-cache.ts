@@ -52,26 +52,38 @@ export async function getUsersByIds(ids: string[]) {
   })
 }
 
-// Optimized session management
+// Optimized session management with LRU cache
 export async function getSession(sessionToken: string) {
   const cacheKey = `session:${sessionToken}`
   
   return queryCache.query(cacheKey, async () => {
     const session = await prisma.session.findUnique({
       where: { sessionToken },
-      select: {
-        id: true,
-        sessionToken: true,
-        userId: true,
-        expires: true,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            emailVerified: true,
+            image: true,
+          }
+        }
+      },
+      cacheStrategy: {
+        ttl: 60, // Cache for 1 minute
+        swr: 300 // Stale while revalidate for 5 minutes
       }
     })
 
     if (!session) return null
 
-    // Don't compress sessions as they're typically small
-    return session
-  }, { ttl: 5 * 60 * 1000 }) // 5 minute cache for sessions
+    const result = await CompressionUtil.compressIfNeeded(session)
+    return result
+  }, {
+    ttl: 60 * 1000, // Cache for 1 minute
+    staleWhileRevalidate: true
+  })
 }
 
 // Optimized account queries

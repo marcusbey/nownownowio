@@ -1,7 +1,7 @@
 import config from "@/config";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
-import { getAccountByProvider, getUserById } from '../cache/auth-cache';
+import { getAccountByProvider, getUserById, getSession } from '../cache/auth-cache';
 import { env } from "../env";
 import { logger } from '../logger';
 import { prisma } from "../prisma";
@@ -47,17 +47,28 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     async session(params) {
       if (params.newSession) return params.session;
 
-      // Use cached user data
-      const user = await getUserById(params.session.user.id);
-      if (!user) return null;
+      try {
+        // Use cached session data
+        const cachedSession = await getSession(params.session.sessionToken);
+        if (cachedSession) {
+          return {
+            ...params.session,
+            user: cachedSession.user
+          };
+        }
 
-      return {
-        ...params.session,
-        user: {
-          ...params.session.user,
-          ...user,
-        },
-      };
+        // Fallback to database query if cache miss
+        const user = await getUserById(params.session.user.id);
+        if (!user) return null;
+
+        return {
+          ...params.session,
+          user
+        };
+      } catch (error) {
+        logger.error('Session callback error:', error);
+        return params.session;
+      }
     },
     async signIn({ user, account }) {
       if (!account || !user) {
