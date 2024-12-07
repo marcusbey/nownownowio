@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { kyInstance } from "@/lib/ky";
+import kyInstance from "@/lib/ky";
 
 interface ViewCountResponse {
   viewCount: number;
