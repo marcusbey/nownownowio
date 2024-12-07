@@ -10,7 +10,7 @@ import { Typography } from "@/components/ui/typography";
 import { useWarnIfUnsavedChanges } from "@/hooks/useWarnIfUnsavedChanges";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRef, useMemo, useCallback, useEffect } from "react";
+import { useRef, useMemo, useCallback, useEffect, memo } from "react";
 import { createPortal } from "react-dom";
 import type { FieldValues } from "react-hook-form";
 import { useKey } from "react-use";

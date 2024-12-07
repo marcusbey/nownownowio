@@ -27,11 +27,19 @@ export default function ForYouFeed() {
         .json<PostsPage>(),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 30, // 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    retry: false,
+    keepPreviousData: true,
+    suspense: false,
   });
 
   const posts = data?.pages.flatMap((page) => page.posts) || [];
 
-  if (status === "pending") {
+  if (status === "loading") {
     return <PostsLoadingSkeleton />;
   }
 
@@ -54,12 +62,21 @@ export default function ForYouFeed() {
   return (
     <InfiniteScrollContainer
       className="space-y-5"
-      onBottomReached={() => hasNextPage && !isFetching && fetchNextPage()}
+      onBottomReached={() => {
+        if (hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      }}
+      isLoading={isFetchingNextPage}
     >
       {posts.map((post) => (
         <Post key={post.id} post={post} />
       ))}
-      {isFetchingNextPage && <Loader2 className="mx-auto my-3 animate-spin" />}
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="animate-spin" />
+        </div>
+      )}
     </InfiniteScrollContainer>
   );
 }
