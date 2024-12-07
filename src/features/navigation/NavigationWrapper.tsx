@@ -67,7 +67,7 @@ export function NavigationWrapper({
 
   const gridCols = hideSidebar
     ? "grid-cols-[1fr] sm:grid-cols-[1fr] md:grid-cols-[1fr] lg:grid-cols-[1fr_3fr]"
-    : "grid-cols-[1fr] sm:grid-cols-[20%_80%] md:grid-cols-[33.33%_66.67%] lg:grid-cols-[1fr_2fr_1fr]";
+    : "grid-cols-[1fr] sm:grid-cols-[20%_60%_20%] md:grid-cols-[25%_50%_25%] lg:grid-cols-[1fr_3fr_2fr]";
 
   return (
     <div className={`mx-auto grid min-h-screen w-full max-w-7xl ${gridCols}`}>
