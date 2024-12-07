@@ -8,7 +8,6 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useCallback, useEffect } from "react";
-import Comments from "../comments/Comments";
 import Linkify from "../Linkify";
 import UserAvatar from "../UserAvatar";
 import UserTooltip from "../UserTooltip";
@@ -17,6 +16,10 @@ import BookmarkButton from "./BookmarkButton";
 import LikeButton from "./LikeButton";
 import PostMoreButton from "./PostMoreButton";
 import { motion } from "framer-motion";
+import { lazy, Suspense } from "react";
+
+const LazyMediaPreviews = lazy(() => import('./MediaPreview').then(mod => ({ default: mod.MediaPreviews })));
+const Comments = lazy(() => import('../comments/Comments'));
 
 interface PostProps {
   post: PostData;
@@ -108,7 +111,9 @@ export default function Post({ post }: PostProps) {
 
       {!!post.attachments.length && (
         <div className="rounded-xl overflow-hidden">
-          <MediaPreviews attachments={post.attachments} />
+          <Suspense fallback={<div className="h-48 animate-pulse bg-muted" />}>
+            <LazyMediaPreviews attachments={post.attachments} />
+          </Suspense>
         </div>
       )}
 
@@ -157,50 +162,12 @@ export default function Post({ post }: PostProps) {
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <Comments post={post} />
+          <Suspense fallback={<div className="h-24 animate-pulse bg-muted" />}>
+            <Comments post={post} />
+          </Suspense>
         </motion.div>
       )}
     </motion.article>
-  );
-}
-
-interface MediaPreviewsProps {
-  attachments: Media[];
-}
-
-function MediaPreviews({ attachments }: MediaPreviewsProps) {
-  const gridClassName = cn(
-    "grid gap-2",
-    {
-      "grid-cols-1": attachments.length === 1,
-      "grid-cols-2": attachments.length === 2,
-      "grid-cols-2 grid-rows-2": attachments.length >= 3,
-    }
-  );
-
-  return (
-    <div className={gridClassName}>
-      {attachments.slice(0, 4).map((media) => (
-        <MediaPreview key={media.id} media={media} />
-      ))}
-    </div>
-  );
-}
-
-interface MediaPreviewProps {
-  media: Media;
-}
-
-function MediaPreview({ media }: MediaPreviewProps) {
-  return (
-    <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
-      <Image
-        src={media.url}
-        alt=""
-        fill
-        className="object-cover transition-transform duration-200 hover:scale-105"
-      />
-    </div>
   );
 }
 

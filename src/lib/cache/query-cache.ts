@@ -4,11 +4,14 @@ interface CacheOptions {
   ttl?: number // Time to live in milliseconds
   maxSize?: number // Maximum number of items in cache
   maxQueriesPerMinute?: number // Maximum number of queries per minute
+  staleTime?: number // Time before data is considered stale
 }
 
 interface CacheEntry<T> {
   value: T
   expiresAt: number
+  lastAccessed: number
+  staleAt: number
 }
 
 interface QueryOptions {
@@ -39,6 +42,17 @@ class SimpleRateLimiter {
     return true
   }
 
+  async waitForToken(): Promise<void> {
+    while (true) {
+      this.refillTokens()
+      if (this.tokens >= 1) {
+        this.tokens -= 1
+        return
+      }
+      await new Promise(resolve => globalThis.setTimeout(resolve, 100))
+    }
+  }
+
   private refillTokens() {
     const now = Date.now()
     const timePassed = now - this.lastRefill
@@ -53,14 +67,15 @@ class QueryCache {
   private cache: Map<string, CacheEntry<any>> = new Map()
   private maxSize: number
   private defaultTTL: number
+  private defaultStaleTime: number
   private rateLimiter: SimpleRateLimiter
   
   constructor(options: CacheOptions = {}) {
-    this.maxSize = options.maxSize || 500
-    this.defaultTTL = options.ttl || 5 * 60 * 1000 // 5 minutes default TTL
+    this.maxSize = options.maxSize || 1000
+    this.defaultTTL = options.ttl || 15 * 60 * 1000
+    this.defaultStaleTime = options.staleTime || 5 * 60 * 1000
     
-    // Rate limit to 100 queries per minute by default
-    const maxQueriesPerMinute = options.maxQueriesPerMinute || 100
+    const maxQueriesPerMinute = options.maxQueriesPerMinute || 200
     this.rateLimiter = new SimpleRateLimiter(maxQueriesPerMinute, 60 * 1000)
   }
   
@@ -72,12 +87,11 @@ class QueryCache {
       }
     }
     
-    // Remove oldest entries if cache is too large
     if (this.cache.size > this.maxSize) {
       const entriesToRemove = this.cache.size - this.maxSize
       const entries = Array.from(this.cache.entries())
       entries
-        .sort((a, b) => a[1].expiresAt - b[1].expiresAt)
+        .sort((a, b) => a[1].lastAccessed - b[1].lastAccessed)
         .slice(0, entriesToRemove)
         .forEach(([key]) => this.cache.delete(key))
     }
@@ -88,33 +102,43 @@ class QueryCache {
     queryFn: () => Promise<T>,
     options: QueryOptions = {}
   ): Promise<T> {
-    // Check rate limit
-    if (!(await this.rateLimiter.removeToken())) {
-      throw new Error('Rate limit exceeded for queries')
-    }
-    
-    // Clean up expired entries
-    this.cleanup()
-    
-    // Check cache unless bypass is requested
-    if (!options.bypassCache) {
-      const cached = this.cache.get(key)
-      if (cached && cached.expiresAt > Date.now() && !options.forceFresh) {
+    const cached = this.cache.get(key)
+    const now = Date.now()
+
+    if (cached && !options.bypassCache) {
+      cached.lastAccessed = now
+      
+      if (now < cached.staleAt || !options.forceFresh) {
+        return cached.value
+      }
+      
+      if (now < cached.expiresAt) {
+        this.refreshInBackground(key, queryFn, options)
         return cached.value
       }
     }
-    
-    // Execute query
+
+    await this.rateLimiter.waitForToken()
+
     const value = await queryFn()
     
-    // Cache result
     const ttl = options.ttl || this.defaultTTL
-    this.cache.set(key, {
-      value,
-      expiresAt: Date.now() + ttl,
-    })
+    this.set(key, value, { ttl })
     
     return value
+  }
+
+  private async refreshInBackground<T>(
+    key: string,
+    queryFn: () => Promise<T>,
+    options: QueryOptions
+  ) {
+    try {
+      const value = await queryFn()
+      this.set(key, value, options)
+    } catch (error) {
+      globalThis.console.error('Background refresh failed:', error)
+    }
   }
   
   async batchQuery<T>(
@@ -122,36 +146,39 @@ class QueryCache {
     queryFn: () => Promise<T[]>,
     options: QueryOptions = {}
   ): Promise<T[]> {
-    // Check rate limit
-    if (!(await this.rateLimiter.removeToken())) {
-      throw new Error('Rate limit exceeded for batch queries')
-    }
-    
-    // Clean up expired entries
-    this.cleanup()
-    
-    // Check cache for all keys
-    if (!options.bypassCache) {
-      const allCached = keys.every(key => {
-        const cached = this.cache.get(key)
-        return cached && cached.expiresAt > Date.now() && !options.forceFresh
-      })
-      
-      if (allCached) {
-        return keys.map(key => this.cache.get(key)!.value)
+    await this.rateLimiter.waitForToken()
+
+    const now = Date.now()
+    const cachedKeys: string[] = []
+    const missingKeys: string[] = []
+
+    for (const key of keys) {
+      const cached = this.cache.get(key)
+      if (cached && !options.bypassCache) {
+        cached.lastAccessed = now
+        
+        if (now < cached.staleAt || !options.forceFresh) {
+          cachedKeys.push(key)
+        } else if (now < cached.expiresAt) {
+          cachedKeys.push(key)
+          this.refreshInBackground(key, () => queryFn().then(values => values[keys.indexOf(key)]), options)
+        } else {
+          missingKeys.push(key)
+        }
+      } else {
+        missingKeys.push(key)
       }
     }
-    
-    // Execute batch query
+
+    if (missingKeys.length === 0) {
+      return cachedKeys.map(key => this.cache.get(key)!.value)
+    }
+
     const values = await queryFn()
     
-    // Cache results
     const ttl = options.ttl || this.defaultTTL
     keys.forEach((key, index) => {
-      this.cache.set(key, {
-        value: values[index],
-        expiresAt: Date.now() + ttl,
-      })
+      this.set(key, values[index], { ttl })
     })
     
     return values
@@ -164,9 +191,12 @@ class QueryCache {
   
   set(key: string, value: any, options: QueryOptions = {}): void {
     const ttl = options.ttl || this.defaultTTL
+    const staleTime = options.staleTime || this.defaultStaleTime
     this.cache.set(key, {
       value,
       expiresAt: Date.now() + ttl,
+      lastAccessed: Date.now(),
+      staleAt: Date.now() + staleTime,
     })
     this.cleanup()
   }

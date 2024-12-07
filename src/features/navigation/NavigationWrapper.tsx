@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Typography } from "@/components/ui/typography";
 import { ArrowUpCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useMemo, useCallback } from "react";
 import { ThemeToggle } from "../theme/ThemeToggle";
 import { MobileBottomMenu } from "./MobileBottomMenu";
 
@@ -33,41 +33,37 @@ export function NavigationWrapper({
   const pathname = usePathname();
   const [hideSidebar, setHideSidebar] = useState(false);
 
-  useEffect(() => {
-    if (!pathname) return;
+  const getRoutesWithoutSidebar = useMemo(() => {
+    const settingsSection = ORGANIZATION_LINKS.find(
+      (section) => section.title === "SETTINGS",
+    );
+    return settingsSection?.links.map((link) => link.href) || [];
+  }, []);
 
-    const getRoutesWithoutSidebar = () => {
-      const settingsSection = ORGANIZATION_LINKS.find(
-        (section) => section.title === "SETTINGS",
-      );
-      return settingsSection?.links.map((link) => link.href) || [];
-    };
-
-    const shouldHideSidebar = (routes: string[]) => {
-      return routes.some((route) => {
-        const normalizedRoute = route.replace(
-          ":organizationSlug",
-          getOrgSlugFromPath(pathname),
-        );
-        return pathname.startsWith(normalizedRoute.replace(/\/+/g, "/"));
-      });
-    };
-
-    const routesWithoutSidebar = getRoutesWithoutSidebar();
-    console.log(routesWithoutSidebar);
-    const shouldHide = shouldHideSidebar(routesWithoutSidebar);
-
-    setHideSidebar(shouldHide);
-  }, [pathname]);
-
-  // Helper function to extract orgSlug from pathname
-  const getOrgSlugFromPath = (path: string): string => {
+  const getOrgSlugFromPath = useCallback((path: string): string => {
     const parts = path.split("/");
     const orgIndex = parts.findIndex((part) => part === "orgs");
     return orgIndex !== -1 && parts.length > orgIndex + 1
       ? parts[orgIndex + 1]
       : "";
-  };
+  }, []);
+
+  const shouldHideSidebar = useCallback((routes: string[]) => {
+    return routes.some((route) => {
+      const normalizedRoute = route.replace(
+        ":organizationSlug",
+        getOrgSlugFromPath(pathname),
+      );
+      return pathname.startsWith(normalizedRoute.replace(/\/+/g, "/"));
+    });
+  }, [pathname, getOrgSlugFromPath]);
+
+  useEffect(() => {
+    if (!pathname) return;
+    const routes = getRoutesWithoutSidebar;
+    const shouldHide = shouldHideSidebar(routes);
+    setHideSidebar(shouldHide);
+  }, [pathname, getRoutesWithoutSidebar, shouldHideSidebar]);
 
   const gridCols = hideSidebar
     ? "grid-cols-[1fr] sm:grid-cols-[1fr] md:grid-cols-[1fr] lg:grid-cols-[1fr_3fr]"
