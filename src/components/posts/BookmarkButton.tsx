@@ -9,15 +9,18 @@ import {
 } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { useToast } from "../ui/use-toast";
+import { Button } from "../ui/button";
 
 interface BookmarkButtonProps {
   postId: string;
   initialState: BookmarkInfo;
+  className?: string;
 }
 
 export default function BookmarkButton({
   postId,
   initialState,
+  className,
 }: BookmarkButtonProps) {
   const { toast } = useToast();
 
@@ -64,13 +67,17 @@ export default function BookmarkButton({
   });
 
   return (
-    <button onClick={() => mutate()} className="flex items-center gap-2">
-      <Bookmark
-        className={cn(
-          "size-5",
-          data.isBookmarkedByUser && "fill-primary text-primary",
-        )}
-      />
-    </button>
+    <Button 
+      onClick={() => mutate()} 
+      variant="ghost"
+      size="icon"
+      className={cn(
+        "h-8 w-8 text-muted-foreground/50 hover:text-primary/70",
+        data.isBookmarkedByUser && "text-primary/70",
+        className
+      )}
+    >
+      <Bookmark className="h-3.5 w-3.5" />
+    </Button>
   );
 }

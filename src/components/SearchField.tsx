@@ -17,9 +17,18 @@ export default function SearchField() {
 
   return (
     <form onSubmit={handleSubmit} method="GET" action="/search">
-      <div className="relative">
-        <Input name="q" placeholder="Search" className="pe-10" />
-        <SearchIcon className="absolute right-3 top-1/2 size-5 -translate-y-1/2 transform text-muted-foreground" />
+      <div className="relative group">
+        <Input 
+          name="q" 
+          placeholder="Search posts, people, or topics" 
+          className="w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
+            border-muted pl-10 pr-4 focus-visible:ring-1 focus-visible:ring-primary/30
+            transition-all duration-200 ease-in-out
+            group-hover:border-primary/30" 
+        />
+        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform 
+          text-muted-foreground/50 transition-colors duration-200
+          group-hover:text-primary/70" />
       </div>
     </form>
   );

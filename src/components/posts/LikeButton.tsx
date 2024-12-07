@@ -9,13 +9,22 @@ import {
 } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
 import { useToast } from "../ui/use-toast";
+import { Button } from "../ui/button";
 
 interface LikeButtonProps {
   postId: string;
-  initialState: LikeInfo;
+  initialState: {
+    likes: number;
+    isLikedByUser: boolean;
+  };
+  className?: string;
 }
 
-export default function LikeButton({ postId, initialState }: LikeButtonProps) {
+export default function LikeButton({
+  postId,
+  initialState,
+  className,
+}: LikeButtonProps) {
   const { toast } = useToast();
 
   const queryClient = useQueryClient();
@@ -25,7 +34,7 @@ export default function LikeButton({ postId, initialState }: LikeButtonProps) {
   const { data } = useQuery({
     queryKey,
     queryFn: () =>
-      kyInstance.get(`/api/posts/${postId}/likes`).json<LikeInfo>(),
+      kyInstance.get(`/api/posts/${postId}/likes`).json<typeof initialState>(),
     initialData: initialState,
     staleTime: Infinity,
   });
@@ -36,14 +45,17 @@ export default function LikeButton({ postId, initialState }: LikeButtonProps) {
         ? kyInstance.delete(`/api/posts/${postId}/likes`)
         : kyInstance.post(`/api/posts/${postId}/likes`),
     onMutate: async () => {
+      toast({
+        description: `Post ${data.isLikedByUser ? "un" : ""}liked`,
+      });
+
       await queryClient.cancelQueries({ queryKey });
 
-      const previousState = queryClient.getQueryData<LikeInfo>(queryKey);
+      const previousState = queryClient.getQueryData<typeof initialState>(queryKey);
 
-      queryClient.setQueryData<LikeInfo>(queryKey, () => ({
-        likes:
-          (previousState?.likes || 0) + (previousState?.isLikedByUser ? -1 : 1),
-        isLikedByUser: !previousState?.isLikedByUser,
+      queryClient.setQueryData<typeof initialState>(queryKey, (old) => ({
+        likes: (old?.likes ?? 0) + (data.isLikedByUser ? -1 : 1),
+        isLikedByUser: !old?.isLikedByUser,
       }));
 
       return { previousState };
@@ -59,16 +71,27 @@ export default function LikeButton({ postId, initialState }: LikeButtonProps) {
   });
 
   return (
-    <button onClick={() => mutate()} className="flex items-center gap-2">
-      <Heart
+    <div className="flex items-center gap-0.5">
+      <Button
+        onClick={() => mutate()}
+        variant="ghost"
+        size="icon"
         className={cn(
-          "size-5",
-          data.isLikedByUser && "fill-red-500 text-red-500",
+          "h-8 w-8 text-muted-foreground/50 hover:text-primary/70",
+          data.isLikedByUser && "text-primary/70",
+          className
         )}
-      />
-      <span className="text-sm font-medium tabular-nums">
-        {data.likes} <span className="hidden sm:inline">likes</span>
+      >
+        <Heart
+          className={cn(
+            "h-3.5 w-3.5",
+            data.isLikedByUser && "fill-current"
+          )}
+        />
+      </Button>
+      <span className="text-xs text-muted-foreground/50 tabular-nums -ml-1">
+        {data.likes}
       </span>
-    </button>
+    </div>
   );
 }

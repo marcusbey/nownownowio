@@ -17,6 +17,7 @@ import LikeButton from "./LikeButton";
 import PostMoreButton from "./PostMoreButton";
 import { motion } from "framer-motion";
 import { lazy, Suspense } from "react";
+import { usePostViews } from "@/hooks/usePostViews";
 
 const LazyMediaPreviews = lazy(() => import('./MediaPreview').then(mod => ({ default: mod.MediaPreviews })));
 const Comments = lazy(() => import('../comments/Comments'));
@@ -52,18 +53,18 @@ export default function Post({ post }: PostProps) {
     <motion.article 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/post space-y-4 rounded-xl bg-card p-6 shadow-sm hover:shadow-md transition-all duration-200"
+      className="group/post space-y-3 rounded-xl bg-card p-4 shadow-sm hover:shadow-md transition-all duration-200"
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
     >
-      <div className="flex justify-between gap-4">
-        <div className="flex items-start gap-4">
+      <div className="flex justify-between gap-3">
+        <div className="flex items-start gap-3">
           <UserTooltip user={post.user}>
             <Link href={userProfileLink} className="shrink-0">
               <UserAvatar 
                 avatarUrl={post.user.image} 
-                className="h-12 w-12 ring-2 ring-offset-2 ring-primary/10 hover:ring-primary/30 transition-all duration-200" 
+                className="h-10 w-10 ring-1 ring-offset-2 ring-primary/10 hover:ring-primary/30 transition-all duration-200" 
               />
             </Link>
           </UserTooltip>
@@ -71,12 +72,12 @@ export default function Post({ post }: PostProps) {
             <UserTooltip user={post.user}>
               <Link
                 href={userProfileLink}
-                className="font-semibold text-lg hover:underline decoration-primary/30"
+                className="font-semibold hover:underline decoration-primary/30"
               >
                 {post.user.displayName || post.user.name}
               </Link>
             </UserTooltip>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Link
                 href={`/posts/${post.id}`}
                 className="hover:text-primary transition-colors duration-200"
@@ -85,9 +86,9 @@ export default function Post({ post }: PostProps) {
                 {formatRelativeDate(post.createdAt)}
               </Link>
               <span>•</span>
-              <span className="flex items-center gap-1">
-                <Eye className="h-4 w-4" />
-                {Math.floor(Math.random() * 1000)}
+              <span className="flex items-center gap-0.5">
+                <Eye className="h-3 w-3" />
+                {usePostViews(post.id).viewCount + 1}
               </span>
             </div>
           </div>
@@ -104,55 +105,56 @@ export default function Post({ post }: PostProps) {
       </div>
 
       <Linkify>
-        <div className="whitespace-pre-line break-words text-base leading-relaxed">
+        <div className="whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground/90 py-2 px-1">
           {post.content}
         </div>
       </Linkify>
 
       {!!post.attachments.length && (
-        <div className="rounded-xl overflow-hidden">
+        <div className="rounded-lg overflow-hidden mt-2">
           <Suspense fallback={<div className="h-48 animate-pulse bg-muted" />}>
             <LazyMediaPreviews attachments={post.attachments} />
           </Suspense>
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center gap-6">
-          <LikeButton
-            postId={post.id}
-            initialState={{
-              likes: post._count.likes,
-              isLikedByUser: post.likes.some(
-                (like) => like.userId === user?.id,
-              ),
-            }}
-          />
-          <CommentButton
-            post={post}
-            onClick={handleCommentClick}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              // TODO: Implement share functionality
-            }}
-            className="flex items-center gap-2 text-muted-foreground hover:text-primary"
-          >
-            <Share2 className="h-5 w-5" />
-            <span className="text-sm font-medium">Share</span>
-          </Button>
-        </div>
-        <BookmarkButton
+      <div className="flex items-center gap-4">
+        <LikeButton
           postId={post.id}
           initialState={{
-            isBookmarkedByUser: post.bookmarks.some(
-              (bookmark) => bookmark.userId === user?.id,
+            likes: post._count.likes,
+            isLikedByUser: post.likes.some(
+              (like) => like.userId === user?.id,
             ),
           }}
+          className="text-muted-foreground/50 hover:text-primary/70"
         />
+        <CommentButton
+          post={post}
+          onClick={handleCommentClick}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.preventDefault();
+            // TODO: Implement share functionality
+          }}
+          className="h-8 w-8 text-muted-foreground/50 hover:text-primary/70"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+        </Button>
+        <div className="ml-auto">
+          <BookmarkButton
+            postId={post.id}
+            initialState={{
+              isBookmarkedByUser: post.bookmarks.some(
+                (bookmark) => bookmark.userId === user?.id,
+              ),
+            }}
+            className="text-muted-foreground/50 hover:text-primary/70"
+          />
+        </div>
       </div>
 
       {showComments && (
@@ -178,14 +180,18 @@ interface CommentButtonProps {
 
 function CommentButton({ post, onClick }: CommentButtonProps) {
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onClick}
-      className="flex items-center gap-2 text-muted-foreground hover:text-primary"
-    >
-      <MessageSquare className="h-5 w-5" />
-      <span className="text-sm font-medium">{post._count.comments}</span>
-    </Button>
+    <div className="flex items-center gap-0.5">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onClick}
+        className="h-8 w-8 text-muted-foreground/50 hover:text-primary/70"
+      >
+        <MessageSquare className="h-3.5 w-3.5" />
+      </Button>
+      <span className="text-xs text-muted-foreground/50 tabular-nums -ml-1">
+        {post._count.comments}
+      </span>
+    </div>
   );
 }
