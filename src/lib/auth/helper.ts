@@ -6,6 +6,7 @@ import { logger } from "../logger";
 import { baseAuth } from "./auth";
 import crypto from "crypto";
 import { env } from "../env";
+import { queryCache } from '@/lib/cache/query-cache';
 
 // Hash utilities
 export const hashStringWithSalt = (string: string, salt: string): string => {
@@ -47,18 +48,27 @@ export const requiredAuth = async () => {
   }
 };
 
-export const validateRequest = cache(
-  async (): Promise<{ user: User; session: Session } | { user: null; session: null }> => {
-    const session = await baseAuth();
-
-    if (session?.user) {
-      const user = session.user as User;
-      return { user, session };
+export async function validateRequest() {
+  const sessionKey = 'current-session';
+  
+  // Try to get session from cache first
+  const cachedSession = await queryCache.query(
+    sessionKey,
+    async () => {
+      const session = await baseAuth();
+      return session;
+    },
+    {
+      ttl: 60 * 5, // Cache for 5 minutes
+      staleAfter: 60, // Consider stale after 1 minute
     }
+  );
 
-    return { user: null, session: null };
-  }
-);
+  return {
+    session: cachedSession,
+    user: cachedSession?.user,
+  };
+}
 
 interface ISession {
   id: string;

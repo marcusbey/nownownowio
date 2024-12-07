@@ -19,5 +19,10 @@ export function useInfinitePosts() {
     queryFn: ({ pageParam }) => getPosts(pageParam as string | null),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: null,
+    staleTime: 1000 * 60 * 5,
+    cacheTime: 1000 * 60 * 30, 
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    keepPreviousData: true, 
   });
 }
