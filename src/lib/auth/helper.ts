@@ -51,23 +51,65 @@ export const requiredAuth = async () => {
 export async function validateRequest() {
   const sessionKey = 'current-session';
   
-  // Try to get session from cache first
-  const cachedSession = await queryCache.query(
-    sessionKey,
-    async () => {
-      const session = await baseAuth();
-      return session;
-    },
-    {
-      ttl: 60 * 5, // Cache for 5 minutes
-      staleAfter: 60, // Consider stale after 1 minute
-    }
-  );
+  try {
+    // Try to get session from cache first
+    const cachedSession = await queryCache.query(
+      sessionKey,
+      async () => {
+        try {
+          const session = await baseAuth();
+          if (!session) {
+            throw new Error('No session returned from baseAuth');
+          }
+          return session;
+        } catch (error) {
+          logger.error('Error in baseAuth:', error);
+          throw error;
+        }
+      },
+      {
+        ttl: 60 * 5, // Cache for 5 minutes
+        staleAfter: 60, // Consider stale after 1 minute
+        retry: {
+          attempts: 3,
+          delay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 10000),
+        }
+      }
+    );
 
-  return {
-    session: cachedSession,
-    user: cachedSession?.user,
-  };
+    // Validate the session
+    if (!cachedSession || !cachedSession.user) {
+      // If cache fails, try direct auth as fallback
+      const directSession = await baseAuth();
+      if (!directSession || !directSession.user) {
+        throw new AuthError('No valid session found');
+      }
+      return {
+        session: directSession,
+        user: directSession.user,
+      };
+    }
+
+    return {
+      session: cachedSession,
+      user: cachedSession.user,
+    };
+  } catch (error) {
+    logger.error('Error in validateRequest:', error);
+    // Try one last direct auth attempt
+    try {
+      const lastAttemptSession = await baseAuth();
+      if (lastAttemptSession?.user) {
+        return {
+          session: lastAttemptSession,
+          user: lastAttemptSession.user,
+        };
+      }
+    } catch (finalError) {
+      logger.error('Final auth attempt failed:', finalError);
+    }
+    throw new AuthError('Authentication failed after all attempts');
+  }
 }
 
 interface ISession {

@@ -14,7 +14,21 @@ export async function GET(req: NextRequest) {
 
     const pageSize = 10;
 
-    const { user } = await validateRequest();
+    // Add retry logic for auth
+    let user;
+    let authAttempts = 0;
+    const maxAuthAttempts = 3;
+    
+    while (!user && authAttempts < maxAuthAttempts) {
+      try {
+        const auth = await validateRequest();
+        user = auth.user;
+      } catch (error) {
+        authAttempts++;
+        if (authAttempts === maxAuthAttempts) throw error;
+        await new Promise(resolve => setTimeout(resolve, 1000 * authAttempts));
+      }
+    }
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,8 +51,8 @@ export async function GET(req: NextRequest) {
         cursor: cursor ? { id: cursor } : undefined,
       });
     }, {
-      timeout: 10000, // 10 second timeout
-      maxWait: 15000, // 15 second max wait
+      timeout: 20000,  // Increased to 20 seconds for cold starts
+      maxWait: 30000,  // Increased to 30 seconds max wait
     });
 
     const nextCursor = posts.length > pageSize ? posts[pageSize].id : null;
