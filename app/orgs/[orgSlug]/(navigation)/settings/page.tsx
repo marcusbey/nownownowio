@@ -21,17 +21,41 @@ export default async function RoutePage(props: SettingsPageParams) {
   );
 
   return (
-    <div className="space-y-6">
-      <OrgDetailsForm defaultValues={organization} />
+    <div className="space-y-8 pl-8">
+      <div>
+        <h2 className="text-lg font-medium">Organization Settings</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Manage your organization's profile and appearance
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Widget Script Generator</CardTitle>
-          <CardDescription>
-            Generate a script to embed the NowNowNow widget on your website.
+      <Card className="border-opacity-20">
+        <CardHeader className="space-y-1.5">
+          <CardTitle className="text-lg">Organization Details</CardTitle>
+          <CardDescription className="text-sm">
+            Customize your organization's appearance and information
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <OrgDetailsForm defaultValues={organization} />
+        </CardContent>
+      </Card>
+
+      <div className="border-t border-border/40 pt-8">
+        <h2 className="text-lg font-medium">Widget Integration</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Customize and generate the widget code for your website
+        </p>
+      </div>
+
+      <Card className="h-fit border-opacity-20">
+        <CardHeader className="space-y-1 py-3">
+          <CardTitle className="text-base">Widget Script Generator</CardTitle>
+          <CardDescription className="text-xs">
+            Generate a script to embed the NowNowNow widget on your website.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="py-3">
           <WidgetScriptGenerator orgSlug={props.params.orgSlug} />
         </CardContent>
       </Card>

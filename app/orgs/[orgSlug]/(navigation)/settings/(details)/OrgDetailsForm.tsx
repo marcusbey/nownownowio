@@ -55,79 +55,69 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
     <FormUnsavedBar
       form={form}
       onSubmit={async (v) => mutation.mutateAsync(v)}
-      className="flex w-full flex-col gap-6 lg:gap-8"
+      className="space-y-4"
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Organization's image</CardTitle>
-          <CardDescription>
-            Add a custom image to your organization.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FormField
-            control={form.control}
-            name="image"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
+      <div className="flex items-start gap-4">
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Profile Image</label>
                   <ImageFormItem
-                    className="size-32 rounded-full"
+                    className="size-24 rounded-full"
                     onChange={(url) => field.onChange(url)}
                     imageUrl={field.value}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Organization's name</CardTitle>
-          <CardDescription>
-            Use your organization's name or your name if you don't have an
-            organization.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex-1 space-y-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Organization Name</label>
+                    <Input 
+                      className="h-10"
+                      placeholder="Enter your organization name" 
+                      {...field} 
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Organization's email</CardTitle>
-          <CardDescription>
-            Use a valid email address to receive billing and invoices.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Organization Email</label>
+                    <Input 
+                      className="h-10"
+                      placeholder="Enter your organization email" 
+                      {...field} 
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </FormUnsavedBar>
   );
 };

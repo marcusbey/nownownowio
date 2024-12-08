@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         `data-button-size="${settings?.buttonSize || '90'}"`,
     ].join(' ');
 
-    const script = `<script defer src="${process.env.NEXT_PUBLIC_WIDGET_URL}/dist/now-widget.js" ${scriptAttributes}></script>`;
+    const script = `<script defer src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" ${scriptAttributes}></script>`;
 
     return NextResponse.json({
         script,

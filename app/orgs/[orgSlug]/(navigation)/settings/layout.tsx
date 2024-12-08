@@ -43,24 +43,19 @@ export default async function RouteLayout(
 
   return (
     <Layout>
-      <LayoutHeader>
+      <LayoutHeader className="py-4">
         <LayoutTitle>Organization</LayoutTitle>
-        <LayoutDescription>
+        <LayoutDescription className="text-sm">
           The organization is the hub for your billing, members, and more.
         </LayoutDescription>
       </LayoutHeader>
-      <LayoutContent className="mt-8 flex items-start gap-4 max-lg:flex-col">
+      <LayoutContent className="mt-4 flex items-start gap-2 max-lg:flex-col">
         <SettingsNavigation
           roles={roles}
           links={[
             {
               href: `${orgPath}/settings`,
               label: "General",
-              roles: ["ADMIN"],
-            },
-            {
-              href: `${orgPath}/settings/widget`,
-              label: "Widget",
               roles: ["ADMIN"],
             },
             {
@@ -80,7 +75,7 @@ export default async function RouteLayout(
             },
           ]}
         />
-        <div className="mb-12 w-full flex-1">{props.children}</div>
+        <div className="mb-8 w-full flex-1">{props.children}</div>
       </LayoutContent>
     </Layout>
   );

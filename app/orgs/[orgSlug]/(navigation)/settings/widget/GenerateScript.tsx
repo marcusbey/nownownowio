@@ -65,33 +65,38 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-lg border p-4 space-y-6">
-        <h3 className="text-lg font-medium">Widget Settings</h3>
-        <WidgetSettingsForm onSettingsChange={handleSettingsChange} />
-      </div>
-
-      <div className="space-y-4">
-        <Button
-          onClick={generateScript}
-          disabled={loading}
-          className="relative overflow-hidden"
-        >
-          <span className="relative z-10">Generate Widget Script</span>
-          {loading && (
-            <span className="animate-fill-left-to-right absolute inset-0 size-full bg-primary/50" />
-          )}
-        </Button>
-        {script && (
-          <div className="flex space-x-2">
-            <Input value={script} readOnly className="grow font-mono text-sm" />
+    <div className="space-y-6">
+      <WidgetSettingsForm settings={settings} onChange={setSettings} />
+      
+      <div className="mt-8 p-4 bg-muted/50 rounded-lg space-y-3">
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={generateScript}
+            disabled={loading}
+            className="h-8"
+          >
+            {loading ? "Generating..." : "Generate Script"}
+          </Button>
+          
+          {script && (
             <Button
+              size="sm"
+              variant="outline"
               onClick={copyToClipboard}
-              className={copied ? "bg-yellow-500 hover:bg-yellow-600" : ""}
+              className="h-8"
             >
-              {copied ? <Check className="size-4" /> : "Copy"}
+              {copied ? <Check className="h-3 w-3" /> : "Copy"}
             </Button>
-          </div>
+          )}
+        </div>
+
+        {script && (
+          <Input
+            value={script}
+            readOnly
+            className="h-8 text-xs font-mono bg-background"
+          />
         )}
       </div>
     </div>
