@@ -63,20 +63,19 @@ export default function ForYouFeed() {
 
   return (
     <InfiniteScrollContainer
-      className="space-y-5"
       onBottomReached={() => {
         if (hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       }}
-      isLoading={isFetchingNextPage}
+      className="no-scrollbar h-full overflow-y-auto space-y-4"
     >
       {posts.map((post) => (
         <Post key={post.id} post={post} />
       ))}
       {isFetchingNextPage && (
         <div className="flex justify-center py-4">
-          <Loader2 className="animate-spin" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       )}
     </InfiniteScrollContainer>

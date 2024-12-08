@@ -113,7 +113,7 @@ export function NavigationWrapper({
             <ArrowUpCircle size={24} />
           </Button>
         </header>
-        <main className="flex flex-1 flex-col gap-4 overflow-auto px-4 md:gap-6 md:px-6">
+        <main className="flex flex-1 flex-col gap-4 overflow-auto px-4 md:gap-6 md:px-6 no-scrollbar">
           {children}
         </main>
         {/* Mobile Bottom Navigation */}

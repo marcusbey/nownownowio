@@ -42,7 +42,7 @@ export default function MyPostsFeed({ userId }: MyPostsFeedProps) {
 
   return (
     <InfiniteScrollContainer
-      className="space-y-5"
+      className="no-scrollbar h-full overflow-y-auto space-y-4 px-4 py-4"
       onBottomReached={() =>
         hasNextPage && !isFetchingNextPage && fetchNextPage()
       }

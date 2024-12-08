@@ -1,4 +1,6 @@
 import { useInView } from "react-intersection-observer";
+import styles from "@/styles/scroll.module.css";
+import { cn } from "@/lib/utils";
 
 interface InfiniteScrollContainerProps extends React.PropsWithChildren {
   onBottomReached: () => void;
@@ -20,7 +22,7 @@ export default function InfiniteScrollContainer({
   });
 
   return (
-    <div className={className}>
+    <div className={cn(styles.hideScrollbar, className)}>
       {children}
       <div ref={ref} />
     </div>
