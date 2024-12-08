@@ -32,8 +32,8 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   providers: getNextAuthConfigProviders(),
   session: {
     strategy: "database",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
+    maxAge: 365 * 24 * 60 * 60, // 1 year
+    updateAge: 24 * 60 * 60, // Refresh daily instead of weekly
   },
   secret: env.NEXTAUTH_SECRET,
   trustHost: true,

@@ -104,7 +104,7 @@ export const credentialsSignInCallback = (request: NextRequest | undefined): Sig
     httpOnly: true,
     secure: env.NODE_ENV === "production",
     sameSite: "lax",
-    expires: addDays(new Date(), 30),
+    expires: addDays(new Date(), 365), // Extended to 1 year to match session maxAge
   });
 };
 
