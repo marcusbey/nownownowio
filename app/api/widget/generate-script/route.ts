@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
-    const { orgSlug } = await request.json();
+    const { orgSlug, settings } = await request.json();
 
     if (!orgSlug || typeof orgSlug !== 'string') {
         return NextResponse.json({ error: 'Invalid organization slug' }, { status: 400 });
@@ -21,8 +21,23 @@ export async function POST(request: Request) {
     const userId = org.members[0].userId;
     const token = generateWidgetToken(userId);
 
+    if (!process.env.NEXT_PUBLIC_WIDGET_URL) {
+        throw new Error('NEXT_PUBLIC_WIDGET_URL environment variable is not set');
+    }
+
+    const scriptAttributes = [
+        `data-user-id="${userId}"`,
+        `data-token="${token}"`,
+        `data-theme="${settings?.theme || 'dark'}"`,
+        `data-position="${settings?.position || 'left'}"`,
+        `data-button-color="${settings?.buttonColor || '#1a73e8'}"`,
+        `data-button-size="${settings?.buttonSize || '90'}"`,
+    ].join(' ');
+
+    const script = `<script defer src="${process.env.NEXT_PUBLIC_WIDGET_URL}/dist/now-widget.js" ${scriptAttributes}></script>`;
+
     return NextResponse.json({
-        script: `<script src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" data-user-id="${userId}" data-token="${token}"></script>`,
+        script,
         token
     });
 }
