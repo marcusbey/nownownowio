@@ -97,6 +97,7 @@ export function getPostDataInclude(loggedInUserId: string) {
         likes: true,
         comments: true,
         bookmarks: true,
+        views: true,
       },
     },
   } satisfies Prisma.PostInclude;
@@ -222,9 +223,9 @@ export type User = Prisma.UserGetPayload<{
 
 export type Post = Prisma.PostGetPayload<{
   include: {
-    user: true;
-    attachments: true;
-    likes: true;
+    user: true,
+    attachments: true,
+    likes: true,
     bookmarks: true,
     comments: true,
     linkedNotifications: true,
@@ -233,6 +234,7 @@ export type Post = Prisma.PostGetPayload<{
         likes: true,
         comments: true,
         bookmarks: true,
+        views: true,
       },
     },
   };

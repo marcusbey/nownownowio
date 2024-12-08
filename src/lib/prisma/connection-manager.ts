@@ -1,46 +1,26 @@
 import { PrismaClient } from '@prisma/client'
 import { env } from '../env'
 
-const prismaClientSingleton = () => {
-  return new PrismaClient({
-    log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    datasources: {
-      db: {
-        url: env.DATABASE_URL
-      }
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: [
+    { level: 'error', emit: 'stdout' },
+    { level: 'info', emit: 'stdout' },
+    { level: 'warn', emit: 'stdout' },
+    { level: 'query', emit: 'stdout' },
+  ],
+  datasources: {
+    db: {
+      url: env.DATABASE_URL
     }
-  }).$extends({
-    query: {
-      $allModels: {
-        async $allOperations({ operation, model, args, query }) {
-          const start = performance.now()
-          const result = await query(args)
-          const end = performance.now()
-          
-          // Log slow queries in production
-          if (end - start > 500) { // Log queries taking more than 500ms
-            console.warn(`Slow query detected:
-              Model: ${model}
-              Operation: ${operation}
-              Duration: ${end - start}ms
-            `)
-          }
-          
-          return result
-        },
-      },
-    },
-  })
-}
-
-declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>
-}
-
-export const prisma = globalThis.prisma ?? prismaClientSingleton()
+  }
+})
 
 if (env.NODE_ENV !== 'production') {
-  globalThis.prisma = prisma
+  globalForPrisma.prisma = prisma
 }
 
 // Graceful shutdown

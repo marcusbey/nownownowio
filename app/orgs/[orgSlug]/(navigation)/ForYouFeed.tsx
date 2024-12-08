@@ -45,9 +45,11 @@ export default function ForYouFeed() {
 
   if (status === "success" && !posts.length && !hasNextPage) {
     return (
-      <p className="text-center text-muted-foreground">
-        No one has posted anything yet.
-      </p>
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <p className="text-sm text-muted-foreground text-center max-w-md">
+          No one has posted anything yet.
+        </p>
+      </div>
     );
   }
 

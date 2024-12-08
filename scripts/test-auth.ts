@@ -1,6 +1,6 @@
 import { logger } from '../src/lib/logger';
 import { prisma } from '../src/lib/prisma';
-import { hash } from 'bcryptjs';
+import { hash, compare } from 'bcryptjs';
 
 interface AuthTestResult {
   scenario: string;
@@ -784,6 +784,15 @@ async function testEmailSignIn(email: string, password: string): Promise<AuthTes
         scenario: "Email Sign In",
         success: false,
         error: "User not found"
+      };
+    }
+
+    const isValidPassword = await compare(password, user.passwordHash);
+    if (!isValidPassword) {
+      return {
+        scenario: "Email Sign In",
+        success: false,
+        error: "Invalid password"
       };
     }
 
@@ -2192,29 +2201,49 @@ async function runAuthTests() {
     // Test Email Verification (multiple scenarios)
     logger.info("\n✉️ Testing Email Verification Flow:");
     
-    // Normal verification
+    // Test 1: Normal verification (should succeed)
     const verificationResult = await testEmailVerification(
       testUser.email, 
       testUser.password, 
       { verifyEmail: true }
     );
+    if (!verificationResult.success) {
+      throw new Error("Normal verification failed unexpectedly");
+    }
     await logTestResult(verificationResult);
 
-    // Expired token
+    // Test 2: Expired token (should fail with specific error)
     const expiredTokenResult = await testEmailVerification(
       testUser.email,
       testUser.password,
       { verifyEmail: true, expiredToken: true }
     );
-    await logTestResult(expiredTokenResult);
+    if (expiredTokenResult.success || expiredTokenResult.error !== "Verification token expired") {
+      throw new Error("Expired token test did not fail as expected");
+    }
+    await logTestResult({ ...expiredTokenResult, success: true }); // Mark as success since it failed as expected
 
-    // Invalid token
+    // Test 3: Invalid token (should fail with specific error)
     const invalidTokenResult = await testEmailVerification(
       testUser.email,
       testUser.password,
       { verifyEmail: true, invalidToken: true }
     );
-    await logTestResult(invalidTokenResult);
+    if (invalidTokenResult.success || invalidTokenResult.error !== "Invalid verification token") {
+      throw new Error("Invalid token test did not fail as expected");
+    }
+    await logTestResult({ ...invalidTokenResult, success: true }); // Mark as success since it failed as expected
+
+    // Test 4: Resend verification (should succeed)
+    const resendResult = await testEmailVerification(
+      testUser.email,
+      testUser.password,
+      { resendVerification: true }
+    );
+    if (!resendResult.success) {
+      throw new Error("Resend verification failed unexpectedly");
+    }
+    await logTestResult(resendResult);
 
     // Test Email Sign In (multiple scenarios)
     logger.info("\n🔐 Testing Email Sign In Flow:");
@@ -2223,9 +2252,12 @@ async function runAuthTests() {
     const signInResult = await testEmailSignIn(testUser.email, testUser.password);
     await logTestResult(signInResult);
 
-    // Failed login
+    // Failed login (should fail with specific error)
     const failedSignInResult = await testEmailSignIn(testUser.email, testUser.invalidPassword);
-    await logTestResult(failedSignInResult);
+    if (failedSignInResult.success) {
+      throw new Error("Invalid password login should have failed");
+    }
+    await logTestResult({ ...failedSignInResult, success: true }); // Mark as success since it failed as expected
 
     // Test Magic Link
     logger.info("\n🔗 Testing Magic Link Flow:");

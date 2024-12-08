@@ -105,6 +105,16 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
           }
         });
 
+        // For OAuth providers, we can trust the email is verified
+        if (account.type === "oauth") {
+          user.emailVerified = new Date();
+        }
+
+        // If no existing user, we're good to proceed
+        if (!existingUser) {
+          return true;
+        }
+
         // If no user found and this is a Twitter placeholder email,
         // try to find a matching user by name
         if (!existingUser && user.email?.includes('@twitter.placeholder.com')) {
@@ -296,6 +306,8 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
               name: existingUser.name || user.name,
               // Keep the image from the existing user if available
               image: existingUser.image || user.image,
+              // Set emailVerified if it was set in signIn
+              emailVerified: user.emailVerified,
               organizations: {
                 create: {
                   organizationId: existingOrg.id,
@@ -319,6 +331,8 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
             email: user.email,
             name: user.name,
             image: user.image,
+            // Set emailVerified if it was set in signIn
+            emailVerified: user.emailVerified,
             organizations: {
               create: {
                 organization: {

@@ -87,6 +87,7 @@ model Organization {
   slug             String                   @unique @default(nanoid(6))
   name             String
   image            String?
+  bio              String?
   planId           String                   @default("FREE")
   plan             OrganizationPlan         @relation(fields: [planId], references: [id], onDelete: Cascade)
   email            String

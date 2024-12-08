@@ -9,6 +9,7 @@ import PostComposer from "@/components/posts/PostComposer";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import InfiniteScrollContainer from "@/components/InfiniteScrollContainer";
+import { useEffect, useState } from "react";
 
 const topics = [
   { id: "all", label: "All" },
@@ -24,9 +25,30 @@ const topics = [
 export default function ExplorePage() {
   const searchParams = useSearchParams();
   const topic = searchParams.get("topic") || "all";
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfinitePosts();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, error } = useInfinitePosts(topic);
+  const [loading, setLoading] = useState(status === "loading");
 
-  if (status === "loading") {
+  useEffect(() => {
+    if (status === "loading") {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [status]);
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+        <div className="rounded-lg bg-red-50 p-4">
+          <p className="text-sm text-red-800">
+            Error loading posts. Please try again later.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
     return (
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
         {Array.from({ length: 3 }).map((_, i) => (
