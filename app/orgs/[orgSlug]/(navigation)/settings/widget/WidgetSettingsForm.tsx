@@ -51,13 +51,12 @@ export function WidgetSettingsForm({ onSettingsChange }: WidgetSettingsFormProps
     defaultValues,
   });
 
-  const handleFieldChange = () => {
-    const values = form.getValues();
-    onSettingsChange(values);
+  const onSubmit = (data: WidgetSettings) => {
+    onSettingsChange(data);
   };
 
   return (
-    <Form form={form} onSubmit={() => {}}>
+    <Form form={form} onSubmit={onSubmit}>
       <div className="space-y-4">
         <FormField
           control={form.control}
@@ -68,9 +67,9 @@ export function WidgetSettingsForm({ onSettingsChange }: WidgetSettingsFormProps
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  handleFieldChange();
+                  form.handleSubmit(onSettingsChange)();
                 }}
-                value={field.value}
+                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -98,9 +97,9 @@ export function WidgetSettingsForm({ onSettingsChange }: WidgetSettingsFormProps
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  handleFieldChange();
+                  form.handleSubmit(onSettingsChange)();
                 }}
-                value={field.value}
+                defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -132,7 +131,7 @@ export function WidgetSettingsForm({ onSettingsChange }: WidgetSettingsFormProps
                     placeholder="#1a73e8" 
                     onChange={(e) => {
                       field.onChange(e.target.value);
-                      handleFieldChange();
+                      form.handleSubmit(onSettingsChange)();
                     }}
                   />
                   <input
@@ -140,7 +139,7 @@ export function WidgetSettingsForm({ onSettingsChange }: WidgetSettingsFormProps
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e.target.value);
-                      handleFieldChange();
+                      form.handleSubmit(onSettingsChange)();
                     }}
                     className="h-10 w-10 cursor-pointer rounded border border-input bg-background"
                   />
@@ -168,7 +167,7 @@ export function WidgetSettingsForm({ onSettingsChange }: WidgetSettingsFormProps
                   placeholder="90"
                   onChange={(e) => {
                     field.onChange(e.target.value);
-                    handleFieldChange();
+                    form.handleSubmit(onSettingsChange)();
                   }}
                 />
               </FormControl>
