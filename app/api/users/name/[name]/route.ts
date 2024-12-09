@@ -1,6 +1,7 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getUserDataSelect } from "@/lib/types";
+import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
@@ -10,7 +11,7 @@ export async function GET(
     const { user: loggedInUser } = await validateRequest();
 
     if (!loggedInUser) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findFirst({
@@ -51,16 +52,16 @@ export async function GET(
     });
 
     if (!user) {
-      return Response.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Fetch additional data only if needed
     const [postsCount, commentsCount] = await Promise.all([
-      prisma.post.count({ where: { authorId: user?.id } }),
-      prisma.comment.count({ where: { authorId: user?.id } }),
+      prisma.post.count({ where: { userId: user?.id } }),
+      prisma.comment.count({ where: { userId: user?.id } }),
     ]);
 
-    return Response.json({
+    return NextResponse.json({
       ...user,
       _count: {
         ...user?._count,
@@ -70,6 +71,6 @@ export async function GET(
     });
   } catch (error) {
     console.error(error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

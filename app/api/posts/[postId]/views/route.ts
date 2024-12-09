@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { getClientIp } from "@/lib/api/ip";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/helper";
 
 // Helper function to get view count
 async function getViewCount(postId: string) {
@@ -33,7 +32,7 @@ async function trackView(postId: string, viewerId: string, clientIp: string) {
     // Then try to upsert the view
     await prisma.postView.upsert({
       where: {
-        postId_viewerId_clientIp_key: {
+        postId_viewerId_clientIp: {
           postId,
           viewerId,
           clientIp,
@@ -80,9 +79,8 @@ export async function POST(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
+    const user = await auth();
+    if (!user) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
@@ -90,7 +88,7 @@ export async function POST(
     }
 
     const clientIp = getClientIp(request);
-    await trackView(params.postId, session.user.id, clientIp);
+    await trackView(params.postId, user.id, clientIp);
     
     const count = await getViewCount(params.postId);
     return NextResponse.json({ viewCount: count });

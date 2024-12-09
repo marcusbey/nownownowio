@@ -1,20 +1,21 @@
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/auth/helper";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { PostCard } from "@/app/components/PostCard";
+import { PostCard } from "@/features/posts/PostCard";
+import { headers } from "next/headers";
 
 export default async function BookmarksPage() {
-  const session = await getServerSession(authOptions);
+  const headersList = headers();
+  const user = await auth({ headers: headersList } as Request);
   
-  if (!session?.user?.email) {
+  if (!user?.email) {
     redirect("/sign-in");
   }
 
   const bookmarks = await prisma.bookmark.findMany({
     where: {
       user: {
-        email: session.user.email,
+        email: user.email,
       },
     },
     include: {
@@ -46,7 +47,7 @@ export default async function BookmarksPage() {
             <PostCard
               key={bookmark.id}
               post={bookmark.post}
-              currentUserEmail={session.user.email}
+              currentUserEmail={user.email}
               initialIsBookmarked={true}
               bookmarkId={bookmark.id}
             />

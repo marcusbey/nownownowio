@@ -1,37 +1,37 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { baseAuth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
+import { getPostDataInclude } from "@/lib/types";
 
 // GET /api/bookmarks - Get user's bookmarks
-export async function GET() {
-  const session = await getServerSession(authOptions);
+export async function GET(request: Request) {
+  const session = await baseAuth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!existingUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const bookmarks = await prisma.bookmark.findMany({
-      where: {
-        user: {
-          email: session.user.email,
-        },
-      },
+      where: { userId: existingUser.id },
       include: {
         post: {
-          include: {
-            user: true,
-            attachments: true,
-          },
+          include: getPostDataInclude(existingUser.id),
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(bookmarks);
   } catch (error) {
+    console.error("[GET /api/bookmarks]", error);
     return NextResponse.json(
       { error: "Failed to fetch bookmarks" },
       { status: 500 }
@@ -41,51 +41,36 @@ export async function GET() {
 
 // POST /api/bookmarks - Create a bookmark
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await baseAuth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { postId } = await request.json();
+
     if (!postId) {
-      return NextResponse.json(
-        { error: "Post ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Post ID is required" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
 
-    if (!user) {
+    if (!existingUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const bookmark = await prisma.bookmark.create({
       data: {
-        userId: user.id,
         postId,
-      },
-      include: {
-        post: {
-          include: {
-            user: true,
-            attachments: true,
-          },
-        },
+        userId: existingUser.id,
       },
     });
 
     return NextResponse.json(bookmark);
-  } catch (error: any) {
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "Post already bookmarked" },
-        { status: 400 }
-      );
-    }
+  } catch (error) {
+    console.error("[POST /api/bookmarks]", error);
     return NextResponse.json(
       { error: "Failed to create bookmark" },
       { status: 500 }

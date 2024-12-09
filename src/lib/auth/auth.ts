@@ -21,6 +21,8 @@ import {
 } from "./helper";
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
+  adapter: PrismaAdapter(prisma),
+  providers: getNextAuthConfigProviders(),
   pages: {
     signIn: "/auth/signin",
     signOut: "/auth/signout",
@@ -28,8 +30,6 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     verifyRequest: "/auth/verify-request",
     newUser: "/orgs",
   },
-  adapter: PrismaAdapter(prisma),
-  providers: getNextAuthConfigProviders(),
   session: {
     strategy: "database",
     maxAge: 365 * 24 * 60 * 60, // 1 year
@@ -372,6 +372,25 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     logo: `https://${config.domainName}/logo.png`,
   },
 }));
+
+// Export auth config for use in API routes
+export const authOptions = (req: Request) => ({
+  adapter: PrismaAdapter(prisma),
+  providers: getNextAuthConfigProviders(),
+  callbacks: {
+    redirect: async ({ url, baseUrl }) => {
+      if (process.env.NODE_ENV === "development") {
+        return Promise.resolve(url);
+      }
+      const urlObj = new URL(url, baseUrl);
+      return urlObj.toString();
+    },
+    session: async (params) => {
+      return params.session;
+    },
+  },
+  secret: env.NEXTAUTH_SECRET,
+});
 
 export async function handleOAuthSignIn(profile: {
   email: string;

@@ -1,7 +1,9 @@
-import { validateRequest } from "@/lib/auth/helper";
+import { NextResponse } from "next/server";
+import { baseAuth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { getPostDataInclude, PostsPage } from "@/lib/types";
+import { getPostDataInclude } from "@/lib/types";
 import { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -11,63 +13,49 @@ export async function GET(req: NextRequest) {
   try {
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
     const topic = req.nextUrl.searchParams.get("topic");
-
     const pageSize = 10;
 
-    // Add retry logic for auth
-    let user;
-    let authAttempts = 0;
-    const maxAuthAttempts = 3;
-    
-    while (!user && authAttempts < maxAuthAttempts) {
-      try {
-        const auth = await validateRequest();
-        user = auth.user;
-      } catch (error) {
-        authAttempts++;
-        if (authAttempts === maxAuthAttempts) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * authAttempts));
-      }
+    const session = await baseAuth();
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!user) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    const existingUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+
+    if (!existingUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const where = topic && topic !== 'all' ? {
-      topics: {
-        some: {
-          name: topic
-        }
-      }
-    } : undefined;
+    // For now, we'll skip the topic filtering since it's not in the schema
+    const where: Prisma.PostWhereInput = {};
 
     const posts = await prisma.$transaction(async (tx) => {
       return tx.post.findMany({
         where,
-        include: getPostDataInclude(user.id),
+        include: getPostDataInclude(existingUser.id),
         orderBy: { createdAt: "desc" },
         take: pageSize + 1,
         cursor: cursor ? { id: cursor } : undefined,
       });
-    }, {
-      timeout: 20000,  // Increased to 20 seconds for cold starts
-      maxWait: 30000,  // Increased to 30 seconds max wait
     });
 
-    const nextCursor = posts.length > pageSize ? posts[pageSize].id : null;
-
-    const data: PostsPage = {
-      posts: posts.slice(0, pageSize),
-      nextCursor,
-    };
-
-    return Response.json(data);
-  } catch (error) {
-    console.error('Error in /api/posts/for-you:', error);
-    if (error instanceof Error) {
-      return Response.json({ error: error.message }, { status: 500 });
+    let nextCursor: typeof cursor = undefined;
+    if (posts.length > pageSize) {
+      const nextItem = posts.pop();
+      nextCursor = nextItem!.id;
     }
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+
+    return NextResponse.json({
+      posts,
+      nextCursor,
+    });
+  } catch (error) {
+    console.error("[GET /api/posts/for-you]", error);
+    return NextResponse.json(
+      { error: "Failed to fetch posts" },
+      { status: 500 }
+    );
   }
 }
