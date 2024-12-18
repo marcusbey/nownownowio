@@ -23,6 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   InlineTooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
@@ -78,166 +79,129 @@ export const OrgMembersForm = ({
   });
 
   return (
-    <FormUnsavedBar
-      form={form}
-      onSubmit={async (v) => mutation.mutateAsync(v)}
-      className="flex w-full flex-col gap-6 lg:gap-8"
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>Members</CardTitle>
-          <CardDescription>
-            People who have access to your organization.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col">
-          {form.getValues("members")?.map((baseMember, index) => {
-            const member = members.find((m) => m.id === baseMember.id);
-            if (!member) {
-              return null;
-            }
-            return (
-              <div key={member.id}>
-                <div className="my-2 flex flex-wrap items-center gap-2">
-                  <Avatar>
-                    <AvatarFallback>{member.email.slice(0, 2)}</AvatarFallback>
-                    {member.image ? <AvatarImage src={member.image} /> : null}
-                  </Avatar>
-                  <div>
-                    <Typography variant="large">{member.name}</Typography>
-                    <Typography variant="muted">{member.email}</Typography>
-                  </div>
-                  <div className="flex-1"></div>
-                  {baseMember.roles.includes("OWNER") ? (
-                    <InlineTooltip>
-                      <TooltipContent>
-                        You can't change the role of an owner
-                      </TooltipContent>
-                      <TooltipTrigger asChild>
-                        <Button type="button" variant="outline">
-                          OWNER
-                        </Button>
-                      </TooltipTrigger>
-                    </InlineTooltip>
-                  ) : (
-                    <FormField
-                      control={form.control}
-                      name={`members.${index}.roles`}
-                      render={({ field }) => (
-                        <MultiSelector
-                          values={field.value}
-                          onValuesChange={field.onChange}
-                          loop
-                          className="w-fit"
-                        >
-                          <MultiSelectorTrigger className="w-[200px] lg:w-[250px]">
-                            <MultiSelectorInput
-                              className="w-[50px]"
-                              placeholder="roles"
-                            />
-                          </MultiSelectorTrigger>
-                          <MultiSelectorContent>
-                            <MultiSelectorList>
-                              {Object.keys(OrganizationMembershipRole).map(
-                                (role) => {
-                                  if (role === "OWNER") return null;
-                                  return (
-                                    <MultiSelectorItem key={role} value={role}>
+    <TooltipProvider>
+      <FormUnsavedBar
+        form={form}
+        onSubmit={async (v) => mutation.mutateAsync(v)}
+        className="flex w-full flex-col gap-6 lg:gap-8"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Members</CardTitle>
+            <CardDescription>
+              People who have access to your organization.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col">
+            {form.getValues("members")?.map((baseMember, index) => {
+              const member = members.find((m) => m.id === baseMember.id);
+              if (!member) {
+                return null;
+              }
+              return (
+                <div key={member.id}>
+                  <div className="my-2 flex flex-wrap items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={member.image ?? undefined} />
+                      <AvatarFallback>
+                        {member.name?.[0] ?? member.email[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <Typography variant="large">
+                        {member.name}
+                      </Typography>
+                      <Typography variant="muted">
+                        {member.email}
+                      </Typography>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`members.${index}.role`}
+                        render={({ field }) => (
+                          <MultiSelector
+                            values={[field.value]}
+                            onValuesChange={(values) => field.onChange(values[0])}
+                          >
+                            <MultiSelectorTrigger>
+                              <MultiSelectorInput placeholder="Select role" />
+                            </MultiSelectorTrigger>
+                            <MultiSelectorContent>
+                              <MultiSelectorList>
+                                {Object.values(OrganizationMembershipRole).map(
+                                  (role) => (
+                                    <MultiSelectorItem
+                                      key={role}
+                                      value={role}
+                                      textValue={role}
+                                    >
                                       {role}
                                     </MultiSelectorItem>
-                                  );
-                                },
-                              )}
-                            </MultiSelectorList>
-                          </MultiSelectorContent>
-                        </MultiSelector>
-                      )}
-                    />
-                  )}
-
-                  <Button
-                    type="button"
-                    disabled={baseMember.roles.includes("OWNER")}
-                    variant="outline"
-                    onClick={() => {
-                      const newMembers = [...form.getValues("members")].filter(
-                        (m) => m.id !== member.id,
-                      );
-
-                      form.setValue("members", newMembers, {
-                        shouldDirty: true,
-                      });
-                    }}
-                  >
-                    <X size={16} />
-                    <span className="sr-only">Remove member</span>
-                  </Button>
+                                  )
+                                )}
+                              </MultiSelectorList>
+                            </MultiSelectorContent>
+                          </MultiSelector>
+                        )}
+                      />
+                      <InlineTooltip content="Remove member">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            alertDialog.onOpen({
+                              title: "Remove member",
+                              description:
+                                "Are you sure you want to remove this member?",
+                              onConfirm: () => {
+                                const members = form.getValues("members");
+                                form.setValue(
+                                  "members",
+                                  members.filter((m) => m.id !== member.id)
+                                );
+                              },
+                            });
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </InlineTooltip>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-          {invitedEmail.length > 0 && (
-            <div className="my-4 flex flex-col gap-4">
-              <Typography variant="h3">Pending invitations</Typography>
-              <ul className="list-inside list-disc text-sm text-muted-foreground">
-                {invitedEmail.map((email) => (
-                  <li key={email}>{email}</li>
-                ))}
-              </ul>
+              );
+            })}
+            <div className="mt-4">
+              <Progress
+                value={
+                  ((form.getValues("members")?.length ?? 0) / maxMembers) * 100
+                }
+                className="h-2"
+              />
+              <Typography variant="muted">
+                {form.getValues("members")?.length ?? 0} of {maxMembers} members
+              </Typography>
             </div>
-          )}
-          {form.watch("members").length < maxMembers ? (
-            <OrganizationInviteMemberForm />
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+          </CardContent>
+        </Card>
 
-                const dialogId = alertDialog.add({
-                  title: "Oh no ! You've reached the maximum number of members",
-                  description: (
-                    <>
-                      <Typography>
-                        You can't add more members to your organization. Please
-                        upgrade your plan to add more members.
-                      </Typography>
-                      <Alert className="flex flex-col gap-2">
-                        <Progress
-                          value={
-                            (form.getValues("members").length / maxMembers) *
-                            100
-                          }
-                        />
-                        <Typography variant="small">
-                          You have {form.getValues("members").length} members
-                          out of {maxMembers} members
-                        </Typography>
-                      </Alert>
-                    </>
-                  ),
-                  action: (
-                    <Button
-                      onClick={() => {
-                        openGlobalDialog("org-plan");
-                        alertDialog.remove(dialogId);
-                      }}
-                    >
-                      <Zap className="mr-2" size={16} />
-                      Upgrade your plan
-                    </Button>
-                  ),
-                });
-              }}
-            >
-              <Zap className="mr-2" size={16} />
-              Invite member
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    </FormUnsavedBar>
+        <Card>
+          <CardHeader>
+            <CardTitle>Invite Members</CardTitle>
+            <CardDescription>
+              Invite new members to your organization.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OrganizationInviteMemberForm
+              invitedEmail={invitedEmail}
+              maxMembers={maxMembers}
+              currentMemberCount={form.getValues("members")?.length ?? 0}
+            />
+          </CardContent>
+        </Card>
+      </FormUnsavedBar>
+    </TooltipProvider>
   );
 };

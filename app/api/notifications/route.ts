@@ -7,11 +7,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
-
     const pageSize = 10;
 
     const { user } = await validateRequest();
-
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
