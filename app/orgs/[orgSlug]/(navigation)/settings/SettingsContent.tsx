@@ -13,25 +13,29 @@ type SettingsContentProps = {
 
 export function SettingsContent({ organization, orgSlug }: SettingsContentProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-1.5">
-        <h2 className="text-2xl font-semibold">Settings</h2>
+    <div className="container max-w-4xl py-6">
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold">Organization Settings</h2>
         <p className="text-sm text-muted-foreground">
           Manage your organization's settings and integrations
         </p>
       </div>
 
       <Tabs defaultValue="organization" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="organization">Organization Settings</TabsTrigger>
-          <TabsTrigger value="widget">Widget Integration</TabsTrigger>
+        <TabsList className="w-full justify-start border-b pb-px">
+          <TabsTrigger value="organization" className="relative">
+            Organization Details
+          </TabsTrigger>
+          <TabsTrigger value="widget" className="relative">
+            Widget Integration
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="organization" className="space-y-4">
-          <Card className="border-opacity-20">
-            <CardHeader className="space-y-1.5">
+        <TabsContent value="organization">
+          <Card>
+            <CardHeader>
               <CardTitle className="text-lg">Organization Details</CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription>
                 Customize your organization's appearance and information
               </CardDescription>
             </CardHeader>
@@ -41,15 +45,15 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
           </Card>
         </TabsContent>
 
-        <TabsContent value="widget" className="space-y-4">
-          <Card className="h-fit border-opacity-20">
-            <CardHeader className="space-y-1 py-3">
-              <CardTitle className="text-base">Widget Script Generator</CardTitle>
-              <CardDescription className="text-xs">
-                Generate a script to embed the NowNowNow widget on your website.
+        <TabsContent value="widget">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Widget Script Generator</CardTitle>
+              <CardDescription>
+                Generate a script to embed the NowNowNow widget on your website
               </CardDescription>
             </CardHeader>
-            <CardContent className="py-3">
+            <CardContent>
               <WidgetScriptGenerator orgSlug={orgSlug} />
             </CardContent>
           </Card>

@@ -117,28 +117,6 @@ export function NavigationWrapper({
 
       {/* Main Content */}
       <div className="flex min-h-screen">
-        {!hideSidebar && (
-          <div className="sticky top-0 hidden h-screen w-64 flex-col border-r bg-background lg:flex">
-            <div className="flex h-14 items-center gap-2 border-b px-4">
-              <Button variant="ghost" asChild className="gap-2 px-2">
-                {logoChildren || (
-                  <>
-                    <LogoSvg className="size-8" />
-                    <Typography variant="h4">Nownownow</Typography>
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="flex-1 px-2">{navigationChildren}</div>
-            <div className="flex flex-col items-start gap-2 p-4">
-              {bottomNavigationChildren}
-              <ThemeToggle />
-            </div>
-            <div className="mt-auto hidden p-4 sm:block">
-              {bottomNavigationCardChildren}
-            </div>
-          </div>
-        )}
         <main className="flex flex-1 flex-col gap-4 overflow-auto px-4 md:gap-6 md:px-6 no-scrollbar">
           {children}
         </main>
