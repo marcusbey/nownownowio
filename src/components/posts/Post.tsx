@@ -7,7 +7,7 @@ import { Eye, MessageSquare, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import Linkify from "../Linkify";
 import UserAvatar from "../UserAvatar";
 import UserTooltip from "../UserTooltip";
@@ -32,6 +32,7 @@ export default function Post({ post }: PostProps) {
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const { viewCount } = usePostViews(post.id);
 
   useEffect(() => {
     setIsClient(true);
@@ -44,10 +45,16 @@ export default function Post({ post }: PostProps) {
     setShowComments((prev) => !prev);
   }, [isClient]);
 
-  const userProfileLink =
+  const userProfileLink = useMemo(() => 
     user && post.user.id === user.id
       ? `/orgs/${post.user.organizations?.[0]?.organization?.slug || ""}/profile`
-      : `/users/${post.user.name}`;
+      : `/users/${post.user.name}`,
+    [user, post.user]
+  );
+
+  const isOwnPost = useMemo(() => user && post.user.id === user.id, [user, post.user.id]);
+  const displayName = useMemo(() => post.user.displayName || post.user.name, [post.user]);
+  const hasAttachments = post.attachments?.length > 0;
 
   return (
     <motion.article 
@@ -57,6 +64,7 @@ export default function Post({ post }: PostProps) {
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
+      layout
     >
       <div className="flex justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -64,7 +72,8 @@ export default function Post({ post }: PostProps) {
             <Link href={userProfileLink} className="shrink-0">
               <UserAvatar 
                 avatarUrl={post.user.image} 
-                className="h-10 w-10 ring-1 ring-offset-2 ring-primary/10 hover:ring-primary/30 transition-all duration-200" 
+                className="h-10 w-10 ring-1 ring-offset-2 ring-primary/10 hover:ring-primary/30 transition-all duration-200"
+                priority={true}
               />
             </Link>
           </UserTooltip>
@@ -74,7 +83,7 @@ export default function Post({ post }: PostProps) {
                 href={userProfileLink}
                 className="font-semibold hover:underline decoration-primary/30"
               >
-                {post.user.displayName || post.user.name}
+                {displayName}
               </Link>
             </UserTooltip>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -88,12 +97,12 @@ export default function Post({ post }: PostProps) {
               <span>•</span>
               <span className="flex items-center gap-0.5">
                 <Eye className="h-3 w-3" />
-                {usePostViews(post.id).viewCount + 1}
+                {(viewCount || 0) + 1}
               </span>
             </div>
           </div>
         </div>
-        {user && post.user.id === user.id && (
+        {isOwnPost && (
           <PostMoreButton
             post={post}
             className={cn(
@@ -110,9 +119,9 @@ export default function Post({ post }: PostProps) {
         </div>
       </Linkify>
 
-      {!!post.attachments.length && (
+      {hasAttachments && (
         <div className="rounded-lg overflow-hidden mt-2">
-          <Suspense fallback={<div className="h-48 animate-pulse bg-muted" />}>
+          <Suspense fallback={<div className="h-48 animate-pulse bg-muted rounded-lg" />}>
             <LazyMediaPreviews attachments={post.attachments} />
           </Suspense>
         </div>
@@ -123,9 +132,9 @@ export default function Post({ post }: PostProps) {
           postId={post.id}
           initialState={{
             likes: post._count.likes,
-            isLikedByUser: post.likes.some(
+            isLikedByUser: post.likes?.some(
               (like) => like.userId === user?.id,
-            ),
+            ) || false,
           }}
           className="text-muted-foreground/50 hover:text-primary/70"
         />
@@ -148,9 +157,9 @@ export default function Post({ post }: PostProps) {
           <BookmarkButton
             postId={post.id}
             initialState={{
-              isBookmarkedByUser: post.bookmarks.some(
+              isBookmarkedByUser: post.bookmarks?.some(
                 (bookmark) => bookmark.userId === user?.id,
-              ),
+              ) || false,
             }}
             className="text-muted-foreground/50 hover:text-primary/70"
           />
@@ -163,8 +172,9 @@ export default function Post({ post }: PostProps) {
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.2 }}
+          layout
         >
-          <Suspense fallback={<div className="h-24 animate-pulse bg-muted" />}>
+          <Suspense fallback={<div className="h-24 animate-pulse bg-muted rounded-lg" />}>
             <Comments post={post} />
           </Suspense>
         </motion.div>

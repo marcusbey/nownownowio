@@ -25,12 +25,12 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
 
   const followerState = useMemo(
     () => ({
-      followers: user._count.followers,
-      isFollowedByUser: !!user.followers.some(
+      followers: user._count?.followers ?? 0,
+      isFollowedByUser: user.followers?.some(
         ({ followerId }) => followerId === loggedInUser?.id,
-      ),
+      ) ?? false,
     }),
-    [user._count.followers, user.followers, loggedInUser?.id]
+    [user._count?.followers, user.followers, loggedInUser?.id]
   );
 
   const tooltipContent = useMemo(
@@ -47,30 +47,35 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
         <div>
           <Link href={`/users/${user.name}`}>
             <div className="text-lg font-semibold hover:underline">
-              {user.displayName}
+              {user.displayName || user.name}
             </div>
-            <div className="text-muted-foreground">@{user.name}</div>
+            <div className="text-sm text-muted-foreground">@{user.name}</div>
           </Link>
         </div>
         {user.bio && (
           <Linkify>
-            <div className="line-clamp-4 whitespace-pre-line">{user.bio}</div>
+            <div className="text-sm">{user.bio}</div>
           </Linkify>
         )}
-        <FollowerCount userId={user.id} initialState={followerState} />
+        <FollowerCount count={followerState.followers} />
       </div>
     ),
     [user, loggedInUser, followerState]
   );
 
+  if (!user) return <>{children}</>;
+
   return (
     <TooltipProvider>
-      <Tooltip>
+      <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent>
-          <Suspense fallback={<div>Loading...</div>}>
-            {tooltipContent}
-          </Suspense>
+        <TooltipContent
+          side="bottom"
+          align="start"
+          sideOffset={5}
+          className="bg-card"
+        >
+          {tooltipContent}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

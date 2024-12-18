@@ -5,10 +5,12 @@ import Post from "@/components/posts/Post";
 import PostsLoadingSkeleton from "@/components/posts/PostsLoadingSkeleton";
 import kyInstance from "@/lib/ky";
 import { PostsPage } from "@/lib/types";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useMemo } from "react";
 
 export default function ForYouFeed() {
+  const queryClient = useQueryClient();
   const {
     data,
     fetchNextPage,
@@ -35,9 +37,14 @@ export default function ForYouFeed() {
     retry: false,
     keepPreviousData: true,
     suspense: false,
+    gcTime: 1000 * 60 * 60, // 1 hour
+    networkMode: 'offlineFirst',
   });
 
-  const posts = data?.pages.flatMap((page) => page.posts) || [];
+  const posts = useMemo(
+    () => data?.pages.flatMap((page) => page.posts) || [],
+    [data?.pages]
+  );
 
   if (status === "loading") {
     return <PostsLoadingSkeleton />;
