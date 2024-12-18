@@ -28,10 +28,10 @@ export function NavigationWrapper({
   bottomNavigationCardChildren,
   bottomNavigationChildren,
   rightSideBar,
-  // topBarChildren,
 }: NavigationWrapperProps) {
   const pathname = usePathname();
   const [hideSidebar, setHideSidebar] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const getRoutesWithoutSidebar = useMemo(() => {
     const settingsSection = ORGANIZATION_LINKS.find(
@@ -65,6 +65,27 @@ export function NavigationWrapper({
     setHideSidebar(shouldHide);
   }, [pathname, getRoutesWithoutSidebar, shouldHideSidebar]);
 
+  // Prevent navigation while form is dirty
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isNavigating) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isNavigating]);
+
+  const handleNavigation = useCallback(() => {
+    setIsNavigating(false);
+  }, []);
+
+  useEffect(() => {
+    handleNavigation();
+  }, [pathname, handleNavigation]);
+
   const gridCols = hideSidebar
     ? "grid-cols-[1fr] sm:grid-cols-[1fr] md:grid-cols-[1fr] lg:grid-cols-[1fr_3fr]"
     : "grid-cols-[1fr] sm:grid-cols-[20%_60%_20%] md:grid-cols-[25%_50%_25%] lg:grid-cols-[1fr_3fr_2fr]";
@@ -95,24 +116,29 @@ export function NavigationWrapper({
       </div>
 
       {/* Main Content */}
-      <div className="flex max-h-screen flex-col">
-        {/* Mobile Header */}
-        <header className="flex items-center justify-between border-b border-border p-4 sm:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <div className="flex cursor-pointer items-center">
-                {logoChildren}
-              </div>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] sm:w-[350px]">
-              {navigationChildren}
-            </SheetContent>
-          </Sheet>
-          <LogoSvg size={32} />
-          <Button size="sm" variant="secondary" className="aspect-square p-2">
-            <ArrowUpCircle size={24} />
-          </Button>
-        </header>
+      <div className="flex min-h-screen">
+        {!hideSidebar && (
+          <div className="sticky top-0 hidden h-screen w-64 flex-col border-r bg-background lg:flex">
+            <div className="flex h-14 items-center gap-2 border-b px-4">
+              <Button variant="ghost" asChild className="gap-2 px-2">
+                {logoChildren || (
+                  <>
+                    <LogoSvg className="size-8" />
+                    <Typography variant="h4">Nownownow</Typography>
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="flex-1 px-2">{navigationChildren}</div>
+            <div className="flex flex-col items-start gap-2 p-4">
+              {bottomNavigationChildren}
+              <ThemeToggle />
+            </div>
+            <div className="mt-auto hidden p-4 sm:block">
+              {bottomNavigationCardChildren}
+            </div>
+          </div>
+        )}
         <main className="flex flex-1 flex-col gap-4 overflow-auto px-4 md:gap-6 md:px-6 no-scrollbar">
           {children}
         </main>

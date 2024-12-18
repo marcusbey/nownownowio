@@ -36,7 +36,7 @@ import { useMutation } from "@tanstack/react-query";
 import { differenceInMinutes } from "date-fns";
 import { BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   sendUpdateEmailVerificationCodeAction,
@@ -62,6 +62,16 @@ export const EditProfileCardForm = ({
     isDialogOpen: false,
     token: "",
   });
+  const [isFormDirty, setIsFormDirty] = useState(false);
+
+  // Track form changes
+  const watchAll = form.watch();
+  useEffect(() => {
+    const hasChanges = Object.keys(watchAll).some(
+      (key) => watchAll[key] !== defaultValues[key as keyof typeof defaultValues]
+    );
+    setIsFormDirty(hasChanges);
+  }, [watchAll, defaultValues]);
 
   const sendVerificationCodeMutation = useMutation({
     mutationFn: async () => {
@@ -155,6 +165,24 @@ export const EditProfileCardForm = ({
             />
             <FormField
               control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile Image</FormLabel>
+                  <FormControl>
+                    <ImageFormItem
+                      className="size-16 rounded-full"
+                      onChange={(url) => field.onChange(url)}
+                      imageUrl={field.value || defaultValues.image}
+                      defaultImageUrl={defaultValues.image}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -180,11 +208,17 @@ export const EditProfileCardForm = ({
               )}
             />
           </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <LoadingButton loading={updateProfileMutation.isPending}>
-              Save
-            </LoadingButton>
-          </CardFooter>
+          {isFormDirty && (
+            <CardFooter className="flex justify-end border-t pt-4">
+              <LoadingButton
+                loading={updateProfileMutation.isPending}
+                type="submit"
+                size="sm"
+              >
+                Save Changes
+              </LoadingButton>
+            </CardFooter>
+          )}
         </Card>
       </Form>
       <EmailVerificationDialog

@@ -16,97 +16,102 @@ import type { FieldValues } from "react-hook-form";
 import { useKey } from "react-use";
 import { LoadingButton } from "./SubmitButton";
 
-const PortalContent = memo(({ isDirty, onSubmit, disabled }: {
+interface PortalContentProps {
   isDirty: boolean;
   onSubmit: () => void;
   disabled?: boolean;
-}) => (
-  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center overflow-hidden py-4">
-    <AnimatePresence>
-      {isDirty ? (
-        <motion.div
-          key="save-bar"
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          exit={{
-            opacity: [1, 1, 0],
-            y: [0, -10, 20],
-            transition: {
-              duration: 0.5,
-            },
-          }}
-          className="pointer-events-auto flex items-center gap-4 rounded-md border bg-card p-1 lg:p-2"
-        >
-          <Typography variant="small">
-            Changes have been made. Save now !
-          </Typography>
-          <LoadingButton
-            size="sm"
-            loading={disabled}
-            variant="success"
-            onClick={onSubmit}
+}
+
+const PortalContent = memo(function PortalContent({ isDirty, onSubmit, disabled }: PortalContentProps) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex items-center justify-center">
+      <AnimatePresence mode="wait">
+        {isDirty && (
+          <motion.div
+            key="save-bar"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="pointer-events-auto flex items-center gap-3 rounded-lg border bg-card px-4 py-2 shadow-lg"
           >
-            Save{" "}
-            <KeyboardShortcut eventKey="cmd">
-              <CmdOrOption />
-            </KeyboardShortcut>
-            <KeyboardShortcut eventKey="s">S</KeyboardShortcut>
-          </LoadingButton>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
-  </div>
-));
+            <Typography variant="small" className="text-muted-foreground">
+              Save your changes
+            </Typography>
+            <div className="flex items-center gap-2">
+              <LoadingButton
+                size="sm"
+                variant="default"
+                loading={disabled}
+                onClick={onSubmit}
+                className="h-8 px-3"
+              >
+                Save
+                <KeyboardShortcut className="ml-2">
+                  <CmdOrOption />S
+                </KeyboardShortcut>
+              </LoadingButton>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+});
 
-export const FormUnsavedBar = <T extends FieldValues>(props: FormProps<T>) => {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const isDirty = useMemo(() => props.form.formState.isDirty, [props.form.formState.isDirty]);
+PortalContent.displayName = 'PortalContent';
 
-  const submit = useCallback(() => buttonRef.current?.click(), []);
+export function FormUnsavedBar<T extends FieldValues>(props: FormProps<T>) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
+  const isDirty = props.form.formState.isDirty;
+  const disabled = props.disabled;
+
+  useWarnIfUnsavedChanges(isDirty);
+
+  const handleSubmit = useCallback(() => {
+    if (formRef.current && !disabled) {
+      formRef.current.requestSubmit();
+    }
+  }, [disabled]);
 
   useKey(
-    (event) => (event.ctrlKey || event.metaKey) && event.key === "s" && isDirty,
-    submit,
-    { event: "keydown" },
-    [isDirty, submit],
-  );
-
-  useWarnIfUnsavedChanges(
-    isDirty,
-    "You have unsaved changes. Are you sure you want to leave?",
+    (event) => (event.metaKey || event.ctrlKey) && event.key === "s",
+    (event) => {
+      event.preventDefault();
+      handleSubmit();
+    },
   );
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
+    
+    portalRef.current = document.createElement("div");
+    document.body.appendChild(portalRef.current);
+    
     return () => {
-      // Cleanup any event listeners
-      if (typeof window !== "undefined") {
-        window.removeEventListener("keydown", submit);
+      if (portalRef.current) {
+        document.body.removeChild(portalRef.current);
       }
     };
-  }, [submit]);
+  }, []);
 
-  if (typeof window === "undefined") return null;
+  const portal = useMemo(() => {
+    if (!portalRef.current) return null;
+    
+    return createPortal(
+      <PortalContent
+        isDirty={isDirty}
+        onSubmit={handleSubmit}
+        disabled={disabled}
+      />,
+      portalRef.current,
+    );
+  }, [isDirty, handleSubmit, disabled]);
 
   return (
-    <>
-      <Form {...props} className={cn(props.className)}>
-        {props.children}
-        <button type="submit" className="hidden" ref={buttonRef} />
-      </Form>
-      {createPortal(
-        <PortalContent
-          isDirty={isDirty}
-          onSubmit={submit}
-          disabled={props.disabled ?? props.form.formState.isSubmitting}
-        />,
-        document.body,
-      )}
-    </>
+    <Form {...props} ref={formRef}>
+      {props.children}
+      {portal}
+    </Form>
   );
-};
+}

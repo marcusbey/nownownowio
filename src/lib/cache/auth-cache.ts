@@ -69,19 +69,13 @@ export async function getSession(sessionToken: string) {
             image: true,
           }
         }
-      },
-      cacheStrategy: {
-        ttl: 60, // Cache for 1 minute
-        swr: 300 // Stale while revalidate for 5 minutes
       }
     })
 
     if (!session) return null
-
-    const result = await CompressionUtil.compressIfNeeded(session)
-    return result
+    return session
   }, {
-    ttl: 60 * 1000, // Cache for 1 minute
+    ttl: 60 * 60 * 1000, // Cache for 1 hour
     staleWhileRevalidate: true
   })
 }

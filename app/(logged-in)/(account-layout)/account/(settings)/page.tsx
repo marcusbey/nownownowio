@@ -25,20 +25,27 @@ export default async function EditProfilePage() {
   });
 
   return (
-    <div className="flex flex-col gap-4 lg:gap-8">
-      <EditProfileCardForm defaultValues={user} />
-      {hasPassword ? (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EditPasswordForm />
-            </CardContent>
-          </Card>
-        </>
-      ) : null}
+    <div className="mx-auto max-w-2xl w-full py-6 space-y-8">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Account Settings</h1>
+        </div>
+        
+        <div className="grid gap-6">
+          <EditProfileCardForm defaultValues={user} />
+          
+          {hasPassword && (
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/50">
+                <CardTitle>Password Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <EditPasswordForm />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

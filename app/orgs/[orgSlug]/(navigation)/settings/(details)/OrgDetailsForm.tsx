@@ -1,22 +1,17 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
+  Form,
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
   useZodForm,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
 import { ImageFormItem } from "@/features/images/ImageFormItem";
+import { LoadingButton } from "@/features/form/SubmitButton";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -25,6 +20,7 @@ import {
   OrgDetailsFormSchema,
   type OrgDetailsFormSchemaType,
 } from "../org.schema";
+import { useEffect } from "react";
 
 type ProductFormProps = {
   defaultValues: OrgDetailsFormSchemaType;
@@ -36,108 +32,109 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
     defaultValues,
   });
   const router = useRouter();
+  const isDirty = form.formState.isDirty;
 
   const mutation = useMutation({
     mutationFn: async (values: OrgDetailsFormSchemaType) => {
       const result = await updateOrganizationDetailsAction(values);
 
       if (!result || result.serverError) {
-        toast.error(result?.serverError ?? "Failed to invite user");
+        toast.error(result?.serverError ?? "Failed to update organization");
         return;
       }
 
+      toast.success("Organization updated successfully");
       router.refresh();
       form.reset(result.data as OrgDetailsFormSchemaType);
     },
   });
 
+  // Reset form when defaultValues change
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues, form]);
+
   return (
-    <FormUnsavedBar
+    <Form
       form={form}
-      onSubmit={async (v) => mutation.mutateAsync(v)}
-      className="space-y-4"
+      onSubmit={async (values) => {
+        await mutation.mutateAsync(values);
+      }}
     >
-      <div className="flex items-start gap-4">
+      <div className="space-y-6">
         <FormField
           control={form.control}
           name="image"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Organization Image</FormLabel>
               <FormControl>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Profile Image</label>
-                  <ImageFormItem
-                    className="size-24 rounded-full"
-                    onChange={(url) => field.onChange(url)}
-                    imageUrl={field.value}
-                  />
-                </div>
+                <ImageFormItem
+                  className="size-24 rounded-lg"
+                  onChange={(url) => field.onChange(url)}
+                  imageUrl={field.value || defaultValues.image}
+                  defaultImageUrl={defaultValues.image}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="flex-1 space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Organization Name</label>
-                    <Input 
-                      className="h-10"
-                      placeholder="Enter your organization name" 
-                      {...field} 
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="bio"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Bio</label>
-                    <textarea
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Tell us about your organization (max 500 characters)"
-                      maxLength={500}
-                      {...field}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Organization Email</label>
-                    <Input 
-                      className="h-10"
-                      placeholder="Enter your organization email" 
-                      {...field} 
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organization Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organization Email</FormLabel>
+              <FormControl>
+                <Input {...field} type="email" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="websiteUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Website URL</FormLabel>
+              <FormControl>
+                <Input {...field} type="url" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {isDirty && (
+          <div className="flex justify-end border-t pt-4">
+            <LoadingButton
+              type="submit"
+              loading={mutation.isPending}
+              disabled={!isDirty}
+            >
+              Save Changes
+            </LoadingButton>
+          </div>
+        )}
       </div>
-    </FormUnsavedBar>
+    </Form>
   );
 };
