@@ -11,16 +11,16 @@ import {
 } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { PLANS } from "@/features/plans/plans";
-import { OrganizationPlan } from "@prisma/client";
-import { Subscription } from "@stripe/stripe-js";
+import type { OrganizationPlan } from "@prisma/client";
+import type Stripe from "stripe";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { updateSubscription } from "./actions";
 import { useTransition } from "react";
 
 interface PlansProps {
-  currentPlan: OrganizationPlan;
-  subscription?: Subscription;
+  currentPlan: OrganizationPlan | null;
+  subscription?: Stripe.Subscription;
   organizationId: string;
 }
 
@@ -80,21 +80,21 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
               ))}
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col items-stretch gap-2">
             <Button
               className="w-full"
               variant={plan.isPopular ? "default" : "outline"}
               disabled={
                 isPending ||
-                (currentPlan.id === plan.id && subscription?.status === "active")
+                (currentPlan?.id === plan.id && subscription?.status === "active")
               }
               onClick={() => handleSubscriptionUpdate(plan.priceId)}
             >
-              {currentPlan.id === plan.id
+              {currentPlan?.id === plan.id
                 ? "Current Plan"
                 : plan.cta}
             </Button>
-            <p className="mt-2 text-center text-sm text-muted-foreground">
+            <p className="text-center text-sm text-muted-foreground">
               {plan.ctaSubtitle}
             </p>
           </CardFooter>

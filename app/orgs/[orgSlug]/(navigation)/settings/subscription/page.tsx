@@ -13,13 +13,10 @@ export default async function SubscriptionPage({
   params: { orgSlug: string };
 }) {
   const session = await auth();
-  if (!session?.user) return null;
+  if (!session?.id) return null;
 
   const organization = await prisma.organization.findUnique({
     where: { slug: orgSlug },
-    include: {
-      plan: true,
-    },
   });
 
   if (!organization) {
@@ -28,11 +25,13 @@ export default async function SubscriptionPage({
 
   let subscription = null;
   if (organization.stripeCustomerId) {
-    subscription = await stripe.subscriptions.list({
+    const subscriptions = await stripe.subscriptions.list({
       customer: organization.stripeCustomerId,
       status: "active",
       expand: ["data.default_payment_method"],
+      limit: 1,
     });
+    subscription = subscriptions.data[0];
   }
 
   return (
@@ -50,7 +49,7 @@ export default async function SubscriptionPage({
           <TabsContent value="plans" className="mt-6">
             <Plans 
               currentPlan={organization.plan}
-              subscription={subscription?.data[0]}
+              subscription={subscription}
               organizationId={organization.id}
             />
           </TabsContent>
@@ -58,7 +57,7 @@ export default async function SubscriptionPage({
           <TabsContent value="billing" className="mt-6">
             <BillingInfo 
               organization={organization}
-              subscription={subscription?.data[0]}
+              subscription={subscription}
             />
           </TabsContent>
         </Tabs>

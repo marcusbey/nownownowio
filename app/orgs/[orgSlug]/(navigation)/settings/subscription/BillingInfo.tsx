@@ -9,15 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Organization } from "@prisma/client";
-import { Subscription } from "@stripe/stripe-js";
+import type { Organization } from "@prisma/client";
+import type Stripe from "stripe";
 import { toast } from "sonner";
 import { useTransition } from "react";
 import { manageBilling } from "./actions";
 
 interface BillingInfoProps {
   organization: Organization;
-  subscription?: Subscription;
+  subscription?: Stripe.Subscription;
 }
 
 export function BillingInfo({ organization, subscription }: BillingInfoProps) {
@@ -76,8 +76,8 @@ export function BillingInfo({ organization, subscription }: BillingInfoProps) {
               <div>
                 <div className="text-sm font-medium">Payment Method</div>
                 <div className="text-sm text-muted-foreground">
-                  {subscription.default_payment_method.card?.brand?.toUpperCase()}{" "}
-                  ending in {subscription.default_payment_method.card?.last4}
+                  {(subscription.default_payment_method as Stripe.PaymentMethod).card?.brand?.toUpperCase()}{" "}
+                  ending in {(subscription.default_payment_method as Stripe.PaymentMethod).card?.last4}
                 </div>
               </div>
             )}
