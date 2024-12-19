@@ -13,6 +13,7 @@ import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { LoginCredentialsFormScheme } from "./signup.schema";
+import logger from "@/lib/logger";
 
 export const signUpAction = action
   .schema(LoginCredentialsFormScheme)
@@ -39,13 +40,19 @@ export const signUpAction = action
         },
       });
 
+      // Handle any pending invitations
       await setupDefaultOrganizationsOrInviteUser(user);
 
-      // Redirect to the appropriate page
+      // If there's a pending invitation, we'll be redirected to it
+      // Otherwise, redirect to the organizations page
       redirect("/orgs");
 
       return user;
-    } catch {
-      throw new ActionError("Email already exists");
+    } catch (error) {
+      logger.error("Failed to sign up user", { error, email });
+      if (error instanceof Error) {
+        throw new ActionError(error.message);
+      }
+      throw new ActionError("Failed to create account");
     }
   });

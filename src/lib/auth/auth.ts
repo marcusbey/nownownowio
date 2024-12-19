@@ -76,53 +76,89 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         return false;
       }
 
-      // For Twitter, if email is not available, create a placeholder
-      if (account.provider === "twitter" && !user.email) {
-        user.email = `${user.id}@twitter.placeholder.com`;
-        logger.info("[Auth] Created placeholder email for Twitter user", { 
-          userId: user.id,
-          email: user.email 
-        });
-      }
-
       if (!user.email) {
         logger.error("[Auth] SignIn failed: No email provided", { user });
         return false;
       }
 
       try {
-        // First try to find a user with the same email
-        let existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          include: { 
-            accounts: true,
-            organizations: {
-              include: {
-                organization: true
-              }
+        // Check for pending invitations
+        const pendingInvitations = await prisma.verificationToken.findMany({
+          where: {
+            identifier: {
+              startsWith: `${user.email}-invite-`,
             },
-            posts: true
-          }
+            expires: {
+              gt: new Date(),
+            },
+          },
+          include: {
+            data: true,
+          },
         });
+
+        // If there are pending invitations, handle them
+        if (pendingInvitations.length > 0) {
+          for (const invitation of pendingInvitations) {
+            const tokenData = TokenSchema.parse(invitation.data);
+            
+            // Create membership if it doesn't exist
+            const existingMembership = await prisma.organizationMembership.findFirst({
+              where: {
+                organizationId: tokenData.orgId,
+                userId: user.id,
+              },
+            });
+
+            if (!existingMembership) {
+              await prisma.organizationMembership.create({
+                data: {
+                  organizationId: tokenData.orgId,
+                  userId: user.id,
+                  roles: ["MEMBER"],
+                },
+              });
+
+              logger.info("[Auth] Added user to organization from invitation", {
+                userId: user.id,
+                email: user.email,
+                organizationId: tokenData.orgId,
+              });
+            }
+
+            // Delete the invitation token
+            await prisma.verificationToken.delete({
+              where: {
+                token: invitation.token,
+              },
+            });
+          }
+        }
 
         // For OAuth providers, we can trust the email is verified
         if (account.type === "oauth") {
           user.emailVerified = new Date();
         }
 
-        // If no existing user, we're good to proceed
-        if (!existingUser) {
-          return true;
+        // For Twitter, if email is not available, create a placeholder
+        if (account.provider === "twitter" && !user.email) {
+          user.email = `${user.id}@twitter.placeholder.com`;
+          logger.info("[Auth] Created placeholder email for Twitter user", { 
+            userId: user.id,
+            email: user.email 
+          });
         }
 
-        // If no user found and this is a Twitter placeholder email,
-        // try to find a matching user by name
-        if (!existingUser && user.email?.includes('@twitter.placeholder.com')) {
-          const normalizedNewName = user.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
-          
-          // Find all users and check for name similarity
-          const allUsers = await prisma.user.findMany({
-            include: {
+        if (!user.email) {
+          logger.error("[Auth] SignIn failed: No email provided", { user });
+          return false;
+        }
+
+        try {
+          // First try to find a user with the same email
+          let existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            include: { 
               accounts: true,
               organizations: {
                 include: {
@@ -133,129 +169,160 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
             }
           });
 
-          // Find a user with a similar name
-          existingUser = allUsers.find(u => {
-            const normalizedExistingName = u.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
-            return normalizedExistingName && normalizedNewName &&
-                   (normalizedExistingName.includes(normalizedNewName) ||
-                    normalizedNewName.includes(normalizedExistingName));
-          });
+          // If no existing user, we're good to proceed
+          if (!existingUser) {
+            return true;
+          }
+
+          // If no user found and this is a Twitter placeholder email,
+          // try to find a matching user by name
+          if (!existingUser && user.email?.includes('@twitter.placeholder.com')) {
+            const normalizedNewName = user.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
+            
+            // Find all users and check for name similarity
+            const allUsers = await prisma.user.findMany({
+              include: {
+                accounts: true,
+                organizations: {
+                  include: {
+                    organization: true
+                  }
+                },
+                posts: true
+              }
+            });
+
+            // Find a user with a similar name
+            existingUser = allUsers.find(u => {
+              const normalizedExistingName = u.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
+              return normalizedExistingName && normalizedNewName &&
+                     (normalizedExistingName.includes(normalizedNewName) ||
+                      normalizedNewName.includes(normalizedExistingName));
+            });
+
+            if (existingUser) {
+              logger.info('[Auth] Found matching user by name similarity', {
+                newUser: user.name,
+                existingUser: existingUser.name
+              });
+            }
+          }
 
           if (existingUser) {
-            logger.info('[Auth] Found matching user by name similarity', {
-              newUser: user.name,
-              existingUser: existingUser.name
-            });
-          }
-        }
+            // Check if this provider is already linked
+            const hasProvider = existingUser.accounts.some(
+              acc => acc.provider === account.provider
+            );
 
-        if (existingUser) {
-          // Check if this provider is already linked
-          const hasProvider = existingUser.accounts.some(
-            acc => acc.provider === account.provider
-          );
+            if (!hasProvider) {
+              // Link the new provider to the existing account
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type || "oauth",
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId || user.id,
+                  access_token: account.access_token,
+                  refresh_token: account.refresh_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                  session_state: account.session_state
+                }
+              });
 
-          if (!hasProvider) {
-            // Link the new provider to the existing account
-            await prisma.account.create({
-              data: {
-                userId: existingUser.id,
-                type: account.type || "oauth",
-                provider: account.provider,
-                providerAccountId: account.providerAccountId || user.id,
-                access_token: account.access_token,
-                refresh_token: account.refresh_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope,
-                id_token: account.id_token,
-                session_state: account.session_state
+              // If this was a Twitter placeholder email, update it with the real email
+              if (existingUser.email?.includes('@twitter.placeholder.com') && !user.email?.includes('@twitter.placeholder.com')) {
+                await prisma.user.update({
+                  where: { id: existingUser.id },
+                  data: { email: user.email }
+                });
+                logger.info('[Auth] Updated Twitter placeholder email with real email', {
+                  oldEmail: existingUser.email,
+                  newEmail: user.email
+                });
               }
-            });
 
-            // If this was a Twitter placeholder email, update it with the real email
-            if (existingUser.email?.includes('@twitter.placeholder.com') && !user.email?.includes('@twitter.placeholder.com')) {
+              // Update user profile with merged data
               await prisma.user.update({
                 where: { id: existingUser.id },
-                data: { email: user.email }
+                data: {
+                  name: existingUser.name || user.name,
+                  image: existingUser.image || user.image,
+                }
               });
-              logger.info('[Auth] Updated Twitter placeholder email with real email', {
-                oldEmail: existingUser.email,
-                newEmail: user.email
+
+              logger.info(`[Auth] Linked ${account.provider} to existing account`, {
+                email: user.email,
+                provider: account.provider,
+                userId: existingUser.id
               });
             }
 
-            // Update user profile with merged data
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: {
-                name: existingUser.name || user.name,
-                image: existingUser.image || user.image,
-              }
-            });
-
-            logger.info(`[Auth] Linked ${account.provider} to existing account`, {
-              email: user.email,
-              provider: account.provider,
-              userId: existingUser.id
-            });
+            // Return true to allow sign in with the existing user
+            return true;
           }
 
-          // Return true to allow sign in with the existing user
-          return true;
-        }
-
-        // If no existing user, check for any user with the same email domain
-        const emailDomain = user.email.split('@')[1];
-        const userWithSameEmailDomain = await prisma.user.findFirst({
-          where: { 
-            email: {
-              endsWith: `@${emailDomain}`
-            }
-          },
-          include: {
-            organizations: {
-              include: {
-                organization: true
+          // If no existing user, check for any user with the same email domain
+          const emailDomain = user.email.split('@')[1];
+          const userWithSameEmailDomain = await prisma.user.findFirst({
+            where: { 
+              email: {
+                endsWith: `@${emailDomain}`
               }
             },
-            posts: true
-          }
-        });
-
-        if (userWithSameEmailDomain?.organizations.length > 0) {
-          // Get the organization of the existing user
-          const existingOrg = userWithSameEmailDomain.organizations[0].organization;
-          
-          // Create new user and link to existing organization
-          const newUser = await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name,
-              image: user.image,
+            include: {
               organizations: {
-                create: {
-                  organizationId: existingOrg.id,
-                  role: 'MEMBER'
+                include: {
+                  organization: true
                 }
-              }
+              },
+              posts: true
             }
           });
 
-          logger.info(`[Auth] Created new user and linked to existing organization`, {
+          if (userWithSameEmailDomain?.organizations.length > 0) {
+            // Get the organization of the existing user
+            const existingOrg = userWithSameEmailDomain.organizations[0].organization;
+            
+            // Create new user and link to existing organization
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                organizations: {
+                  create: {
+                    organizationId: existingOrg.id,
+                    role: 'MEMBER'
+                  }
+                }
+              }
+            });
+
+            logger.info(`[Auth] Created new user and linked to existing organization`, {
+              email: user.email,
+              organizationId: existingOrg.id
+            });
+
+            return true;
+          }
+
+          // If no existing organization, create new user with new organization
+          logger.info(`[Auth] Creating new user and organization for ${account.provider}`, { 
             email: user.email,
-            organizationId: existingOrg.id
+            provider: account.provider 
           });
-
           return true;
+        } catch (error) {
+          logger.error("[Auth] Error during sign in", {
+            error,
+            email: user.email,
+            provider: account.provider
+          });
+          return false;
         }
-
-        // If no existing organization, create new user with new organization
-        logger.info(`[Auth] Creating new user and organization for ${account.provider}`, { 
-          email: user.email,
-          provider: account.provider 
-        });
-        return true;
       } catch (error) {
         logger.error("[Auth] Error during sign in", {
           error,

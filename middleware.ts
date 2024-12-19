@@ -13,8 +13,9 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - admin (admin path)
+     * - orgs/[orgSlug]/invitations/[token] (invitation links)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|admin).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|admin|orgs/[^/]+/invitations/[^/]+).*)",
   ],
 };
 
@@ -46,6 +47,15 @@ export function middleware(req: NextRequest) {
     pathname.includes('error') ||
     pathname.includes('verify-request')
   )) {
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
+  // Skip auth check for invitation links
+  if (pathname.match(/^\/orgs\/[^/]+\/invitations\/[^/]+$/)) {
     return NextResponse.next({
       request: {
         headers: requestHeaders,
