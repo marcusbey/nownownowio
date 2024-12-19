@@ -2,21 +2,15 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout, LayoutContent, LayoutHeader, LayoutTitle } from "@/features/page/layout";
 import { NavigationWrapper } from "@/features/navigation/NavigationWrapper";
-import { SubmitButton } from "@/features/form/SubmitButton";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { env } from "@/lib/env";
-import { hashStringWithSalt, validatePassword } from "@/lib/auth/credentials-provider";
 import { getServerUrl } from "@/lib/server-url";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth/helper";
 import type { PageParams } from "@/types/next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { z } from "zod";
 import { Page400 } from "@/features/page/Page400";
 import { combineWithParentMetadata } from "@/lib/metadata";
+import { InvitationForm } from "./InvitationForm";
 
 const TokenSchema = z.object({
   orgId: z.string(),
@@ -70,100 +64,11 @@ export default async function RoutePage(
             </LayoutTitle>
           </LayoutHeader>
           <LayoutContent>
-            <Card>
-              <CardHeader>
-                <CardTitle>Complete your profile</CardTitle>
-                <CardDescription>
-                  Set up your account to join {organization.name}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Your Name</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        placeholder="John Doe"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Choose a Password</Label>
-                      <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        required
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        At least 8 characters with letters and numbers
-                      </p>
-                    </div>
-                    <SubmitButton
-                      className="w-full"
-                      formAction={async (formData: FormData) => {
-                        "use server";
-                        
-                        const name = formData.get("name") as string;
-                        const password = formData.get("password") as string;
-                        
-                        if (!validatePassword(password)) {
-                          throw new Error(
-                            "Password must be at least 8 characters and contain letters and numbers"
-                          );
-                        }
-
-                        // Create the user account
-                        const user = await prisma.user.create({
-                          data: {
-                            email: tokenData.email,
-                            name,
-                            passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
-                            emailVerified: new Date(), // Email is verified through invitation
-                          },
-                        });
-
-                        // Create the organization membership
-                        await prisma.organizationMembership.create({
-                          data: {
-                            organizationId: organization.id,
-                            userId: user.id,
-                            roles: ["MEMBER"],
-                          },
-                        });
-
-                        // Delete the invitation token
-                        await prisma.verificationToken.delete({
-                          where: {
-                            token: props.params.token,
-                          },
-                        });
-
-                        // Sign them in automatically using server-side auth
-                        const response = await signIn("credentials", {
-                          email: tokenData.email,
-                          password,
-                          redirect: false,
-                          callbackUrl: `/orgs/${organization.slug}/settings`,
-                        });
-
-                        if (response?.error) {
-                          throw new Error("Failed to sign in automatically");
-                        }
-
-                        // Redirect to organization settings
-                        redirect(`/orgs/${organization.slug}/settings`);
-                      }}
-                    >
-                      Create Account & Join {organization.name}
-                    </SubmitButton>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+            <InvitationForm 
+              organization={organization}
+              tokenData={tokenData}
+              token={props.params.token}
+            />
           </LayoutContent>
         </Layout>
       </NavigationWrapper>
@@ -266,4 +171,6 @@ export default async function RoutePage(
     // Redirect to the organization
     redirect(`/orgs/${organization.slug}`);
   }
+
+  return null;
 }
