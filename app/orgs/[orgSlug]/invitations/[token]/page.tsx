@@ -1,16 +1,17 @@
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { InvitationForm } from "./InvitationForm";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout, LayoutContent, LayoutHeader, LayoutTitle } from "@/features/page/layout";
 import { NavigationWrapper } from "@/features/navigation/NavigationWrapper";
 import { getServerUrl } from "@/lib/server-url";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth/helper";
-import type { PageParams } from "@/types/next";
 import Link from "next/link";
 import { z } from "zod";
 import { Page400 } from "@/features/page/Page400";
 import { combineWithParentMetadata } from "@/lib/metadata";
-import { InvitationForm } from "./InvitationForm";
 
 const TokenSchema = z.object({
   orgId: z.string(),
@@ -19,89 +20,89 @@ const TokenSchema = z.object({
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Invitation",
-  description: "You receive an invitation to join an organization.",
+  description: "You received an invitation to join an organization.",
 });
 
-export default async function RoutePage(
-  props: PageParams<{ orgSlug: string; token: string }>,
-) {
-  const organization = await prisma.organization.findFirst({
-    where: {
-      slug: props.params.orgSlug,
-    },
-  });
+export default async function InvitationPage({
+  params: { orgSlug, token },
+}: {
+  params: { orgSlug: string; token: string };
+}) {
+  // Get the current session
+  const session = await getServerSession(authOptions);
 
-  if (!organization) {
-    return <Page400 title="Invalid token 1" />;
-  }
-
+  // Find and validate the token
   const verificationToken = await prisma.verificationToken.findUnique({
-    where: {
-      token: props.params.token,
-    },
+    where: { token },
   });
 
   if (!verificationToken) {
-    return <Page400 title="Invalid token 2" />;
+    return <Page400 title="Invalid or expired invitation link" />;
   }
 
-  const session = await auth();
-  const user = session?.user;
-
-  const tokenData = TokenSchema.parse(verificationToken.data);
-
-  if (tokenData.orgId !== organization.id) {
-    return <Page400 title="Invalid token 3" />;
-  }
-
-  if (!user) {
+  if (verificationToken.expires < new Date()) {
     return (
       <NavigationWrapper>
         <Layout>
           <LayoutHeader>
-            <LayoutTitle>
-              Welcome to {organization.name}
-            </LayoutTitle>
+            <LayoutTitle>Invitation Expired</LayoutTitle>
           </LayoutHeader>
           <LayoutContent>
-            <InvitationForm 
-              organization={organization}
-              tokenData={tokenData}
-              token={props.params.token}
-            />
+            <Card>
+              <CardHeader>
+                <CardTitle>This invitation has expired</CardTitle>
+                <CardDescription>
+                  Please request a new invitation from the organization administrator.
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </LayoutContent>
         </Layout>
       </NavigationWrapper>
     );
   }
 
+  const tokenData = TokenSchema.parse(verificationToken.data);
+
+  // Get organization details
+  const organization = await prisma.organization.findUnique({
+    where: { id: tokenData.orgId },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+  });
+
+  if (!organization || organization.slug !== orgSlug) {
+    return <Page400 title="Invalid organization" />;
+  }
+
   // If user is logged in but with a different email
-  if (user && user.email !== tokenData.email) {
+  if (session?.user && session.user.email !== tokenData.email) {
     return (
       <NavigationWrapper>
         <Layout>
           <LayoutHeader>
-            <LayoutTitle>
-              Wrong Account
-            </LayoutTitle>
+            <LayoutTitle>Wrong Account</LayoutTitle>
           </LayoutHeader>
           <LayoutContent>
             <Card>
               <CardHeader>
                 <CardTitle>Please sign in with the correct email</CardTitle>
                 <CardDescription>
-                  This invitation was sent to {tokenData.email}, but you're signed in as {user.email}
+                  This invitation was sent to {tokenData.email}, but you're signed in as {session.user.email}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Link
-                    className={buttonVariants({ size: "lg", className: "w-full" })}
-                    href={`/auth/signin?callbackUrl=${encodeURIComponent(`${getServerUrl()}/orgs/${organization.slug}/invitations/${props.params.token}`)}&email=${encodeURIComponent(tokenData.email)}`}
-                  >
-                    Sign in as {tokenData.email}
-                  </Link>
-                </div>
+                <Link
+                  className={buttonVariants({ size: "lg", className: "w-full" })}
+                  href={`/auth/signin?callbackUrl=${encodeURIComponent(
+                    `${getServerUrl()}/orgs/${organization.slug}/invitations/${token}`,
+                  )}&email=${encodeURIComponent(tokenData.email)}`}
+                >
+                  Sign in as {tokenData.email}
+                </Link>
               </CardContent>
             </Card>
           </LayoutContent>
@@ -110,13 +111,12 @@ export default async function RoutePage(
     );
   }
 
-  // If user is logged in with the correct email, add them to the organization
-  if (user && user.email === tokenData.email) {
-    // Check if they're already a member
+  // Check if user is already a member
+  if (session?.user?.email === tokenData.email) {
     const existingMembership = await prisma.organizationMembership.findFirst({
       where: {
         organizationId: organization.id,
-        userId: user.id,
+        user: { email: session.user.email },
       },
     });
 
@@ -125,17 +125,13 @@ export default async function RoutePage(
         <NavigationWrapper>
           <Layout>
             <LayoutHeader>
-              <LayoutTitle>
-                Already a Member
-              </LayoutTitle>
+              <LayoutTitle>Already a Member</LayoutTitle>
             </LayoutHeader>
             <LayoutContent>
               <Card>
                 <CardHeader>
                   <CardTitle>You're already a member of {organization.name}</CardTitle>
-                  <CardDescription>
-                    You can access the organization now
-                  </CardDescription>
+                  <CardDescription>You can access the organization now</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Link
@@ -151,26 +147,22 @@ export default async function RoutePage(
         </NavigationWrapper>
       );
     }
-
-    // Add them to the organization
-    await prisma.organizationMembership.create({
-      data: {
-        organizationId: organization.id,
-        userId: user.id,
-        roles: ["MEMBER"],
-      },
-    });
-
-    // Delete the invitation token
-    await prisma.verificationToken.delete({
-      where: {
-        token: props.params.token,
-      },
-    });
-
-    // Redirect to the organization
-    redirect(`/orgs/${organization.slug}`);
   }
 
-  return null;
+  return (
+    <NavigationWrapper>
+      <Layout>
+        <LayoutHeader>
+          <LayoutTitle>Welcome to {organization.name}</LayoutTitle>
+        </LayoutHeader>
+        <LayoutContent>
+          <InvitationForm 
+            token={token}
+            email={tokenData.email}
+            organizationName={organization.name}
+          />
+        </LayoutContent>
+      </Layout>
+    </NavigationWrapper>
+  );
 }

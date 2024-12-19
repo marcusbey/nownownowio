@@ -6,28 +6,48 @@ import { hashStringWithSalt, validatePassword } from "@/lib/auth/credentials-pro
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth";
+import { addHours } from "date-fns";
+import { z } from "zod";
+import { ActionError, createAction } from "@/lib/action";
 
 export async function createAccount(prevState: any, formData: FormData) {
   const name = formData.get("name") as string;
   const password = formData.get("password") as string;
   const tokenData = formData.get("tokenData") as string;
-  const organizationId = formData.get("organizationId") as string;
-  const organizationSlug = formData.get("organizationSlug") as string;
   const token = formData.get("token") as string;
 
+  if (!validatePassword(password)) {
+    return {
+      error: "Password must be at least 8 characters and contain letters and numbers"
+    };
+  }
+
+  const parsedTokenData = JSON.parse(tokenData);
+
   try {
-    if (!validatePassword(password)) {
+    // First verify the invitation exists
+    const verificationToken = await prisma.verificationToken.findUnique({
+      where: { token },
+    });
+
+    if (!verificationToken) {
       return {
-        error: "Password must be at least 8 characters and contain letters and numbers"
+        error: "Invalid or expired invitation link"
       };
     }
 
-    const parsedTokenData = JSON.parse(tokenData);
+    if (verificationToken.expires < new Date()) {
+      return {
+        error: "This invitation has expired"
+      };
+    }
 
-    // Check if user already exists
+    const { orgId, email } = verificationToken.data as { orgId: string; email: string };
+
+    // Check if user exists with password
     const existingUser = await prisma.user.findUnique({
       where: {
-        email: parsedTokenData.email,
+        email: email,
       },
       select: {
         id: true,
@@ -35,13 +55,19 @@ export async function createAccount(prevState: any, formData: FormData) {
       }
     });
 
-    let userId: string;
+    if (existingUser?.passwordHash) {
+      return {
+        error: "An account with this email already exists. Please sign in instead."
+      };
+    }
 
-    if (existingUser) {
-      // If user exists but has no password (incomplete registration)
-      if (!existingUser.passwordHash) {
-        // Update the existing user
-        await prisma.user.update({
+    // Start a transaction to ensure all operations succeed or fail together
+    const result = await prisma.$transaction(async (tx) => {
+      let userId: string;
+
+      if (existingUser) {
+        // Update existing user (who doesn't have a password)
+        const updatedUser = await tx.user.update({
           where: { id: existingUser.id },
           data: {
             name,
@@ -49,65 +75,50 @@ export async function createAccount(prevState: any, formData: FormData) {
             emailVerified: new Date(),
           }
         });
-        userId = existingUser.id;
+        userId = updatedUser.id;
       } else {
-        // User exists and has password - they should sign in
-        return {
-          error: "An account with this email already exists. Please sign in instead."
-        };
+        // Create new user
+        const newUser = await tx.user.create({
+          data: {
+            name,
+            email: email,
+            passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
+            emailVerified: new Date(),
+          },
+        });
+        userId = newUser.id;
       }
-    } else {
-      // Create new user
-      const newUser = await prisma.user.create({
-        data: {
-          email: parsedTokenData.email,
-          name,
-          passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
-          emailVerified: new Date(),
-        },
-      });
-      userId = newUser.id;
-    }
 
-    // Check if membership already exists
-    const existingMembership = await prisma.organizationMembership.findFirst({
-      where: {
-        organizationId,
-        userId,
-      }
-    });
-
-    // Create the organization membership if it doesn't exist
-    if (!existingMembership) {
-      await prisma.organizationMembership.create({
+      // Create the organization membership
+      await tx.organizationMembership.create({
         data: {
-          organizationId,
+          organizationId: orgId,
           userId,
           roles: ["MEMBER"],
         },
       });
-    }
 
-    // Delete the invitation token
-    await prisma.organizationInvitation.delete({
-      where: {
-        token,
-      },
+      // Delete the verification token
+      await tx.verificationToken.delete({
+        where: { token },
+      });
+
+      return { userId, organizationSlug: (await tx.organization.findUnique({ where: { id: orgId } })).slug };
     });
 
     // Create a new session for the user
     const session = await getServerSession(authOptions);
     if (!session) {
       // If no session, redirect to sign in
-      redirect(`/auth/signin?callbackUrl=/orgs/${organizationSlug}/settings&email=${encodeURIComponent(parsedTokenData.email)}`);
+      redirect(`/auth/signin?callbackUrl=/orgs/${result.organizationSlug}/settings&email=${encodeURIComponent(email)}`);
     }
 
     // If we have a session, redirect to org settings
-    redirect(`/orgs/${organizationSlug}/settings`);
+    redirect(`/orgs/${result.organizationSlug}/settings`);
   } catch (error) {
     console.error("Account creation error:", error);
     return {
-      error: error instanceof Error ? error.message : "Something went wrong"
+      error: "Something went wrong while creating your account. Please try again."
     };
   }
 }

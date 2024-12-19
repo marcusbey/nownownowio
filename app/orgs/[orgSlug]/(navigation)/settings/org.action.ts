@@ -127,40 +127,62 @@ export const inviteUserInOrganizationAction = orgAction
     }),
   )
   .action(async ({ parsedInput: { email }, ctx }) => {
-    if (
-      await prisma.verificationToken.findFirst({
+    try {
+      // Check if user is already a member
+      const existingMember = await prisma.organizationMembership.findFirst({
+        where: {
+          organization: { id: ctx.org.id },
+          user: { email },
+        },
+      });
+
+      if (existingMember) {
+        throw new ActionError("This user is already a member of the organization");
+      }
+
+      // Check for existing active invitation
+      const existingToken = await prisma.verificationToken.findFirst({
         where: {
           identifier: `${email}-invite-${ctx.org.id}`,
           expires: {
             gt: new Date(),
           },
         },
-      })
-    ) {
-      throw new ActionError("User already invited");
-    }
+      });
 
-    const verificationToken = await prisma.verificationToken.create({
-      data: {
-        identifier: `${email}-invite-${ctx.org.id}`,
-        expires: addHours(new Date(), 1),
-        token: nanoid(32),
+      if (existingToken) {
+        throw new ActionError("This email already has a pending invitation");
+      }
+
+      // Create verification token for the link
+      const verificationToken = await prisma.verificationToken.create({
         data: {
-          orgId: ctx.org.id,
-          email,
+          identifier: `${email}-invite-${ctx.org.id}`,
+          expires: addHours(new Date(), 24), // 24 hour expiration
+          token: nanoid(32),
+          data: {
+            orgId: ctx.org.id,
+            email,
+          },
         },
-      },
-    });
+      });
 
-    await sendEmail({
-      to: email,
-      subject: `Invitation to join ${ctx.org.name}`,
-      react: OrganizationInvitationEmail({
-        token: verificationToken.token,
-        orgSlug: ctx.org.slug,
-        organizationName: ctx.org.name,
-      }),
-    });
+      // Send invitation email
+      await sendEmail({
+        to: email,
+        subject: `Invitation to join ${ctx.org.name}`,
+        react: OrganizationInvitationEmail({
+          organizationName: ctx.org.name,
+          inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/orgs/${ctx.org.slug}/invitations/${verificationToken.token}`,
+        }),
+      });
 
-    return { identifier: verificationToken.identifier };
+      return { success: true };
+    } catch (error) {
+      console.error("Invitation error:", error);
+      if (error instanceof ActionError) {
+        throw error;
+      }
+      throw new ActionError("Failed to send invitation. Please try again.");
+    }
   });

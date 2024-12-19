@@ -268,7 +268,19 @@ export const OrgMembersForm = ({
                       key={email}
                       className="flex items-center justify-between rounded-md bg-background p-3"
                     >
-                      <Typography variant="muted">{email}</Typography>
+                      <div className="flex items-center gap-4">
+                        <Avatar>
+                          <AvatarFallback>
+                            {email[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <Typography variant="muted">{email}</Typography>
+                          <Typography variant="small" className="text-muted-foreground">
+                            Invitation sent
+                          </Typography>
+                        </div>
+                      </div>
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-yellow-400" />
                         <Typography variant="small" className="text-muted-foreground">

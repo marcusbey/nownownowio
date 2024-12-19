@@ -33,7 +33,13 @@ const Schema = z.object({
 
 type SchemaType = z.infer<typeof Schema>;
 
-export const OrganizationInviteMemberForm = () => {
+type Props = {
+  invitedEmail: string[];
+  maxMembers: number;
+  currentMemberCount: number;
+};
+
+export const OrganizationInviteMemberForm = ({ invitedEmail, maxMembers, currentMemberCount }: Props) => {
   const [open, setOpen] = useState(false);
   const form = useZodForm({
     schema: Schema,
@@ -45,17 +51,37 @@ export const OrganizationInviteMemberForm = () => {
 
   const mutation = useMutation({
     mutationFn: async (values: SchemaType) => {
-      const result = await inviteUserInOrganizationAction(values);
+      try {
+        // Check if email is already in pending invitations
+        if (invitedEmail.includes(values.email)) {
+          toast.error("This email already has a pending invitation");
+          return;
+        }
 
-      if (!result || result.serverError) {
-        toast.error(result?.serverError ?? "Failed to invite user");
-        return;
+        // Check member limit
+        if (currentMemberCount + invitedEmail.length >= maxMembers) {
+          toast.error("Maximum member limit reached");
+          return;
+        }
+
+        const result = await inviteUserInOrganizationAction(values);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+
+        toast.success("Invitation sent successfully");
+        form.reset();
+        setOpen(false);
+        router.refresh();
+      } catch (error) {
+        console.error("Invitation error:", error);
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("Failed to send invitation. Please try again.");
+        }
       }
-
-      toast.success("Invitation sent");
-      form.reset(); // Reset form after successful submission
-      setOpen(false);
-      router.refresh();
     },
   });
 
@@ -63,7 +89,7 @@ export const OrganizationInviteMemberForm = () => {
     <Dialog 
       open={open} 
       onOpenChange={(v) => {
-        if (!v) form.reset(); // Reset form when dialog closes
+        if (!v) form.reset();
         setOpen(v);
       }}
     >
@@ -72,6 +98,7 @@ export const OrganizationInviteMemberForm = () => {
           type="button" 
           variant="default"
           className="cursor-pointer"
+          disabled={currentMemberCount >= maxMembers || (currentMemberCount + invitedEmail.length) >= maxMembers}
         >
           <Mail className="mr-2" size={16} />
           Invite member
@@ -93,13 +120,22 @@ export const OrganizationInviteMemberForm = () => {
               <FormItem className="flex-1">
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="demo@gmail.com" {...field} />
+                  <Input 
+                    placeholder="demo@gmail.com" 
+                    {...field} 
+                    disabled={mutation.isPending}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <LoadingButton loading={mutation.isPending} type="submit" className="cursor-pointer">
+          <LoadingButton 
+            loading={mutation.isPending} 
+            type="submit" 
+            className="cursor-pointer"
+            disabled={currentMemberCount >= maxMembers || (currentMemberCount + invitedEmail.length) >= maxMembers}
+          >
             <Plus size={16} className="mr-2" />
             Invite
           </LoadingButton>
