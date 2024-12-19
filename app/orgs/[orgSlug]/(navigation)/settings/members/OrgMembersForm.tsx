@@ -11,15 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FormField, useZodForm } from "@/components/ui/form";
-import {
-  MultiSelector,
-  MultiSelectorContent,
-  MultiSelectorInput,
-  MultiSelectorItem,
-  MultiSelectorList,
-  MultiSelectorTrigger,
-} from "@/components/ui/multi-select";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   InlineTooltip,
   TooltipContent,
@@ -28,12 +27,12 @@ import {
 } from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
 import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
-import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
 import { openGlobalDialog } from "@/features/global-dialog/GlobalDialogStore";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
-import { X, Zap } from "lucide-react";
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { updateOrganizationMemberAction } from "../org.action";
 import type { OrgMemberFormSchemaType } from "../org.schema";
@@ -69,80 +68,121 @@ export const OrgMembersForm = ({
       const result = await updateOrganizationMemberAction(values);
 
       if (!result || result.serverError) {
-        toast.error(result?.serverError ?? "Failed to invite user");
+        toast.error(result?.serverError ?? "Failed to update member roles");
         return;
       }
 
       router.refresh();
       form.reset(result.data as OrgMemberFormSchemaType);
+      toast.success("Member roles updated successfully");
     },
   });
 
+  // Auto-save when form values change
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value !== defaultValues) {
+        mutation.mutate(form.getValues());
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, defaultValues, mutation]);
+
   return (
     <TooltipProvider>
-      <FormUnsavedBar
-        form={form}
-        onSubmit={async (v) => mutation.mutateAsync(v)}
-        className="flex w-full flex-col gap-6 lg:gap-8"
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle>Members</CardTitle>
-            <CardDescription>
-              People who have access to your organization.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col">
-            {form.getValues("members")?.map((baseMember, index) => {
-              const member = members.find((m) => m.id === baseMember.id);
-              if (!member) {
-                return null;
-              }
-              return (
-                <div key={member.id}>
-                  <div className="my-2 flex flex-wrap items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={member.image ?? undefined} />
-                      <AvatarFallback>
-                        {member.name?.[0] ?? member.email[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <Typography variant="large">
-                        {member.name}
-                      </Typography>
-                      <Typography variant="muted">
-                        {member.email}
-                      </Typography>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Organization Members</CardTitle>
+              <CardDescription>
+                Manage members and their roles in your organization
+              </CardDescription>
+            </div>
+            <div className="text-right">
+              <Typography variant="large" className="font-medium">
+                {form.getValues("members")?.length ?? 0} / {maxMembers}
+              </Typography>
+              <Typography variant="muted">Members</Typography>
+            </div>
+          </div>
+          <Progress
+            value={((form.getValues("members")?.length ?? 0) / maxMembers) * 100}
+            className="h-2"
+          />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Current Members List */}
+            <div className="divide-y divide-border rounded-md border">
+              {form.getValues("members")?.map((baseMember, index) => {
+                const member = members.find((m) => m.id === baseMember.id);
+                if (!member) return null;
+                return (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between p-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Avatar>
+                        <AvatarImage src={member.image ?? undefined} />
+                        <AvatarFallback>
+                          {member.name?.[0] ?? member.email[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <Typography variant="large" className="font-medium">
+                          {member.name}
+                        </Typography>
+                        <Typography variant="muted">{member.email}</Typography>
+                      </div>
                     </div>
-                    <div className="ml-auto flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <FormField
                         control={form.control}
                         name={`members.${index}.role`}
                         render={({ field }) => (
-                          <MultiSelector
-                            values={[field.value]}
-                            onValuesChange={(values) => field.onChange(values[0])}
+                          <Select
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              const selectTrigger = document.querySelector(`[data-member-id="${member.id}"]`);
+                              if (selectTrigger) {
+                                selectTrigger.classList.add("border-green-500");
+                                setTimeout(() => {
+                                  selectTrigger.classList.remove("border-green-500");
+                                }, 2000);
+                              }
+                            }}
                           >
-                            <MultiSelectorTrigger>
-                              <MultiSelectorInput placeholder="Select role" />
-                            </MultiSelectorTrigger>
-                            <MultiSelectorContent>
-                              <MultiSelectorList>
-                                {Object.values(OrganizationMembershipRole).map(
-                                  (role) => (
-                                    <MultiSelectorItem
-                                      key={role}
-                                      value={role}
-                                      textValue={role}
-                                    >
-                                      {role}
-                                    </MultiSelectorItem>
-                                  )
-                                )}
-                              </MultiSelectorList>
-                            </MultiSelectorContent>
-                          </MultiSelector>
+                            <SelectTrigger 
+                              className="w-[130px] transition-colors duration-200" 
+                              data-member-id={member.id}
+                            >
+                              <SelectValue>
+                                {field.value ? 
+                                  field.value.charAt(0) + field.value.slice(1).toLowerCase() 
+                                  : 'Select role'}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.values(OrganizationMembershipRole).map(
+                                (role) => (
+                                  <SelectItem 
+                                    key={role} 
+                                    value={role}
+                                    className={
+                                      role === field.value
+                                        ? "font-medium"
+                                        : "font-normal"
+                                    }
+                                  >
+                                    {role.charAt(0) + role.slice(1).toLowerCase()}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
                         )}
                       />
                       <InlineTooltip content="Remove member">
@@ -169,39 +209,49 @@ export const OrgMembersForm = ({
                       </InlineTooltip>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-            <div className="mt-4">
-              <Progress
-                value={
-                  ((form.getValues("members")?.length ?? 0) / maxMembers) * 100
-                }
-                className="h-2"
-              />
-              <Typography variant="muted">
-                {form.getValues("members")?.length ?? 0} of {maxMembers} members
-              </Typography>
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Invite Members</CardTitle>
-            <CardDescription>
-              Invite new members to your organization.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OrganizationInviteMemberForm
-              invitedEmail={invitedEmail}
-              maxMembers={maxMembers}
-              currentMemberCount={form.getValues("members")?.length ?? 0}
-            />
-          </CardContent>
-        </Card>
-      </FormUnsavedBar>
+            {/* Pending Invitations */}
+            {invitedEmail.length > 0 && (
+              <div className="rounded-md border border-muted bg-muted/10 p-4">
+                <Typography variant="h3" className="mb-3">
+                  Pending Invitations
+                </Typography>
+                <div className="space-y-2">
+                  {invitedEmail.map((email) => (
+                    <div
+                      key={email}
+                      className="flex items-center justify-between rounded-md bg-background p-3"
+                    >
+                      <Typography variant="muted">{email}</Typography>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-yellow-400" />
+                        <Typography variant="small" className="text-muted-foreground">
+                          Pending
+                        </Typography>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Invite Members Form */}
+            <div className="rounded-md border p-4">
+              <Typography variant="h3" className="mb-4">
+                Invite New Members
+              </Typography>
+              <OrganizationInviteMemberForm
+                invitedEmail={invitedEmail}
+                maxMembers={maxMembers}
+                currentMemberCount={form.getValues("members")?.length ?? 0}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </TooltipProvider>
   );
 };

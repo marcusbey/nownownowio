@@ -70,13 +70,18 @@ export const orgAction = createSafeActionClient({
   },
 }).use(async ({ next, metadata = { roles: [] } }) => {
   try {
-    const org = await getRequiredCurrentOrg(metadata.roles.join(','));
+    const org = await getRequiredCurrentOrg(undefined, metadata.roles);
+    if (!org) {
+      throw new ActionError("Organization not found");
+    }
     return next({
       ctx: org,
     });
-  } catch {
-    throw new ActionError(
-      "You need to be part of an organization to access this resource.",
-    );
+  } catch (error) {
+    logger.error("Organization access error", { error });
+    if (error instanceof Error) {
+      throw new ActionError(error.message);
+    }
+    throw new ActionError("Failed to access organization");
   }
 });

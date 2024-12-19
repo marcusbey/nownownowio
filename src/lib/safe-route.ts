@@ -54,17 +54,16 @@ export const authRoute = route.use(async () => {
 export const orgRoute = authRoute.use(async () => {
   try {
     const organization = await getRequiredCurrentOrg();
-
     if (!organization) {
-      throw new Error("Organization not found!");
+      throw new RouteError("Organization not found", 404);
     }
-
     return {
       organization,
     };
-  } catch {
-    throw new RouteError(
-      "You need to be part of an organization to access this resource.",
-    );
+  } catch (error) {
+    if (error instanceof RouteError) {
+      throw error;
+    }
+    throw new RouteError("Failed to access organization", 403);
   }
 });
