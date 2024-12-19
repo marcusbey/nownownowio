@@ -37,6 +37,9 @@ export const OrganizationInviteMemberForm = () => {
   const [open, setOpen] = useState(false);
   const form = useZodForm({
     schema: Schema,
+    defaultValues: {
+      email: "",
+    },
   });
   const router = useRouter();
 
@@ -50,13 +53,20 @@ export const OrganizationInviteMemberForm = () => {
       }
 
       toast.success("Invitation sent");
+      form.reset(); // Reset form after successful submission
       setOpen(false);
       router.refresh();
     },
   });
 
   return (
-    <Dialog open={open} onOpenChange={(v) => setOpen(v)}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(v) => {
+        if (!v) form.reset(); // Reset form when dialog closes
+        setOpen(v);
+      }}
+    >
       <DialogTrigger asChild>
         <Button type="button" variant="outline">
           <Mail className="mr-2" size={16} />
