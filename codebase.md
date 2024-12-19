@@ -2,7 +2,7 @@
 
 ## Project Statistics
 
-- Total files: 503
+- Total files: 499
 
 ## Folder Structure
 
@@ -13,7 +13,6 @@
 .nvmrc
 .prettierignore
 .prettierrc.yaml
-.windsurfrules
 CHANGELOG.md
 README.md
 app
@@ -267,7 +266,6 @@ app
         settings
           (details)
             OrgDetailsForm.tsx
-          SettingsContent.tsx
           billing
             page.tsx
           danger
@@ -317,7 +315,6 @@ app
     [name]
       UserPosts.tsx
       page.tsx
-codebase.md
 components.json
 content
   posts
@@ -347,8 +344,6 @@ pnpm-lock.yaml
 postcss.config.js
 prisma
   migrations
-    20240118_optimize_feed_performance
-      migration.sql
     20240906153924_initial_migration
       migration.sql
     20240906153933_initial_plan
@@ -753,10 +748,6 @@ singleQuote: false
 arrowParens: always
 
 ```
-
-### .windsurfrules
-
-*(Unsupported file type)*
 
 ### CHANGELOG.md
 
@@ -1803,7 +1794,7 @@ import { useMutation } from "@tanstack/react-query";
 import { differenceInMinutes } from "date-fns";
 import { BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   sendUpdateEmailVerificationCodeAction,
@@ -1829,16 +1820,6 @@ export const EditProfileCardForm = ({
     isDialogOpen: false,
     token: "",
   });
-  const [isFormDirty, setIsFormDirty] = useState(false);
-
-  // Track form changes
-  const watchAll = form.watch();
-  useEffect(() => {
-    const hasChanges = Object.keys(watchAll).some(
-      (key) => watchAll[key] !== defaultValues[key as keyof typeof defaultValues]
-    );
-    setIsFormDirty(hasChanges);
-  }, [watchAll, defaultValues]);
 
   const sendVerificationCodeMutation = useMutation({
     mutationFn: async () => {
@@ -1932,24 +1913,6 @@ export const EditProfileCardForm = ({
             />
             <FormField
               control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Profile Image</FormLabel>
-                  <FormControl>
-                    <ImageFormItem
-                      className="size-16 rounded-full"
-                      onChange={(url) => field.onChange(url)}
-                      imageUrl={field.value || defaultValues.image}
-                      defaultImageUrl={defaultValues.image}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -1975,17 +1938,11 @@ export const EditProfileCardForm = ({
               )}
             />
           </CardContent>
-          {isFormDirty && (
-            <CardFooter className="flex justify-end border-t pt-4">
-              <LoadingButton
-                loading={updateProfileMutation.isPending}
-                type="submit"
-                size="sm"
-              >
-                Save Changes
-              </LoadingButton>
-            </CardFooter>
-          )}
+          <CardFooter className="flex justify-end gap-2">
+            <LoadingButton loading={updateProfileMutation.isPending}>
+              Save
+            </LoadingButton>
+          </CardFooter>
         </Card>
       </Form>
       <EmailVerificationDialog
@@ -2364,27 +2321,20 @@ export default async function EditProfilePage() {
   });
 
   return (
-    <div className="mx-auto max-w-2xl w-full py-6 space-y-8">
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Account Settings</h1>
-        </div>
-        
-        <div className="grid gap-6">
-          <EditProfileCardForm defaultValues={user} />
-          
-          {hasPassword && (
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50">
-                <CardTitle>Password Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <EditPasswordForm />
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+    <div className="flex flex-col gap-4 lg:gap-8">
+      <EditProfileCardForm defaultValues={user} />
+      {hasPassword ? (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EditPasswordForm />
+            </CardContent>
+          </Card>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -4032,9 +3982,11 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
+
     const pageSize = 10;
 
     const { user } = await validateRequest();
+
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -4063,6 +4015,7 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
 ```
 
 ### app/api/notifications/unread-count/route.ts
@@ -4785,13 +4738,9 @@ import { Prisma } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
-export const revalidate = 60;
+export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
-  const headers = {
-    'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=59'
-  };
-
   try {
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
     const topic = req.nextUrl.searchParams.get("topic");
@@ -4799,16 +4748,15 @@ export async function GET(req: NextRequest) {
 
     const session = await baseAuth();
     if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const existingUser = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true } // Only select needed fields
     });
 
     if (!existingUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404, headers });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // For now, we'll skip the topic filtering since it's not in the schema
@@ -4817,32 +4765,7 @@ export async function GET(req: NextRequest) {
     const posts = await prisma.$transaction(async (tx) => {
       return tx.post.findMany({
         where,
-        select: {  // Only select needed fields
-          id: true,
-          content: true,
-          createdAt: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              image: true
-            }
-          },
-          _count: {
-            select: {
-              likes: true,
-              comments: true
-            }
-          },
-          likes: {
-            where: { userId: existingUser.id },
-            select: { userId: true }
-          },
-          bookmarks: {
-            where: { userId: existingUser.id },
-            select: { userId: true }
-          }
-        },
+        include: getPostDataInclude(existingUser.id),
         orderBy: { createdAt: "desc" },
         take: pageSize + 1,
         cursor: cursor ? { id: cursor } : undefined,
@@ -4858,12 +4781,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       posts,
       nextCursor,
-    }, { headers });
+    });
   } catch (error) {
     console.error("[GET /api/posts/for-you]", error);
     return NextResponse.json(
       { error: "Failed to fetch posts" },
-      { status: 500, headers }
+      { status: 500 }
     );
   }
 }
@@ -8468,12 +8391,10 @@ import Post from "@/components/posts/Post";
 import PostsLoadingSkeleton from "@/components/posts/PostsLoadingSkeleton";
 import kyInstance from "@/lib/ky";
 import { PostsPage } from "@/lib/types";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { useMemo } from "react";
 
 export default function ForYouFeed() {
-  const queryClient = useQueryClient();
   const {
     data,
     fetchNextPage,
@@ -8500,14 +8421,9 @@ export default function ForYouFeed() {
     retry: false,
     keepPreviousData: true,
     suspense: false,
-    gcTime: 1000 * 60 * 60, // 1 hour
-    networkMode: 'offlineFirst',
   });
 
-  const posts = useMemo(
-    () => data?.pages.flatMap((page) => page.posts) || [],
-    [data?.pages]
-  );
+  const posts = data?.pages.flatMap((page) => page.posts) || [];
 
   if (status === "loading") {
     return <PostsLoadingSkeleton />;
@@ -11555,17 +11471,22 @@ export default async function Page({ params: { orgSlug } }: PageProps) {
 "use client";
 
 import {
-  Form,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
   useZodForm,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
 import { ImageFormItem } from "@/features/images/ImageFormItem";
-import { LoadingButton } from "@/features/form/SubmitButton";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11574,7 +11495,6 @@ import {
   OrgDetailsFormSchema,
   type OrgDetailsFormSchemaType,
 } from "../org.schema";
-import { useEffect } from "react";
 
 type ProductFormProps = {
   defaultValues: OrgDetailsFormSchemaType;
@@ -11586,182 +11506,111 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
     defaultValues,
   });
   const router = useRouter();
-  const isDirty = form.formState.isDirty;
 
   const mutation = useMutation({
     mutationFn: async (values: OrgDetailsFormSchemaType) => {
       const result = await updateOrganizationDetailsAction(values);
 
       if (!result || result.serverError) {
-        toast.error(result?.serverError ?? "Failed to update organization");
+        toast.error(result?.serverError ?? "Failed to invite user");
         return;
       }
 
-      toast.success("Organization updated successfully");
       router.refresh();
       form.reset(result.data as OrgDetailsFormSchemaType);
     },
   });
 
-  // Reset form when defaultValues change
-  useEffect(() => {
-    form.reset(defaultValues);
-  }, [defaultValues, form]);
-
   return (
-    <Form
+    <FormUnsavedBar
       form={form}
-      onSubmit={async (values) => {
-        await mutation.mutateAsync(values);
-      }}
+      onSubmit={async (v) => mutation.mutateAsync(v)}
+      className="space-y-4"
     >
-      <div className="space-y-6">
+      <div className="flex items-start gap-4">
         <FormField
           control={form.control}
           name="image"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Organization Image</FormLabel>
               <FormControl>
-                <ImageFormItem
-                  className="size-24 rounded-lg"
-                  onChange={(url) => field.onChange(url)}
-                  imageUrl={field.value || defaultValues.image}
-                  defaultImageUrl={defaultValues.image}
-                />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Profile Image</label>
+                  <ImageFormItem
+                    className="size-24 rounded-full"
+                    onChange={(url) => field.onChange(url)}
+                    imageUrl={field.value}
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization Email</FormLabel>
-              <FormControl>
-                <Input {...field} type="email" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="websiteUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website URL</FormLabel>
-              <FormControl>
-                <Input {...field} type="url" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {isDirty && (
-          <div className="flex justify-end border-t pt-4">
-            <LoadingButton
-              type="submit"
-              loading={mutation.isPending}
-              disabled={!isDirty}
-            >
-              Save Changes
-            </LoadingButton>
-          </div>
-        )}
+        <div className="flex-1 space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Organization Name</label>
+                    <Input 
+                      className="h-10"
+                      placeholder="Enter your organization name" 
+                      {...field} 
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Bio</label>
+                    <textarea
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="Tell us about your organization (max 500 characters)"
+                      maxLength={500}
+                      {...field}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Organization Email</label>
+                    <Input 
+                      className="h-10"
+                      placeholder="Enter your organization email" 
+                      {...field} 
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
-    </Form>
+    </FormUnsavedBar>
   );
 };
-
-```
-
-### app/orgs/[orgSlug]/(navigation)/settings/SettingsContent.tsx
-
-```tsx
-"use client";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
-import { WidgetScriptGenerator } from "./widget/GenerateScript";
-import type { Organization } from "@prisma/client";
-
-type SettingsContentProps = {
-  organization: Organization;
-  orgSlug: string;
-};
-
-export function SettingsContent({ organization, orgSlug }: SettingsContentProps) {
-  return (
-    <div className="container max-w-4xl py-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold">Organization Settings</h2>
-        <p className="text-sm text-muted-foreground">
-          Manage your organization's settings and integrations
-        </p>
-      </div>
-
-      <Tabs defaultValue="organization" className="space-y-6">
-        <TabsList className="w-full justify-start border-b pb-px">
-          <TabsTrigger value="organization" className="relative">
-            Organization Details
-          </TabsTrigger>
-          <TabsTrigger value="widget" className="relative">
-            Widget Integration
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="organization">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Organization Details</CardTitle>
-              <CardDescription>
-                Customize your organization's appearance and information
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OrgDetailsForm defaultValues={organization} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="widget">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Widget Script Generator</CardTitle>
-              <CardDescription>
-                Generate a script to embed the NowNowNow widget on your website
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <WidgetScriptGenerator orgSlug={orgSlug} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
 
 ```
 
@@ -12404,28 +12253,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { FormField, useZodForm } from "@/components/ui/form";
-import { Progress } from "@/components/ui/progress";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  MultiSelector,
+  MultiSelectorContent,
+  MultiSelectorInput,
+  MultiSelectorItem,
+  MultiSelectorList,
+  MultiSelectorTrigger,
+} from "@/components/ui/multi-select";
+import { Progress } from "@/components/ui/progress";
 import {
   InlineTooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Typography } from "@/components/ui/typography";
 import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
+import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
 import { openGlobalDialog } from "@/features/global-dialog/GlobalDialogStore";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { toast } from "sonner";
 import { updateOrganizationMemberAction } from "../org.action";
 import type { OrgMemberFormSchemaType } from "../org.schema";
@@ -12461,191 +12310,177 @@ export const OrgMembersForm = ({
       const result = await updateOrganizationMemberAction(values);
 
       if (!result || result.serverError) {
-        toast.error(result?.serverError ?? "Failed to update member roles");
+        toast.error(result?.serverError ?? "Failed to invite user");
         return;
       }
 
       router.refresh();
       form.reset(result.data as OrgMemberFormSchemaType);
-      toast.success("Member roles updated successfully");
     },
   });
 
-  // Auto-save when form values change
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      if (value !== defaultValues) {
-        mutation.mutate(form.getValues());
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form, defaultValues, mutation]);
-
   return (
-    <TooltipProvider>
+    <FormUnsavedBar
+      form={form}
+      onSubmit={async (v) => mutation.mutateAsync(v)}
+      className="flex w-full flex-col gap-6 lg:gap-8"
+    >
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Organization Members</CardTitle>
-              <CardDescription>
-                Manage members and their roles in your organization
-              </CardDescription>
-            </div>
-            <div className="text-right">
-              <Typography variant="large" className="font-medium">
-                {form.getValues("members")?.length ?? 0} / {maxMembers}
-              </Typography>
-              <Typography variant="muted">Members</Typography>
-            </div>
-          </div>
-          <Progress
-            value={((form.getValues("members")?.length ?? 0) / maxMembers) * 100}
-            className="h-2"
-          />
+          <CardTitle>Members</CardTitle>
+          <CardDescription>
+            People who have access to your organization.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {/* Current Members List */}
-            <div className="divide-y divide-border rounded-md border">
-              {form.getValues("members")?.map((baseMember, index) => {
-                const member = members.find((m) => m.id === baseMember.id);
-                if (!member) return null;
-                return (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarImage src={member.image ?? undefined} />
-                        <AvatarFallback>
-                          {member.name?.[0] ?? member.email[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <Typography variant="large" className="font-medium">
-                          {member.name}
-                        </Typography>
-                        <Typography variant="muted">{member.email}</Typography>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={form.control}
-                        name={`members.${index}.role`}
-                        render={({ field }) => (
-                          <Select
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              const selectTrigger = document.querySelector(`[data-member-id="${member.id}"]`);
-                              if (selectTrigger) {
-                                selectTrigger.classList.add("border-green-500");
-                                setTimeout(() => {
-                                  selectTrigger.classList.remove("border-green-500");
-                                }, 2000);
-                              }
-                            }}
-                          >
-                            <SelectTrigger 
-                              className="w-[130px] transition-colors duration-200" 
-                              data-member-id={member.id}
-                            >
-                              <SelectValue>
-                                {field.value ? 
-                                  field.value.charAt(0) + field.value.slice(1).toLowerCase() 
-                                  : 'Select role'}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.values(OrganizationMembershipRole).map(
-                                (role) => (
-                                  <SelectItem 
-                                    key={role} 
-                                    value={role}
-                                    className={
-                                      role === field.value
-                                        ? "font-medium"
-                                        : "font-normal"
-                                    }
-                                  >
-                                    {role.charAt(0) + role.slice(1).toLowerCase()}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                      <InlineTooltip content="Remove member">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            alertDialog.onOpen({
-                              title: "Remove member",
-                              description:
-                                "Are you sure you want to remove this member?",
-                              onConfirm: () => {
-                                const members = form.getValues("members");
-                                form.setValue(
-                                  "members",
-                                  members.filter((m) => m.id !== member.id)
-                                );
-                              },
-                            });
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </InlineTooltip>
-                    </div>
+        <CardContent className="flex flex-col">
+          {form.getValues("members")?.map((baseMember, index) => {
+            const member = members.find((m) => m.id === baseMember.id);
+            if (!member) {
+              return null;
+            }
+            return (
+              <div key={member.id}>
+                <div className="my-2 flex flex-wrap items-center gap-2">
+                  <Avatar>
+                    <AvatarFallback>{member.email.slice(0, 2)}</AvatarFallback>
+                    {member.image ? <AvatarImage src={member.image} /> : null}
+                  </Avatar>
+                  <div>
+                    <Typography variant="large">{member.name}</Typography>
+                    <Typography variant="muted">{member.email}</Typography>
                   </div>
-                );
-              })}
-            </div>
+                  <div className="flex-1"></div>
+                  {baseMember.roles.includes("OWNER") ? (
+                    <InlineTooltip>
+                      <TooltipContent>
+                        You can't change the role of an owner
+                      </TooltipContent>
+                      <TooltipTrigger asChild>
+                        <Button type="button" variant="outline">
+                          OWNER
+                        </Button>
+                      </TooltipTrigger>
+                    </InlineTooltip>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name={`members.${index}.roles`}
+                      render={({ field }) => (
+                        <MultiSelector
+                          values={field.value}
+                          onValuesChange={field.onChange}
+                          loop
+                          className="w-fit"
+                        >
+                          <MultiSelectorTrigger className="w-[200px] lg:w-[250px]">
+                            <MultiSelectorInput
+                              className="w-[50px]"
+                              placeholder="roles"
+                            />
+                          </MultiSelectorTrigger>
+                          <MultiSelectorContent>
+                            <MultiSelectorList>
+                              {Object.keys(OrganizationMembershipRole).map(
+                                (role) => {
+                                  if (role === "OWNER") return null;
+                                  return (
+                                    <MultiSelectorItem key={role} value={role}>
+                                      {role}
+                                    </MultiSelectorItem>
+                                  );
+                                },
+                              )}
+                            </MultiSelectorList>
+                          </MultiSelectorContent>
+                        </MultiSelector>
+                      )}
+                    />
+                  )}
 
-            {/* Pending Invitations */}
-            {invitedEmail.length > 0 && (
-              <div className="rounded-md border border-muted bg-muted/10 p-4">
-                <Typography variant="h3" className="mb-3">
-                  Pending Invitations
-                </Typography>
-                <div className="space-y-2">
-                  {invitedEmail.map((email) => (
-                    <div
-                      key={email}
-                      className="flex items-center justify-between rounded-md bg-background p-3"
-                    >
-                      <Typography variant="muted">{email}</Typography>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-yellow-400" />
-                        <Typography variant="small" className="text-muted-foreground">
-                          Pending
-                        </Typography>
-                      </div>
-                    </div>
-                  ))}
+                  <Button
+                    type="button"
+                    disabled={baseMember.roles.includes("OWNER")}
+                    variant="outline"
+                    onClick={() => {
+                      const newMembers = [...form.getValues("members")].filter(
+                        (m) => m.id !== member.id,
+                      );
+
+                      form.setValue("members", newMembers, {
+                        shouldDirty: true,
+                      });
+                    }}
+                  >
+                    <X size={16} />
+                    <span className="sr-only">Remove member</span>
+                  </Button>
                 </div>
               </div>
-            )}
-
-            {/* Invite Members Form */}
-            <div className="rounded-md border p-4">
-              <Typography variant="h3" className="mb-4">
-                Invite New Members
-              </Typography>
-              <OrganizationInviteMemberForm
-                invitedEmail={invitedEmail}
-                maxMembers={maxMembers}
-                currentMemberCount={form.getValues("members")?.length ?? 0}
-              />
+            );
+          })}
+          {invitedEmail.length > 0 && (
+            <div className="my-4 flex flex-col gap-4">
+              <Typography variant="h3">Pending invitations</Typography>
+              <ul className="list-inside list-disc text-sm text-muted-foreground">
+                {invitedEmail.map((email) => (
+                  <li key={email}>{email}</li>
+                ))}
+              </ul>
             </div>
-          </div>
+          )}
+          {form.watch("members").length < maxMembers ? (
+            <OrganizationInviteMemberForm />
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const dialogId = alertDialog.add({
+                  title: "Oh no ! You've reached the maximum number of members",
+                  description: (
+                    <>
+                      <Typography>
+                        You can't add more members to your organization. Please
+                        upgrade your plan to add more members.
+                      </Typography>
+                      <Alert className="flex flex-col gap-2">
+                        <Progress
+                          value={
+                            (form.getValues("members").length / maxMembers) *
+                            100
+                          }
+                        />
+                        <Typography variant="small">
+                          You have {form.getValues("members").length} members
+                          out of {maxMembers} members
+                        </Typography>
+                      </Alert>
+                    </>
+                  ),
+                  action: (
+                    <Button
+                      onClick={() => {
+                        openGlobalDialog("org-plan");
+                        alertDialog.remove(dialogId);
+                      }}
+                    >
+                      <Zap className="mr-2" size={16} />
+                      Upgrade your plan
+                    </Button>
+                  ),
+                });
+              }}
+            >
+              <Zap className="mr-2" size={16} />
+              Invite member
+            </Button>
+          )}
         </CardContent>
       </Card>
-    </TooltipProvider>
+    </FormUnsavedBar>
   );
 };
 
@@ -12933,8 +12768,6 @@ export type OrgDangerFormSchemaType = z.infer<typeof OrgDangerFormSchema>;
 ### app/orgs/[orgSlug]/(navigation)/settings/page.tsx
 
 ```tsx
-"use server";
-
 import {
   Card,
   CardContent,
@@ -12942,12 +12775,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
 import { WidgetScriptGenerator } from "./widget/GenerateScript";
-import { SettingsContent } from "./SettingsContent";
 
 type SettingsPageParams = PageParams<{
   orgSlug: string;
@@ -12960,10 +12791,45 @@ export default async function RoutePage(props: SettingsPageParams) {
   );
 
   return (
-    <SettingsContent 
-      organization={organization} 
-      orgSlug={props.params.orgSlug} 
-    />
+    <div className="space-y-8 pl-8">
+      <div>
+        <h2 className="text-lg font-medium">Organization Settings</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Manage your organization's profile and appearance
+        </p>
+      </div>
+
+      <Card className="border-opacity-20">
+        <CardHeader className="space-y-1.5">
+          <CardTitle className="text-lg">Organization Details</CardTitle>
+          <CardDescription className="text-sm">
+            Customize your organization's appearance and information
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OrgDetailsForm defaultValues={organization} />
+        </CardContent>
+      </Card>
+
+      <div className="border-t border-border/40 pt-8">
+        <h2 className="text-lg font-medium">Widget Integration</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Customize and generate the widget code for your website
+        </p>
+      </div>
+
+      <Card className="h-fit border-opacity-20">
+        <CardHeader className="space-y-1 py-3">
+          <CardTitle className="text-base">Widget Script Generator</CardTitle>
+          <CardDescription className="text-xs">
+            Generate a script to embed the NowNowNow widget on your website.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="py-3">
+          <WidgetScriptGenerator orgSlug={props.params.orgSlug} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -14655,12 +14521,6 @@ function UserProfile({ user, loggedInUserId }: UserProfileProps) {
 
 ```
 
-### codebase.md
-
-```md
-
-```
-
 ### components.json
 
 ```json
@@ -15554,10 +15414,10 @@ module.exports = nextConfig;
     "knip": "^5.30.1",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
-    "prisma": "^6.1.0",
+    "prisma": "^5.19.1",
     "tailwindcss": "^3.4.13",
-    "ts-jest": "^29.1.0",
     "tsx": "^4.19.2",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.3.0",
     "unified": "^11.0.5"
@@ -15584,7 +15444,7 @@ importers:
         version: 0.0.59(zod@3.23.8)
       '@auth/prisma-adapter':
         specifier: ^2.5.3
-        version: 2.7.4(@prisma/client@5.22.0(prisma@6.1.0))
+        version: 2.7.4(@prisma/client@5.22.0(prisma@5.22.0))
       '@hookform/resolvers':
         specifier: ^3.9.0
         version: 3.9.1(react-hook-form@7.53.2(react@18.3.1))
@@ -15593,7 +15453,7 @@ importers:
         version: 1.9.0
       '@prisma/client':
         specifier: ^5.19.1
-        version: 5.22.0(prisma@6.1.0)
+        version: 5.22.0(prisma@5.22.0)
       '@radix-ui/react-accordion':
         specifier: ^1.2.0
         version: 1.2.1(@types/react-dom@18.3.1)(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -15980,8 +15840,8 @@ importers:
         specifier: ^3.3.3
         version: 3.4.1
       prisma:
-        specifier: ^6.1.0
-        version: 6.1.0
+        specifier: ^5.19.1
+        version: 5.22.0
       tailwindcss:
         specifier: ^3.4.13
         version: 3.4.15
@@ -17139,20 +16999,20 @@ packages:
       prisma:
         optional: true
 
-  '@prisma/debug@6.1.0':
-    resolution: {integrity: sha512-0himsvcM4DGBTtvXkd2Tggv6sl2JyUYLzEGXXleFY+7Kp6rZeSS3hiTW9mwtUlXrwYbJP6pwlVNB7jYElrjWUg==}
+  '@prisma/debug@5.22.0':
+    resolution: {integrity: sha512-AUt44v3YJeggO2ZU5BkXI7M4hu9BF2zzH2iF2V5pyXT/lRTyWiElZ7It+bRH1EshoMRxHgpYg4VB6rCM+mG5jQ==}
 
-  '@prisma/engines-version@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959':
-    resolution: {integrity: sha512-PdJqmYM2Fd8K0weOOtQThWylwjsDlTig+8Pcg47/jszMuLL9iLIaygC3cjWJLda69siRW4STlCTMSgOjZzvKPQ==}
+  '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2':
+    resolution: {integrity: sha512-2PTmxFR2yHW/eB3uqWtcgRcgAbG1rwG9ZriSvQw+nnb7c4uCr3RAcGMb6/zfE88SKlC1Nj2ziUvc96Z379mHgQ==}
 
-  '@prisma/engines@6.1.0':
-    resolution: {integrity: sha512-GnYJbCiep3Vyr1P/415ReYrgJUjP79fBNc1wCo7NP6Eia0CzL2Ot9vK7Infczv3oK7JLrCcawOSAxFxNFsAERQ==}
+  '@prisma/engines@5.22.0':
+    resolution: {integrity: sha512-UNjfslWhAt06kVL3CjkuYpHAWSO6L4kDCVPegV6itt7nD1kSJavd3vhgAEhjglLJJKEdJ7oIqDJ+yHk6qO8gPA==}
 
-  '@prisma/fetch-engine@6.1.0':
-    resolution: {integrity: sha512-asdFi7TvPlEZ8CzSZ/+Du5wZ27q6OJbRSXh+S8ISZguu+S9KtS/gP7NeXceZyb1Jv1SM1S5YfiCv+STDsG6rrg==}
+  '@prisma/fetch-engine@5.22.0':
+    resolution: {integrity: sha512-bkrD/Mc2fSvkQBV5EpoFcZ87AvOgDxbG99488a5cexp5Ccny+UM6MAe/UFkUC0wLYD9+9befNOqGiIJhhq+HbA==}
 
-  '@prisma/get-platform@6.1.0':
-    resolution: {integrity: sha512-ia8bNjboBoHkmKGGaWtqtlgQOhCi7+f85aOkPJKgNwWvYrT6l78KgojLekE8zMhVk0R9lWcifV0Pf8l3/15V0Q==}
+  '@prisma/get-platform@5.22.0':
+    resolution: {integrity: sha512-pHhpQdr1UPFpt+zFfnPazhulaZYCUqeIcPpJViYoq9R+D/yw4fjE+CtnsnKzPYm0ddUbeXUzjGVGIRVgPDCk4Q==}
 
   '@radix-ui/number@1.1.0':
     resolution: {integrity: sha512-V3gRzhVNU1ldS5XhAPTom1fOIo4ccrjjJgmE+LI2h/WaFpHmx0MQApT+KZHnx8abG6Avtfcz4WoEciMnpFT3HQ==}
@@ -21825,9 +21685,9 @@ packages:
     resolution: {integrity: sha512-4yf0QO/sllf/1zbZWYnvWw3NxCQwLXKzIj0G849LSufP15BXKM0rbD2Z3wVnkMfjdn/CB0Dpp444gYAACdsplg==}
     engines: {node: '>=18'}
 
-  prisma@6.1.0:
-    resolution: {integrity: sha512-aFI3Yi+ApUxkwCJJwyQSwpyzUX7YX3ihzuHNHOyv4GJg3X5tQsmRaJEnZ+ZyfHpMtnyahhmXVfbTZ+lS8ZtfKw==}
-    engines: {node: '>=18.18'}
+  prisma@5.22.0:
+    resolution: {integrity: sha512-vtpjW3XuYCSnMsNVBjLMNkTj6OZbudcPPTPYHqX0CJfpcdWciI1dM8uHETwmDxxiqEwCIE6WvXucWUetJgfu/A==}
+    engines: {node: '>=16.13'}
     hasBin: true
 
   prismjs@1.29.0:
@@ -23279,10 +23139,10 @@ snapshots:
       preact: 10.24.3
       preact-render-to-string: 6.5.11(preact@10.24.3)
 
-  '@auth/prisma-adapter@2.7.4(@prisma/client@5.22.0(prisma@6.1.0))':
+  '@auth/prisma-adapter@2.7.4(@prisma/client@5.22.0(prisma@5.22.0))':
     dependencies:
       '@auth/core': 0.37.4
-      '@prisma/client': 5.22.0(prisma@6.1.0)
+      '@prisma/client': 5.22.0(prisma@5.22.0)
     transitivePeerDependencies:
       - '@simplewebauthn/browser'
       - '@simplewebauthn/server'
@@ -24301,30 +24161,30 @@ snapshots:
 
   '@popperjs/core@2.11.8': {}
 
-  '@prisma/client@5.22.0(prisma@6.1.0)':
+  '@prisma/client@5.22.0(prisma@5.22.0)':
     optionalDependencies:
-      prisma: 6.1.0
+      prisma: 5.22.0
 
-  '@prisma/debug@6.1.0': {}
+  '@prisma/debug@5.22.0': {}
 
-  '@prisma/engines-version@6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959': {}
+  '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2': {}
 
-  '@prisma/engines@6.1.0':
+  '@prisma/engines@5.22.0':
     dependencies:
-      '@prisma/debug': 6.1.0
-      '@prisma/engines-version': 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-      '@prisma/fetch-engine': 6.1.0
-      '@prisma/get-platform': 6.1.0
+      '@prisma/debug': 5.22.0
+      '@prisma/engines-version': 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+      '@prisma/fetch-engine': 5.22.0
+      '@prisma/get-platform': 5.22.0
 
-  '@prisma/fetch-engine@6.1.0':
+  '@prisma/fetch-engine@5.22.0':
     dependencies:
-      '@prisma/debug': 6.1.0
-      '@prisma/engines-version': 6.1.0-21.11f085a2012c0f4778414c8db2651556ee0ef959
-      '@prisma/get-platform': 6.1.0
+      '@prisma/debug': 5.22.0
+      '@prisma/engines-version': 5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2
+      '@prisma/get-platform': 5.22.0
 
-  '@prisma/get-platform@6.1.0':
+  '@prisma/get-platform@5.22.0':
     dependencies:
-      '@prisma/debug': 6.1.0
+      '@prisma/debug': 5.22.0
 
   '@radix-ui/number@1.1.0': {}
 
@@ -30049,9 +29909,9 @@ snapshots:
     dependencies:
       parse-ms: 4.0.0
 
-  prisma@6.1.0:
+  prisma@5.22.0:
     dependencies:
-      '@prisma/engines': 6.1.0
+      '@prisma/engines': 5.22.0
     optionalDependencies:
       fsevents: 2.3.3
 
@@ -31830,18 +31690,6 @@ module.exports = {
     autoprefixer: {},
   },
 };
-
-```
-
-### prisma/migrations/20240118_optimize_feed_performance/migration.sql
-
-```sql
--- CreateIndex
-CREATE INDEX IF NOT EXISTS "idx_posts_created_at" ON "Post"("createdAt" DESC);
-CREATE INDEX IF NOT EXISTS "idx_posts_user_id" ON "Post"("userId");
-CREATE INDEX IF NOT EXISTS "idx_likes_user_post" ON "Like"("userId", "postId");
-CREATE INDEX IF NOT EXISTS "idx_bookmarks_user_post" ON "Bookmark"("userId", "postId");
-CREATE INDEX IF NOT EXISTS "idx_comments_post_id" ON "Comment"("postId");
 
 ```
 
@@ -36256,12 +36104,12 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
 
   const followerState = useMemo(
     () => ({
-      followers: user._count?.followers ?? 0,
-      isFollowedByUser: user.followers?.some(
+      followers: user._count.followers,
+      isFollowedByUser: !!user.followers.some(
         ({ followerId }) => followerId === loggedInUser?.id,
-      ) ?? false,
+      ),
     }),
-    [user._count?.followers, user.followers, loggedInUser?.id]
+    [user._count.followers, user.followers, loggedInUser?.id]
   );
 
   const tooltipContent = useMemo(
@@ -36278,35 +36126,30 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
         <div>
           <Link href={`/users/${user.name}`}>
             <div className="text-lg font-semibold hover:underline">
-              {user.displayName || user.name}
+              {user.displayName}
             </div>
-            <div className="text-sm text-muted-foreground">@{user.name}</div>
+            <div className="text-muted-foreground">@{user.name}</div>
           </Link>
         </div>
         {user.bio && (
           <Linkify>
-            <div className="text-sm">{user.bio}</div>
+            <div className="line-clamp-4 whitespace-pre-line">{user.bio}</div>
           </Linkify>
         )}
-        <FollowerCount count={followerState.followers} />
+        <FollowerCount userId={user.id} initialState={followerState} />
       </div>
     ),
     [user, loggedInUser, followerState]
   );
 
-  if (!user) return <>{children}</>;
-
   return (
     <TooltipProvider>
-      <Tooltip delayDuration={300}>
+      <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent
-          side="bottom"
-          align="start"
-          sideOffset={5}
-          className="bg-card"
-        >
-          {tooltipContent}
+        <TooltipContent>
+          <Suspense fallback={<div>Loading...</div>}>
+            {tooltipContent}
+          </Suspense>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -37288,7 +37131,7 @@ import { Eye, MessageSquare, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Linkify from "../Linkify";
 import UserAvatar from "../UserAvatar";
 import UserTooltip from "../UserTooltip";
@@ -37313,7 +37156,6 @@ export default function Post({ post }: PostProps) {
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const { viewCount } = usePostViews(post.id);
 
   useEffect(() => {
     setIsClient(true);
@@ -37326,16 +37168,10 @@ export default function Post({ post }: PostProps) {
     setShowComments((prev) => !prev);
   }, [isClient]);
 
-  const userProfileLink = useMemo(() => 
+  const userProfileLink =
     user && post.user.id === user.id
       ? `/orgs/${post.user.organizations?.[0]?.organization?.slug || ""}/profile`
-      : `/users/${post.user.name}`,
-    [user, post.user]
-  );
-
-  const isOwnPost = useMemo(() => user && post.user.id === user.id, [user, post.user.id]);
-  const displayName = useMemo(() => post.user.displayName || post.user.name, [post.user]);
-  const hasAttachments = post.attachments?.length > 0;
+      : `/users/${post.user.name}`;
 
   return (
     <motion.article 
@@ -37345,7 +37181,6 @@ export default function Post({ post }: PostProps) {
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
-      layout
     >
       <div className="flex justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -37353,8 +37188,7 @@ export default function Post({ post }: PostProps) {
             <Link href={userProfileLink} className="shrink-0">
               <UserAvatar 
                 avatarUrl={post.user.image} 
-                className="h-10 w-10 ring-1 ring-offset-2 ring-primary/10 hover:ring-primary/30 transition-all duration-200"
-                priority={true}
+                className="h-10 w-10 ring-1 ring-offset-2 ring-primary/10 hover:ring-primary/30 transition-all duration-200" 
               />
             </Link>
           </UserTooltip>
@@ -37364,7 +37198,7 @@ export default function Post({ post }: PostProps) {
                 href={userProfileLink}
                 className="font-semibold hover:underline decoration-primary/30"
               >
-                {displayName}
+                {post.user.displayName || post.user.name}
               </Link>
             </UserTooltip>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -37378,12 +37212,12 @@ export default function Post({ post }: PostProps) {
               <span>•</span>
               <span className="flex items-center gap-0.5">
                 <Eye className="h-3 w-3" />
-                {(viewCount || 0) + 1}
+                {usePostViews(post.id).viewCount + 1}
               </span>
             </div>
           </div>
         </div>
-        {isOwnPost && (
+        {user && post.user.id === user.id && (
           <PostMoreButton
             post={post}
             className={cn(
@@ -37400,9 +37234,9 @@ export default function Post({ post }: PostProps) {
         </div>
       </Linkify>
 
-      {hasAttachments && (
+      {!!post.attachments.length && (
         <div className="rounded-lg overflow-hidden mt-2">
-          <Suspense fallback={<div className="h-48 animate-pulse bg-muted rounded-lg" />}>
+          <Suspense fallback={<div className="h-48 animate-pulse bg-muted" />}>
             <LazyMediaPreviews attachments={post.attachments} />
           </Suspense>
         </div>
@@ -37413,9 +37247,9 @@ export default function Post({ post }: PostProps) {
           postId={post.id}
           initialState={{
             likes: post._count.likes,
-            isLikedByUser: post.likes?.some(
+            isLikedByUser: post.likes.some(
               (like) => like.userId === user?.id,
-            ) || false,
+            ),
           }}
           className="text-muted-foreground/50 hover:text-primary/70"
         />
@@ -37438,9 +37272,9 @@ export default function Post({ post }: PostProps) {
           <BookmarkButton
             postId={post.id}
             initialState={{
-              isBookmarkedByUser: post.bookmarks?.some(
+              isBookmarkedByUser: post.bookmarks.some(
                 (bookmark) => bookmark.userId === user?.id,
-              ) || false,
+              ),
             }}
             className="text-muted-foreground/50 hover:text-primary/70"
           />
@@ -37453,9 +37287,8 @@ export default function Post({ post }: PostProps) {
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.2 }}
-          layout
         >
-          <Suspense fallback={<div className="h-24 animate-pulse bg-muted rounded-lg" />}>
+          <Suspense fallback={<div className="h-24 animate-pulse bg-muted" />}>
             <Comments post={post} />
           </Suspense>
         </motion.div>
@@ -44476,105 +44309,100 @@ import type { FieldValues } from "react-hook-form";
 import { useKey } from "react-use";
 import { LoadingButton } from "./SubmitButton";
 
-interface PortalContentProps {
+const PortalContent = memo(({ isDirty, onSubmit, disabled }: {
   isDirty: boolean;
   onSubmit: () => void;
   disabled?: boolean;
-}
-
-const PortalContent = memo(function PortalContent({ isDirty, onSubmit, disabled }: PortalContentProps) {
-  return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex items-center justify-center">
-      <AnimatePresence mode="wait">
-        {isDirty && (
-          <motion.div
-            key="save-bar"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="pointer-events-auto flex items-center gap-3 rounded-lg border bg-card px-4 py-2 shadow-lg"
+}) => (
+  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center overflow-hidden py-4">
+    <AnimatePresence>
+      {isDirty ? (
+        <motion.div
+          key="save-bar"
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          exit={{
+            opacity: [1, 1, 0],
+            y: [0, -10, 20],
+            transition: {
+              duration: 0.5,
+            },
+          }}
+          className="pointer-events-auto flex items-center gap-4 rounded-md border bg-card p-1 lg:p-2"
+        >
+          <Typography variant="small">
+            Changes have been made. Save now !
+          </Typography>
+          <LoadingButton
+            size="sm"
+            loading={disabled}
+            variant="success"
+            onClick={onSubmit}
           >
-            <Typography variant="small" className="text-muted-foreground">
-              Save your changes
-            </Typography>
-            <div className="flex items-center gap-2">
-              <LoadingButton
-                size="sm"
-                variant="default"
-                loading={disabled}
-                onClick={onSubmit}
-                className="h-8 px-3"
-              >
-                Save
-                <KeyboardShortcut className="ml-2">
-                  <CmdOrOption />S
-                </KeyboardShortcut>
-              </LoadingButton>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-});
+            Save{" "}
+            <KeyboardShortcut eventKey="cmd">
+              <CmdOrOption />
+            </KeyboardShortcut>
+            <KeyboardShortcut eventKey="s">S</KeyboardShortcut>
+          </LoadingButton>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  </div>
+));
 
-PortalContent.displayName = 'PortalContent';
+export const FormUnsavedBar = <T extends FieldValues>(props: FormProps<T>) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const isDirty = useMemo(() => props.form.formState.isDirty, [props.form.formState.isDirty]);
 
-export function FormUnsavedBar<T extends FieldValues>(props: FormProps<T>) {
-  const formRef = useRef<HTMLFormElement>(null);
-  const portalRef = useRef<HTMLDivElement | null>(null);
-  const isDirty = props.form.formState.isDirty;
-  const disabled = props.disabled;
-
-  useWarnIfUnsavedChanges(isDirty);
-
-  const handleSubmit = useCallback(() => {
-    if (formRef.current && !disabled) {
-      formRef.current.requestSubmit();
-    }
-  }, [disabled]);
+  const submit = useCallback(() => buttonRef.current?.click(), []);
 
   useKey(
-    (event) => (event.metaKey || event.ctrlKey) && event.key === "s",
-    (event) => {
-      event.preventDefault();
-      handleSubmit();
-    },
+    (event) => (event.ctrlKey || event.metaKey) && event.key === "s" && isDirty,
+    submit,
+    { event: "keydown" },
+    [isDirty, submit],
+  );
+
+  useWarnIfUnsavedChanges(
+    isDirty,
+    "You have unsaved changes. Are you sure you want to leave?",
   );
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
-    
-    portalRef.current = document.createElement("div");
-    document.body.appendChild(portalRef.current);
-    
     return () => {
-      if (portalRef.current) {
-        document.body.removeChild(portalRef.current);
+      // Cleanup any event listeners
+      if (typeof window !== "undefined") {
+        window.removeEventListener("keydown", submit);
       }
     };
-  }, []);
+  }, [submit]);
 
-  const portal = useMemo(() => {
-    if (!portalRef.current) return null;
-    
-    return createPortal(
-      <PortalContent
-        isDirty={isDirty}
-        onSubmit={handleSubmit}
-        disabled={disabled}
-      />,
-      portalRef.current,
-    );
-  }, [isDirty, handleSubmit, disabled]);
+  if (typeof window === "undefined") return null;
 
   return (
-    <Form {...props} ref={formRef}>
-      {props.children}
-      {portal}
-    </Form>
+    <>
+      <Form {...props} className={cn(props.className)}>
+        {props.children}
+        <button type="submit" className="hidden" ref={buttonRef} />
+      </Form>
+      {createPortal(
+        <PortalContent
+          isDirty={isDirty}
+          onSubmit={submit}
+          disabled={props.disabled ?? props.form.formState.isSubmitting}
+        />,
+        document.body,
+      )}
+    </>
   );
-}
+};
 
 ```
 
@@ -46981,10 +46809,10 @@ export function NavigationWrapper({
   bottomNavigationCardChildren,
   bottomNavigationChildren,
   rightSideBar,
+  // topBarChildren,
 }: NavigationWrapperProps) {
   const pathname = usePathname();
   const [hideSidebar, setHideSidebar] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
 
   const getRoutesWithoutSidebar = useMemo(() => {
     const settingsSection = ORGANIZATION_LINKS.find(
@@ -47018,27 +46846,6 @@ export function NavigationWrapper({
     setHideSidebar(shouldHide);
   }, [pathname, getRoutesWithoutSidebar, shouldHideSidebar]);
 
-  // Prevent navigation while form is dirty
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isNavigating) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isNavigating]);
-
-  const handleNavigation = useCallback(() => {
-    setIsNavigating(false);
-  }, []);
-
-  useEffect(() => {
-    handleNavigation();
-  }, [pathname, handleNavigation]);
-
   const gridCols = hideSidebar
     ? "grid-cols-[1fr] sm:grid-cols-[1fr] md:grid-cols-[1fr] lg:grid-cols-[1fr_3fr]"
     : "grid-cols-[1fr] sm:grid-cols-[20%_60%_20%] md:grid-cols-[25%_50%_25%] lg:grid-cols-[1fr_3fr_2fr]";
@@ -47069,7 +46876,24 @@ export function NavigationWrapper({
       </div>
 
       {/* Main Content */}
-      <div className="flex min-h-screen">
+      <div className="flex max-h-screen flex-col">
+        {/* Mobile Header */}
+        <header className="flex items-center justify-between border-b border-border p-4 sm:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <div className="flex cursor-pointer items-center">
+                {logoChildren}
+              </div>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] sm:w-[350px]">
+              {navigationChildren}
+            </SheetContent>
+          </Sheet>
+          <LogoSvg size={32} />
+          <Button size="sm" variant="secondary" className="aspect-square p-2">
+            <ArrowUpCircle size={24} />
+          </Button>
+        </header>
         <main className="flex flex-1 flex-col gap-4 overflow-auto px-4 md:gap-6 md:px-6 no-scrollbar">
           {children}
         </main>
@@ -50522,13 +50346,19 @@ export async function getSession(sessionToken: string) {
             image: true,
           }
         }
+      },
+      cacheStrategy: {
+        ttl: 60, // Cache for 1 minute
+        swr: 300 // Stale while revalidate for 5 minutes
       }
     })
 
     if (!session) return null
-    return session
+
+    const result = await CompressionUtil.compressIfNeeded(session)
+    return result
   }, {
-    ttl: 60 * 60 * 1000, // Cache for 1 hour
+    ttl: 60 * 1000, // Cache for 1 minute
     staleWhileRevalidate: true
   })
 }

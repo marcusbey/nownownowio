@@ -3,8 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { hashStringWithSalt, validatePassword } from "@/lib/auth/credentials-provider";
-import { signIn } from "next-auth/react";
 import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/auth";
 
 export async function createAccount(prevState: any, formData: FormData) {
   const name = formData.get("name") as string;
@@ -23,24 +24,69 @@ export async function createAccount(prevState: any, formData: FormData) {
 
     const parsedTokenData = JSON.parse(tokenData);
 
-    // Create the user account
-    const user = await prisma.user.create({
-      data: {
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: {
         email: parsedTokenData.email,
-        name,
-        passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
-        emailVerified: new Date(), // Email is verified through invitation
       },
+      select: {
+        id: true,
+        passwordHash: true,
+      }
     });
 
-    // Create the organization membership
-    await prisma.organizationMembership.create({
-      data: {
+    let userId: string;
+
+    if (existingUser) {
+      // If user exists but has no password (incomplete registration)
+      if (!existingUser.passwordHash) {
+        // Update the existing user
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            name,
+            passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
+            emailVerified: new Date(),
+          }
+        });
+        userId = existingUser.id;
+      } else {
+        // User exists and has password - they should sign in
+        return {
+          error: "An account with this email already exists. Please sign in instead."
+        };
+      }
+    } else {
+      // Create new user
+      const newUser = await prisma.user.create({
+        data: {
+          email: parsedTokenData.email,
+          name,
+          passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
+          emailVerified: new Date(),
+        },
+      });
+      userId = newUser.id;
+    }
+
+    // Check if membership already exists
+    const existingMembership = await prisma.organizationMembership.findFirst({
+      where: {
         organizationId,
-        userId: user.id,
-        roles: ["MEMBER"],
-      },
+        userId,
+      }
     });
+
+    // Create the organization membership if it doesn't exist
+    if (!existingMembership) {
+      await prisma.organizationMembership.create({
+        data: {
+          organizationId,
+          userId,
+          roles: ["MEMBER"],
+        },
+      });
+    }
 
     // Delete the invitation token
     await prisma.verificationToken.delete({
@@ -49,20 +95,17 @@ export async function createAccount(prevState: any, formData: FormData) {
       },
     });
 
-    // Sign them in automatically using server-side auth
-    const response = await signIn("credentials", {
-      email: parsedTokenData.email,
-      password,
-      redirect: false,
-      callbackUrl: `/orgs/${organizationSlug}/settings`,
-    });
-
-    if (response?.error) {
-      return { error: "Failed to sign in automatically" };
+    // Create a new session for the user
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      // If no session, redirect to sign in
+      redirect(`/auth/signin?callbackUrl=/orgs/${organizationSlug}/settings&email=${encodeURIComponent(parsedTokenData.email)}`);
     }
 
+    // If we have a session, redirect to org settings
     redirect(`/orgs/${organizationSlug}/settings`);
   } catch (error) {
+    console.error("Account creation error:", error);
     return {
       error: error instanceof Error ? error.message : "Something went wrong"
     };

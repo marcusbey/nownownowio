@@ -5,7 +5,9 @@ import { SubmitButton } from "@/features/form/SubmitButton";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useFormState } from "react-dom";
-import { Organization, VerificationToken } from "@prisma/client";
+import { Organization } from "@prisma/client";
+import { createAccount } from "./actions";
+import { AlertCircle } from "lucide-react";
 
 interface InvitationFormProps {
   organization: Organization;
@@ -51,14 +53,18 @@ export function InvitationForm({ organization, tokenData, token }: InvitationFor
                 name="password"
                 type="password"
                 required
+                className={state.error ? "border-destructive" : ""}
               />
               <p className="text-sm text-muted-foreground">
                 At least 8 characters with letters and numbers
               </p>
+              {state.error && (
+                <div className="flex items-center gap-x-2 text-sm text-destructive font-medium">
+                  <AlertCircle className="h-4 w-4" />
+                  <p>{state.error}</p>
+                </div>
+              )}
             </div>
-            {state.error && (
-              <p className="text-sm text-destructive">{state.error}</p>
-            )}
             <SubmitButton className="w-full">
               Create Account & Join {organization.name}
             </SubmitButton>

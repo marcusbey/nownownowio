@@ -38,6 +38,17 @@ import { updateOrganizationMemberAction } from "../org.action";
 import type { OrgMemberFormSchemaType } from "../org.schema";
 import { OrgMemberFormSchema } from "../org.schema";
 import { OrganizationInviteMemberForm } from "./OrgInviteMemberForm";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type OrgMembersFormProps = {
   defaultValues: OrgMemberFormSchemaType;
@@ -46,6 +57,7 @@ type OrgMembersFormProps = {
     name: string | null;
     email: string;
     image?: string | null;
+    role: OrganizationMembershipRole;
   }[];
   invitedEmail: string[];
   maxMembers: number;
@@ -140,73 +152,99 @@ export const OrgMembersForm = ({
                     <div className="flex items-center gap-2">
                       <FormField
                         control={form.control}
-                        name={`members.${index}.role`}
-                        render={({ field }) => (
-                          <Select
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              const selectTrigger = document.querySelector(`[data-member-id="${member.id}"]`);
-                              if (selectTrigger) {
-                                selectTrigger.classList.add("border-green-500");
-                                setTimeout(() => {
-                                  selectTrigger.classList.remove("border-green-500");
-                                }, 2000);
-                              }
-                            }}
-                          >
-                            <SelectTrigger 
-                              className="w-[130px] transition-colors duration-200" 
-                              data-member-id={member.id}
+                        name={`members.${index}.roles`}
+                        render={({ field }) => {
+                          const currentRole = field.value?.[0] || member.role || OrganizationMembershipRole.MEMBER;
+                          const formatRole = (role: string) => {
+                            return role.charAt(0) + role.slice(1).toLowerCase();
+                          };
+
+                          return (
+                            <Select
+                              value={currentRole}
+                              onValueChange={(value) => {
+                                field.onChange([value]); // Set as array since schema expects array
+                                // Show visual feedback
+                                const selectTrigger = document.querySelector(`[data-member-id="${member.id}"]`);
+                                if (selectTrigger) {
+                                  selectTrigger.classList.add("border-green-500");
+                                  setTimeout(() => {
+                                    selectTrigger.classList.remove("border-green-500");
+                                  }, 2000);
+                                }
+                              }}
                             >
-                              <SelectValue>
-                                {field.value ? 
-                                  field.value.charAt(0) + field.value.slice(1).toLowerCase() 
-                                  : 'Select role'}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.values(OrganizationMembershipRole).map(
-                                (role) => (
-                                  <SelectItem 
-                                    key={role} 
-                                    value={role}
-                                    className={
-                                      role === field.value
-                                        ? "font-medium"
-                                        : "font-normal"
-                                    }
-                                  >
-                                    {role.charAt(0) + role.slice(1).toLowerCase()}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                        )}
+                              <SelectTrigger 
+                                className="w-[130px] transition-colors duration-200"
+                                data-member-id={member.id}
+                              >
+                                <SelectValue>
+                                  {formatRole(currentRole)}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.values(OrganizationMembershipRole).map(
+                                  (role) => (
+                                    <SelectItem 
+                                      key={role} 
+                                      value={role}
+                                      className={
+                                        role === currentRole
+                                          ? "font-medium"
+                                          : "font-normal"
+                                      }
+                                    >
+                                      {formatRole(role)}
+                                    </SelectItem>
+                                  )
+                                )}
+                              </SelectContent>
+                            </Select>
+                          );
+                        }}
                       />
-                      <InlineTooltip content="Remove member">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            alertDialog.onOpen({
-                              title: "Remove member",
-                              description:
-                                "Are you sure you want to remove this member?",
-                              onConfirm: () => {
-                                const members = form.getValues("members");
-                                form.setValue(
-                                  "members",
-                                  members.filter((m) => m.id !== member.id)
-                                );
-                              },
-                            });
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </InlineTooltip>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                          >
+                            <span className="sr-only">Remove member</span>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Remove member</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to remove {member.name} from this organization?
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => {
+                                alertDialog.open({
+                                  title: "Remove member",
+                                  description:
+                                    "Are you sure you want to remove this member?",
+                                  onConfirm: () => {
+                                    const members = form.getValues("members");
+                                    form.setValue(
+                                      "members",
+                                      members.filter((m) => m.id !== member.id)
+                                    );
+                                  },
+                                });
+                              }}
+                            >
+                              Remove
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 );
