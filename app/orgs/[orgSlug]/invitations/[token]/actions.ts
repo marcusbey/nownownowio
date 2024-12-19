@@ -89,7 +89,7 @@ export async function createAccount(prevState: any, formData: FormData) {
     }
 
     // Delete the invitation token
-    await prisma.verificationToken.delete({
+    await prisma.organizationInvitation.delete({
       where: {
         token,
       },

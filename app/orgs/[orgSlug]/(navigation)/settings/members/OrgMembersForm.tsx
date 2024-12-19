@@ -31,8 +31,9 @@ import { openGlobalDialog } from "@/features/global-dialog/GlobalDialogStore";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { updateOrganizationMemberAction } from "../org.action";
 import type { OrgMemberFormSchemaType } from "../org.schema";
@@ -49,6 +50,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Mail } from "lucide-react";
 
 type OrgMembersFormProps = {
   defaultValues: OrgMemberFormSchemaType;
@@ -100,13 +102,47 @@ export const OrgMembersForm = ({
     return () => subscription.unsubscribe();
   }, [form, defaultValues, mutation]);
 
+  const [memberToRemove, setMemberToRemove] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (mutation.isSuccess) {
+      setShowTooltip(true);
+      const timer = setTimeout(() => setShowTooltip(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [mutation.isSuccess]);
+
+  const handleOpenDialog = (member: any) => {
+    setMemberToRemove(member);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setMemberToRemove(null);
+    setIsDialogOpen(false);
+  };
+
+  const handleRemoveMember = () => {
+    if (!memberToRemove) return;
+    
+    const members = form.getValues("members");
+    form.setValue(
+      "members",
+      members.filter((m) => m.id !== memberToRemove.id)
+    );
+    handleCloseDialog();
+  };
+
   return (
     <TooltipProvider>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Organization Members</CardTitle>
+          <CardTitle>Organization Members</CardTitle>
               <CardDescription>
                 Manage members and their roles in your organization
               </CardDescription>
@@ -153,92 +189,61 @@ export const OrgMembersForm = ({
                       <FormField
                         control={form.control}
                         name={`members.${index}.roles`}
-                        render={({ field }) => {
-                          const currentRole = field.value?.[0] || member.role || OrganizationMembershipRole.MEMBER;
-                          const formatRole = (role: string) => {
-                            return role.charAt(0) + role.slice(1).toLowerCase();
-                          };
-
-                          return (
-                            <Select
-                              value={currentRole}
-                              onValueChange={(value) => {
-                                field.onChange([value]); // Set as array since schema expects array
-                                // Show visual feedback
-                                const selectTrigger = document.querySelector(`[data-member-id="${member.id}"]`);
-                                if (selectTrigger) {
-                                  selectTrigger.classList.add("border-green-500");
-                                  setTimeout(() => {
-                                    selectTrigger.classList.remove("border-green-500");
-                                  }, 2000);
-                                }
-                              }}
-                            >
-                              <SelectTrigger 
-                                className="w-[130px] transition-colors duration-200"
-                                data-member-id={member.id}
-                              >
-                                <SelectValue>
-                                  {formatRole(currentRole)}
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Object.values(OrganizationMembershipRole).map(
-                                  (role) => (
-                                    <SelectItem 
-                                      key={role} 
-                                      value={role}
-                                      className={
-                                        role === currentRole
-                                          ? "font-medium"
-                                          : "font-normal"
-                                      }
-                                    >
-                                      {formatRole(role)}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
-                          );
-                        }}
-                      />
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value?.[0]}
+                            onValueChange={(value) => {
+                              field.onChange([value]);
+                            }}
                           >
-                            <span className="sr-only">Remove member</span>
-                            <X className="h-4 w-4" />
-                          </Button>
+                            <SelectTrigger className="w-[180px] cursor-pointer rounded-xl">
+                              <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              {Object.values(OrganizationMembershipRole).map(
+                                (role) => (
+                                  <SelectItem
+                                    key={role}
+                                    value={role}
+                                    className="cursor-pointer"
+                                  >
+                                    {role}
+                                  </SelectItem>
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <AlertDialogTrigger asChild>
+                          <div className="inline-flex cursor-pointer">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="hover:bg-muted"
+                              onClick={() => handleOpenDialog(member)}
+                            >
+                              <span className="sr-only">Remove member</span>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Remove member</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to remove {member.name} from this organization?
-                              This action cannot be undone.
+                              Are you sure you want to remove {memberToRemove?.name} from this organization?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
+                            <AlertDialogCancel onClick={handleCloseDialog}>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction 
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => {
-                                alertDialog.open({
-                                  title: "Remove member",
-                                  description:
-                                    "Are you sure you want to remove this member?",
-                                  onConfirm: () => {
-                                    const members = form.getValues("members");
-                                    form.setValue(
-                                      "members",
-                                      members.filter((m) => m.id !== member.id)
-                                    );
-                                  },
-                                });
-                              }}
+                              onClick={handleRemoveMember}
                             >
                               Remove
                             </AlertDialogAction>

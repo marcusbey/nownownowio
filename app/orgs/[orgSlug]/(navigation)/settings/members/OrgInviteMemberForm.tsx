@@ -68,7 +68,11 @@ export const OrganizationInviteMemberForm = () => {
       }}
     >
       <DialogTrigger asChild>
-        <Button type="button" variant="outline">
+        <Button 
+          type="button" 
+          variant="default"
+          className="cursor-pointer"
+        >
           <Mail className="mr-2" size={16} />
           Invite member
         </Button>
@@ -95,7 +99,7 @@ export const OrganizationInviteMemberForm = () => {
               </FormItem>
             )}
           />
-          <LoadingButton loading={mutation.isPending} type="submit">
+          <LoadingButton loading={mutation.isPending} type="submit" className="cursor-pointer">
             <Plus size={16} className="mr-2" />
             Invite
           </LoadingButton>
