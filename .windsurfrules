@@ -121,7 +121,7 @@ This is a sophisticated platform that combines social networking features with o
 
 ## Project Statistics
 
-- Total files: 499
+- Total files: 505
 
 ## Folder Structure
 
@@ -132,6 +132,7 @@ This is a sophisticated platform that combines social networking features with o
 .nvmrc
 .prettierignore
 .prettierrc.yaml
+.windsurfrules
 CHANGELOG.md
 README.md
 app
@@ -385,6 +386,7 @@ app
         settings
           (details)
             OrgDetailsForm.tsx
+          SettingsContent.tsx
           billing
             page.tsx
           danger
@@ -414,6 +416,8 @@ app
           users-chart.tsx
       invitations
         [token]
+          InvitationForm.tsx
+          actions.ts
           page.tsx
       layout.tsx
       useCurrentOrg.tsx
@@ -434,6 +438,7 @@ app
     [name]
       UserPosts.tsx
       page.tsx
+codebase.md
 components.json
 content
   posts
@@ -463,6 +468,8 @@ pnpm-lock.yaml
 postcss.config.js
 prisma
   migrations
+    20240118_optimize_feed_performance
+      migration.sql
     20240906153924_initial_migration
       migration.sql
     20240906153933_initial_plan
@@ -809,7 +816,6 @@ tailwind.config.js
 tsconfig.json
 
 ```
-
 
 ## Naming Conventions
 - Use lowercase with dashes for directories (e.g., components/form-wizard)
