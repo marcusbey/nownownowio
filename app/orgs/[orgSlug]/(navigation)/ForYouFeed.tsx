@@ -30,14 +30,11 @@ export default function ForYouFeed() {
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    cacheTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
     retry: false,
-    keepPreviousData: true,
-    suspense: false,
-    gcTime: 1000 * 60 * 60, // 1 hour
     networkMode: 'offlineFirst',
   });
 
@@ -46,7 +43,7 @@ export default function ForYouFeed() {
     [data?.pages]
   );
 
-  if (status === "loading") {
+  if (status === "pending") {
     return <PostsLoadingSkeleton />;
   }
 

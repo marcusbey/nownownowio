@@ -53,11 +53,11 @@ export const ORGANIZATION_LINKS: NavigationLink[] = [ // Explicitly type as Navi
   {
     title: "SETTINGS",
     links: [
-      {
-        href: `${orgPath}/users`,
-        icon: User,
-        label: "Panel",
-      },
+      // {
+      //   href: `${orgPath}/users`,
+      //   icon: User,
+      //   label: "Panel",
+      // },
       {
         href: `${orgPath}/dashboard`,
         icon: LayoutDashboard,

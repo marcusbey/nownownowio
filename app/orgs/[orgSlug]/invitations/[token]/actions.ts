@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { hashStringWithSalt, validatePassword } from "@/lib/auth/credentials-provider";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
+import { auth } from '@/lib/auth/helper';
 import { authOptions } from "@/lib/auth/auth";
 import { addHours } from "date-fns";
 import { z } from "zod";
@@ -107,7 +107,7 @@ export async function createAccount(prevState: any, formData: FormData) {
     });
 
     // Create a new session for the user
-    const session = await getServerSession(authOptions);
+    const session = await auth.getSession();
     if (!session) {
       // If no session, redirect to sign in
       redirect(`/auth/signin?callbackUrl=/orgs/${result.organizationSlug}/settings&email=${encodeURIComponent(email)}`);

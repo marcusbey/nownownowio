@@ -13,7 +13,7 @@ import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { LoginCredentialsFormScheme } from "./signup.schema";
-import logger from "@/lib/logger";
+import { logger } from "@/lib/logger";
 
 export const signUpAction = action
   .schema(LoginCredentialsFormScheme)

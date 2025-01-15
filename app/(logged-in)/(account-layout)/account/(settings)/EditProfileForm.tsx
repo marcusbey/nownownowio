@@ -68,7 +68,7 @@ export const EditProfileCardForm = ({
   const watchAll = form.watch();
   useEffect(() => {
     const hasChanges = Object.keys(watchAll).some(
-      (key) => watchAll[key] !== defaultValues[key as keyof typeof defaultValues]
+      (key) => watchAll[key as keyof typeof watchAll] !== defaultValues[key as keyof typeof defaultValues]
     );
     setIsFormDirty(hasChanges);
   }, [watchAll, defaultValues]);
@@ -171,10 +171,9 @@ export const EditProfileCardForm = ({
                   <FormLabel>Profile Image</FormLabel>
                   <FormControl>
                     <ImageFormItem
-                      className="size-16 rounded-full"
+                      className="mx-auto"
                       onChange={(url) => field.onChange(url)}
                       imageUrl={field.value || defaultValues.image}
-                      defaultImageUrl={defaultValues.image}
                     />
                   </FormControl>
                   <FormMessage />

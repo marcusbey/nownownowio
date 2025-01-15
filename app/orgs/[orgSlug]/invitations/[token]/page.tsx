@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
+import { auth } from "@/lib/auth/helper";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { InvitationForm } from "./InvitationForm";
 import { buttonVariants } from "@/components/ui/button";
@@ -29,7 +29,7 @@ export default async function InvitationPage({
   params: { orgSlug: string; token: string };
 }) {
   // Get the current session
-  const session = await getServerSession(authOptions);
+  const session = await auth.getSession();
 
   // Find and validate the token
   const verificationToken = await prisma.verificationToken.findUnique({

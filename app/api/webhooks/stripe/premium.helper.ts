@@ -31,6 +31,8 @@ export const downgradeUserFromPlan = async (orgId: string) => {
 };
 
 export const notifyUserOfPremiumUpgrade = async (user: Organization) => {
+  if (!user.email) return;
+  
   await sendEmail({
     to: user.email,
     subject: `Success! You've Unlocked Full Access to Our Features`,
@@ -39,6 +41,8 @@ export const notifyUserOfPremiumUpgrade = async (user: Organization) => {
 };
 
 export const notifyUserOfPremiumDowngrade = async (org: Organization) => {
+  if (!org.email) return;
+  
   await sendEmail({
     to: org.email,
     subject: `Important Update: Changes to Your Account Status`,
@@ -49,6 +53,8 @@ export const notifyUserOfPremiumDowngrade = async (org: Organization) => {
 };
 
 export const notifyUserOfPaymentFailure = async (org: Organization) => {
+  if (!org.email) return;
+  
   await sendEmail({
     to: org.email,
     subject: `Action Needed: Update Your Payment to Continue Enjoying Our Services`,

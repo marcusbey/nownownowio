@@ -2,13 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import UserAvatar from "@/components/UserAvatar";
-import { User } from "@prisma/client";
+import { UserData } from "@/lib/types";
 import { CalendarDays, Link2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
 interface ProfileHeaderProps {
-  user: User;
+  user: UserData;
   orgSlug: string;
 }
 

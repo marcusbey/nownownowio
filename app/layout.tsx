@@ -70,7 +70,6 @@ export default function RootLayout({
           data-website-id="671fb98a7acececdf6464e99"
           data-domain="nownownow.io"
           src="https://datafa.st/js/script.js"
-          strategy="lazyOnload"
         />
       </body>
     </html>

@@ -1,27 +1,57 @@
 import { baseAuth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { PostCard } from "@/features/posts/PostCard";
+import Post from "@/components/posts/Post";
+import { Prisma } from "@prisma/client";
 
 export default async function BookmarksList() {
   const session = await baseAuth();
-  if (!session?.user?.email) {
-    return null;
-  }
+  if (!session) return null;
 
   const bookmarks = await prisma.bookmark.findMany({
     where: {
-      user: {
-        email: session.user.email,
-      },
+      userId: session.user.id,
     },
     include: {
       post: {
         include: {
-          user: true,
-          attachments: true,
-          likes: true,
+          user: {
+            include: {
+              _count: {
+                select: {
+                  followers: true,
+                  following: true,
+                  posts: true,
+                  comments: true,
+                  likes: true,
+                  bookmarks: true,
+                }
+              },
+              organizations: {
+                include: {
+                  organization: {
+                    select: {
+                      name: true,
+                      slug: true,
+                    },
+                  },
+                },
+              },
+              posts: true,
+              comments: true,
+              likes: true,
+              bookmarks: true,
+              followers: true,
+              following: true,
+              notifications: true,
+              issuedNotifications: true,
+            }
+          },
           comments: true,
+          likes: true,
           bookmarks: true,
+          attachments: true,
+          linkedNotifications: true,
+          _count: true
         },
       },
     },
@@ -30,10 +60,10 @@ export default async function BookmarksList() {
     },
   });
 
-  if (bookmarks.length === 0) {
+  if (!bookmarks.length) {
     return (
-      <div className="text-center text-gray-500 py-8">
-        <p>You haven't bookmarked any posts yet.</p>
+      <div className="text-center text-muted-foreground">
+        <p>No bookmarks yet</p>
       </div>
     );
   }
@@ -41,12 +71,9 @@ export default async function BookmarksList() {
   return (
     <div className="space-y-6">
       {bookmarks.map((bookmark) => (
-        <PostCard
+        <Post
           key={bookmark.id}
           post={bookmark.post}
-          currentUserEmail={session.user.email}
-          initialIsBookmarked={true}
-          bookmarkId={bookmark.id}
         />
       ))}
     </div>

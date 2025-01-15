@@ -2,7 +2,7 @@ import kyInstance from "@/lib/ky";
 import { PostData } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-interface GetPostsResponse {
+export interface GetPostsResponse {
   posts: PostData[];
   nextCursor: string | null;
 }
@@ -55,10 +55,9 @@ export function useInfinitePosts(topic?: string) {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: null,
     staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 30,
     refetchOnWindowFocus: true,  // Changed to true to keep data fresh
     refetchOnMount: true,        // Changed to true for reliability
-    keepPreviousData: true,
     retry: 3,                    // Increased retries
     retryDelay: (attemptIndex) => Math.min(1000 * (2 ** attemptIndex), 30000),
   });

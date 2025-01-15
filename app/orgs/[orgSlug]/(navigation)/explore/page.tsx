@@ -1,6 +1,6 @@
 "use client";
 
-import { useInfinitePosts } from "@/lib/api/posts";
+import { useInfinitePosts, GetPostsResponse } from "@/lib/api/posts";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Post from "@/components/posts/Post";
@@ -27,14 +27,10 @@ export default function ExplorePage() {
   const searchParams = useSearchParams();
   const topic = searchParams.get("topic") || "all";
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, error } = useInfinitePosts(topic);
-  const [loading, setLoading] = useState(status === "loading");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (status === "loading") {
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
+    setLoading(status !== "success");
   }, [status]);
 
   if (error) {
@@ -110,7 +106,7 @@ export default function ExplorePage() {
         >
           {data?.pages.map((page, i) => (
             <div key={i} className="space-y-4">
-              {page.posts.map((post) => (
+              {(page as GetPostsResponse).posts.map((post) => (
                 <Post key={post.id} post={post} />
               ))}
             </div>
