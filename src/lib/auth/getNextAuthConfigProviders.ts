@@ -63,9 +63,7 @@ export const getNextAuthConfigProviders = cache((): Providers => {
         authorization: {
           url: "https://twitter.com/i/oauth2/authorize",
           params: {
-            scope: "users.read tweet.read email offline.access",
-            code_challenge_method: "S256",
-            code_challenge: "challenge",
+            scope: "users.read tweet.read offline.access",
           }
         },
         userinfo: {
@@ -96,8 +94,9 @@ export const getNextAuthConfigProviders = cache((): Providers => {
         clientSecret: env.GOOGLE_SECRET,
         authorization: {
           params: {
-            access_type: "offline", // Enable refresh token
-            prompt: "consent",      // Force consent screen
+            prompt: "consent",
+            access_type: "offline",
+            response_type: "code",
             scope: "openid email profile"
           }
         },
@@ -107,9 +106,7 @@ export const getNextAuthConfigProviders = cache((): Providers => {
             email: profile.email,
             name: profile.name,
             image: profile.picture,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_at: Math.floor(Date.now() / 1000 + (tokens.expires_in || 3600)),
+            emailVerified: profile.email_verified ? new Date() : null,
           };
         },
       }),

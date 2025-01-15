@@ -3,6 +3,7 @@
 import { UserData } from "@/lib/types";
 import ProfileHeader from "./ProfileHeader";
 import UserPosts from "./UserPosts";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ClientProfileProps {
   user: UserData;
@@ -11,11 +12,22 @@ interface ClientProfileProps {
 
 export default function ClientProfile({ user, orgSlug }: ClientProfileProps) {
   return (
-    <main className="mx-auto max-w-4xl space-y-6">
+    <div className="w-full min-w-0">
       <ProfileHeader user={user} orgSlug={orgSlug} />
-      <div className="px-4">
-        <UserPosts userId={user.id} />
+      
+      <div className="max-w-xl mx-auto px-4">
+        <Tabs defaultValue="posts" className="w-full">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="posts">Posts</TabsTrigger>
+            <TabsTrigger value="replies">Replies</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <div className="mt-4">
+          <UserPosts userId={user.id} />
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

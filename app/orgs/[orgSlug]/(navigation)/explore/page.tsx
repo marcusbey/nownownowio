@@ -81,17 +81,17 @@ export default function ExplorePage() {
   }
 
   return (
-    <main className="flex w-full min-w-0 gap-5 p-4">
+    <main className="flex w-full min-w-0 gap-5 p-4 max-w-xl mx-auto">
       <div className="w-full min-w-0 space-y-5">
         <PostEditor />
         
         <nav className="sticky top-0 bg-background/80 backdrop-blur-sm">
-          <div className="no-scrollbar flex gap-2 overflow-x-auto py-2">
+          <div className="no-scrollbar flex gap-2 overflow-x-auto py-2 -mx-4 px-4">
             {topics.map((t) => (
               <Button
                 key={t.id}
                 variant={topic === t.id ? "default" : "ghost"}
-                className="rounded-full"
+                className="rounded-full whitespace-nowrap"
                 asChild
               >
                 <Link href={`?topic=${t.id}`}>{t.label}</Link>
