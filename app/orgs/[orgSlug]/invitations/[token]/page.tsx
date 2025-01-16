@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth/helper";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/auth";
 import { InvitationForm } from "./InvitationForm";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +29,7 @@ export default async function InvitationPage({
   params: { orgSlug: string; token: string };
 }) {
   // Get the current session
-  const session = await auth.getSession();
+  const session = await auth();
 
   // Find and validate the token
   const verificationToken = await prisma.verificationToken.findUnique({

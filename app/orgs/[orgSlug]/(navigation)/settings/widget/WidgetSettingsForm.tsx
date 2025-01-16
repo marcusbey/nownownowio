@@ -27,9 +27,7 @@ const widgetSettingsSchema = z.object({
   buttonColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, {
     message: "Must be a valid hex color (e.g., #1a73e8)",
   }),
-  buttonSize: z.string().transform(Number).pipe(
-    z.number().min(40).max(120)
-  ),
+  buttonSize: z.number().min(40).max(120),
 });
 
 export type WidgetSettings = z.infer<typeof widgetSettingsSchema>;
@@ -38,7 +36,7 @@ const defaultValues: WidgetSettings = {
   theme: "dark",
   position: "left",
   buttonColor: "#1a73e8",
-  buttonSize: "90",
+  buttonSize: 90,
 };
 
 interface WidgetSettingsFormProps {
@@ -72,7 +70,7 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
               min="40"
               max="120"
               value={settings.buttonSize}
-              onChange={(e) => onChange({ ...settings, buttonSize: e.target.value })}
+              onChange={(e) => onChange({ ...settings, buttonSize: parseInt(e.target.value) })}
             />
           </div>
         </div>

@@ -15,7 +15,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
     theme: "dark",
     position: "left",
     buttonColor: "#1a73e8",
-    buttonSize: "90",
+    buttonSize: 90,
   });
   const { toast } = useToast();
 

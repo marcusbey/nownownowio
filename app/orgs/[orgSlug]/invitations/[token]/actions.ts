@@ -5,10 +5,8 @@ import { env } from "@/lib/env";
 import { hashStringWithSalt, validatePassword } from "@/lib/auth/credentials-provider";
 import { redirect } from "next/navigation";
 import { auth } from '@/lib/auth/helper';
-import { authOptions } from "@/lib/auth/auth";
 import { addHours } from "date-fns";
-import { z } from "zod";
-import { ActionError, createAction } from "@/lib/action";
+import { ActionError, action } from "@/lib/actions/safe-actions";
 
 export async function createAccount(prevState: any, formData: FormData) {
   const name = formData.get("name") as string;
@@ -103,12 +101,17 @@ export async function createAccount(prevState: any, formData: FormData) {
         where: { token },
       });
 
-      return { userId, organizationSlug: (await tx.organization.findUnique({ where: { id: orgId } })).slug };
+      const organization = await tx.organization.findUnique({ where: { id: orgId } });
+      if (!organization) {
+        throw new ActionError("Organization not found");
+      }
+
+      return { userId, organizationSlug: organization.slug };
     });
 
     // Create a new session for the user
-    const session = await auth.getSession();
-    if (!session) {
+    const session = await auth();
+    if (!session?.id) {
       // If no session, redirect to sign in
       redirect(`/auth/signin?callbackUrl=/orgs/${result.organizationSlug}/settings&email=${encodeURIComponent(email)}`);
     }

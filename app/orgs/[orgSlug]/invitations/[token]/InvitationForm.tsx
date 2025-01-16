@@ -15,7 +15,7 @@ interface InvitationFormProps {
 }
 
 export function InvitationForm({ token, email, organizationName }: InvitationFormProps) {
-  const [state, formAction] = useFormState(createAccount, { error: null });
+  const [state, formAction] = useFormState(createAccount, { error: "" });
 
   return (
     <Card>
