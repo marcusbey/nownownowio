@@ -36,7 +36,7 @@ export function useUpdateProfileMutation() {
     onSuccess: async ([updatedUser, uploadResult]) => {
       const newAvatarUrl = uploadResult?.[0].serverData.avatarUrl;
 
-      const queryFilter: QueryFilters = {
+      const queryFilter: QueryFilters<InfiniteData<PostsPage, string | null>> = {
         queryKey: ["post-feed"],
       };
 
@@ -57,7 +57,7 @@ export function useUpdateProfileMutation() {
                     ...post,
                     user: {
                       ...updatedUser,
-                      avatarUrl: newAvatarUrl || updatedUser.avatarUrl,
+                      image: newAvatarUrl || updatedUser.image,
                     },
                   };
                 }

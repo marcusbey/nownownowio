@@ -1,6 +1,6 @@
 "use server";
 
-import VerifyEmail from "@/email/VerifyEmail.email";
+import VerifyEmail from "@/emails/VerifyEmail.email";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";

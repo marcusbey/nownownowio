@@ -52,28 +52,27 @@ export const OrganizationInviteMemberForm = ({ invitedEmail, maxMembers, current
   const mutation = useMutation({
     mutationFn: async (values: SchemaType) => {
       try {
-        // Check if email is already in pending invitations
-        if (invitedEmail.includes(values.email)) {
-          toast.error("This email already has a pending invitation");
-          return;
-        }
-
-        // Check member limit
-        if (currentMemberCount + invitedEmail.length >= maxMembers) {
-          toast.error("Maximum member limit reached");
-          return;
-        }
-
         const result = await inviteUserInOrganizationAction(values);
-        if (result.error) {
-          toast.error(result.error);
-          return;
+        if (result === undefined) {
+          throw new Error("Failed to invite user");
         }
-
-        toast.success("Invitation sent successfully");
-        form.reset();
-        setOpen(false);
-        router.refresh();
+        if ("serverError" in result) {
+          throw new Error(result.serverError);
+        }
+        if ("fieldErrors" in result && typeof result.fieldErrors === 'object' && result.fieldErrors && 'email' in result.fieldErrors) {
+          const emailErrors = result.fieldErrors.email;
+          if (Array.isArray(emailErrors) && emailErrors.length > 0) {
+            throw new Error(emailErrors[0]);
+          }
+        }
+        if ("data" in result) {
+          toast.success("Invitation sent successfully");
+          form.reset();
+          setOpen(false);
+          router.refresh();
+        } else {
+          throw new Error("Failed to invite user");
+        }
       } catch (error) {
         console.error("Invitation error:", error);
         if (error instanceof Error) {
@@ -81,6 +80,7 @@ export const OrganizationInviteMemberForm = ({ invitedEmail, maxMembers, current
         } else {
           toast.error("Failed to send invitation. Please try again.");
         }
+        throw error; // Re-throw to mark mutation as failed
       }
     },
   });

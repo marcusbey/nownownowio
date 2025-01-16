@@ -46,7 +46,7 @@ export default async function RoutePage(props: PageParams) {
         })),
       }}
       maxMembers={org.plan.maximumMembers}
-      members={members.map((m) => ({ role: m.roles, ...m.user, id: m.id }))}
+      members={members.map((m) => ({ role: m.roles[0], ...m.user, id: m.id }))}
       invitedEmail={invitedEmail}
     />
   );

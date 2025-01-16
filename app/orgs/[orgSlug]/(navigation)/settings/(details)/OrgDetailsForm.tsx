@@ -33,6 +33,7 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
   });
   const router = useRouter();
   const isDirty = form.formState.isDirty;
+  const isPending = form.formState.isSubmitting;
 
   const mutation = useMutation({
     mutationFn: async (values: OrgDetailsFormSchemaType) => {
@@ -73,7 +74,6 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
                   className="size-24 rounded-lg"
                   onChange={(url) => field.onChange(url)}
                   imageUrl={field.value || defaultValues.image}
-                  defaultImageUrl={defaultValues.image}
                 />
               </FormControl>
               <FormMessage />
@@ -111,29 +111,41 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
 
         <FormField
           control={form.control}
-          name="websiteUrl"
+          name="bio"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Website URL</FormLabel>
+              <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Input {...field} type="url" />
+                <Input {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {isDirty && (
-          <div className="flex justify-end border-t pt-4">
-            <LoadingButton
-              type="submit"
-              loading={mutation.isPending}
-              disabled={!isDirty}
-            >
-              Save Changes
-            </LoadingButton>
-          </div>
-        )}
+        <FormField
+          control={form.control}
+          name="websiteUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Website URL</FormLabel>
+              <FormControl>
+                <Input {...field} type="url" value={field.value || ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end">
+          <LoadingButton
+            type="submit"
+            loading={isPending}
+            disabled={!form.formState.isDirty}
+          >
+            Save Changes
+          </LoadingButton>
+        </div>
       </div>
     </Form>
   );

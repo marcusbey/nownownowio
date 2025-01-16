@@ -26,7 +26,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/lib/*": ["./src/lib/*"],
-      "@/email/*": ["./emails/*"],
+      "@/emails/*": ["./emails/*"],
       "@/app/*": ["./app/*"]
     },
     "types": ["jest", "node"]

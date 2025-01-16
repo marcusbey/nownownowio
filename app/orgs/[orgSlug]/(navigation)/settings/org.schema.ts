@@ -19,6 +19,7 @@ export const OrgDetailsFormSchema = z.object({
   email: z.string().email(),
   image: z.string().nullable(),
   bio: z.string().max(500).optional(),
+  websiteUrl: z.string().url().optional(),
 });
 
 export const OrgMemberFormSchema = z.object({

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth/helper";
 import { stripe } from "@/lib/stripe";
+import type Stripe from "stripe";
 
 export default async function SubscriptionPage({
   params: { orgSlug },
@@ -17,13 +18,16 @@ export default async function SubscriptionPage({
 
   const organization = await prisma.organization.findUnique({
     where: { slug: orgSlug },
+    include: {
+      plan: true
+    }
   });
 
   if (!organization) {
     notFound();
   }
 
-  let subscription = null;
+  let subscription: Stripe.Subscription | undefined = undefined;
   if (organization.stripeCustomerId) {
     const subscriptions = await stripe.subscriptions.list({
       customer: organization.stripeCustomerId,

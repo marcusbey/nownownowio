@@ -454,6 +454,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
             name: userData.name,
             image: userData.image,
             emailVerified: userData.emailVerified,
+            organizations: undefined
           }
         });
 
@@ -537,6 +538,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
             name: userData.name,
             image: userData.image,
             emailVerified: userData.emailVerified,
+            organizations: undefined
           }
         });
 

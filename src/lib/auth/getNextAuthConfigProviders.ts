@@ -1,4 +1,4 @@
-import MagicLinkMail from "@/email/MagicLinkEmail.email";
+import MagicLinkMail from "@/emails/MagicLinkEmail.email";
 import { SiteConfig } from "@/site-config";
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";

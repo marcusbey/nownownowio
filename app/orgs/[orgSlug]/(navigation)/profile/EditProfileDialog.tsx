@@ -46,7 +46,7 @@ export default function EditProfileDialog({
   const form = useForm<UpdateUserProfileValues>({
     resolver: zodResolver(updateUserProfileSchema),
     defaultValues: {
-      displayName: user.displayName,
+      displayName: user.displayName || undefined,
       bio: user.bio || "",
     },
   });
@@ -86,12 +86,12 @@ export default function EditProfileDialog({
             src={
               croppedAvatar
                 ? URL.createObjectURL(croppedAvatar)
-                : user.avatarUrl || avatarPlaceholder
+                : user.image || avatarPlaceholder
             }
             onImageCropped={setCroppedAvatar}
           />
         </div>
-        <Form {...form}>
+        <Form form={form} onSubmit={onSubmit}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <FormField
               control={form.control}

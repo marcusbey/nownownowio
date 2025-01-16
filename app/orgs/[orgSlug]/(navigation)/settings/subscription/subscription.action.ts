@@ -1,25 +1,25 @@
 import { z } from "zod";
-import { ActionError, action } from "@/lib/actions/safe-actions";
+import { ActionError, orgAction } from "@/lib/actions/safe-actions";
 import { stripe } from "@/lib/stripe";
 import { getServerUrl } from "@/lib/server-url";
 import { prisma } from "@/lib/prisma";
 
-export const updateSubscriptionAction = action
-  .meta({ roles: ["ADMIN"] })
-  .input(
-    z.object({
-      priceId: z.string(),
-      organizationId: z.string(),
-    }),
-  )
-  .handler(async ({ input }) => {
+const updateSubscriptionSchema = z.object({
+  priceId: z.string(),
+  organizationId: z.string(),
+});
+
+export const updateSubscriptionAction = orgAction
+  .metadata({ roles: ["ADMIN"] })
+  .schema(updateSubscriptionSchema)
+  .action(async ({ parsedInput: { priceId, organizationId }, ctx }) => {
     try {
-      if (!input.priceId) {
+      if (!priceId) {
         throw new ActionError("Invalid price ID");
       }
 
       const organization = await prisma.organization.findFirst({
-        where: { id: input.organizationId },
+        where: { id: organizationId },
       });
 
       if (!organization) {
@@ -40,20 +40,20 @@ export const updateSubscriptionAction = action
 
         await prisma.organization.update({
           where: { id: organization.id },
-          data: { stripeCustomerId: customerId },
+          data: { stripeCustomerId: customer.id },
         });
       }
 
-      // Create a checkout session
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
+        payment_method_types: ["card"],
+        mode: "subscription",
         line_items: [
           {
-            price: input.priceId,
+            price: priceId,
             quantity: 1,
           },
         ],
-        mode: "subscription",
         success_url: `${getServerUrl()}/orgs/${organization.slug}/settings/subscription?success=true`,
         cancel_url: `${getServerUrl()}/orgs/${organization.slug}/settings/subscription?canceled=true`,
         metadata: {
@@ -61,34 +61,33 @@ export const updateSubscriptionAction = action
         },
       });
 
-      if (!session.url) {
-        throw new ActionError("Failed to create checkout session");
-      }
-
       return { url: session.url };
     } catch (error) {
-      console.error("Subscription error:", error);
-      if (error instanceof ActionError) {
-        throw error;
+      if (error instanceof Error) {
+        throw new ActionError(error.message);
       }
-      throw new ActionError("Failed to update subscription");
+      throw new ActionError("Failed to create checkout session");
     }
   });
 
-export const manageBillingAction = action
-  .meta({ roles: ["ADMIN"] })
-  .input(
-    z.object({
-      organizationId: z.string(),
-    }),
-  )
-  .handler(async ({ input }) => {
+const manageBillingSchema = z.object({
+  organizationId: z.string(),
+});
+
+export const manageBillingAction = orgAction
+  .metadata({ roles: ["ADMIN"] })
+  .schema(manageBillingSchema)
+  .action(async ({ parsedInput: { organizationId }, ctx }) => {
     try {
       const organization = await prisma.organization.findFirst({
-        where: { id: input.organizationId },
+        where: { id: organizationId },
       });
 
-      if (!organization?.stripeCustomerId) {
+      if (!organization) {
+        throw new ActionError("Organization not found");
+      }
+
+      if (!organization.stripeCustomerId) {
         throw new ActionError("No billing information found");
       }
 
@@ -99,10 +98,9 @@ export const manageBillingAction = action
 
       return { url: session.url };
     } catch (error) {
-      console.error("Billing portal error:", error);
-      if (error instanceof ActionError) {
-        throw error;
+      if (error instanceof Error) {
+        throw new ActionError(error.message);
       }
-      throw new ActionError("Failed to access billing portal");
+      throw new ActionError("Failed to create billing portal session");
     }
   });

@@ -2,14 +2,43 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
-import type { Organization } from "@prisma/client";
+import type { Organization, OrganizationMembershipRole } from "@prisma/client";
+import { OrgDetailsFormSchema, type OrgDetailsFormSchemaType } from "./org.schema";
+
+type OrganizationWithPlan = {
+  id: string;
+  name: string;
+  email: string | null;
+  image: string | null;
+  slug: string;
+  stripeCustomerId: string | null;
+  plan: {
+    id: string;
+    createdAt: Date;
+    name: string;
+    updatedAt: Date;
+    maximumMembers: number;
+  };
+  members: Array<{
+    roles: OrganizationMembershipRole[];
+  }>;
+};
 
 type SettingsContentProps = {
-  organization: Organization;
+  organization: OrganizationWithPlan;
   orgSlug: string;
 };
 
 export function SettingsContent({ organization, orgSlug }: SettingsContentProps) {
+  // Transform organization data to match form schema
+  const formDefaultValues: OrgDetailsFormSchemaType = {
+    name: organization.name,
+    email: organization.email || "",
+    image: organization.image,
+    bio: "",
+    websiteUrl: "",
+  };
+
   return (
     <div className="container max-w-4xl py-6">
       <div className="mb-6">
@@ -27,7 +56,7 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <OrgDetailsForm defaultValues={organization} />
+          <OrgDetailsForm defaultValues={formDefaultValues} />
         </CardContent>
       </Card>
     </div>

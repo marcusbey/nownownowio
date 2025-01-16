@@ -4,11 +4,11 @@ import {
   Bell,
   Bookmark,
   // Coins,
-  Compass,
+  // Compass,
   Home,
   LayoutDashboard,
   Settings,
-  User,
+  // User, 
   User2
 } from "lucide-react";
 
@@ -23,11 +23,11 @@ export const ORGANIZATION_LINKS: NavigationLink[] = [ // Explicitly type as Navi
         icon: Home,
         label: "Home",
       },
-      {
-        href: `${orgPath}/explore`,
-        icon: Compass,
-        label: "Explore",
-      },
+      // {
+      //   href: `${orgPath}/explore`,
+      //   icon: Compass,
+      //   label: "Explore",
+      // },
       {
         href: `${orgPath}/profile`,
         icon: User2,

@@ -1,7 +1,7 @@
 "use server";
 
-import MarkdownEmail from "@/email/Markdown.email";
-import OrganizationInvitationEmail from "@/email/OrganizationInvitationEmail.email";
+import MarkdownEmail from "@/emails/Markdown.email";
+import OrganizationInvitationEmail from "@/emails/OrganizationInvitationEmail.email";
 import { ActionError, orgAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
@@ -128,6 +128,32 @@ export const inviteUserInOrganizationAction = orgAction
   )
   .action(async ({ parsedInput: { email }, ctx }) => {
     try {
+      // Check member limit
+      const [currentMembers, pendingInvites] = await Promise.all([
+        prisma.organizationMembership.count({
+          where: { organizationId: ctx.org.id }
+        }),
+        prisma.verificationToken.count({
+          where: {
+            identifier: { startsWith: `${email}-invite-${ctx.org.id}` },
+            expires: { gt: new Date() }
+          }
+        })
+      ]);
+
+      const plan = await prisma.organizationPlan.findUnique({
+        where: { id: ctx.org.plan.id },
+        select: { maximumMembers: true }
+      });
+
+      if (!plan) {
+        throw new ActionError("Organization plan not found");
+      }
+
+      if (currentMembers + pendingInvites >= plan.maximumMembers) {
+        throw new ActionError("Maximum member limit reached");
+      }
+
       // Check if user is already a member
       const existingMember = await prisma.organizationMembership.findFirst({
         where: {
@@ -155,27 +181,44 @@ export const inviteUserInOrganizationAction = orgAction
       }
 
       // Create verification token for the link
+      const INVITE_EXPIRATION_HOURS = 24;
       const verificationToken = await prisma.verificationToken.create({
         data: {
           identifier: `${email}-invite-${ctx.org.id}`,
-          expires: addHours(new Date(), 24), // 24 hour expiration
+          expires: addHours(new Date(), INVITE_EXPIRATION_HOURS),
           token: nanoid(32),
           data: {
             orgId: ctx.org.id,
             email,
+            expiresIn: `${INVITE_EXPIRATION_HOURS} hours`,
           },
         },
       });
 
       // Send invitation email
-      await sendEmail({
-        to: email,
-        subject: `Invitation to join ${ctx.org.name}`,
-        react: OrganizationInvitationEmail({
-          organizationName: ctx.org.name,
-          inviteUrl: `${process.env.NEXT_PUBLIC_APP_URL}/orgs/${ctx.org.slug}/invitations/${verificationToken.token}`,
-        }),
-      });
+      try {
+        await sendEmail({
+          to: email,
+          subject: `Invitation to join ${ctx.org.name}`,
+          react: OrganizationInvitationEmail({
+            token: verificationToken.token,
+            orgSlug: ctx.org.slug,
+            organizationName: ctx.org.name,
+            expiresIn: `${INVITE_EXPIRATION_HOURS} hours`,
+          }),
+        });
+      } catch (emailError) {
+        // Clean up the token if email fails
+        await prisma.verificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier: verificationToken.identifier,
+              token: verificationToken.token
+            }
+          }
+        });
+        throw new ActionError("Failed to send invitation email. Please try again.");
+      }
 
       return { success: true };
     } catch (error) {

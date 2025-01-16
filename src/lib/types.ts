@@ -1,7 +1,7 @@
 import { OrganizationMembershipRole, Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
-  return {
+  return Prisma.validator<Prisma.UserSelect>()({
     id: true,
     name: true,
     displayName: true,
@@ -12,6 +12,7 @@ export function getUserDataSelect(loggedInUserId: string) {
     resendContactId: true,
     passwordHash: true,
     widgetToken: true,
+    websiteUrl: true,
     createdAt: true,
     updatedAt: true,
     followers: {
@@ -49,7 +50,7 @@ export function getUserDataSelect(loggedInUserId: string) {
         bookmarks: true,
       },
     },
-  } satisfies Prisma.UserSelect;
+  });
 }
 
 export type UserData = Prisma.UserGetPayload<{
@@ -208,6 +209,7 @@ export type User = Prisma.UserGetPayload<{
     resendContactId: true;
     passwordHash: true,
     widgetToken: true,
+    websiteUrl: true,
     createdAt: true,
     updatedAt: true,
     followers: true,

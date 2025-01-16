@@ -1,6 +1,6 @@
 "use server";
 
-import MarkdownEmail from "@/email/Markdown.email";
+import MarkdownEmail from "@/emails/Markdown.email";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import {
