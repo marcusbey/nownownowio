@@ -79,16 +79,16 @@ async function PeopleList() {
         >
           <div className="flex items-center gap-4">
             <UserTooltip user={user}>
-              <UserAvatar user={user} className="h-12 w-12" />
+              <UserAvatar avatarUrl={user.image} className="h-12 w-12" />
             </UserTooltip>
             <div className="flex flex-col">
               <Link
-                href={`/@${user.username}`}
+                href={`/users/${user.name}`}
                 className="font-medium hover:text-primary transition-colors line-clamp-1"
               >
                 {user.name}
               </Link>
-              <span className="text-sm text-muted-foreground">@{user.username}</span>
+              <span className="text-sm text-muted-foreground">{user.displayName}</span>
               {user.bio && (
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                   {user.bio}
@@ -96,7 +96,13 @@ async function PeopleList() {
               )}
             </div>
           </div>
-          <FollowButton userId={user.id} />
+          <FollowButton 
+            userId={user.id} 
+            initialState={{ 
+              followers: user._count.followers,
+              isFollowedByUser: user.followers.length > 0 
+            }} 
+          />
         </div>
       ))}
     </div>

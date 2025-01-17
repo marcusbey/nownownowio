@@ -48,15 +48,13 @@ export function usePostViews(postId: string) {
         return 0;
       }
     },
-    // Cache for 5 minutes
+    // Keep stale data for 5 minutes before refetching
     staleTime: 5 * 60 * 1000,
-    // Keep in cache for 10 minutes
-    cacheTime: 10 * 60 * 1000,
     // Don't refetch on window focus
     refetchOnWindowFocus: false,
     // Retry failed requests up to 3 times with exponential backoff
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 30000),
   });
 
   return {

@@ -5,12 +5,12 @@ export interface MediaPreviewProps {
   media: Media;
 }
 
-export default function MediaPreview({ media }: MediaPreviewProps) {
+export function MediaPreview({ media }: MediaPreviewProps) {
   return (
-    <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
+    <div className="relative aspect-video w-full">
       <Image
         src={media.url}
-        alt={media.alt || ""}
+        alt="Media preview"
         fill
         className="object-cover"
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

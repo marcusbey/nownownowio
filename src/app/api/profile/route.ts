@@ -1,29 +1,36 @@
 import { authRoute } from "@/lib/safe-route";
 import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 import { queryCache } from "@/lib/cache/query-cache";
-import { NextResponse } from "next/server";
 import { getUserDataSelect } from "@/lib/types";
+import { auth } from "@/lib/auth/helper";
 
-export const GET = authRoute.handle(async ({ user }) => {
-  const cacheKey = `profile-${user.id}`;
-
+export async function GET(req: NextRequest) {
   try {
-    // Try to get data from cache first
+    const user = await auth();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = user.id;
+    const cacheKey = `profile-${userId}`;
+
     const data = await queryCache.query(
       cacheKey,
       async () => {
         // Get all necessary data in parallel
         const [userData, posts, followers, following] = await Promise.all([
           prisma.user.findUnique({
-            where: { id: user.id },
+            where: { id: userId },
             select: {
-              ...getUserDataSelect(user.id),
+              ...getUserDataSelect(userId),
               organizations: {
                 select: {
                   organization: {
                     select: {
-                      slug: true,
+                      id: true,
                       name: true,
+                      slug: true,
                       image: true,
                     },
                   },
@@ -32,12 +39,12 @@ export const GET = authRoute.handle(async ({ user }) => {
             },
           }),
           prisma.post.findMany({
-            where: { userId: user.id },
+            where: { userId },
             orderBy: { createdAt: "desc" },
             take: 10,
             include: {
               user: {
-                select: getUserDataSelect(user.id),
+                select: getUserDataSelect(userId),
               },
               _count: {
                 select: {
@@ -46,20 +53,20 @@ export const GET = authRoute.handle(async ({ user }) => {
                 },
               },
               likes: {
-                where: { userId: user.id },
+                where: { userId },
                 select: { userId: true },
               },
               bookmarks: {
-                where: { userId: user.id },
+                where: { userId },
                 select: { userId: true },
               },
             },
           }),
           prisma.follow.count({
-            where: { followingId: user.id },
+            where: { followingId: userId },
           }),
           prisma.follow.count({
-            where: { followerId: user.id },
+            where: { followerId: userId },
           }),
         ]);
 
@@ -75,7 +82,6 @@ export const GET = authRoute.handle(async ({ user }) => {
       },
       {
         ttl: 5 * 60 * 1000, // Cache for 5 minutes
-        staleTime: 60 * 1000, // Consider data stale after 1 minute
       }
     );
 
@@ -87,4 +93,4 @@ export const GET = authRoute.handle(async ({ user }) => {
       { status: 500 }
     );
   }
-});
+}

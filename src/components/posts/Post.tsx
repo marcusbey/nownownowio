@@ -73,7 +73,6 @@ export default function Post({ post }: PostProps) {
               <UserAvatar 
                 avatarUrl={post.user.image} 
                 className="h-10 w-10 ring-1 ring-offset-2 ring-primary/10 hover:ring-primary/30 transition-all duration-200"
-                priority={true}
               />
             </Link>
           </UserTooltip>

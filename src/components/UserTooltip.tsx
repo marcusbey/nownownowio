@@ -57,7 +57,13 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
             <div className="text-sm">{user.bio}</div>
           </Linkify>
         )}
-        <FollowerCount count={followerState.followers} />
+        <FollowerCount 
+          userId={user.id} 
+          initialState={{ 
+            followers: followerState.followers,
+            isFollowedByUser: followerState.isFollowedByUser 
+          }} 
+        />
       </div>
     ),
     [user, loggedInUser, followerState]

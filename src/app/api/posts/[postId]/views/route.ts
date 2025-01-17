@@ -1,6 +1,6 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { db } from "@/lib/db";
-import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/auth";
+import { prisma } from "@/lib/prisma";
+import { baseAuth } from "@/lib/auth/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -8,13 +8,13 @@ export async function POST(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await baseAuth();
     const userId = session?.user?.id;
     const postId = params.postId;
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
 
     // Get or create view record
-    await db.postView.upsert({
+    await prisma.postView.upsert({
       where: {
         postId_viewerId_clientIp: {
           postId,
@@ -34,7 +34,7 @@ export async function POST(
     });
 
     // Get the total view count for this post
-    const viewCount = await db.postView.count({
+    const viewCount = await prisma.postView.count({
       where: {
         postId,
       },

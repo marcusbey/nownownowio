@@ -36,7 +36,7 @@ async function checkUsers() {
           organizations: user.organizations.map(org => ({
             orgId: org.organizationId,
             orgName: org.organization.name,
-            role: org.role
+            roles: org.roles
           })),
           authProviders: user.accounts.map(acc => acc.provider)
         });

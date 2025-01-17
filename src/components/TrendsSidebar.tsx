@@ -72,19 +72,25 @@ async function WhoToFollow() {
           <div key={user.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
             <div className="flex items-center gap-3">
               <UserTooltip user={user}>
-                <UserAvatar user={user} className="h-10 w-10" />
+                <UserAvatar avatarUrl={user.image} className="h-10 w-10" />
               </UserTooltip>
               <div className="flex flex-col">
                 <Link 
-                  href={`/@${user.username}`}
+                  href={`/users/${user.name}`}
                   className="font-medium hover:text-primary transition-colors line-clamp-1"
                 >
                   {user.name}
                 </Link>
-                <span className="text-sm text-muted-foreground">@{user.username}</span>
+                <span className="text-sm text-muted-foreground">{user.displayName}</span>
               </div>
             </div>
-            <FollowButton userId={user.id} />
+            <FollowButton 
+              userId={user.id} 
+              initialState={{ 
+                followers: user._count.followers,
+                isFollowedByUser: user.followers.length > 0 
+              }} 
+            />
           </div>
         ))}
       </div>

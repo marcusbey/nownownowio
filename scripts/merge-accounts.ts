@@ -47,8 +47,8 @@ async function mergeAccounts() {
 
         // 1. Move all posts to primary user
         await prisma.post.updateMany({
-          where: { authorId: secondaryUser.id },
-          data: { authorId: primaryUser.id }
+          where: { userId: secondaryUser.id },
+          data: { userId: primaryUser.id }
         });
 
         // 2. Move all accounts (OAuth connections) to primary user
@@ -65,9 +65,9 @@ async function mergeAccounts() {
 
           if (!primaryUserInOrg) {
             // Move organization membership to primary user
-            await prisma.organizationMember.update({
+            await prisma.organizationMembership.update({
               where: {
-                userId_organizationId: {
+                organizationId_userId: {
                   userId: secondaryUser.id,
                   organizationId: orgMember.organizationId
                 }
@@ -76,9 +76,9 @@ async function mergeAccounts() {
             });
           } else {
             // Delete duplicate membership
-            await prisma.organizationMember.delete({
+            await prisma.organizationMembership.delete({
               where: {
-                userId_organizationId: {
+                organizationId_userId: {
                   userId: secondaryUser.id,
                   organizationId: orgMember.organizationId
                 }

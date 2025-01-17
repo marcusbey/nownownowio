@@ -69,11 +69,11 @@ const wrappedPrisma = new Proxy(prisma, {
                 const operation = `prisma.${String(prop)}`;
                 monitor.start(operation);
                 try {
-                    const result = await original.apply(target, args);
+                    const result = await (original as Function).call(target, ...args);
                     monitor.end(operation, { args: JSON.stringify(args).slice(0, 100) });
                     return result;
                 } catch (error) {
-                    monitor.end(operation, { error: error.message });
+                    monitor.end(operation, { error: error instanceof Error ? error.message : String(error) });
                     throw error;
                 }
             };

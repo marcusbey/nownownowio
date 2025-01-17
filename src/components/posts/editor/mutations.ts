@@ -2,7 +2,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { PostsPage } from "@/lib/types";
 import {
   InfiniteData,
+  Query,
   QueryFilters,
+  QueryKey,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -19,43 +21,40 @@ export function useSubmitPostMutation() {
   const mutation = useMutation({
     mutationFn: submitPost,
     onSuccess: async (newPost) => {
-      const queryFilter = {
+      const queryFilter: QueryFilters<InfiniteData<PostsPage, string | null>> = {
         queryKey: ["post-feed"],
-        predicate(query) {
-          return (
-            query.queryKey.includes("for-you") ||
-            (query.queryKey.includes("user-posts") &&
-              query.queryKey.includes(session?.user?.id))
-          );
+        predicate: (query: Query<InfiniteData<PostsPage, string | null>, Error, InfiniteData<PostsPage, string | null>, QueryKey>) => {
+          return query.queryKey[0] === "post-feed";
         },
-      } satisfies QueryFilters;
+      };
 
       await queryClient.cancelQueries(queryFilter);
 
       queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
         queryFilter,
         (oldData) => {
-          const firstPage = oldData?.pages[0];
+          if (!oldData) return oldData;
 
-          if (firstPage) {
-            return {
-              pageParams: oldData.pageParams,
-              pages: [
-                {
-                  posts: [newPost, ...firstPage.posts],
-                  nextCursor: firstPage.nextCursor,
-                },
-                ...oldData.pages.slice(1),
-              ],
-            };
-          }
+          const firstPage = oldData.pages[0];
+          if (!firstPage) return oldData;
+
+          // Create new first page with the new post at the beginning
+          const newFirstPage = {
+            ...firstPage,
+            posts: [newPost, ...firstPage.posts],
+          };
+
+          return {
+            ...oldData,
+            pages: [newFirstPage, ...oldData.pages.slice(1)],
+          };
         },
       );
 
       queryClient.invalidateQueries({
         queryKey: queryFilter.queryKey,
         predicate(query) {
-          return queryFilter.predicate(query) && !query.state.data;
+          return query.queryKey[0] === "post-feed" && !query.state.data;
         },
       });
 

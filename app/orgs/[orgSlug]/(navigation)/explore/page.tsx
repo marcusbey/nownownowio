@@ -106,7 +106,7 @@ export default function ExplorePage() {
         >
           {data?.pages.map((page, i) => (
             <div key={i} className="space-y-4">
-              {(page as GetPostsResponse).posts.map((post) => (
+              {page.posts.map((post) => (
                 <Post key={post.id} post={post} />
               ))}
             </div>

@@ -20,9 +20,8 @@ function createQueryClient() {
     defaultOptions: {
       queries: {
         staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
-        cacheTime: 30 * 60 * 1000, // Cache persists for 30 minutes
+        gcTime: 30 * 60 * 1000, // Cache persists for 30 minutes
         refetchOnWindowFocus: false,
-        suspense: true,
         retry: 1,
         networkMode: 'offlineFirst',
         refetchOnReconnect: 'always',
