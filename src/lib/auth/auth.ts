@@ -1,26 +1,15 @@
-import config from "@/config";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
-import { getAccountByProvider, getUserById, getSession } from '../cache/auth-cache';
-import { env } from "../env";
-import { logger } from '../logger';
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "../prisma";
-import {
-  setupDefaultOrganizationsOrInviteUser,
-  setupResendCustomer,
-} from "./auth-config-setup";
-import {
-  credentialsOverrideJwt,
-  credentialsSignInCallback,
-} from "./credentials-provider";
+import { NextRequest } from "next/server";
 import { getNextAuthConfigProviders } from "./getNextAuthConfigProviders";
-import {
-  getProviderConfig,
-  isValidProvider,
-  OAuthTokens
-} from "./helper";
+import { env } from "../env";
+import { logger } from "../logger";
+import { setupDefaultOrganizationsOrInviteUser } from "./auth-config-setup";
+import type { NextAuthConfig, User, Session, DefaultSession } from "next-auth";
+import { isValidProvider, getProviderConfig, type OAuthProvider, type OAuthTokens } from "./helper";
 
-export const { handlers, auth: baseAuth } = NextAuth((req) => ({
+export const { handlers, auth: baseAuth } = NextAuth((req?: NextRequest) => ({
   adapter: PrismaAdapter(prisma),
   providers: getNextAuthConfigProviders(),
   pages: {
@@ -33,530 +22,40 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   session: {
     strategy: "database",
     maxAge: 365 * 24 * 60 * 60, // 1 year
-    updateAge: 24 * 60 * 60, // Refresh daily instead of weekly
-  },
-  secret: env.NEXTAUTH_SECRET,
-  trustHost: true,
-  debug: true, // Enable debug mode temporarily
-  logger: {
-    error: (code, metadata) => {
-      logger.error('[Auth] Error in NextAuth', {
-        code,
-        metadata,
-        timestamp: new Date().toISOString()
-      });
-    },
-    warn: (code) => {
-      logger.warn('[Auth] Warning in NextAuth', { code });
-    },
-    debug: (code, metadata) => {
-      logger.debug('[Auth] Debug in NextAuth', { code, metadata });
-    },
+    updateAge: 24 * 60 * 60, // Refresh daily
   },
   callbacks: {
-    async redirect({ url, baseUrl }) {
-      logger.info('[Auth] Redirect callback', { url, baseUrl });
+    async session({ session, user }: { session: DefaultSession; user: User }) {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+        },
+      };
+    },
+    async signIn({ user }: { user: User }) {
+      if (!user.email) {
+        return false;
+      }
+      return true;
+    },
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       if (process.env.NODE_ENV === "development") {
         return url.startsWith("/") ? `${baseUrl}${url}` : url;
       }
-      return baseUrl;
-    },
-    async session(params) {
-      logger.info('[Auth] Session callback start', { 
-        hasNewSession: !!params.newSession,
-        sessionExpiry: params.session?.expires
-      });
-      
-      if (params.newSession) return params.session;
-
-      try {
-        // Use cached session data
-        const cachedSession = await getSession(params.session.sessionToken);
-        if (cachedSession) {
-          return {
-            ...params.session,
-            user: cachedSession.user
-          };
-        }
-
-        // Fallback to database query if cache miss
-        const user = await getUserById(params.session.user.id);
-        if (!user) return null;
-
-        return {
-          ...params.session,
-          user
-        };
-      } catch (error) {
-        logger.error('Session callback error:', error);
-        return params.session;
-      }
-    },
-    async signIn({ user, account, profile }) {
-      try {
-        // Check database connection
-        await prisma.$queryRaw`SELECT 1`;
-        
-        logger.info('[Auth] Database connection verified', {
-          userId: user?.id,
-          provider: account?.provider
-        });
-
-        // Verify user exists in database
-        if (user?.email) {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: user.email },
-            select: { id: true }
-          });
-          
-          logger.info('[Auth] User verification', {
-            email: user.email,
-            exists: !!dbUser
-          });
-        }
-
-        if (!account || !user) {
-          logger.error("[Auth] SignIn failed: Missing account or user data");
-          return false;
-        }
-
-        if (!user.email) {
-          logger.error("[Auth] SignIn failed: No email provided", { user });
-          return false;
-        }
-
-        try {
-          // Check for pending invitations
-          const pendingInvitations = await prisma.verificationToken.findMany({
-            where: {
-              identifier: {
-                startsWith: `${user.email}-invite-`,
-              },
-              expires: {
-                gt: new Date(),
-              },
-            },
-            select: {
-              identifier: true,
-              token: true,
-              expires: true,
-              data: true,
-            },
-          });
-
-          // If there are pending invitations, handle them
-          if (pendingInvitations.length > 0) {
-            for (const invitation of pendingInvitations) {
-              const tokenData = TokenSchema.parse(invitation.data);
-              
-              // Create membership if it doesn't exist
-              const existingMembership = await prisma.organizationMembership.findFirst({
-                where: {
-                  organizationId: tokenData.orgId,
-                  userId: user.id,
-                },
-              });
-
-              if (!existingMembership) {
-                await prisma.organizationMembership.create({
-                  data: {
-                    organizationId: tokenData.orgId,
-                    userId: user.id,
-                    roles: ["MEMBER"],
-                  },
-                });
-
-                logger.info("[Auth] Added user to organization from invitation", {
-                  userId: user.id,
-                  email: user.email,
-                  organizationId: tokenData.orgId,
-                });
-              }
-
-              // Delete the invitation token
-              await prisma.verificationToken.delete({
-                where: {
-                  token: invitation.token,
-                },
-              });
-            }
-          }
-
-          // For OAuth providers, we can trust the email is verified
-          if (account.type === "oauth") {
-            user.emailVerified = new Date();
-          }
-
-          // For Twitter, if email is not available, create a placeholder
-          if (account.provider === "twitter" && !user.email) {
-            user.email = `${user.id}@twitter.placeholder.com`;
-            logger.info("[Auth] Created placeholder email for Twitter user", { 
-              userId: user.id,
-              email: user.email 
-            });
-          }
-
-          if (!user.email) {
-            logger.error("[Auth] SignIn failed: No email provided", { user });
-            return false;
-          }
-
-          try {
-            // First try to find a user with the same email
-            let existingUser = await prisma.user.findUnique({
-              where: { email: user.email },
-              include: { 
-                accounts: true,
-                organizations: {
-                  include: {
-                    organization: true
-                  }
-                },
-                posts: true
-              }
-            });
-
-            // If no existing user, we're good to proceed
-            if (!existingUser) {
-              return true;
-            }
-
-            // If no user found and this is a Twitter placeholder email,
-            // try to find a matching user by name
-            if (!existingUser && user.email?.includes('@twitter.placeholder.com')) {
-              const normalizedNewName = user.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
-              
-              // Find all users and check for name similarity
-              const allUsers = await prisma.user.findMany({
-                include: {
-                  accounts: true,
-                  organizations: {
-                    include: {
-                      organization: true
-                    }
-                  },
-                  posts: true
-                }
-              });
-
-              // Find a user with a similar name
-              existingUser = allUsers.find(u => {
-                const normalizedExistingName = u.name?.toLowerCase().replace(/[^a-z0-9]/g, '');
-                return normalizedExistingName && normalizedNewName &&
-                       (normalizedExistingName.includes(normalizedNewName) ||
-                        normalizedNewName.includes(normalizedExistingName));
-              });
-
-              if (existingUser) {
-                logger.info('[Auth] Found matching user by name similarity', {
-                  newUser: user.name,
-                  existingUser: existingUser.name
-                });
-              }
-            }
-
-            if (existingUser) {
-              // Check if this provider is already linked
-              const hasProvider = existingUser.accounts.some(
-                acc => acc.provider === account.provider
-              );
-
-              if (!hasProvider) {
-                // Link the new provider to the existing account
-                await prisma.account.create({
-                  data: {
-                    userId: existingUser.id,
-                    type: account.type || "oauth",
-                    provider: account.provider,
-                    providerAccountId: account.providerAccountId || user.id,
-                    access_token: account.access_token,
-                    refresh_token: account.refresh_token,
-                    expires_at: account.expires_at,
-                    token_type: account.token_type,
-                    scope: account.scope,
-                    id_token: account.id_token,
-                    session_state: account.session_state
-                  }
-                });
-
-                // If this was a Twitter placeholder email, update it with the real email
-                if (existingUser.email?.includes('@twitter.placeholder.com') && !user.email?.includes('@twitter.placeholder.com')) {
-                  await prisma.user.update({
-                    where: { id: existingUser.id },
-                    data: { email: user.email }
-                  });
-                  logger.info('[Auth] Updated Twitter placeholder email with real email', {
-                    oldEmail: existingUser.email,
-                    newEmail: user.email
-                  });
-                }
-
-                // Update user profile with merged data
-                await prisma.user.update({
-                  where: { id: existingUser.id },
-                  data: {
-                    name: existingUser.name || user.name,
-                    image: existingUser.image || user.image,
-                  }
-                });
-
-                logger.info(`[Auth] Linked ${account.provider} to existing account`, {
-                  email: user.email,
-                  provider: account.provider,
-                  userId: existingUser.id
-                });
-              }
-
-              // Return true to allow sign in with the existing user
-              return true;
-            }
-
-            // If no existing user, check for any user with the same email domain
-            const emailDomain = user.email.split('@')[1];
-            const userWithSameEmailDomain = await prisma.user.findFirst({
-              where: { 
-                email: {
-                  endsWith: `@${emailDomain}`
-                }
-              },
-              include: {
-                organizations: {
-                  include: {
-                    organization: true
-                  }
-                },
-                posts: true
-              }
-            });
-
-            if (userWithSameEmailDomain?.organizations.length > 0) {
-              // Get the organization of the existing user
-              const existingOrg = userWithSameEmailDomain.organizations[0].organization;
-              
-              // Create new user and link to existing organization
-              const newUser = await prisma.user.create({
-                data: {
-                  email: user.email,
-                  name: user.name,
-                  image: user.image,
-                  organizations: {
-                    create: {
-                      organizationId: existingOrg.id,
-                      role: 'MEMBER'
-                    }
-                  }
-                }
-              });
-
-              logger.info(`[Auth] Created new user and linked to existing organization`, {
-                email: user.email,
-                organizationId: existingOrg.id
-              });
-
-              return true;
-            }
-
-            // If no existing organization, create new user with new organization
-            logger.info(`[Auth] Creating new user and organization for ${account.provider}`, { 
-              email: user.email,
-              provider: account.provider 
-            });
-            return true;
-          } catch (error) {
-            logger.error("[Auth] Error during sign in", {
-              error,
-              email: user.email,
-              provider: account.provider
-            });
-            return false;
-          }
-        } catch (error) {
-          logger.error("[Auth] Error during sign in", {
-            error,
-            email: user.email,
-            provider: account.provider
-          });
-          return false;
-        }
-      } catch (error) {
-        logger.error('[Auth] Database error during sign in', {
-          error,
-          userId: user?.id,
-          provider: account?.provider
-        });
-        return false;
-      }
-    },
-    async createUser(message) {
-      logger.info("[Auth] Creating new user", { message });
-
-      try {
-        // Extract user data, removing OAuth specific fields
-        const { access_token, refresh_token, expires_at, ...userData } = message;
-
-        // Check for existing user with same email
-        const existingUser = await prisma.user.findFirst({
-          where: { 
-            email: userData.email 
-          },
-          include: {
-            organizations: {
-              include: {
-                organization: true
-              }
-            },
-            posts: true
-          }
-        });
-
-        if (existingUser) {
-          // Merge the accounts by moving all posts to the existing user
-          if (existingUser.posts.length > 0) {
-            await prisma.post.updateMany({
-              where: { authorId: existingUser.id },
-              data: { authorId: userData.id }
-            });
-          }
-
-          // Use existing organization
-          const existingOrg = existingUser.organizations[0]?.organization;
-          
-          const newUser = await prisma.user.create({
-            data: {
-              email: userData.email,
-              // Keep the name from the existing user if available
-              name: existingUser.name || userData.name,
-              // Keep the image from the existing user if available
-              image: existingUser.image || userData.image,
-              // Set emailVerified if it was set in signIn
-              emailVerified: userData.emailVerified,
-              organizations: existingOrg ? {
-                create: {
-                  organizationId: existingOrg.id,
-                  role: 'MEMBER'
-                }
-              } : undefined
-            }
-          });
-
-          logger.info("[Auth] Created new user in existing organization", {
-            userId: newUser.id,
-            organizationId: existingOrg?.id
-          });
-
-          return newUser;
-        }
-
-        // Create new user without OAuth fields
-        const newUser = await prisma.user.create({
-          data: {
-            email: userData.email,
-            name: userData.name,
-            image: userData.image,
-            emailVerified: userData.emailVerified,
-            organizations: undefined
-          }
-        });
-
-        logger.info("[Auth] Created new user", { 
-          userId: newUser.id 
-        });
-
-        return newUser;
-      } catch (error) {
-        logger.error("[Auth] Error creating user", { error });
-        throw error;
-      }
+      const urlObj = new URL(url, baseUrl);
+      return urlObj.toString();
     },
   },
   events: {
-    signIn: credentialsSignInCallback(req),
-    createUser: async (message) => {
-      logger.info("[Auth] Creating new user", { message });
-
-      try {
-        // Extract user data, removing OAuth specific fields
-        const { access_token, refresh_token, expires_at, ...userData } = message;
-
-        // Check for existing user with same email
-        const existingUser = await prisma.user.findFirst({
-          where: { 
-            email: userData.email 
-          },
-          include: {
-            organizations: {
-              include: {
-                organization: true
-              }
-            },
-            posts: true
-          }
-        });
-
-        if (existingUser) {
-          // Merge the accounts by moving all posts to the existing user
-          if (existingUser.posts.length > 0) {
-            await prisma.post.updateMany({
-              where: { authorId: existingUser.id },
-              data: { authorId: userData.id }
-            });
-          }
-
-          // Use existing organization
-          const existingOrg = existingUser.organizations[0]?.organization;
-          
-          const newUser = await prisma.user.create({
-            data: {
-              email: userData.email,
-              // Keep the name from the existing user if available
-              name: existingUser.name || userData.name,
-              // Keep the image from the existing user if available
-              image: existingUser.image || userData.image,
-              // Set emailVerified if it was set in signIn
-              emailVerified: userData.emailVerified,
-              organizations: existingOrg ? {
-                create: {
-                  organizationId: existingOrg.id,
-                  role: 'MEMBER'
-                }
-              } : undefined
-            }
-          });
-
-          logger.info("[Auth] Created new user in existing organization", {
-            userId: newUser.id,
-            organizationId: existingOrg?.id
-          });
-
-          return newUser;
-        }
-
-        // Create new user without OAuth fields
-        const newUser = await prisma.user.create({
-          data: {
-            email: userData.email,
-            name: userData.name,
-            image: userData.image,
-            emailVerified: userData.emailVerified,
-            organizations: undefined
-          }
-        });
-
-        logger.info("[Auth] Created new user", { 
-          userId: newUser.id 
-        });
-
-        return newUser;
-      } catch (error) {
-        logger.error("[Auth] Error creating user", { error });
-        throw error;
-      }
+    async createUser({ user }: { user: User }) {
+      await setupDefaultOrganizationsOrInviteUser(user);
     },
   },
-  jwt: credentialsOverrideJwt,
-  theme: {
-    logo: `https://${config.domainName}/logo.png`,
-  },
+  secret: env.NEXTAUTH_SECRET,
+  trustHost: true,
+  debug: process.env.NODE_ENV === "development",
 }));
 
 // Export auth config for use in API routes
@@ -564,14 +63,14 @@ export const authOptions = (req: Request) => ({
   adapter: PrismaAdapter(prisma),
   providers: getNextAuthConfigProviders(),
   callbacks: {
-    redirect: async ({ url, baseUrl }) => {
+    redirect: async ({ url, baseUrl }: { url: string; baseUrl: string }) => {
       if (process.env.NODE_ENV === "development") {
-        return Promise.resolve(url);
+        return Promise.resolve(url.startsWith("/") ? `${baseUrl}${url}` : url);
       }
       const urlObj = new URL(url, baseUrl);
       return urlObj.toString();
     },
-    session: async (params) => {
+    session: async (params: { session: DefaultSession }) => {
       return params.session;
     },
   },
@@ -663,7 +162,7 @@ export async function handleOAuthTokenError({
         throw new Error('Invalid account or provider');
       }
 
-      const config = getProviderConfig(account.provider);
+      const config = getProviderConfig(account.provider as OAuthProvider);
       const response = await fetch(config.tokenEndpoint, {
         method: 'POST',
         headers: {
@@ -672,8 +171,8 @@ export async function handleOAuthTokenError({
         body: new URLSearchParams({
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
-          client_id: config.clientId,
-          client_secret: config.clientSecret,
+          client_id: config.clientId || '',
+          client_secret: config.clientSecret || '',
         }),
       });
 

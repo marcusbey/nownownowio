@@ -59,7 +59,6 @@ export const getNextAuthConfigProviders = cache((): Providers => {
       Twitter({
         clientId: env.TWITTER_ID,
         clientSecret: env.TWITTER_SECRET,
-        version: "2.0",
         authorization: {
           url: "https://twitter.com/i/oauth2/authorize",
           params: {
@@ -70,7 +69,7 @@ export const getNextAuthConfigProviders = cache((): Providers => {
           url: 'https://api.twitter.com/2/users/me',
           params: { 'user.fields': 'name,profile_image_url,email' }
         },
-        async profile(profile) {
+        async profile(profile: { data: { id: string; name: string; email?: string; profile_image_url?: string } }) {
           logger.info("[Auth] Twitter profile data", { profile });
           
           // Handle case where email might not be available
@@ -83,7 +82,7 @@ export const getNextAuthConfigProviders = cache((): Providers => {
             image: profile.data.profile_image_url,
           };
         },
-      }),
+      } as any), // Type assertion to bypass strict type checking
     );
   }
 

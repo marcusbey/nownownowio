@@ -69,11 +69,7 @@ export async function validateRequest() {
       },
       {
         ttl: 60 * 5, // Cache for 5 minutes
-        staleAfter: 60, // Consider stale after 1 minute
-        retry: {
-          attempts: 3,
-          delay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 10000),
-        }
+        forceFresh: false,
       }
     );
 

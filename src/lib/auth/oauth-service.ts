@@ -19,9 +19,17 @@ export class OAuthService {
         },
         select: {
           id: true,
+          userId: true,
+          type: true,
+          provider: true,
+          providerAccountId: true,
           access_token: true,
           expires_at: true,
           refresh_token: true,
+          refreshTokenExpiresIn: true,
+          token_type: true,
+          id_token: true,
+          session_state: true,
           scope: true,
         },
       })
@@ -41,9 +49,16 @@ export class OAuthService {
         select: {
           id: true,
           userId: true,
+          type: true,
+          provider: true,
+          providerAccountId: true,
           access_token: true,
           expires_at: true,
           refresh_token: true,
+          refreshTokenExpiresIn: true,
+          token_type: true,
+          id_token: true,
+          session_state: true,
           scope: true,
         },
       })
@@ -57,8 +72,18 @@ export class OAuthService {
     try {
       const account = await prisma.account.create({
         data: {
-          ...accountData,
+          type: 'oauth',
+          provider: accountData.provider || '',
+          providerAccountId: accountData.providerAccountId || '',
           userId,
+          access_token: accountData.access_token || null,
+          expires_at: accountData.expires_at || null,
+          refresh_token: accountData.refresh_token || null,
+          token_type: accountData.token_type || null,
+          scope: accountData.scope || null,
+          id_token: accountData.id_token || null,
+          session_state: accountData.session_state || null,
+          refreshTokenExpiresIn: accountData.refreshTokenExpiresIn || null,
         },
       })
       
@@ -104,10 +129,10 @@ export class OAuthService {
       } catch (error) {
         authMonitoring.recordMetric({
           provider,
-          operation: 'call',
+          operation: 'refresh',
           duration: Date.now() - start,
           success: false,
-          errorType: error.message,
+          errorType: error instanceof Error ? error.message : 'Unknown error',
         })
         throw error
       }
