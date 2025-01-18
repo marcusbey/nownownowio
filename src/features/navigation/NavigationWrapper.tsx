@@ -88,7 +88,7 @@ export function NavigationWrapper({
 
   const gridCols = hideSidebar
     ? "grid-cols-[1fr] sm:grid-cols-[1fr] md:grid-cols-[1fr] lg:grid-cols-[1fr_3fr]"
-    : "grid-cols-[1fr] sm:grid-cols-[20%_60%_20%] md:grid-cols-[25%_50%_25%] lg:grid-cols-[1fr_3fr_2fr]";
+    : "grid-cols-[1fr] sm:grid-cols-[26%_74%] lg:grid-cols-[1.3fr_2.7fr_2fr]";
 
   return (
     <div className={`mx-auto grid min-h-screen w-full max-w-7xl ${gridCols}`}>
@@ -116,14 +116,14 @@ export function NavigationWrapper({
       </div>
 
       {/* Main Content */}
-      <div className="flex min-h-screen">
-        <main className="flex flex-1 flex-col gap-4 overflow-auto px-4 md:gap-6 md:px-6 no-scrollbar">
+      <div className="flex min-h-screen flex-col">
+        <main className="flex flex-1 flex-col gap-4 overflow-auto px-2 md:gap-6 md:px-4 no-scrollbar pb-20 sm:pb-0">
           {children}
         </main>
         {/* Mobile Bottom Navigation */}
-        <nav className="flex items-center justify-around border-t border-border p-2 sm:hidden">
-          <MobileBottomMenu />
-        </nav>
+        <div className="block sm:hidden">
+          <MobileBottomMenu className="fixed bottom-0 left-0 right-0 z-50" />
+        </div>
       </div>
 
       {/* Right Sidebar */}
@@ -137,4 +137,3 @@ export function NavigationWrapper({
     </div>
   );
 }
-

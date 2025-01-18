@@ -17,11 +17,11 @@ export const MobileBottomMenu = ({ className }: { className?: string }) => {
   return (
     <nav
       className={cn(
-        "w-full sticky bottom-0 bg-background border-t border-border",
+        "w-full bg-background/80 backdrop-blur-lg border-t border-border shadow-lg",
         className,
       )}
     >
-      <div className="flex h-16 items-center justify-around">
+      <div className="flex h-16 items-center justify-around max-w-lg mx-auto">
         {menuItems.map((link) => {
           const isCurrent = currentPath === link.href;
 
@@ -30,9 +30,9 @@ export const MobileBottomMenu = ({ className }: { className?: string }) => {
               key={link.href}
               className={cn(
                 "flex flex-col items-center justify-center h-full w-full",
-                "text-muted-foreground hover:text-foreground",
+                "text-muted-foreground hover:text-foreground transition-colors",
                 {
-                  "text-primary": isCurrent,
+                  "text-primary font-medium": isCurrent,
                 },
               )}
               href={link.href}

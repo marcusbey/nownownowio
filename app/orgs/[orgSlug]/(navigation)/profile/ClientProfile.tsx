@@ -15,7 +15,7 @@ export default function ClientProfile({ user, orgSlug }: ClientProfileProps) {
     <div className="w-full min-w-0">
       <ProfileHeader user={user} orgSlug={orgSlug} />
       
-      <div className="max-w-xl mx-auto px-4">
+      <div className="max-w-xl mx-auto px-2">
         <Tabs defaultValue="posts" className="w-full">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="posts">Posts</TabsTrigger>
