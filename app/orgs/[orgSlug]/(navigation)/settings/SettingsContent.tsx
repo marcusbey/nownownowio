@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
-import type { Organization, OrganizationMembershipRole } from "@prisma/client";
+import type { Organization, OrganizationMembershipRole, User } from "@prisma/client";
 import { OrgDetailsFormSchema, type OrgDetailsFormSchemaType } from "./org.schema";
 
 type OrganizationWithPlan = {
@@ -21,6 +21,7 @@ type OrganizationWithPlan = {
   };
   members: Array<{
     roles: OrganizationMembershipRole[];
+    user: User;
   }>;
 };
 
@@ -30,11 +31,17 @@ type SettingsContentProps = {
 };
 
 export function SettingsContent({ organization, orgSlug }: SettingsContentProps) {
+  // Get the owner's profile image to use as default
+  const ownerMember = organization.members.find(member => 
+    member.roles.includes("OWNER")
+  );
+  const defaultImage = organization.image || ownerMember?.user.image || null;
+
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
     name: organization.name,
     email: organization.email || "",
-    image: organization.image,
+    image: defaultImage,
     bio: "",
     websiteUrl: "",
   };

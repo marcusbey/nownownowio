@@ -2,10 +2,10 @@ import { auth } from "@/lib/auth/helper";
 import { LoggedInButton, SignInButton } from "./SignInButton";
 
 export const AuthButton = async () => {
-  const user = await auth();
+  const session = await auth();
 
-  if (user) {
-    return <LoggedInButton user={user} />;
+  if (session?.user) {
+    return <LoggedInButton user={session.user} />;
   }
 
   return <SignInButton />;

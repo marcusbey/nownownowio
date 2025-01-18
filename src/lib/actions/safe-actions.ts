@@ -40,7 +40,7 @@ const getUser = async () => {
     throw new ActionError("Session not found!");
   }
 
-  if (!user.id || !user.email) {
+  if (!user?.user?.id || !user?.user?.email) {
     throw new ActionError("Session is not valid!");
   }
 

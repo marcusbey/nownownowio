@@ -167,6 +167,14 @@ Check the fiel structure in the latest file inthe 'tree-maker' repo
 - Provide user-friendly error messages
 - Handle network failures gracefully
 
+## Refactoring
+- Alway refer to the code structure before refactoring
+- Refactor only when necessary
+- Don't remove comments
+- Don't remove working features and functionality. 
+- Don't break existing features and functionality
+- Make sure the refactoring is consistent with the code structure and won't create new issues.
+
 ## Testing
 - Write unit tests for utilities and components
 - Implement E2E tests for critical flows

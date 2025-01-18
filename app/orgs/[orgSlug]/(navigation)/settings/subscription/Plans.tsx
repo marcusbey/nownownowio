@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Typography } from "@/components/ui/typography";
 import { Check } from "lucide-react";
 import { PLANS } from "@/features/plans/plans";
 import type { OrganizationPlan } from "@prisma/client";
@@ -42,64 +43,73 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      {PLANS.map((plan) => (
-        <Card
-          key={plan.id}
-          className={
-            plan.isPopular
-              ? "border-primary shadow-lg"
-              : undefined
-          }
-        >
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              {plan.name}
-              {plan.isPopular && (
-                <span className="text-xs font-normal text-primary">Popular</span>
-              )}
-            </CardTitle>
-            <CardDescription>{plan.subtitle}</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="text-3xl font-bold">
-              {plan.currency} {plan.price}
-              <span className="text-sm font-normal text-muted-foreground">
-                {plan.type === "monthly" ? "/month" : ""}
-              </span>
-            </div>
-            <div className="grid gap-2">
-              {plan.features.map((feature) => (
-                <div
-                  key={feature}
-                  className="flex items-center gap-2 text-muted-foreground"
-                >
-                  <Check className="h-4 w-4 text-primary" />
-                  {feature}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col items-stretch gap-2">
-            <Button
-              className="w-full"
-              variant={plan.isPopular ? "default" : "outline"}
-              disabled={
-                isPending ||
-                (currentPlan?.id === plan.id && subscription?.status === "active")
-              }
-              onClick={() => handleSubscriptionUpdate(plan.priceId)}
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <Typography variant="h3">Choose Your Plan</Typography>
+        <Typography variant="muted">
+          Select the plan that best fits your organization's needs
+        </Typography>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {PLANS.map((plan) => {
+          const isCurrentPlan = currentPlan?.id === plan.id;
+          const buttonDisabled = isCurrentPlan || isPending;
+
+          return (
+            <Card
+              key={plan.id}
+              className={plan.isPopular ? "border-primary shadow-lg relative" : "relative"}
             >
-              {currentPlan?.id === plan.id
-                ? "Current Plan"
-                : plan.cta}
-            </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              {plan.ctaSubtitle}
-            </p>
-          </CardFooter>
-        </Card>
-      ))}
+              {plan.isPopular && (
+                <div className="absolute -top-3 left-0 right-0 mx-auto w-fit rounded-full bg-primary px-3 py-1">
+                  <Typography variant="small" className="text-primary-foreground">
+                    Most Popular
+                  </Typography>
+                </div>
+              )}
+
+              <CardHeader>
+                <CardTitle className="flex items-baseline justify-between">
+                  <span>{plan.name}</span>
+                  <div className="flex items-baseline gap-1">
+                    <Typography variant="h3">${plan.price}</Typography>
+                    <Typography variant="small" className="text-muted-foreground">/mo</Typography>
+                  </div>
+                </CardTitle>
+                <CardDescription>{plan.description}</CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  {plan.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-primary" />
+                      <Typography variant="small">{feature}</Typography>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+
+              <CardFooter>
+                <Button
+                  className="w-full"
+                  size="lg"
+                  variant={plan.isPopular ? "default" : "outline"}
+                  disabled={buttonDisabled}
+                  onClick={() => handleSubscriptionUpdate(plan.priceId)}
+                >
+                  {isCurrentPlan
+                    ? "Current Plan"
+                    : subscription
+                    ? "Change Plan"
+                    : "Get Started"}
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

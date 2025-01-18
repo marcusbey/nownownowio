@@ -10,15 +10,15 @@ import { ContactFeedbackSchema } from "./contact-feedback.schema";
 export const contactSupportAction = action
   .schema(ContactFeedbackSchema)
   .action(async ({ parsedInput: data }) => {
-    const user = await auth();
+    const session = await auth();
 
-    const email = user?.email ?? data.email;
+    const email = session?.user?.email ?? data.email;
 
     const feedback = await prisma.feedback.create({
       data: {
         message: data.message,
         review: Number(data.review) || 0,
-        userId: user?.id,
+        userId: session?.user?.id,
         email,
       },
     });

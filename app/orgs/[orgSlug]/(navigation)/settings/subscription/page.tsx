@@ -1,12 +1,17 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Layout, LayoutContent, LayoutHeader, LayoutTitle } from "@/features/page/layout";
-import { Plans } from "./Plans";
-import { BillingInfo } from "./BillingInfo";
-import { prisma } from "@/lib/prisma";
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth/helper";
 import { stripe } from "@/lib/stripe";
 import type Stripe from "stripe";
+import { Plans } from "./Plans";
+import { combineWithParentMetadata } from "@/lib/metadata";
+import { prisma } from "@/lib/prisma";
+import { SettingsPage, SettingsCard, SettingsSection } from "@/features/settings/SettingsLayout";
+
+export const generateMetadata = combineWithParentMetadata({
+  title: "Subscription",
+  description: "Manage your organization's subscription plan.",
+});
 
 export default async function SubscriptionPage({
   params: { orgSlug },
@@ -14,7 +19,7 @@ export default async function SubscriptionPage({
   params: { orgSlug: string };
 }) {
   const session = await auth();
-  if (!session?.id) return null;
+  if (!session?.user?.id) return null;
 
   const organization = await prisma.organization.findUnique({
     where: { slug: orgSlug },
@@ -39,33 +44,35 @@ export default async function SubscriptionPage({
   }
 
   return (
-    <Layout>
-      <LayoutHeader>
-        <LayoutTitle>Subscription</LayoutTitle>
-      </LayoutHeader>
-      <LayoutContent>
-        <Tabs defaultValue="plans" className="w-full">
-          <TabsList>
-            <TabsTrigger value="plans">Plans</TabsTrigger>
-            <TabsTrigger value="billing">Billing & Payment</TabsTrigger>
-          </TabsList>
+    <SettingsPage
+      title="Subscription"
+      description="Manage your subscription plan and features"
+    >
+      {/* Current Plan Summary */}
+      <SettingsSection title="Current Plan">
+        <SettingsCard>
+          <CardHeader>
+            <CardTitle>Current Plan: {organization.plan.name}</CardTitle>
+            <CardDescription>
+              {organization.plan.id === "FREE" 
+                ? "Upgrade to premium to unlock all features."
+                : "You are currently on the premium plan."}
+            </CardDescription>
+          </CardHeader>
+        </SettingsCard>
+      </SettingsSection>
 
-          <TabsContent value="plans" className="mt-6">
-            <Plans 
-              currentPlan={organization.plan}
-              subscription={subscription}
-              organizationId={organization.id}
-            />
-          </TabsContent>
-
-          <TabsContent value="billing" className="mt-6">
-            <BillingInfo 
-              organization={organization}
-              subscription={subscription}
-            />
-          </TabsContent>
-        </Tabs>
-      </LayoutContent>
-    </Layout>
+      {/* Available Plans */}
+      <SettingsSection
+        title="Available Plans"
+        description="Choose the plan that best fits your organization's needs"
+      >
+        <Plans 
+          currentPlan={organization.plan} 
+          subscription={subscription}
+          organizationId={organization.id}
+        />
+      </SettingsSection>
+    </SettingsPage>
   );
 }

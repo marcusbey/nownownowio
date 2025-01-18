@@ -51,6 +51,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Mail } from "lucide-react";
+import { SettingsCard } from "@/features/settings/SettingsLayout";
 
 type OrgMembersFormProps = {
   defaultValues: OrgMemberFormSchemaType;
@@ -136,177 +137,182 @@ export const OrgMembersForm = ({
     handleCloseDialog();
   };
 
-  return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-          <CardTitle>Organization Members</CardTitle>
-              <CardDescription>
-                Manage members and their roles in your organization
-              </CardDescription>
-            </div>
-            <div className="text-right">
-              <Typography variant="large" className="font-medium">
-                {form.getValues("members")?.length ?? 0} / {maxMembers}
-              </Typography>
-              <Typography variant="muted">Members</Typography>
-            </div>
-          </div>
-          <Progress
-            value={((form.getValues("members")?.length ?? 0) / maxMembers) * 100}
-            className="h-2"
-          />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {/* Current Members List */}
-            <div className="divide-y divide-border rounded-md border">
-              {form.getValues("members")?.map((baseMember, index) => {
-                const member = members.find((m) => m.id === baseMember.id);
-                if (!member) return null;
-                return (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar>
-                        <AvatarImage src={member.image ?? undefined} />
-                        <AvatarFallback>
-                          {member.name?.[0] ?? member.email[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <Typography variant="large" className="font-medium">
-                          {member.name}
-                        </Typography>
-                        <Typography variant="muted">{member.email}</Typography>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={form.control}
-                        name={`members.${index}.roles`}
-                        render={({ field }) => (
-                          <Select
-                            value={field.value?.[0]}
-                            onValueChange={(value) => {
-                              field.onChange([value]);
-                            }}
-                          >
-                            <SelectTrigger className="w-[180px] cursor-pointer rounded-xl">
-                              <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              {Object.values(OrganizationMembershipRole).map(
-                                (role) => (
-                                  <SelectItem
-                                    key={role}
-                                    value={role}
-                                    className="cursor-pointer"
-                                  >
-                                    {role}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <AlertDialogTrigger asChild>
-                          <div className="inline-flex cursor-pointer">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="hover:bg-muted"
-                              onClick={() => handleOpenDialog(member)}
-                            >
-                              <span className="sr-only">Remove member</span>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Remove member</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to remove {memberToRemove?.name} from this organization?
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel onClick={handleCloseDialog}>
-                              Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction 
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={handleRemoveMember}
-                            >
-                              Remove
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+  const handleRoleChange = (id: string, role: OrganizationMembershipRole) => {
+    const members = form.getValues("members");
+    const index = members.findIndex((m) => m.id === id);
+    if (index === -1) return;
+    form.setValue(`members.${index}.roles.0`, role);
+  };
 
-            {/* Pending Invitations */}
-            {invitedEmail.length > 0 && (
-              <div className="rounded-md border border-muted bg-muted/10 p-4">
-                <Typography variant="h3" className="mb-3">
-                  Pending Invitations
-                </Typography>
-                <div className="space-y-2">
-                  {invitedEmail.map((email) => (
-                    <div
-                      key={email}
-                      className="flex items-center justify-between rounded-md bg-background p-3"
-                    >
-                      <div className="flex items-center gap-4">
-                        <Avatar>
-                          <AvatarFallback>
-                            {email[0].toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <Typography variant="muted">{email}</Typography>
-                          <Typography variant="small" className="text-muted-foreground">
-                            Invitation sent
-                          </Typography>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-yellow-400" />
-                        <Typography variant="small" className="text-muted-foreground">
-                          Pending
-                        </Typography>
-                      </div>
-                    </div>
-                  ))}
+  const handleCancelInvite = (email: string) => {
+    // implement cancel invite logic
+  };
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Current Members */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
+            <Typography variant="h3" className="text-lg font-medium">
+              Current Members
+            </Typography>
+            <Typography variant="muted" className="text-sm">
+              {members.length} / {maxMembers} members
+            </Typography>
+          </div>
+          <Progress value={(members.length / maxMembers) * 100} className="w-[100px]" />
+        </div>
+
+        <SettingsCard>
+          <CardContent className="p-0">
+            {members.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between border-b p-4 last:border-0"
+              >
+                <div className="flex items-center gap-4">
+                  <Avatar>
+                    <AvatarImage src={member.image ?? undefined} />
+                    <AvatarFallback>
+                      {member.name?.[0] ?? member.email[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <Typography variant="default">
+                      {member.name ?? member.email}
+                    </Typography>
+                    <Typography variant="small" className="text-muted-foreground">
+                      {member.email}
+                    </Typography>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <FormField
+                    control={form.control}
+                    name={`members.${members.findIndex(
+                      (m) => m.id === member.id,
+                    )}.roles.0`}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleRoleChange(member.id, value as OrganizationMembershipRole);
+                        }}
+                      >
+                        <SelectTrigger className="w-[110px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(OrganizationMembershipRole).map(
+                            (role) => (
+                              <SelectItem key={role} value={role}>
+                                {role}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove member</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to remove this member from the
+                          organization? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          onClick={() => handleRemoveMember()}
+                        >
+                          Remove
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
-            )}
+            ))}
+          </CardContent>
+        </SettingsCard>
+      </div>
 
-            {/* Invite Members Form */}
-            <div className="rounded-md border p-4">
-              <Typography variant="h3" className="mb-4">
-                Invite New Members
-              </Typography>
-              <OrganizationInviteMemberForm
-                invitedEmail={invitedEmail}
-                maxMembers={maxMembers}
-                currentMemberCount={form.getValues("members")?.length ?? 0}
-              />
-            </div>
+      {/* Pending Invitations */}
+      {invitedEmail.length > 0 && (
+        <div className="space-y-6">
+          <div className="space-y-1.5">
+            <Typography variant="h3" className="text-lg font-medium">
+              Pending Invitations
+            </Typography>
+            <Typography variant="muted" className="text-sm">
+              These users have been invited but haven't joined yet
+            </Typography>
           </div>
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+
+          <SettingsCard>
+            <CardContent className="p-0">
+              {invitedEmail.map((email) => (
+                <div
+                  key={email}
+                  className="flex items-center justify-between border-b p-4 last:border-0"
+                >
+                  <div className="flex items-center gap-4">
+                    <Avatar>
+                      <AvatarFallback>{email[0]}</AvatarFallback>
+                    </Avatar>
+                    <Typography variant="default">{email}</Typography>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleCancelInvite(email)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </SettingsCard>
+        </div>
+      )}
+
+      {/* Invite New Members */}
+      <div className="space-y-6">
+        <div className="space-y-1.5">
+          <Typography variant="h3" className="text-lg font-medium">
+            Invite New Members
+          </Typography>
+          <Typography variant="muted" className="text-sm">
+            Invite new members to join your organization
+          </Typography>
+        </div>
+
+        <SettingsCard>
+          <CardContent>
+            <OrganizationInviteMemberForm
+              disabled={members.length >= maxMembers}
+            />
+          </CardContent>
+        </SettingsCard>
+      </div>
+    </div>
   );
 };

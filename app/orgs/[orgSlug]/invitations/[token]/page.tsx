@@ -79,7 +79,7 @@ export default async function InvitationPage({
   }
 
   // If user is logged in but with a different email
-  if (session?.email && session.email !== tokenData.email) {
+  if (session?.user?.email && session.user.email !== tokenData.email) {
     return (
       <NavigationWrapper>
         <Layout>
@@ -91,7 +91,7 @@ export default async function InvitationPage({
               <CardHeader>
                 <CardTitle>Please sign in with the correct email</CardTitle>
                 <CardDescription>
-                  This invitation was sent to {tokenData.email}, but you're signed in as {session.email}
+                  This invitation was sent to {tokenData.email}, but you're signed in as {session.user.email}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -112,11 +112,11 @@ export default async function InvitationPage({
   }
 
   // Check if user is already a member
-  if (session?.email === tokenData.email) {
+  if (session?.user?.email === tokenData.email) {
     const existingMembership = await prisma.organizationMembership.findFirst({
       where: {
         organizationId: organization.id,
-        user: { email: session.email },
+        user: { email: session.user.email },
       },
     });
 

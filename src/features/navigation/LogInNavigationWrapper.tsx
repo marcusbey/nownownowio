@@ -28,9 +28,9 @@ export default async function AuthNavigationWrapper(props: PropsWithChildren) {
           <Button variant="ghost" className="size-10 rounded-full" size="sm">
             <Avatar className="size-8">
               <AvatarFallback>
-                {user.email ? user.email.slice(0, 2) : "??"}
+                {user?.user?.email ? user.user.email.slice(0, 2) : "??"}
               </AvatarFallback>
-              {user.image && <AvatarImage src={user.image} />}
+              {user?.user?.image && <AvatarImage src={user.user.image} />}
             </Avatar>
           </Button>
         </UserDropdown>

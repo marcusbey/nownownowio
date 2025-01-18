@@ -1,30 +1,25 @@
-import { buttonVariants } from "@/components/ui/button";
 import {
-  Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
-import { Pricing } from "@/features/plans/PricingSection";
 import { formatDate } from "@/lib/format/date";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
-import { getServerUrl } from "@/lib/server-url";
 import { stripe } from "@/lib/stripe";
-import type { PageParams } from "@/types/next";
 import { OrganizationMembershipRole } from "@prisma/client";
-import Link from "next/link";
+import { CreditCard, Receipt } from "lucide-react";
+import type { PageParams } from "@/types/next";
+import { SettingsPage, SettingsCard, SettingsSection } from "@/features/settings/SettingsLayout";
 
 export const generateMetadata = combineWithParentMetadata({
-  title: "Billing",
-  description: "Manage your organization billing.",
+  title: "Billing & Payment",
+  description: "Manage your payment methods and view billing history.",
 });
 
-export default async function RoutePage(props: PageParams) {
+export default async function BillingPage({ params }: PageParams) {
   const { org: organization } = await getRequiredCurrentOrgCache(undefined, [
     OrganizationMembershipRole.ADMIN,
   ]);
@@ -33,97 +28,123 @@ export default async function RoutePage(props: PageParams) {
     throw new Error("Organization has no Stripe customer");
   }
 
-  if (organization.plan.id === "FREE") {
-    return (
-      <div className="flex flex-col gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Free plan</CardTitle>
-            <CardDescription>
-              Upgrade to premium to unlock all features.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Pricing />
-      </div>
-    );
-  }
+  // Get active subscription and payment method
+  const subscriptions = await stripe.subscriptions.list({
+    customer: organization.stripeCustomerId,
+    status: "active",
+    expand: ["data.default_payment_method"],
+    limit: 1,
+  });
+  const subscription = subscriptions.data[0];
+  const paymentMethod = subscription?.default_payment_method as Stripe.PaymentMethod | undefined;
+
+  // Get recent invoices
+  const invoices = await stripe.invoices.list({
+    customer: organization.stripeCustomerId,
+    limit: 5,
+  });
 
   return (
-    <div className="flex flex-col gap-4">
-      <PremiumCard />
-    </div>
+    <SettingsPage
+      title="Billing & Payment"
+      description="Manage your payment methods and view billing history"
+    >
+      {/* Payment Method Section */}
+      <SettingsSection
+        title="Payment Method"
+        description="Manage your payment method and billing preferences"
+      >
+        <SettingsCard>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              <CardTitle>Payment Details</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {paymentMethod ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-md border p-2">
+                    {paymentMethod.card?.brand.toUpperCase()}
+                  </div>
+                  <div>
+                    <Typography variant="default">•••• {paymentMethod.card?.last4}</Typography>
+                    <Typography variant="small" className="text-muted-foreground">
+                      Expires {paymentMethod.card?.exp_month}/{paymentMethod.card?.exp_year}
+                    </Typography>
+                  </div>
+                </div>
+                <Button variant="outline" asChild>
+                  <a href={`${process.env.NEXT_PUBLIC_URL}/api/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
+                    Update
+                  </a>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <Typography variant="default">No payment method on file</Typography>
+                <Button asChild>
+                  <a href={`${process.env.NEXT_PUBLIC_URL}/api/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
+                    Add Payment Method
+                  </a>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </SettingsCard>
+      </SettingsSection>
+
+      {/* Billing History Section */}
+      <SettingsSection
+        title="Billing History"
+        description="View your billing history and download invoices"
+      >
+        <SettingsCard>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              <CardTitle>Recent Invoices</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {invoices.data.length > 0 ? (
+              <div className="space-y-4">
+                {invoices.data.map((invoice) => (
+                  <div key={invoice.id} className="flex items-center justify-between border-b pb-4 last:border-0">
+                    <div>
+                      <Typography variant="default">
+                        {formatDate(invoice.created * 1000)}
+                      </Typography>
+                      <Typography variant="small" className="text-muted-foreground">
+                        ${(invoice.amount_paid / 100).toFixed(2)} - {invoice.status}
+                      </Typography>
+                    </div>
+                    {invoice.hosted_invoice_url && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={invoice.hosted_invoice_url} target="_blank" rel="noopener noreferrer">
+                          View Invoice
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <div className="pt-4">
+                  <Button variant="outline" className="w-full" asChild>
+                    <a href={`${process.env.NEXT_PUBLIC_URL}/api/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
+                      View All Invoices
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Typography variant="default" className="text-muted-foreground">
+                No billing history available
+              </Typography>
+            )}
+          </CardContent>
+        </SettingsCard>
+      </SettingsSection>
+    </SettingsPage>
   );
 }
-
-const PremiumCard = async () => {
-  const { org: organization } = await getRequiredCurrentOrgCache(undefined, [
-    OrganizationMembershipRole.ADMIN,
-  ]);
-
-  if (!organization.stripeCustomerId) {
-    throw new Error("Organization has no Stripe customer");
-  }
-
-  const stripeCustomer = await stripe.customers.retrieve(
-    organization.stripeCustomerId,
-  );
-  const subscriptions = await stripe.subscriptions.list({
-    customer: stripeCustomer.id,
-  });
-
-  const firstSubscription = subscriptions.data[0];
-  const nextRenewDate = firstSubscription?.current_period_end;
-  const price = firstSubscription?.items.data[0].price;
-
-  const customerPortal = await stripe.billingPortal.sessions.create({
-    customer: stripeCustomer.id,
-    return_url: `${getServerUrl()}/orgs/${organization.slug}/settings/billing`,
-  });
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardDescription>Plan</CardDescription>
-        <CardTitle>
-          {organization.plan.name}{" "}
-          {firstSubscription?.cancel_at ? "(Canceled)" : ""}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 md:flex-row">
-        {firstSubscription ? (
-          <>
-            <div>
-              <Typography variant="muted">Price</Typography>
-              <Typography variant="large">
-                ${(price.unit_amount ?? 0) / 100}
-              </Typography>
-            </div>
-            <Separator
-              orientation="vertical"
-              className="hidden h-10 self-center md:block"
-            />
-            <div>
-              <Typography variant="muted">
-                {firstSubscription.cancel_at ? "Cancel at" : "Renew at"}
-              </Typography>
-              <Typography variant="large">
-                {formatDate(new Date(nextRenewDate * 1000))}
-              </Typography>
-            </div>
-          </>
-        ) : (
-          <div>
-            <Typography variant="muted">Renew at</Typography>
-            <Typography variant="large">LIFETIME</Typography>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter>
-        <Link className={buttonVariants()} href={customerPortal.url}>
-          Manage subscriptions and invoices
-        </Link>
-      </CardFooter>
-    </Card>
-  );
-};

@@ -1,6 +1,6 @@
 import { authOptions } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { baseAuth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/helper";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -8,7 +8,7 @@ export async function POST(
   { params }: { params: { postId: string } }
 ) {
   try {
-    const session = await baseAuth();
+    const session = await auth();
     const userId = session?.user?.id;
     const postId = params.postId;
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";

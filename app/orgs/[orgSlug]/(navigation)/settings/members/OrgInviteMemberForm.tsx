@@ -98,7 +98,7 @@ export const OrganizationInviteMemberForm = ({ invitedEmail, maxMembers, current
           type="button" 
           variant="default"
           className="cursor-pointer"
-          disabled={currentMemberCount >= maxMembers || (currentMemberCount + invitedEmail.length) >= maxMembers}
+          disabled={currentMemberCount >= maxMembers || (currentMemberCount + (invitedEmail?.length || 0)) >= maxMembers}
         >
           <Mail className="mr-2" size={16} />
           Invite member
@@ -130,11 +130,11 @@ export const OrganizationInviteMemberForm = ({ invitedEmail, maxMembers, current
               </FormItem>
             )}
           />
-          <LoadingButton 
-            loading={mutation.isPending} 
+          <LoadingButton
+            loading={mutation.isPending}
             type="submit" 
             className="cursor-pointer"
-            disabled={currentMemberCount >= maxMembers || (currentMemberCount + invitedEmail.length) >= maxMembers}
+            disabled={currentMemberCount >= maxMembers || (currentMemberCount + (invitedEmail?.length || 0)) >= maxMembers}
           >
             <Plus size={16} className="mr-2" />
             Invite
