@@ -11,22 +11,28 @@ interface AuthMetrics {
 
 class AuthMonitoring {
   private metrics: AuthMetrics[] = []
+  private lastLogTime: number = 0
+  private readonly LOG_INTERVAL = 60000 // Log at most once per minute
   
   // Record auth operation metrics
   recordMetric(metric: AuthMetrics) {
+    const now = Date.now()
     const metricWithTimestamp = {
       ...metric,
-      timestamp: Date.now(),
+      timestamp: now,
     }
     
     this.metrics.push(metricWithTimestamp)
     
-    // Log metric
-    logger.info('Auth Operation Metric', metricWithTimestamp)
+    // Only log if enough time has passed and there's an error
+    if (!metric.success && now - this.lastLogTime >= this.LOG_INTERVAL) {
+      logger.warn('Auth Operation Error', metricWithTimestamp)
+      this.lastLogTime = now
+    }
     
-    // Clear old metrics (keep last 1000)
-    if (this.metrics.length > 1000) {
-      this.metrics = this.metrics.slice(-1000)
+    // Keep only last 100 metrics instead of 1000
+    if (this.metrics.length > 100) {
+      this.metrics = this.metrics.slice(-100)
     }
   }
   
@@ -49,8 +55,7 @@ class AuthMonitoring {
   getAverageDuration(provider: string, operation: AuthMetrics['operation']): number {
     const relevantMetrics = this.metrics.filter(m => 
       m.provider === provider && 
-      m.operation === operation &&
-      m.success
+      m.operation === operation
     )
     
     if (relevantMetrics.length === 0) return 0

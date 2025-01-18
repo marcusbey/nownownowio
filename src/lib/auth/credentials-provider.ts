@@ -4,7 +4,6 @@ import { addDays } from "date-fns";
 import { nanoid } from "nanoid";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { env } from "../env";
@@ -96,7 +95,7 @@ export const credentialsSignInCallback = (request: NextRequest | undefined): Sig
     return;
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await request.nextUrl().cookies();
 
   const token = generateWidgetToken(user.id!);
 

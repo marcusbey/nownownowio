@@ -7,10 +7,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SubmitButton } from "@/features/form/SubmitButton";
-import { requiredAuth } from "@/lib/auth/helper";
+import { auth } from "@/lib/auth/helper";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import type { PageParams } from "@/types/next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   orgConfirmDeletionAction,
   verifyDeleteAccountToken,
@@ -21,14 +22,17 @@ export const generateMetadata = combineWithParentMetadata({
   description: "One last step to delete your account.",
 });
 
-export default async function RoutePage(props: PageParams) {
-  const token = props.searchParams.token;
-  const user = await requiredAuth();
+export default async function RoutePage({ searchParams }: PageParams) {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return redirect("/sign-in");
+  }
 
-  const invalidTokenCard = (
+  const token = searchParams?.token;
+  const noTokenCard = (
     <Card>
       <CardHeader>
-        <CardTitle>Invalid token</CardTitle>
+        <CardTitle>No token</CardTitle>
       </CardHeader>
       <CardFooter>
         <Link
@@ -41,14 +45,14 @@ export default async function RoutePage(props: PageParams) {
     </Card>
   );
 
-  try {
-    if (typeof token !== "string") {
-      return invalidTokenCard;
-    }
+  if (!token) {
+    return noTokenCard;
+  }
 
-    await verifyDeleteAccountToken(String(token), user.email);
+  try {
+    await verifyDeleteAccountToken(String(token), session.user.email);
   } catch {
-    return invalidTokenCard;
+    return noTokenCard;
   }
 
   return (

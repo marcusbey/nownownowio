@@ -76,7 +76,7 @@ export async function getSession(sessionToken: string) {
     return session
   }, {
     ttl: 60 * 60 * 1000, // Cache for 1 hour
-    staleWhileRevalidate: true
+    forceFresh: false
   })
 }
 
@@ -112,17 +112,17 @@ export async function getAccountByProvider(userId: string, provider: string) {
 // Cleanup expired sessions
 export async function cleanupExpiredSessions() {
   try {
-    const now = new Date()
+    // Delete expired sessions from database
     await prisma.session.deleteMany({
       where: {
         expires: {
-          lt: now
+          lt: new Date()
         }
       }
     })
     
-    // Invalidate all session caches
-    queryCache.invalidatePattern(/^session:/)
+    // Clear the cache
+    queryCache.clear()
     
     logger.info('Cleaned up expired sessions')
   } catch (error) {

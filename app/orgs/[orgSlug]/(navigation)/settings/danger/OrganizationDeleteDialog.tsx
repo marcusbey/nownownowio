@@ -16,7 +16,7 @@ export const OrganizationDeleteDialog = ({
   const router = useRouter();
   const mutation = useMutation({
     mutationFn: async () => {
-      const result = await organizationDeleteAction();
+      const result = await organizationDeleteAction({ orgSlug: org.slug });
 
       if (!result || result.serverError) {
         toast.error(result?.serverError ?? "Failed to delete organization");

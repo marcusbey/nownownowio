@@ -154,7 +154,7 @@ export class OAuthService {
       })
       
       // Invalidate all OAuth account caches
-      queryCache.invalidatePattern(/^oauth:account:/)
+      queryCache.invalidate('oauth:account')
     } catch (error) {
       logger.error('Failed to cleanup expired tokens', { error })
       throw error

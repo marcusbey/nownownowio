@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { baseAuth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getPostDataInclude } from "@/lib/types";
 import { NextRequest } from "next/server";
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const topic = req.nextUrl.searchParams.get("topic");
     const pageSize = 10;
 
-    const session = await baseAuth();
+    const session = await auth();
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
     }

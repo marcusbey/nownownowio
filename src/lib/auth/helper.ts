@@ -3,10 +3,28 @@ import { nanoid } from "nanoid";
 import { Session } from "next-auth";
 import { cache } from "react";
 import { logger } from "../logger";
-import { baseAuth } from "./auth";
+import { auth as nextAuth } from "./auth";
 import crypto from "crypto";
 import { env } from "../env";
 import { queryCache } from '@/lib/cache/query-cache';
+
+interface ISession extends Session {
+  user: {
+    id: string;
+    email: string;
+    name?: string | null;
+    image?: string | null;
+  }
+}
+
+// Re-export auth with proper typing
+export const auth = async (): Promise<ISession | null> => {
+  const session = await nextAuth();
+  if (!session?.user?.email) {
+    return null;
+  }
+  return session as ISession;
+};
 
 // Hash utilities
 export const hashStringWithSalt = (string: string, salt: string): string => {
@@ -22,15 +40,6 @@ export class AuthError extends Error {
     this.name = "AuthError";
   }
 }
-
-export const auth = async () => {
-  const session = await baseAuth();
-  if (session?.user) {
-    const user = session.user as User;
-    return user;
-  }
-  return null;
-};
 
 export const requiredAuth = async () => {
   try {
@@ -57,13 +66,13 @@ export async function validateRequest() {
       sessionKey,
       async () => {
         try {
-          const session = await baseAuth();
+          const session = await auth();
           if (!session) {
-            throw new Error('No session returned from baseAuth');
+            throw new Error('No session returned from auth');
           }
           return session;
         } catch (error) {
-          logger.error('Error in baseAuth:', error);
+          logger.error('Error in auth:', error);
           throw error;
         }
       },
@@ -76,7 +85,7 @@ export async function validateRequest() {
     // Validate the session
     if (!cachedSession || !cachedSession.user) {
       // If cache fails, try direct auth as fallback
-      const directSession = await baseAuth();
+      const directSession = await auth();
       if (!directSession || !directSession.user) {
         throw new AuthError('No valid session found');
       }
@@ -94,7 +103,7 @@ export async function validateRequest() {
     logger.error('Error in validateRequest:', error);
     // Try one last direct auth attempt
     try {
-      const lastAttemptSession = await baseAuth();
+      const lastAttemptSession = await auth();
       if (lastAttemptSession?.user) {
         return {
           session: lastAttemptSession,
@@ -127,7 +136,7 @@ export async function getSession(): Promise<ISession | null> {
   }
 
   try {
-    const authSession = await baseAuth();
+    const authSession = await auth();
     if (authSession && authSession.user) {
       const sessionDoc: ISession = {
         id: authSession.user.id || nanoid(11),

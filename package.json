@@ -71,7 +71,7 @@
     "jsonwebtoken": "^9.0.2",
     "ky": "^1.7.2",
     "limiter": "^2.1.0",
-    "lru-cache": "^10.0.1",
+    "lru-cache": "^10.4.3",
     "lucide-react": "^0.441.0",
     "nanoid": "^5.0.7",
     "next": "^14.2.13",

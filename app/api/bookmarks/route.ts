@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { baseAuth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { getPostDataInclude } from "@/lib/types";
 
 // GET /api/bookmarks - Get user's bookmarks
 export async function GET(request: Request) {
-  const session = await baseAuth();
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
 // POST /api/bookmarks - Create a bookmark
 export async function POST(request: Request) {
-  const session = await baseAuth();
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -7,10 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ContactSupportDialog } from "@/features/contact/support/ContactSupportDialog";
-import { requiredAuth } from "@/lib/auth/helper";
+import { auth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";
 import { resend } from "@/lib/mail/resend";
 import { combineWithParentMetadata } from "@/lib/metadata";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 import { ToggleEmailCheckbox } from "./ToggleEmailCheckbox";
 
 export const dynamic = "force-dynamic";
@@ -21,9 +23,16 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function MailProfilePage() {
-  const user = await requiredAuth();
+  const session = await auth();
+  if (!session?.user?.email) {
+    return redirect("/sign-in");
+  }
 
-  if (!user.resendContactId) {
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email }
+  });
+
+  if (!user || !user.resendContactId) {
     return <ErrorComponent />;
   }
 

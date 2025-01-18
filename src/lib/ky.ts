@@ -8,7 +8,7 @@ const kyInstance = ky.create({
         const { response } = error;
         if (response && response.body) {
           try {
-            const body = await response.json();
+            const body = await response.json() as { error?: string }
             error.message = body.error || error.message;
           } catch {
             // Use default error message if JSON parsing fails

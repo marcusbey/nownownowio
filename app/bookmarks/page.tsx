@@ -1,11 +1,11 @@
-import { baseAuth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/helper";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import BookmarksList from "./BookmarksList";
 
 export default async function BookmarksPage() {
-  const session = await baseAuth();
+  const session = await auth();
   
   if (!session?.user?.email) {
     redirect("/sign-in");

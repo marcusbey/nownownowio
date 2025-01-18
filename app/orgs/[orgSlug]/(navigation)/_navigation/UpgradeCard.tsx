@@ -13,7 +13,8 @@ import Link from "next/link";
 export const UpgradeCard = async () => {
   const { org: organization } = await getRequiredCurrentOrgCache();
 
-  if (organization.plan.id !== "FREE") return null;
+  // Check if plan exists and is not FREE
+  if (!organization.plan || organization.plan.id !== "FREE") return null;
 
   return (
     <>
@@ -50,7 +51,7 @@ export const UpgradeCard = async () => {
           className: "sm:hidden aspect-square p-2",
         })}
       >
-        <ArrowUpCircle size={24} />
+        <ArrowUpCircle className="h-4 w-4" />
       </Link>
     </>
   );

@@ -1,15 +1,15 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "../prisma";
-import { NextRequest } from "next/server";
 import { getNextAuthConfigProviders } from "./getNextAuthConfigProviders";
 import { env } from "../env";
 import { logger } from "../logger";
 import { setupDefaultOrganizationsOrInviteUser } from "./auth-config-setup";
 import type { NextAuthConfig, User, Session, DefaultSession } from "next-auth";
 import { isValidProvider, getProviderConfig, type OAuthProvider, type OAuthTokens } from "./helper";
+import { getCachedSession, setCachedSession, type CachedSession } from './session-cache'
 
-export const { handlers, auth: baseAuth } = NextAuth((req?: NextRequest) => ({
+const config: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   providers: getNextAuthConfigProviders(),
   pages: {
@@ -22,17 +22,28 @@ export const { handlers, auth: baseAuth } = NextAuth((req?: NextRequest) => ({
   session: {
     strategy: "database",
     maxAge: 365 * 24 * 60 * 60, // 1 year
-    updateAge: 24 * 60 * 60, // Refresh daily
+    updateAge: 7 * 24 * 60 * 60, // Refresh weekly
   },
   callbacks: {
     async session({ session, user }: { session: DefaultSession; user: User }) {
-      return {
+      if (!user?.id) {
+        throw new Error('User ID is required')
+      }
+
+      const enhancedSession = {
         ...session,
         user: {
           ...session.user,
           id: user.id,
         },
-      };
+      } as const
+      
+      // Cache the session
+      if (session.user?.email) {
+        setCachedSession(session.user.email, enhancedSession)
+      }
+      
+      return enhancedSession
     },
     async signIn({ user }: { user: User }) {
       if (!user.email) {
@@ -55,8 +66,11 @@ export const { handlers, auth: baseAuth } = NextAuth((req?: NextRequest) => ({
   },
   secret: env.NEXTAUTH_SECRET,
   trustHost: true,
-  debug: process.env.NODE_ENV === "development",
-}));
+  debug: false,
+};
+
+// Create and export the NextAuth instance
+export const { auth, handlers } = NextAuth(config);
 
 // Export auth config for use in API routes
 export const authOptions = (req: Request) => ({

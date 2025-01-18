@@ -57,7 +57,7 @@ export class ProviderRefresh {
         operation: 'refresh',
         duration: Date.now() - start,
         success: false,
-        errorType: error.message,
+        errorType: error instanceof Error ? error.message : 'Unknown error',
       })
       throw error
     }
@@ -108,7 +108,7 @@ export class ProviderRefresh {
         operation: 'refresh',
         duration: Date.now() - start,
         success: false,
-        errorType: error.message,
+        errorType: error instanceof Error ? error.message : 'Unknown error',
       })
       throw error
     }

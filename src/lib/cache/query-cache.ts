@@ -18,6 +18,7 @@ interface QueryOptions {
   bypassCache?: boolean
   forceFresh?: boolean
   ttl?: number
+  staleTime?: number
 }
 
 // Simple rate limiter implementation
@@ -123,7 +124,8 @@ class QueryCache {
     const value = await queryFn()
     
     const ttl = options.ttl || this.defaultTTL
-    this.set(key, value, { ttl })
+    const staleTime = options.staleTime || this.defaultStaleTime
+    this.set(key, value, { ttl, staleTime })
     
     return value
   }
@@ -177,8 +179,9 @@ class QueryCache {
     const values = await queryFn()
     
     const ttl = options.ttl || this.defaultTTL
+    const staleTime = options.staleTime || this.defaultStaleTime
     keys.forEach((key, index) => {
-      this.set(key, values[index], { ttl })
+      this.set(key, values[index], { ttl, staleTime })
     })
     
     return values

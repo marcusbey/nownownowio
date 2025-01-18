@@ -4,7 +4,7 @@ import { OrganizationMembershipRole } from "@prisma/client";
  *
  * @param userRoles User's roles
  * @param rolesNeeded Roles to check
- * @returns a boolean indicating if the user has at least one role in rolesB
+ * @returns a boolean indicating if the user has at least one role in rolesNeeded
  */
 export const isInRoles = (
   userRoles?: OrganizationMembershipRole[],
@@ -16,5 +16,7 @@ export const isInRoles = (
   if (userRoles.includes("OWNER")) return true;
 
   if (!rolesNeeded) return true;
-  return rolesNeeded.every((role) => userRoles.includes(role));
+  
+  // Check if user has at least one of the needed roles
+  return rolesNeeded.some((role) => userRoles.includes(role));
 };

@@ -1,10 +1,10 @@
-import { baseAuth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import Post from "@/components/posts/Post";
 import { Prisma } from "@prisma/client";
 
 export default async function BookmarksList() {
-  const session = await baseAuth();
+  const session = await auth();
   if (!session) return null;
 
   const bookmarks = await prisma.bookmark.findMany({

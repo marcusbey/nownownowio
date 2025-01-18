@@ -1,20 +1,56 @@
 "use server";
 
+import { auth } from "@/lib/auth/helper";
+import { prisma } from "@/lib/prisma";
+import { resend } from "@/lib/mail/resend";
 import OrgConfirmDeletionEmail from "@/emails/OrgConfirmDeletion.email";
-import { orgAction } from "@/lib/actions/safe-actions";
-import { sendEmail } from "@/lib/mail/sendEmail";
-import { deleteOrganizationQuery } from "@/query/org/org-delete.query";
+import { redirect } from "next/navigation";
+import { OrganizationMembershipRole } from "@prisma/client";
 
-export const organizationDeleteAction = orgAction
-  .metadata({ roles: ["OWNER"] })
-  .action(async ({ ctx }) => {
-    await deleteOrganizationQuery(ctx.org.id);
+export async function organizationDeleteAction(input: { orgSlug: string }) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return { success: false, serverError: "Not authenticated" };
+    }
 
-    await sendEmail({
-      subject: `Your organization has been deleted (${ctx.org.slug})`,
-      to: ctx.user.email,
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      include: {
+        organizations: {
+          where: { 
+            roles: { has: OrganizationMembershipRole.OWNER },
+            organization: { slug: input.orgSlug }
+          },
+          include: { organization: true },
+        },
+      },
+    });
+
+    if (!user || !user.organizations[0]?.organization) {
+      return { success: false, serverError: "No organization found" };
+    }
+
+    const org = user.organizations[0].organization;
+
+    await prisma.organization.delete({
+      where: { id: org.id },
+    });
+
+    await resend.emails.send({
+      from: "noreply@nownownow.io",
+      subject: `Your organization has been deleted (${org.slug})`,
+      to: user.email,
       react: OrgConfirmDeletionEmail({
-        org: ctx.org.name,
+        org: org.name,
       }),
     });
-  });
+
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      serverError: error instanceof Error ? error.message : "Failed to delete organization" 
+    };
+  }
+}

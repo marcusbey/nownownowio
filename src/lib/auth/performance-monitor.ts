@@ -61,11 +61,11 @@ class AuthPerformanceMonitor {
     }
 
     if (options?.since) {
-      filtered = filtered.filter(m => m.timestamp >= options.since)
+      filtered = filtered.filter(m => m.timestamp >= options?.since!)
     }
 
-    if (options?.threshold) {
-      filtered = filtered.filter(m => m.duration >= options.threshold)
+    if (options?.threshold !== null && options?.threshold !== undefined) {
+      filtered = filtered.filter(m => m.duration >= options.threshold!)
     }
 
     return filtered

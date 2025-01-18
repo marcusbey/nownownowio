@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { baseAuth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const session = await baseAuth();
+  const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

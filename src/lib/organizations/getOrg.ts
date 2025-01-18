@@ -1,95 +1,103 @@
 import { OrganizationMembershipRole } from "@prisma/client";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { auth } from "../auth/helper";
+import { auth } from "../auth/auth";
 import { prisma } from "../prisma";
+import { logger } from "../logger";
 
 const getOrgSlugFromUrl = (): string | undefined => {
-  const headerList = headers();
-  const xURL = headerList.get("x-url");
-  //console.log("x-URL header:", xURL);
-  if (!xURL) {
-    return undefined;
-  }
-
-  // get the parameters after /orgs/ or /organizations/ and before a / or ? (if there are params)
-  const match = xURL.match(/\/(?:orgs|organizations)\/([^/?]+)(?:[/?]|$)/);
-
-  if (!match) {
-    return undefined;
-  }
-
-  const organizationSlug = match[1];
-
-  if (!organizationSlug) {
-    return undefined;
-  }
-
-  return organizationSlug;
+  const headersList = headers();
+  const host = headersList.get("host") || "";
+  const url = new URL(`http://${host}`);
+  return url.hostname.split(".")[0];
 };
 
-export const getCurrentOrg = async (orgSlug?: string, roles?: OrganizationMembershipRole[]) => {
-  const user = await auth();
+export const getOrg = async (orgSlug: string) => {
+  try {
+    const org = await prisma.organization.findUnique({
+      where: { slug: orgSlug },
+      include: {
+        members: {
+          include: {
+            user: true,
+          },
+        },
+        plan: true,
+      },
+    });
 
-  if (!user) {
-    //console.log("No user found");
-    return null;
-  }
-
-  let organizationSlug = orgSlug;
-
-  if (!organizationSlug) {
-    organizationSlug = getOrgSlugFromUrl();
-    if (!organizationSlug) {
-      //console.log("No orgSlug found in URL");
+    if (!org) {
       return null;
     }
-  }
 
-  //console.log("Searching for organization with slug:", organizationSlug);
-
-  const org = await prisma.organization.findFirst({
-    where: {
-      slug: organizationSlug,
-      members: {
-        some: {
-          userId: user.id,
-          roles: roles
-            ? {
-              hasSome: [...roles, "OWNER"],
-            }
-            : undefined,
-        },
-      },
-    },
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      plan: true,
-      email: true,
-      image: true,
-      stripeCustomerId: true,
-      members: {
-        where: {
-          userId: user.id,
-        },
-        select: {
-          roles: true,
-        },
-      },
-    },
-  });
-
-  if (!org) {
+    return org;
+  } catch (error) {
+    logger.error("Error fetching organization:", error);
     return null;
   }
-  //console.log("Fetched organization:", org);
-  return {
-    org,
-    user,
-    roles: org.members[0].roles,
-  };
+};
+
+export const getCurrentOrg = async (orgSlug?: string, requiredRoles?: OrganizationMembershipRole[]) => {
+  const session = await auth();
+
+  if (!session?.user) {
+    logger.info("No authenticated user found");
+    return null;
+  }
+
+  try {
+    const membership = await prisma.organizationMembership.findFirst({
+      where: {
+        userId: session.user.id,
+        organization: {
+          slug: orgSlug,
+        },
+      },
+      include: {
+        organization: {
+          include: {
+            members: {
+              include: {
+                user: true,
+              },
+            },
+            plan: true,
+          },
+        },
+      },
+    });
+
+    if (!membership) {
+      logger.info("No membership found for user in organization", { userId: session.user.id, orgSlug });
+      return null;
+    }
+
+    // Check if user has required roles
+    if (requiredRoles && requiredRoles.length > 0) {
+      const hasRequiredRole = membership.roles.some(role => 
+        role === "OWNER" || requiredRoles.includes(role)
+      );
+      
+      if (!hasRequiredRole) {
+        logger.info("User does not have required roles", { 
+          userId: session.user.id, 
+          orgSlug,
+          userRoles: membership.roles,
+          requiredRoles 
+        });
+        return null;
+      }
+    }
+
+    return {
+      org: membership.organization,
+      user: session.user,
+      roles: membership.roles,
+    };
+  } catch (error) {
+    logger.error("Error fetching current organization:", error);
+    return null;
+  }
 };
 
 export const getRequiredCurrentOrg = async (
