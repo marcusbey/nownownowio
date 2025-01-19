@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { formatDate } from "@/lib/format/date";
 import { combineWithParentMetadata } from "@/lib/metadata";
-import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
+import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
+import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { CreditCard, Receipt } from "lucide-react";
 import type { PageParams } from "@/types/next";
@@ -111,10 +112,10 @@ export default async function BillingPage({ params }: PageParams) {
             {invoices.data.length > 0 ? (
               <div className="space-y-4">
                 {invoices.data.map((invoice) => (
-                  <div key={invoice.id} className="flex items-center justify-between border-b pb-4 last:border-0">
+                  <div key={invoice.id} className="flex items-center justify-between py-4 border-b pb-4 last:border-0">
                     <div>
                       <Typography variant="default">
-                        {formatDate(invoice.created * 1000)}
+                        {formatDate(new Date(invoice.created * 1000))}
                       </Typography>
                       <Typography variant="small" className="text-muted-foreground">
                         ${(invoice.amount_paid / 100).toFixed(2)} - {invoice.status}

@@ -16,7 +16,10 @@
     "postinstall": "prisma generate",
     "clean": "next lint --fix && tsc --noEmit && prettier --write .",
     "knip": "knip",
-    "test": "tsx scripts/test-auth.ts"
+    "test": "tsx scripts/test-auth.ts",
+    "test:posts": "tsx scripts/test-posts.ts",
+    "test:profile": "tsx scripts/test-profile.ts",
+    "test:all": "tsx scripts/test-all.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.59",
@@ -52,11 +55,13 @@
     "@tiptap/extension-placeholder": "^2.7.1",
     "@tiptap/react": "^2.7.1",
     "@tiptap/starter-kit": "^2.7.1",
+    "@types/uuid": "^10.0.0",
     "@uploadthing/react": "^7.0.2",
     "ai": "^3.3.35",
     "ajv": "^8.17.1",
     "ajv-keywords": "^5.1.0",
     "bcryptjs": "^2.4.3",
+    "chalk": "^5.3.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^0.2.0",
@@ -115,6 +120,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tslog": "^4.9.3",
     "uploadthing": "^7.0.2",
+    "uuid": "^11.0.5",
     "zod": "^3.23.8",
     "zustand": "^4.5.5"
   },

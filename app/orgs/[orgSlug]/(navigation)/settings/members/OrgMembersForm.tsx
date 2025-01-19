@@ -239,7 +239,7 @@ export const OrgMembersForm = ({
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          variant="destructive"
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           onClick={() => handleRemoveMember()}
                         >
                           Remove
@@ -308,7 +308,9 @@ export const OrgMembersForm = ({
         <SettingsCard>
           <CardContent>
             <OrganizationInviteMemberForm
-              disabled={members.length >= maxMembers}
+              invitedEmail={invitedEmail}
+              maxMembers={maxMembers}
+              currentMemberCount={members.length}
             />
           </CardContent>
         </SettingsCard>
