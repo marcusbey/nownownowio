@@ -7,6 +7,7 @@ import { findOrganizationFromCustomer } from "./findUserFromCustomer";
 import {
   downgradeUserFromPlan,
   getPlanFromLineItem,
+  notifyUserOfPaymentActionRequired,
   notifyUserOfPaymentFailure,
   notifyUserOfPremiumDowngrade,
   notifyUserOfPremiumUpgrade,
@@ -44,8 +45,16 @@ export const POST = async (req: NextRequest) => {
         await onInvoicePaymentFailed(event.data.object);
         break;
 
+      case "invoice.payment_action_required":
+        await onInvoicePaymentActionRequired(event.data.object);
+        break;
+
       case "customer.subscription.deleted":
         await onCustomerSubscriptionDeleted(event.data.object);
+        break;
+
+      case "customer.subscription.created":
+        await onCustomerSubscriptionCreated(event.data.object);
         break;
 
       case "customer.subscription.updated":
@@ -128,5 +137,29 @@ async function onCustomerSubscriptionUpdated(object: Stripe.Subscription) {
     organization.id,
     await getPlanFromLineItem(object.items.data),
   );
+  await notifyUserOfPremiumUpgrade(organization);
+}
+
+/**
+ * Handle when additional authentication is required for payment
+ */
+async function onInvoicePaymentActionRequired(object: Stripe.Invoice) {
+  const organization = await findOrganizationFromCustomer(object.customer as string);
+  if (!organization) return;
+
+  await notifyUserOfPaymentActionRequired(organization);
+}
+
+/**
+ * Handle when a new subscription is created
+ */
+async function onCustomerSubscriptionCreated(object: Stripe.Subscription) {
+  const organization = await findOrganizationFromCustomer(object.customer as string);
+  if (!organization) return;
+
+  const stripe = await getStripeInstance();
+  const plan = await getPlanFromLineItem(object.items.data);
+  
+  await upgradeUserToPlan(organization.id, plan);
   await notifyUserOfPremiumUpgrade(organization);
 }

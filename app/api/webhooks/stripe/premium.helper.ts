@@ -64,6 +64,17 @@ export const notifyUserOfPaymentFailure = async (org: Organization) => {
   });
 };
 
+export const notifyUserOfPaymentActionRequired = async (org: Organization) => {
+  await sendEmail({
+    to: org.email ?? "",
+    subject: "Additional Authentication Required for Your Payment",
+    react: SubscriptionFailedEmail({
+      organizationName: org.name,
+      portalUrl: `${getServerUrl()}/orgs/${org.slug}/settings/billing`,
+    }),
+  });
+};
+
 /**
  * This method return a valid plan id from the line items.
  *
