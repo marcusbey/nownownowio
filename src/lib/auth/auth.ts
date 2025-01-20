@@ -92,11 +92,39 @@ const config: NextAuthConfig = {
       }
     },
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-      if (process.env.NODE_ENV === "development") {
-        return url.startsWith("/") ? `${baseUrl}${url}` : url;
+      try {
+        // Always use NEXTAUTH_URL as the base URL in production
+        const productionBaseUrl = process.env.NODE_ENV === "production" 
+          ? env.NEXTAUTH_URL 
+          : baseUrl;
+
+        // If the URL is relative, prepend the base URL
+        if (url.startsWith("/")) {
+          const fullUrl = `${productionBaseUrl}${url}`;
+          logger.info("[Auth] Redirecting to internal URL", { fullUrl });
+          return fullUrl;
+        }
+
+        // If it's an absolute URL, verify it's allowed
+        const urlObj = new URL(url);
+        const allowedHosts = [
+          new URL(productionBaseUrl).host,
+          "nownownow.io",
+          "www.nownownow.io"
+        ];
+
+        if (allowedHosts.includes(urlObj.host)) {
+          logger.info("[Auth] Redirecting to external URL", { url });
+          return url;
+        }
+
+        // Default to base URL if the target URL is not allowed
+        logger.warn("[Auth] Redirect to unauthorized URL blocked", { url });
+        return productionBaseUrl;
+      } catch (error) {
+        logger.error("[Auth] Error in redirect callback", { error, url });
+        return baseUrl;
       }
-      const urlObj = new URL(url, baseUrl);
-      return urlObj.toString();
     },
   },
   events: {

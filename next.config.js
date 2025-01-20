@@ -18,13 +18,36 @@ const nextConfig = {
         ],
     },
     eslint: {
-        ignoreDuringBuilds: true // Temporarily disable ESLint during build
+        ignoreDuringBuilds: true
     },
     experimental: {
         serverActions: {
-            allowedOrigins: ["localhost:3000", "https://nownownow.io"]
+            allowedOrigins: ["localhost:3000", "nownownow.io", "www.nownownow.io"]
         }
     }
 };
 
-module.exports = nextConfig;
+module.exports = {
+    ...nextConfig,
+    async headers() {
+        return [
+            {
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY',
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                ],
+            },
+        ];
+    },
+};
