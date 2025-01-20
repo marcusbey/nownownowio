@@ -26,7 +26,13 @@ const config: NextAuthConfig = {
   },
   callbacks: {
     async session({ session, user }: { session: DefaultSession; user: User }) {
+      logger.info("[Auth] Session callback started", { 
+        sessionId: session?.user?.email,
+        userId: user?.id 
+      });
+
       if (!user?.id) {
+        logger.error("[Auth] Session callback - Missing user ID", { session });
         throw new Error('User ID is required')
       }
 
@@ -40,12 +46,22 @@ const config: NextAuthConfig = {
       
       // Cache the session
       if (session.user?.email) {
+        logger.info("[Auth] Caching session for user", { 
+          email: session.user.email,
+          userId: user.id 
+        });
         setCachedSession(session.user.email, enhancedSession)
       }
       
       return enhancedSession
     },
     async signIn({ user, account, profile }) {
+      logger.info("[Auth] Sign in callback started", { 
+        email: user?.email,
+        provider: account?.provider,
+        hasProfile: !!profile
+      });
+
       if (!user.email) {
         logger.error("[Auth] Sign in failed: No email provided", { user });
         return false;
@@ -58,6 +74,12 @@ const config: NextAuthConfig = {
           include: { accounts: true }
         });
 
+        logger.info("[Auth] User lookup result", { 
+          email: user.email,
+          exists: !!existingUser,
+          accountCount: existingUser?.accounts.length ?? 0
+        });
+
         if (existingUser) {
           // If user exists but doesn't have this OAuth account linked
           if (!existingUser.accounts.some(acc => acc.provider === account?.provider)) {
@@ -68,23 +90,37 @@ const config: NextAuthConfig = {
             
             // Link the new OAuth account
             if (account && existingUser.id) {
-              await prisma.account.create({
-                data: {
+              try {
+                await prisma.account.create({
+                  data: {
+                    userId: existingUser.id,
+                    type: account.type,
+                    provider: account.provider,
+                    providerAccountId: account.providerAccountId,
+                    access_token: account.access_token,
+                    token_type: account.token_type,
+                    scope: account.scope,
+                    expires_at: account.expires_at,
+                  }
+                });
+                logger.info("[Auth] Successfully linked OAuth account", {
                   userId: existingUser.id,
-                  type: account.type,
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                  access_token: account.access_token,
-                  token_type: account.token_type,
-                  scope: account.scope,
-                  expires_at: account.expires_at,
-                }
-              });
+                  provider: account.provider
+                });
+              } catch (error) {
+                logger.error("[Auth] Failed to link OAuth account", {
+                  error,
+                  userId: existingUser.id,
+                  provider: account.provider
+                });
+                return false;
+              }
             }
           }
           return true;
         }
 
+        logger.info("[Auth] New user signup", { email: user.email });
         return true;
       } catch (error) {
         logger.error("[Auth] Error in signIn callback", { error, user });

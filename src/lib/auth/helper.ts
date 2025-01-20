@@ -146,33 +146,45 @@ let cachedSession: DBSession | null = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 60000; // 1 minute in milliseconds
 
-export async function getSession(): Promise<DBSession | null> {
-  const now = Date.now();
-  if (cachedSession && now - lastFetchTime < CACHE_DURATION) {
-    return cachedSession;
+export async function getSession(): Promise<ISession | null> {
+  logger.info("[Auth] Getting session");
+  const session = await auth();
+  
+  if (!session?.user?.email) {
+    logger.warn("[Auth] No session or missing user email");
+    return null;
+  }
+
+  logger.info("[Auth] Session retrieved successfully", { 
+    email: session.user.email,
+    hasId: !!session.user.id 
+  });
+  
+  return session;
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  logger.info("[Auth] Getting current user");
+  const session = await getSession();
+
+  if (!session?.user?.email) {
+    logger.warn("[Auth] No user in session");
+    return null;
   }
 
   try {
-    const authSession = await auth();
-    if (authSession && authSession.user) {
-      const sessionDoc: DBSession = {
-        id: authSession.user.id || nanoid(11),
-        sessionToken: authSession.sessionToken || '',
-        userId: authSession.user.id,
-        expires: new Date(authSession.expires),
-        createdAt: new Date()
-      };
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
 
-      cachedSession = sessionDoc;
-      lastFetchTime = now;
-      return sessionDoc;
-    }
+    logger.info("[Auth] Current user lookup result", { 
+      email: session.user.email,
+      found: !!user 
+    });
 
-    cachedSession = null;
-    return null;
+    return user;
   } catch (error) {
-    logger.error("[getSession] Error in getSession function:", error);
-    cachedSession = null;
+    logger.error("[Auth] Error getting current user", { error });
     return null;
   }
 }

@@ -2,6 +2,8 @@
  * Find all errors here : https://authjs.dev/reference/core/errors
  * It's UX friendly message for each error.
  */
+import { logger } from "@/lib/logger";
+
 const AUTH_ERRORS: Record<string, string> = {
   AccountNotLinked:
     "This email is already associated with a different sign-in method. Please use the original sign-in method or contact support for help linking your accounts.",
@@ -76,11 +78,18 @@ const AUTH_ERRORS: Record<string, string> = {
 };
 
 export function getError(errorCode: unknown) {
+  logger.info("[Auth] Processing auth error", { errorCode });
+  
   const code = String(errorCode || "Default");
   const error = "Configuration";
   const errorMessage = AUTH_ERRORS[code] || AUTH_ERRORS.Default;
 
-  console.log("[Auth] Error details:", { code, errorMessage });
+  logger.error("[Auth] Auth error details", { 
+    code,
+    error,
+    errorMessage,
+    rawErrorCode: errorCode
+  });
 
   return {
     error,
