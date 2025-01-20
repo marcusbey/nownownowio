@@ -8,7 +8,7 @@ import { Typography } from "@/components/ui/typography";
 import { formatDate } from "@/lib/format/date";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import type Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { CreditCard, Receipt } from "lucide-react";
@@ -30,6 +30,7 @@ export default async function BillingPage({ params }: PageParams) {
   }
 
   // Get active subscription and payment method
+  const stripe = await getStripeInstance();
   const subscriptions = await stripe.subscriptions.list({
     customer: organization.stripeCustomerId,
     status: "active",

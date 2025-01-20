@@ -1,41 +1,34 @@
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
-import { resend } from "./resend";
-
-type ResendSendType = typeof resend.emails.send;
-type ResendParamsType = Parameters<ResendSendType>;
-type ResendParamsTypeWithConditionalFrom = [
-  payload: Omit<ResendParamsType[0], "from"> & { from?: string },
-  options?: ResendParamsType[1],
-];
+import { getResendInstance } from "./resend";
 
 /**
  * sendEmail will send an email using resend.
  * To avoid repeating the same "from" email, you can leave it empty and it will use the default one.
  * Also, in development, it will add "[DEV]" to the subject.
- * @param params[0] : payload
- * @param params[1] : options
+ * @param params : payload
  * @returns a promise of the email sent
  */
-export const sendEmail = async (
-  ...params: ResendParamsTypeWithConditionalFrom
-) => {
+export async function sendEmail(params: {
+  to: string[];
+  subject: string;
+  html: string;
+  from?: string;
+}) {
   if (env.NODE_ENV === "development") {
-    params[0].subject = `[DEV] ${params[0].subject}`;
+    params.subject = `[DEV] ${params.subject}`;
   }
-  const resendParams = [
-    {
-      from: params[0].from ?? env.RESEND_EMAIL_FROM,
-      ...params[0],
-    } as ResendParamsType[0],
-    params[1],
-  ] satisfies ResendParamsType;
-
-  const result = await resend.emails.send(...resendParams);
+  const resend = await getResendInstance();
+  const result = await resend.emails.send({
+    from: params.from ?? env.RESEND_EMAIL_FROM,
+    to: params.to,
+    subject: params.subject,
+    html: params.html,
+  });
 
   if (result.error) {
-    logger.error("[sendEmail] Error", { result, subject: params[0].subject });
+    logger.error("[sendEmail] Error", { result, subject: params.subject });
   }
 
   return result;
-};
+}

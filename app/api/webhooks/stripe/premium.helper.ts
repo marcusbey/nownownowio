@@ -4,7 +4,7 @@ import SuccessUpgradeEmail from "@/emails/SuccessUpgradeEmail.email";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import type { Organization } from "@prisma/client";
 import type Stripe from "stripe";
 
@@ -88,6 +88,7 @@ export const getPlanFromLineItem = async (
     return "FREE";
   }
 
+  const stripe = await getStripeInstance();
   const product = await stripe.products.retrieve(productId as string);
 
   const planId = product.metadata.plan_id;

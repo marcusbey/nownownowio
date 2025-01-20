@@ -1,5 +1,5 @@
 import { logger } from "@/lib/logger";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -71,9 +71,10 @@ export const POST = async (req: NextRequest) => {
 
 async function onCheckoutSessionCompleted(object: Stripe.Checkout.Session) {
   // The user paid and the subscription is active
-  // ✅ Grant access to your service
+  // Grant access to your service
   const organization = await findOrganizationFromCustomer(object.customer);
 
+  const stripe = await getStripeInstance();
   const lineItems = await stripe.checkout.sessions.listLineItems(object.id, {
     limit: 1,
   });
@@ -96,6 +97,7 @@ async function onInvoicePaid(object: Stripe.Invoice) {
 
   if (organization.planId !== "FREE") return;
 
+  const stripe = await getStripeInstance();
   await upgradeUserToPlan(
     organization.id,
     await getPlanFromLineItem(object.lines.data),
@@ -121,6 +123,7 @@ async function onCustomerSubscriptionDeleted(object: Stripe.Subscription) {
 async function onCustomerSubscriptionUpdated(object: Stripe.Subscription) {
   const organization = await findOrganizationFromCustomer(object.customer);
 
+  const stripe = await getStripeInstance();
   await upgradeUserToPlan(
     organization.id,
     await getPlanFromLineItem(object.items.data),

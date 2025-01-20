@@ -1,6 +1,6 @@
 import { ActionError } from "@/lib/actions/safe-actions";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 
 export const deleteOrganizationQuery = async (id: string) => {
   const org = await prisma.organization.findUnique({
@@ -17,6 +17,7 @@ export const deleteOrganizationQuery = async (id: string) => {
     throw new ActionError("Invalid subscription");
   }
 
+  const stripe = await getStripeInstance();
   const subscriptions = await stripe.subscriptions.list({
     customer: org.stripeCustomerId,
   });

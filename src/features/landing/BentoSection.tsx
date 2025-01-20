@@ -1,38 +1,137 @@
 "use client";
 
 import { BentoGrid, BentoGridItem } from "@/components/ui/Bento";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Loader } from "@/components/ui/loader";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import type { Variants } from "framer-motion";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import {
-  BarChart3,
+  Activity,
+  Building2,
+  Globe2,
+  Lock,
+  MessageSquare,
+  Share2,
+  Users2,
+  Zap,
+  Code2,
+  Sparkles,
+  CheckCircle,
   Calendar,
   CalendarCheck,
-  CheckCircle,
-  Sparkles,
+  BarChart3,
   X,
 } from "lucide-react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Loader } from "@/components/ui/loader";
 import { SectionLayout } from "./SectionLayout";
 
-export function BentoGridSection() {
+const features = [
+  {
+    title: "Organization Spaces",
+    description:
+      "Create branded spaces for your team with custom domains and full control over member access.",
+    icon: Building2,
+    className: "md:col-span-2",
+    color: "bg-blue-500/10",
+    textColor: "text-blue-500",
+  },
+  {
+    title: "Widget Integration",
+    description:
+      "Embed your posts on any website with our lightweight widget. Share your content everywhere.",
+    icon: Code2,
+    className: "md:col-span-2",
+    color: "bg-purple-500/10",
+    textColor: "text-purple-500",
+  },
+  {
+    title: "Social Interactions",
+    description: "Engage with posts, comments, and reactions in real-time.",
+    icon: Share2,
+    color: "bg-green-500/10",
+    textColor: "text-green-500",
+  },
+  {
+    title: "Media Sharing",
+    description: "Share images, videos, and files seamlessly.",
+    icon: Globe2,
+    color: "bg-yellow-500/10",
+    textColor: "text-yellow-500",
+  },
+  {
+    title: "Real-time Updates",
+    description: "Stay informed with instant notifications and live feeds.",
+    icon: Activity,
+    color: "bg-red-500/10",
+    textColor: "text-red-500",
+  },
+  {
+    title: "Enterprise Security",
+    description: "Role-based access control and data encryption for peace of mind.",
+    icon: Lock,
+    className: "md:col-span-2",
+    color: "bg-indigo-500/10",
+    textColor: "text-indigo-500",
+  },
+];
+
+export function BentoSection() {
   return (
-    <SectionLayout>
-      <BentoGrid className="mx-auto max-w-4xl md:auto-rows-[20rem]">
-        {items.map((item, i) => (
-          <BentoGridItem
-            key={i}
-            title={item.title}
-            description={item.description}
-            header={item.header}
-            className={cn("[&>p:text-lg]", item.className)}
-            icon={item.icon}
-          />
-        ))}
-      </BentoGrid>
-    </SectionLayout>
+    <section className="relative overflow-hidden bg-slate-950 py-24">
+      <div className="container relative z-10">
+        <div className="mx-auto max-w-2xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <Typography variant="h2" className="mb-4 text-white">
+              Everything You Need
+            </Typography>
+            <Typography className="mb-8 text-slate-400">
+              A complete platform for your organization's social presence,
+              with powerful features and seamless integrations.
+            </Typography>
+          </motion.div>
+        </div>
+
+        <div className="mt-16">
+          <BentoGrid>
+            {features.map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <BentoGridItem
+                  className={cn(
+                    "group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50 backdrop-blur-xl transition-all hover:border-slate-700",
+                    feature.className
+                  )}
+                  title={feature.title}
+                  description={feature.description}
+                  icon={
+                    <div
+                      className={cn(
+                        "mb-4 inline-flex rounded-lg p-3",
+                        feature.color
+                      )}
+                    >
+                      <feature.icon
+                        className={cn("h-6 w-6", feature.textColor)}
+                      />
+                    </div>
+                  }
+                />
+              </motion.div>
+            ))}
+          </BentoGrid>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -100,6 +199,7 @@ const Skeleton2 = () => {
     </motion.div>
   );
 };
+
 const Skeleton3 = () => {
   const variants = {
     initial: {
@@ -130,6 +230,7 @@ const Skeleton3 = () => {
     </motion.div>
   );
 };
+
 const Skeleton4 = () => {
   const first = {
     initial: {
@@ -322,3 +423,22 @@ const items = [
     icon: <X className="size-4 text-neutral-500" />,
   },
 ];
+
+export function BentoGridSection() {
+  return (
+    <SectionLayout>
+      <BentoGrid className="mx-auto max-w-4xl md:auto-rows-[20rem]">
+        {items.map((item, i) => (
+          <BentoGridItem
+            key={i}
+            title={item.title}
+            description={item.description}
+            header={item.header}
+            className={cn("[&>p:text-lg]", item.className)}
+            icon={item.icon}
+          />
+        ))}
+      </BentoGrid>
+    </SectionLayout>
+  );
+}

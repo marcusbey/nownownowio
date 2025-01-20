@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import { Prisma } from "@prisma/client";
 
 export const createOrganizationQuery = async (
@@ -14,6 +14,7 @@ export const createOrganizationQuery = async (
     },
   });
 
+  const stripe = await getStripeInstance();
   const customer = await stripe.customers.create({
     email: params.email || undefined,
     metadata: {

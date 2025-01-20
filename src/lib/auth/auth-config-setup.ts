@@ -3,9 +3,11 @@ import { z } from "zod";
 import { createOrganizationQuery } from "../../query/org/org-create.query";
 import { env } from "../env";
 import { getNameFromEmail, getSlugFromUser } from "../format/id";
-import { resend } from "../mail/resend";
+import { getResendInstance } from "../mail/resend";
 import { prisma } from "../prisma";
-import { logger } from "../logger"; // Assuming logger is imported from another file
+import { logger } from "../logger";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { getServerUrl } from "../server-url";
 
 export const setupResendCustomer = async (user: User) => {
   try {
@@ -14,19 +16,15 @@ export const setupResendCustomer = async (user: User) => {
       return;
     }
 
-    if (!env.RESEND_AUDIENCE_ID) {
-      logger.error("setupResendCustomer: No RESEND_AUDIENCE_ID configured");
-      return;
-    }
-
+    const resend = await getResendInstance();
     const contact = await resend.contacts.create({
-      audienceId: env.RESEND_AUDIENCE_ID,
       email: user.email,
       firstName: user.name ?? "",
+      lastName: "",
       unsubscribed: false,
     });
 
-    if (!contact.data) {
+    if (!contact.id) {
       logger.error("setupResendCustomer: Failed to create contact", { 
         error: contact.error,
         email: user.email 
@@ -34,7 +32,7 @@ export const setupResendCustomer = async (user: User) => {
       return;
     }
 
-    return contact.data.id;
+    return contact.id;
   } catch (error) {
     logger.error("setupResendCustomer: Unexpected error", { error, user });
     return;
@@ -116,6 +114,7 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
             },
           });
         }
+
       } catch (error) {
         logger.error("Error processing invitation token", { 
           error,
@@ -129,6 +128,59 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
       error,
       userId: user.id 
     });
-    throw error; // Re-throw to ensure we know if this fails
+    throw error;
   }
 };
+
+export async function getAuthConfig() {
+  const resend = await getResendInstance();
+  
+  return {
+    adapter: PrismaAdapter(prisma),
+    session: {
+      strategy: "jwt",
+    },
+    pages: {
+      signIn: "/auth/signin",
+      signOut: "/auth/signout",
+      error: "/auth/error",
+      verifyRequest: "/auth/verify-request",
+      newUser: "/auth/new-user",
+    },
+    providers: [
+      {
+        id: "email",
+        type: "email",
+        from: env.RESEND_EMAIL_FROM,
+        server: "",
+        maxAge: 24 * 60 * 60,
+        async sendVerificationRequest({ identifier, url }) {
+          try {
+            await resend.emails.send({
+              from: env.RESEND_EMAIL_FROM,
+              to: [identifier],
+              subject: "Sign in to NowNowNow",
+              html: `Click <a href="${url}">here</a> to sign in to NowNowNow.`,
+            });
+          } catch (error) {
+            logger.error("[auth] Failed to send verification email", { error });
+            throw new Error("Failed to send verification email");
+          }
+        },
+      },
+    ],
+    callbacks: {
+      async signIn({ user }) {
+        await setupResendCustomer(user);
+        await setupDefaultOrganizationsOrInviteUser(user);
+        return true;
+      },
+      async session({ session, token }) {
+        if (token.sub && session.user) {
+          session.user.id = token.sub;
+        }
+        return session;
+      },
+    },
+  };
+}

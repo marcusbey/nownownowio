@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ActionError, orgAction } from "@/lib/actions/safe-actions";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import { getServerUrl } from "@/lib/server-url";
 import { prisma } from "@/lib/prisma";
 
@@ -30,6 +30,7 @@ export const updateSubscriptionAction = orgAction
 
       // If no customer ID exists, create a new customer
       if (!customerId) {
+        const stripe = await getStripeInstance();
         const customer = await stripe.customers.create({
           email: organization.email || undefined,
           metadata: {
@@ -44,6 +45,7 @@ export const updateSubscriptionAction = orgAction
         });
       }
 
+      const stripe = await getStripeInstance();
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
         payment_method_types: ["card"],
@@ -91,6 +93,7 @@ export const manageBillingAction = orgAction
         throw new ActionError("No billing information found");
       }
 
+      const stripe = await getStripeInstance();
       const session = await stripe.billingPortal.sessions.create({
         customer: organization.stripeCustomerId,
         return_url: `${getServerUrl()}/orgs/${organization.slug}/settings/subscription`,

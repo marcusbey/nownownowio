@@ -1,4 +1,10 @@
-import {
+import { Metadata } from "next";
+import { auth } from "@/lib/auth/helper";
+import { combineWithParentMetadata } from "@/lib/metadata";
+import { getResendInstance } from "@/lib/mail/resend";
+import { prisma } from "@/lib/prisma";
+import { PageHeader } from "@/components/page-header";
+import { 
   Card,
   CardContent,
   CardDescription,
@@ -6,14 +12,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ContactSupportDialog } from "@/features/contact/support/ContactSupportDialog";
-import { auth } from "@/lib/auth/helper";
-import { env } from "@/lib/env";
-import { resend } from "@/lib/mail/resend";
-import { combineWithParentMetadata } from "@/lib/metadata";
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import { Typography } from "@/components/ui/typography";
 import { ToggleEmailCheckbox } from "./ToggleEmailCheckbox";
+import { ContactSupportDialog } from "@/features/contact/support/ContactSupportDialog";
+import { env } from "@/lib/env";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -40,25 +43,23 @@ export default async function MailProfilePage() {
     return <ErrorComponent />;
   }
 
-  const { data: resendUser } = await resend.contacts.get({
-    audienceId: env.RESEND_AUDIENCE_ID,
-    id: user.resendContactId,
-  });
+  const resend = await getResendInstance();
+  const contact = await resend.contacts.get(user.resendContactId);
 
-  if (!resendUser) {
+  if (!contact) {
     return <ErrorComponent />;
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mail settings</CardTitle>
+        <CardTitle>Email Preferences</CardTitle>
         <CardDescription>
-          Update your email notifications settings to match your preferences.
+          Manage your email notification preferences
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ToggleEmailCheckbox unsubscribed={resendUser.unsubscribed} />
+        <ToggleEmailCheckbox unsubscribed={contact.unsubscribed} />
       </CardContent>
     </Card>
   );

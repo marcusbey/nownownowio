@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { Stripe } from "stripe";
 
@@ -13,6 +13,7 @@ export async function constructStripeEvent(
 
   let event: Stripe.Event | null = null;
   try {
+    const stripe = await getStripeInstance();
     event = stripe.webhooks.constructEvent(
       body,
       stripeSignature ?? "",

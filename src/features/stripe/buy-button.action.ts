@@ -4,7 +4,7 @@ import { ActionError, action } from "@/lib/actions/safe-actions";
 import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
-import { stripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
 import { z } from "zod";
 import { createSearchParamsMessageUrl } from "../searchparams-message/createSearchParamsMessageUrl";
 
@@ -44,6 +44,7 @@ export const buyButtonAction = action
       );
     }
 
+    const stripe = await getStripeInstance();
     const price = await stripe.prices.retrieve(priceId);
 
     const priceType = price.type;
