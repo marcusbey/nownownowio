@@ -14,7 +14,7 @@ import { CTASectionCard } from "@/features/landing/cta/CTACardSection";
 import { CtaSection } from "@/features/landing/cta/CTASection";
 import { FaqSection } from "@/features/landing/FAQSection";
 import { Footer } from "@/features/layout/Footer";
-import { PricingSection } from "@/features/landing/pricing/PricingSection";
+import { PricingSection } from "@/components/landing/pricing/PricingSection";
 import Image from "next/image";
 import { BentoGridSection } from "@/features/landing/BentoSection";
 
