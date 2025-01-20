@@ -4,7 +4,7 @@
  */
 const AUTH_ERRORS: Record<string, string> = {
   AccountNotLinked:
-    "Your email is already used with another account. Please sign in with the account originally linked to this email.",
+    "This email is already associated with a different sign-in method. Please use the original sign-in method or contact support for help linking your accounts.",
   AdapterError:
     "A technical issue occurred while processing your request. Please try again later.",
   AuthError:
@@ -13,6 +13,8 @@ const AUTH_ERRORS: Record<string, string> = {
     "We couldn't log you in. Please check your login details and try again.",
   CallbackRouteError:
     "Login failed due to a technical issue. Please try again or contact support for assistance.",
+  Configuration:
+    "There was an issue with the authentication configuration. Please try again or contact support.",
   CredentialsSignin:
     "Invalid login details. Please check your information and try again.",
   DuplicateConditionalUI:
@@ -25,6 +27,8 @@ const AUTH_ERRORS: Record<string, string> = {
     "A technical issue occurred while processing your request. Please try again later.",
   ExperimentalFeatureNotEnabled:
     "This feature is not available. Please contact support for more information.",
+  AccessDenied:
+    "Access was denied to your account. Please try again or contact support if this persists.",
   InvalidCallbackUrl:
     "The provided URL is invalid. Please try again with a valid URL.",
   InvalidCheck:
@@ -64,26 +68,22 @@ const AUTH_ERRORS: Record<string, string> = {
   UntrustedHost:
     "The connection attempt came from an untrusted source. Please ensure you are accessing the site from a safe location.",
   Verification:
-    "Verification failed. Please check your email and token, and try again.",
+    "We couldn't verify your account. Please try signing in again or contact support.",
   WebAuthnVerificationError:
     "Verification with WebAuthn failed. Please try again or use another authentication method.",
+  Default:
+    "An unknown error occurred during authentication. Please try again or contact support.",
 };
 
-export const getError = (errorCode: unknown) => {
-  if (errorCode === undefined || errorCode === null) {
-    return {
-      error: undefined,
-      errorMessage: undefined,
-    };
-  }
+export function getError(errorCode: unknown) {
+  const code = String(errorCode || "Default");
+  const error = "Configuration";
+  const errorMessage = AUTH_ERRORS[code] || AUTH_ERRORS.Default;
 
-  const error = typeof errorCode === "string" ? errorCode : "AuthError";
-
-  const errorMessage =
-    AUTH_ERRORS[error] || "An unknown error occurred. Please try again later.";
+  console.log("[Auth] Error details:", { code, errorMessage });
 
   return {
     error,
     errorMessage,
   };
-};
+}

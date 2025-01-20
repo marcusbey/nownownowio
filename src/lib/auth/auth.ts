@@ -45,11 +45,51 @@ const config: NextAuthConfig = {
       
       return enhancedSession
     },
-    async signIn({ user }: { user: User }) {
+    async signIn({ user, account, profile }) {
       if (!user.email) {
+        logger.error("[Auth] Sign in failed: No email provided", { user });
         return false;
       }
-      return true;
+
+      try {
+        // Check if user exists with this email
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          include: { accounts: true }
+        });
+
+        if (existingUser) {
+          // If user exists but doesn't have this OAuth account linked
+          if (!existingUser.accounts.some(acc => acc.provider === account?.provider)) {
+            logger.info("[Auth] Linking new OAuth provider to existing account", {
+              email: user.email,
+              provider: account?.provider
+            });
+            
+            // Link the new OAuth account
+            if (account && existingUser.id) {
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  access_token: account.access_token,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  expires_at: account.expires_at,
+                }
+              });
+            }
+          }
+          return true;
+        }
+
+        return true;
+      } catch (error) {
+        logger.error("[Auth] Error in signIn callback", { error, user });
+        return false;
+      }
     },
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       if (process.env.NODE_ENV === "development") {
