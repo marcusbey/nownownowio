@@ -23,11 +23,24 @@ interface ISession extends Omit<Session, 'expires'> {
 
 // Re-export auth with proper typing
 export const auth = async (): Promise<ISession | null> => {
-  const session = await nextAuth();
-  if (!session?.user?.email) {
+  try {
+    const session = await nextAuth();
+    if (!session?.user?.email) {
+      logger.warn("[Auth] Invalid session: missing user email");
+      return null;
+    }
+    
+    // Validate session structure
+    if (!session.user?.id) {
+      logger.warn("[Auth] Invalid session: missing user ID");
+      return null;
+    }
+
+    return session as ISession;
+  } catch (error) {
+    logger.error("[Auth] Error getting session:", error);
     return null;
   }
-  return session as ISession;
 };
 
 // Hash utilities

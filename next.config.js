@@ -19,6 +19,11 @@ const nextConfig = {
     },
     eslint: {
         ignoreDuringBuilds: true // Temporarily disable ESLint during build
+    },
+    experimental: {
+        serverActions: {
+            allowedOrigins: ["localhost:3000", "your-production-domain.com"]
+        }
     }
 };
 
