@@ -44,7 +44,20 @@ const getUser = async () => {
     throw new ActionError("Session is not valid!");
   }
 
-  return user as User;
+  return {
+    id: user.user.id,
+    email: user.user.email,
+    name: user.user.name || null,
+    displayName: user.user.name || null,
+    image: user.user.image || null,
+    emailVerified: null,
+    bio: null,
+    resendContactId: null,
+    widgetToken: null,
+    passwordHash: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  } as User;
 };
 
 export const authAction = createSafeActionClient({

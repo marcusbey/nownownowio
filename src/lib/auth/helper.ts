@@ -8,12 +8,16 @@ import crypto from "crypto";
 import { env } from "../env";
 import { queryCache } from '@/lib/cache/query-cache';
 
-interface ISession extends Session {
+interface ISession extends Omit<Session, 'expires'> {
+  id: string;
+  expires: string;
   user: {
     id: string;
     email: string;
-    name?: string | null;
-    image?: string | null;
+    name?: string | undefined;
+    image?: string | undefined;
+    displayName?: string | undefined;
+    bio?: string | undefined;
   }
 }
 
@@ -117,7 +121,7 @@ export async function validateRequest() {
   }
 }
 
-interface ISession {
+interface DBSession {
   id: string;
   sessionToken: string;
   userId: string;
@@ -125,11 +129,11 @@ interface ISession {
   createdAt: Date;
 }
 
-let cachedSession: ISession | null = null;
+let cachedSession: DBSession | null = null;
 let lastFetchTime = 0;
 const CACHE_DURATION = 60000; // 1 minute in milliseconds
 
-export async function getSession(): Promise<ISession | null> {
+export async function getSession(): Promise<DBSession | null> {
   const now = Date.now();
   if (cachedSession && now - lastFetchTime < CACHE_DURATION) {
     return cachedSession;
@@ -138,7 +142,7 @@ export async function getSession(): Promise<ISession | null> {
   try {
     const authSession = await auth();
     if (authSession && authSession.user) {
-      const sessionDoc: ISession = {
+      const sessionDoc: DBSession = {
         id: authSession.user.id || nanoid(11),
         sessionToken: authSession.sessionToken || '',
         userId: authSession.user.id,

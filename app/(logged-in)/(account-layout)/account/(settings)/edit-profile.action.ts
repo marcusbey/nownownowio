@@ -66,7 +66,7 @@ export const editPasswordAction = authAction
     const user = await requiredAuth();
     const { passwordHash } = await prisma.user.findUniqueOrThrow({
       where: {
-        id: user.id,
+        id: user.user.id,
       },
       select: {
         passwordHash: true,

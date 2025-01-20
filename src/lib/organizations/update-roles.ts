@@ -24,14 +24,13 @@ export async function ensureOwnerHasAdminRole(organizationId: string, userId: st
   }
 }
 
-export async function updateMembershipRoles() {
+export async function updateMembershipRoles(organizationId: string, roles: OrganizationMembershipRole[]) {
   // Get all memberships where user is OWNER but not ADMIN
   const memberships = await prisma.organizationMembership.findMany({
     where: {
+      organizationId,
       roles: {
-        has: "OWNER",
-        hasEvery: ["OWNER"],
-        hasNone: ["ADMIN"],
+        hasSome: roles,
       },
     },
   });

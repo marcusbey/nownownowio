@@ -77,7 +77,7 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
                     <Typography variant="small" className="text-muted-foreground">/mo</Typography>
                   </div>
                 </CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
+                <CardDescription>{plan.subtitle}</CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-4">

@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    await updateMembershipRoles();
+    await updateMembershipRoles("organizationId", ["OWNER", "ADMIN"]);
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error("Error updating roles:", error);

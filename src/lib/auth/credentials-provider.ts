@@ -95,16 +95,14 @@ export const credentialsSignInCallback = (request: NextRequest | undefined): Sig
     return;
   }
 
-  const cookieStore = await request.nextUrl().cookies();
-
   const token = generateWidgetToken(user.id!);
-
-  cookieStore.set(AUTH_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: env.NODE_ENV === "production",
-    sameSite: "lax",
-    expires: addDays(new Date(), 365), // Extended to 1 year to match session maxAge
-  });
+  
+  // Set cookie in the response headers
+  request.headers.set('Set-Cookie', 
+    `${AUTH_COOKIE_NAME}=${token}; HttpOnly; Path=/; ${
+      env.NODE_ENV === "production" ? "Secure; " : ""
+    }SameSite=Lax; Expires=${addDays(new Date(), 365).toUTCString()}`
+  );
 };
 
 // This override cancels JWT strategy for password (it's the default one)

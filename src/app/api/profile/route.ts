@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = user.id;
+    const userId = user.user.id;
     const cacheKey = `profile-${userId}`;
 
     const data = await queryCache.query(

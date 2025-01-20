@@ -88,7 +88,7 @@ export async function POST(
     }
 
     const clientIp = getClientIp(request);
-    await trackView(params.postId, user.id, clientIp);
+    await trackView(params.postId, user.user.id, clientIp);
     
     const count = await getViewCount(params.postId);
     return NextResponse.json({ viewCount: count });

@@ -13,7 +13,7 @@ export async function updateSubscription(
 ) {
   try {
     const session = await auth();
-    if (!session?.id) {
+    if (!session?.user?.id) {
       throw new Error("Unauthorized");
     }
 
@@ -78,7 +78,7 @@ export async function updateSubscription(
 export async function manageBilling(orgId: string) {
   try {
     const session = await auth();
-    if (!session?.id) {
+    if (!session?.user?.id) {
       throw new Error("Unauthorized");
     }
 

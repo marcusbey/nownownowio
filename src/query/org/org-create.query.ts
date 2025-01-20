@@ -7,9 +7,18 @@ export const createOrganizationQuery = async (
 ) => {
   //console.log("Received params:", params);
 
+  const organization = await prisma.organization.create({
+    data: {
+      ...params,
+      planId: 'FREE',
+    },
+  });
+
   const customer = await stripe.customers.create({
-    email: params.email,
-    name: params.name,
+    email: params.email || undefined,
+    metadata: {
+      orgId: organization.id,
+    },
   });
 
   //console.log("Created Stripe customer:", customer.id);
@@ -25,9 +34,9 @@ export const createOrganizationQuery = async (
     },
   });
 
-  const organization = await prisma.organization.create({
+  await prisma.organization.update({
+    where: { id: organization.id },
     data: {
-      ...params,
       planId: freePlan.id,
       stripeCustomerId: customer.id,
     },

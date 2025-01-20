@@ -111,7 +111,7 @@ export async function createAccount(prevState: any, formData: FormData) {
 
     // Create a new session for the user
     const session = await auth();
-    if (!session?.id) {
+    if (!session?.user?.id) {
       // If no session, redirect to sign in
       redirect(`/auth/signin?callbackUrl=/orgs/${result.organizationSlug}/settings&email=${encodeURIComponent(email)}`);
     }
