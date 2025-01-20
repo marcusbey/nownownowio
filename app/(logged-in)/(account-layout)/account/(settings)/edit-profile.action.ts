@@ -63,10 +63,10 @@ export const updateProfileAction = authAction
 export const editPasswordAction = authAction
   .schema(EditPasswordFormSchema)
   .action(async ({ parsedInput: input, ctx }) => {
-    const user = await requiredAuth();
+    const session = await requiredAuth();
     const { passwordHash } = await prisma.user.findUniqueOrThrow({
       where: {
-        id: user.user.id,
+        id: session.user.id,
       },
       select: {
         passwordHash: true,
@@ -92,7 +92,7 @@ export const editPasswordAction = authAction
 
     const updatedUser = await prisma.user.update({
       where: {
-        id: ctx.user.id,
+        id: session.user.id,
       },
       data: {
         passwordHash: hashStringWithSalt(

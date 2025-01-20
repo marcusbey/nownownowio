@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { prisma } from "../prisma";
-import { auth } from "./helper";
+import { auth } from "./auth";
 
 /**
  * Handles redirection based on user authentication and organization status.
@@ -12,14 +12,14 @@ import { auth } from "./helper";
  * @returns A Next.js redirect response or null.
  */
 export async function handleAuthRedirect() {
-    const user = await auth();
+    const session = await auth();
 
-    if (user) { // User is authenticated
+    if (session?.user) { // User is authenticated
         const organization = await prisma.organization.findFirst({
             where: {
                 members: {
                     some: {
-                        userId: user.id,
+                        userId: session.user.id,
                     },
                 },
             },

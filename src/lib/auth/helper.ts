@@ -2,46 +2,15 @@ import type { User } from "@prisma/client";
 import { nanoid } from "nanoid";
 import { Session } from "next-auth";
 import { cache } from "react";
-import { logger } from "../logger";
-import { auth as nextAuth } from "./auth";
+import { logger } from "@/lib/logger";
+import { auth } from "@/lib/auth/auth";
 import crypto from "crypto";
-import { env } from "../env";
+import { env } from "@/lib/env";
 import { queryCache } from '@/lib/cache/query-cache';
-
-interface ISession extends Omit<Session, 'expires'> {
-  id: string;
-  expires: string;
-  user: {
-    id: string;
-    email: string;
-    name?: string | undefined;
-    image?: string | undefined;
-    displayName?: string | undefined;
-    bio?: string | undefined;
-  }
-}
+import { prisma } from "@/lib/prisma";
 
 // Re-export auth with proper typing
-export const auth = async (): Promise<ISession | null> => {
-  try {
-    const session = await nextAuth();
-    if (!session?.user?.email) {
-      logger.warn("[Auth] Invalid session: missing user email");
-      return null;
-    }
-    
-    // Validate session structure
-    if (!session.user?.id) {
-      logger.warn("[Auth] Invalid session: missing user ID");
-      return null;
-    }
-
-    return session as ISession;
-  } catch (error) {
-    logger.error("[Auth] Error getting session:", error);
-    return null;
-  }
-};
+export { auth };
 
 // Hash utilities
 export const hashStringWithSalt = (string: string, salt: string): string => {
@@ -59,19 +28,11 @@ export class AuthError extends Error {
 }
 
 export const requiredAuth = async () => {
-  try {
-    const user = await auth();
-
-    if (!user) {
-      logger.error("Authentication failed: No user returned from auth()");
-      throw new AuthError("You must be authenticated to access this resource.");
-    }
-
-    return user;
-  } catch (error) {
-    logger.error("Authentication error:", error);
-    throw new AuthError("An error occurred during authentication.");
+  const session = await auth();
+  if (!session?.user) {
+    throw new AuthError("You must be authenticated to access this resource.");
   }
+  return session;
 };
 
 export async function validateRequest() {
@@ -100,87 +61,55 @@ export async function validateRequest() {
     );
 
     // Validate the session
-    if (!cachedSession || !cachedSession.user) {
+    if (!cachedSession?.user) {
       // If cache fails, try direct auth as fallback
       const directSession = await auth();
-      if (!directSession || !directSession.user) {
+      if (!directSession?.user) {
         throw new AuthError('No valid session found');
       }
-      return {
-        session: directSession,
-        user: directSession.user,
-      };
+      return directSession;
     }
 
-    return {
-      session: cachedSession,
-      user: cachedSession.user,
-    };
+    return cachedSession;
   } catch (error) {
     logger.error('Error in validateRequest:', error);
-    // Try one last direct auth attempt
-    try {
-      const lastAttemptSession = await auth();
-      if (lastAttemptSession?.user) {
-        return {
-          session: lastAttemptSession,
-          user: lastAttemptSession.user,
-        };
-      }
-    } catch (finalError) {
-      logger.error('Final auth attempt failed:', finalError);
-    }
-    throw new AuthError('Authentication failed after all attempts');
+    throw new AuthError('Authentication failed');
   }
 }
 
-interface DBSession {
-  id: string;
-  sessionToken: string;
-  userId: string;
-  expires: Date;
-  createdAt: Date;
-}
-
-let cachedSession: DBSession | null = null;
-let lastFetchTime = 0;
-const CACHE_DURATION = 60000; // 1 minute in milliseconds
-
-export async function getSession(): Promise<ISession | null> {
+export async function getSession(): Promise<Session | null> {
   logger.info("[Auth] Getting session");
   const session = await auth();
   
-  if (!session?.user?.email) {
-    logger.warn("[Auth] No session or missing user email");
+  if (!session?.user) {
+    logger.warn("[Auth] No session or missing user");
     return null;
   }
 
   logger.info("[Auth] Session retrieved successfully", { 
-    email: session.user.email,
     hasId: !!session.user.id 
   });
   
   return session;
 }
 
-export async function getCurrentUser(): Promise<User | null> {
+export async function getCurrentUser() {
   logger.info("[Auth] Getting current user");
-  const session = await getSession();
-
-  if (!session?.user?.email) {
-    logger.warn("[Auth] No user in session");
-    return null;
-  }
-
   try {
+    const session = await auth();
+    if (!session?.user) {
+      logger.warn("[Auth] No user in session");
+      return null;
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
 
-    logger.info("[Auth] Current user lookup result", { 
-      email: session.user.email,
-      found: !!user 
-    });
+    if (!user) {
+      logger.warn("[Auth] User not found in database", { email: session.user.email });
+      return null;
+    }
 
     return user;
   } catch (error) {
@@ -200,12 +129,12 @@ export const OAUTH_CONFIG = {
 };
 
 export type OAuthProvider = typeof OAUTH_CONFIG.providers[number];
-
-export interface OAuthTokens {
+export type OAuthTokens = {
   access_token: string;
   refresh_token?: string;
-  expires_at: number;
-}
+  expires_at?: number;
+  id_token?: string;
+};
 
 export const isValidProvider = (provider: string): provider is OAuthProvider => {
   return OAUTH_CONFIG.providers.includes(provider as OAuthProvider);
@@ -222,8 +151,7 @@ export const getProviderConfig = (provider: OAuthProvider) => {
       tokenEndpoint: 'https://api.twitter.com/2/oauth2/token',
       clientId: env.TWITTER_ID,
       clientSecret: env.TWITTER_SECRET,
-    },
+    }
   };
-
   return configs[provider];
 };

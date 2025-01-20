@@ -1,15 +1,55 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "../prisma";
-import { getNextAuthConfigProviders } from "./getNextAuthConfigProviders";
-import { env } from "../env";
-import { logger } from "../logger";
-import { setupDefaultOrganizationsOrInviteUser } from "./auth-config-setup";
+import { prisma } from "@/lib/prisma";
+import { getNextAuthConfigProviders } from "@/lib/auth/getNextAuthConfigProviders";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
+import { setupDefaultOrganizationsOrInviteUser } from "@/lib/auth/auth-config-setup";
 import type { NextAuthConfig, User, Session, DefaultSession } from "next-auth";
-import { isValidProvider, getProviderConfig, type OAuthProvider, type OAuthTokens } from "./helper";
-import { getCachedSession, setCachedSession, type CachedSession } from './session-cache'
+import { isValidProvider, getProviderConfig, type OAuthProvider, type OAuthTokens } from "@/lib/auth/helper";
+import { getCachedSession, setCachedSession, type CachedSession } from '@/lib/auth/session-cache';
 
-const config: NextAuthConfig = {
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    user: {
+      id: string;
+      email: string;
+      name?: string;
+      image?: string;
+      displayName?: string;
+      bio?: string;
+    } & DefaultSession["user"]
+  }
+}
+
+const authConfig = {
+  adapter: PrismaAdapter(prisma),
+  providers: getNextAuthConfigProviders(),
+  pages: {
+    signIn: "/auth/signin",
+    signOut: "/auth/signout",
+    error: "/auth/error",
+    verifyRequest: "/auth/verify-request",
+    newUser: "/orgs",
+  },
+  callbacks: {
+    async session({ session, user }) {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+        },
+      };
+    },
+  },
+  secret: env.NEXTAUTH_SECRET,
+} satisfies NextAuthConfig;
+
+export const { auth, signIn, signOut, handlers } = NextAuth(authConfig);
+
+// Export auth config for use in API routes
+export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: getNextAuthConfigProviders(),
   pages: {
@@ -24,145 +64,7 @@ const config: NextAuthConfig = {
     maxAge: 365 * 24 * 60 * 60, // 1 year
     updateAge: 7 * 24 * 60 * 60, // Refresh weekly
   },
-  callbacks: {
-    async session({ session, user }: { session: DefaultSession; user: User }) {
-      logger.info("[Auth] Session callback started", { 
-        sessionId: session?.user?.email,
-        userId: user?.id 
-      });
-
-      if (!user?.id) {
-        logger.error("[Auth] Session callback - Missing user ID", { session });
-        throw new Error('User ID is required')
-      }
-
-      const enhancedSession = {
-        ...session,
-        user: {
-          ...session.user,
-          id: user.id,
-        },
-      } as const
-      
-      // Cache the session
-      if (session.user?.email) {
-        logger.info("[Auth] Caching session for user", { 
-          email: session.user.email,
-          userId: user.id 
-        });
-        setCachedSession(session.user.email, enhancedSession)
-      }
-      
-      return enhancedSession
-    },
-    async signIn({ user, account, profile }) {
-      logger.info("[Auth] Sign in callback started", { 
-        email: user?.email,
-        provider: account?.provider,
-        hasProfile: !!profile
-      });
-
-      if (!user.email) {
-        logger.error("[Auth] Sign in failed: No email provided", { user });
-        return false;
-      }
-
-      try {
-        // Check if user exists with this email
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          include: { accounts: true }
-        });
-
-        logger.info("[Auth] User lookup result", { 
-          email: user.email,
-          exists: !!existingUser,
-          accountCount: existingUser?.accounts.length ?? 0
-        });
-
-        if (existingUser) {
-          // If user exists but doesn't have this OAuth account linked
-          if (!existingUser.accounts.some(acc => acc.provider === account?.provider)) {
-            logger.info("[Auth] Linking new OAuth provider to existing account", {
-              email: user.email,
-              provider: account?.provider
-            });
-            
-            // Link the new OAuth account
-            if (account && existingUser.id) {
-              try {
-                await prisma.account.create({
-                  data: {
-                    userId: existingUser.id,
-                    type: account.type,
-                    provider: account.provider,
-                    providerAccountId: account.providerAccountId,
-                    access_token: account.access_token,
-                    token_type: account.token_type,
-                    scope: account.scope,
-                    expires_at: account.expires_at,
-                  }
-                });
-                logger.info("[Auth] Successfully linked OAuth account", {
-                  userId: existingUser.id,
-                  provider: account.provider
-                });
-              } catch (error) {
-                logger.error("[Auth] Failed to link OAuth account", {
-                  error,
-                  userId: existingUser.id,
-                  provider: account.provider
-                });
-                return false;
-              }
-            }
-          }
-          return true;
-        }
-
-        logger.info("[Auth] New user signup", { email: user.email });
-        return true;
-      } catch (error) {
-        logger.error("[Auth] Error in signIn callback", { error, user });
-        return false;
-      }
-    },
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-      try {
-        // Always use NEXTAUTH_URL as the base URL in production
-        const productionBaseUrl = process.env.NODE_ENV === "production" 
-          ? env.NEXTAUTH_URL 
-          : baseUrl;
-
-        // If the URL is relative, prepend the base URL
-        if (url.startsWith("/")) {
-          const fullUrl = `${productionBaseUrl}${url}`;
-          logger.info("[Auth] Redirecting to internal URL", { fullUrl });
-          return fullUrl;
-        }
-
-        // If it's an absolute URL, verify it's allowed
-        const urlObj = new URL(url);
-        const allowedHosts = [
-          new URL(productionBaseUrl).host,
-          "nownownow.io",
-          "www.nownownow.io"
-        ];
-
-        if (allowedHosts.includes(urlObj.host)) {
-          logger.info("[Auth] Redirecting to external URL", { url });
-          return url;
-        }
-
-        // Default to base URL if the target URL is not allowed
-        logger.warn("[Auth] Redirect to unauthorized URL blocked", { url });
-        return productionBaseUrl;
-      } catch (error) {
-        logger.error("[Auth] Error in redirect callback", { error, url });
-        return baseUrl;
-      }
-    },
-  },
+  callbacks: authConfig.callbacks,
   events: {
     async createUser({ user }: { user: User }) {
       await setupDefaultOrganizationsOrInviteUser(user);
@@ -172,28 +74,6 @@ const config: NextAuthConfig = {
   trustHost: true,
   debug: false,
 };
-
-// Create and export the NextAuth instance
-export const { auth, handlers } = NextAuth(config);
-
-// Export auth config for use in API routes
-export const authOptions = (req: Request) => ({
-  adapter: PrismaAdapter(prisma),
-  providers: getNextAuthConfigProviders(),
-  callbacks: {
-    redirect: async ({ url, baseUrl }: { url: string; baseUrl: string }) => {
-      if (process.env.NODE_ENV === "development") {
-        return Promise.resolve(url.startsWith("/") ? `${baseUrl}${url}` : url);
-      }
-      const urlObj = new URL(url, baseUrl);
-      return urlObj.toString();
-    },
-    session: async (params: { session: DefaultSession }) => {
-      return params.session;
-    },
-  },
-  secret: env.NEXTAUTH_SECRET,
-});
 
 export async function handleOAuthSignIn(profile: {
   email: string;

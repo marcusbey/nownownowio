@@ -1,7 +1,7 @@
 "use server";
 
 import { ActionError, action } from "@/lib/actions/safe-actions";
-import { auth } from "@/lib/auth/helper";
+import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
 import { stripe } from "@/lib/stripe";
@@ -16,9 +16,9 @@ const BuyButtonSchema = z.object({
 export const buyButtonAction = action
   .schema(BuyButtonSchema)
   .action(async ({ parsedInput: { priceId, orgSlug } }) => {
-    const user = await auth();
+    const session = await auth();
 
-    if (!user) {
+    if (!session?.user) {
       throw new ActionError("You must be authenticated to buy a plan");
     }
 
@@ -27,7 +27,7 @@ export const buyButtonAction = action
         slug: orgSlug,
         members: {
           some: {
-            userId: user.id,
+            userId: session.user.id,
             roles: {
               hasSome: ["OWNER"],
             },
@@ -48,7 +48,7 @@ export const buyButtonAction = action
 
     const priceType = price.type;
 
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: priceType === "one_time" ? "payment" : "subscription",
       payment_method_types: ["card", "link"],
@@ -74,9 +74,9 @@ export const buyButtonAction = action
       ),
     });
 
-    if (!session.url) {
+    if (!checkoutSession.url) {
       throw new ActionError("Something went wrong while creating the session.");
     }
 
-    return { url: session.url };
+    return { url: checkoutSession.url };
   });
