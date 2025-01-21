@@ -115,29 +115,44 @@ export default function LandingPage() {
       <FaqSection
         faq={[
           {
-            question: "What is Threader?",
+            question: "What is NowNowNow?",
             answer:
-              "Threader is a social platform designed for organizations to communicate and share content internally while maintaining a social network feel. It combines the best of enterprise communication tools with modern social media features.",
+              "NowNowNow is a modern social media platform designed for organizations to share content and engage with their audience. It combines the best aspects of social networking with powerful organization-centric features, making it perfect for businesses, communities, and content creators.",
           },
           {
-            question: "How does pricing work?",
+            question: "How does NowNowNow differ from other social platforms?",
             answer:
-              "We offer flexible pricing plans based on your organization's needs. Our basic plan is free and includes essential features. Premium plans unlock additional capabilities like increased member limits and enhanced organization features.",
+              "Unlike traditional social media, NowNowNow is built around organizations first. This means better content organization, more control over your audience engagement, and powerful tools specifically designed for professional content sharing. Plus, our unique widget system lets you embed your content anywhere on the web.",
           },
           {
-            question: "Can I try before committing?",
+            question: "What types of organizations can use NowNowNow?",
             answer:
-              "Yes! You can start with our free plan to explore the platform's features. When you're ready to scale, upgrading to a premium plan is seamless and can be done at any time.",
+              "NowNowNow is perfect for any organization that wants to share content and engage with their audience. This includes businesses, educational institutions, content creators, community groups, and more. Our flexible platform adapts to your organization's specific needs.",
           },
           {
-            question: "How secure is my data?",
+            question: "How does the widget integration work?",
             answer:
-              "Security is our top priority. We implement industry-standard encryption, regular security audits, and strict access controls to ensure your organization's data remains protected.",
+              "Our widget system is simple yet powerful. Just copy your unique widget code and paste it into your website. The widget automatically updates with your latest content, maintaining your brand's visual identity while providing a seamless experience for your audience.",
           },
           {
-            question: "What kind of support do you offer?",
+            question: "What features are included in the free plan?",
             answer:
-              "We provide comprehensive support including documentation, email support, and priority assistance for premium plans. Our team is committed to helping you make the most of Threader.",
+              "The free plan includes essential features like basic content sharing, organization profile, and widget integration. For advanced features like custom branding, analytics, and team collaboration, check out our Pro plans.",
+          },
+          {
+            question: "Can I upgrade or downgrade my plan at any time?",
+            answer:
+              "Yes! You can change your plan at any time. When upgrading, you'll get immediate access to new features. When downgrading, you'll retain access to your current features until the end of your billing period.",
+          },
+          {
+            question: "How secure is my organization's data?",
+            answer:
+              "Security is our top priority. We use industry-standard encryption, regular security audits, and strict access controls to protect your data. Your content is always under your control, and we never share your organization's data with third parties.",
+          },
+          {
+            question: "Do you offer customer support?",
+            answer:
+              "Yes! All plans include access to our comprehensive documentation and community support. Pro plan subscribers also get priority email support and dedicated account management for enterprise customers.",
           },
         ]}
       />
