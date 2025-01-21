@@ -31,11 +31,11 @@ export default function LandingPage() {
       <PainSection />
 
       <SectionDivider />
+      <BentoSection />
 
       {/* 3. How it works */}
       <WidgetShowcase />
 
-      <BentoSection />
 
       <SectionDivider />
 

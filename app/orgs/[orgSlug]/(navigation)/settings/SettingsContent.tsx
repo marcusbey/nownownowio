@@ -35,13 +35,15 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
   const ownerMember = organization.members.find(member => 
     member.roles.includes("OWNER")
   );
-  const defaultImage = organization.image || ownerMember?.user.image || null;
+  
+  // Always use owner's profile image if organization image is not set
+  const defaultImage = organization.image || ownerMember?.user.image;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
     name: organization.name,
     email: organization.email || "",
-    image: defaultImage,
+    image: defaultImage || null,
     bio: "",
     websiteUrl: "",
   };

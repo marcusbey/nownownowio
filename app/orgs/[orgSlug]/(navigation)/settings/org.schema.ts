@@ -16,7 +16,7 @@ export const OrgDetailsFormSchema = z.object({
   //   message: "This organization slug is reserved",
   // }),
   name: z.string(),
-  email: z.string().email(),
+  email: z.union([z.string().email(), z.string().length(0)]).optional(),
   image: z.string().nullable(),
   bio: z.string().max(500).optional(),
   websiteUrl: z.string().url().optional(),

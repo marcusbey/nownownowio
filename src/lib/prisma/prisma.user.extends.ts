@@ -7,7 +7,7 @@ import {
 } from "@prisma/client/runtime/library";
 import { env } from "process";
 import { setupResendCustomer } from "../auth/auth-config-setup";
-import { resend } from "../mail/resend";
+import { getResend } from "../mail/resend";
 import { prisma } from "../prisma";
 
 export const onUserUpdate: DynamicQueryExtensionCb<
@@ -145,3 +145,21 @@ const syncWithOrganizations: DynamicQueryExtensionCb<
 
   return;
 };
+
+export const userExtends: Prisma.UserDelegate = {
+  async delete(args) {
+    const resendClient = await getResend();
+    const user = await this.findUnique({
+      where: args.where,
+      select: {
+        email: true,
+      },
+    });
+
+    if (user?.email) {
+      await resendClient.contacts.delete({ email: user.email });
+    }
+
+    return this.delete(args);
+  },
+} as any;

@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { resend } from "@/lib/mail/resend";
+import { getResend } from "@/lib/mail/resend";
 import OrgConfirmDeletionEmail from "@/emails/OrgConfirmDeletion.email";
 import { redirect } from "next/navigation";
 import { OrganizationMembershipRole } from "@prisma/client";
@@ -37,7 +37,8 @@ export async function organizationDeleteAction(input: { orgSlug: string }) {
       where: { id: org.id },
     });
 
-    await resend.emails.send({
+    const resendClient = await getResend();
+    await resendClient.emails.send({
       from: "noreply@nownownow.io",
       subject: `Your organization has been deleted (${org.slug})`,
       to: user.email,
@@ -48,9 +49,6 @@ export async function organizationDeleteAction(input: { orgSlug: string }) {
 
     return { success: true };
   } catch (error) {
-    return { 
-      success: false, 
-      serverError: error instanceof Error ? error.message : "Failed to delete organization" 
-    };
+    return { success: false, serverError: String(error) };
   }
 }

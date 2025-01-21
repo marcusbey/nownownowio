@@ -66,9 +66,11 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
           >
             <Avatar className="size-8">
               <AvatarFallback>
-                {user.email ? user.email.slice(0, 2) : "??"}
+                {org.name ? org.name.slice(0, 2).toUpperCase() : user.email?.slice(0, 2).toUpperCase() || "??"}
               </AvatarFallback>
-              {user.image && <AvatarImage src={user.image} />}
+              {(org.image || user.image) && (
+                <AvatarImage src={org.image || user.image} alt={org.name || user.name || "Organization"} />
+              )}
             </Avatar>
           </OrgsSelect>
         }
@@ -100,9 +102,9 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
               >
                 <Avatar className="size-8">
                   <AvatarFallback>
-                    {user.email ? user.email.slice(0, 2) : "??"}
+                    {user.name ? user.name.slice(0, 2).toUpperCase() : user.email?.slice(0, 2).toUpperCase() || "??"}
                   </AvatarFallback>
-                  {user.image && <AvatarImage src={user.image} />}
+                  {user.image && <AvatarImage src={user.image} alt={user.name || "User"} />}
                 </Avatar>
               </Button>
             </UserDropdown>

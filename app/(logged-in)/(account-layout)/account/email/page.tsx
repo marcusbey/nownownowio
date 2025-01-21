@@ -1,9 +1,8 @@
 import { Metadata } from "next";
 import { auth } from "@/lib/auth/helper";
 import { combineWithParentMetadata } from "@/lib/metadata";
-import { getResendInstance } from "@/lib/mail/resend";
+import { getResend } from "@/lib/mail/resend";
 import { prisma } from "@/lib/prisma";
-import { PageHeader } from "@/components/page-header";
 import { 
   Card,
   CardContent,
@@ -43,40 +42,49 @@ export default async function MailProfilePage() {
     return <ErrorComponent />;
   }
 
-  const resend = await getResendInstance();
-  const contact = await resend.contacts.get(user.resendContactId);
+  const resendClient = await getResend();
+  const contact = await resendClient.contacts.get({ 
+    id: user.resendContactId,
+    audienceId: env.RESEND_AUDIENCE_ID,
+  });
 
   if (!contact) {
     return <ErrorComponent />;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Email Preferences</CardTitle>
-        <CardDescription>
-          Manage your email notification preferences
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ToggleEmailCheckbox unsubscribed={contact.unsubscribed} />
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div>
+        <Typography variant="h4">Email Settings</Typography>
+        <Typography variant="muted">Manage your email preferences and notifications.</Typography>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Email Notifications</CardTitle>
+          <CardDescription>
+            Choose which emails you want to receive from NowNowNow.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ToggleEmailCheckbox unsubscribed={contact.unsubscribed} />
+        </CardContent>
+        <CardFooter>
+          <ContactSupportDialog />
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
 
-const ErrorComponent = () => {
+function ErrorComponent() {
   return (
-    <Card variant="error">
-      <CardHeader>
-        <CardTitle>Resend not found</CardTitle>
-        <CardDescription>
-          We couldn't find your Resend contact. Please contact support.
-        </CardDescription>
-      </CardHeader>
-      <CardFooter>
-        <ContactSupportDialog />
-      </CardFooter>
-    </Card>
+    <div className="space-y-6">
+      <Typography variant="h4">Email Settings</Typography>
+      <Typography variant="muted">
+        There was an error loading your email settings. Please try again later or contact support.
+      </Typography>
+      <ContactSupportDialog />
+    </div>
   );
-};
+}
