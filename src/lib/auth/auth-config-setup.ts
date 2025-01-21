@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createOrganizationQuery } from "../../query/org/org-create.query";
 import { env } from "../env";
 import { getNameFromEmail, getSlugFromUser } from "../format/id";
-import { getResendInstance } from "../mail/resend";
+import { getResend } from "../mail/resend";
 import { prisma } from "../prisma";
 import { logger } from "../logger";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -16,8 +16,8 @@ export const setupResendCustomer = async (user: User) => {
       return;
     }
 
-    const resend = await getResendInstance();
-    const contact = await resend.contacts.create({
+    const resendClient = await getResend();
+    const contact = await resendClient.contacts.create({
       email: user.email,
       firstName: user.name ?? "",
       lastName: "",
@@ -133,7 +133,7 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
 };
 
 export async function getAuthConfig() {
-  const resend = await getResendInstance();
+  const resendClient = await getResend();
   
   return {
     adapter: PrismaAdapter(prisma),
@@ -156,7 +156,7 @@ export async function getAuthConfig() {
         maxAge: 24 * 60 * 60,
         async sendVerificationRequest({ identifier, url }) {
           try {
-            await resend.emails.send({
+            await resendClient.emails.send({
               from: env.RESEND_EMAIL_FROM,
               to: [identifier],
               subject: "Sign in to NowNowNow",

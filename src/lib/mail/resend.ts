@@ -1,18 +1,19 @@
-'use server'
-
 import { Resend } from "resend";
 import { env } from "../env";
 
 let resendInstance: Resend | null = null;
 
-export async function getResendInstance() {
+async function getResendInstance() {
   if (!resendInstance) {
     resendInstance = new Resend(env.RESEND_API_KEY);
+    await resendInstance.init();
   }
   return resendInstance;
 }
 
-export const resend = getResendInstance();
+export async function getResend() {
+  return getResendInstance();
+}
 
 interface SendEmailParams {
   to: string | string[];
@@ -23,6 +24,8 @@ interface SendEmailParams {
 }
 
 export async function sendEmail(params: SendEmailParams) {
+  'use server'
+  
   const resendClient = await getResendInstance();
   const to = Array.isArray(params.to) ? params.to : [params.to];
   
