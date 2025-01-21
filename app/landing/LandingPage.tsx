@@ -8,10 +8,11 @@ import { ReviewTriple } from "@/features/landing/review/ReviewTriple";
 import { ReviewGrid } from "@/features/landing/review/ReviewGrid";
 import { FaqSection } from "@/features/landing/FAQSection";
 import { Footer } from "@/features/layout/Footer";
+import { BentoSection } from "@/features/landing/BentoSection";
 import { PricingSection } from "@/features/plans/PricingSection";
-import { BentoGridSection } from "@/features/landing/BentoSection";
+// import { BentoGridSection } from "@/features/landing/BentoSection";
 import { WidgetShowcase } from "@/features/landing/WidgetShowcase";
-import { LogoCarousel } from "@/features/landing/LogoCarousel";
+// import { LogoCarousel } from "@/features/landing/LogoCarousel";
 
 export default function LandingPage() {
   return (
@@ -22,9 +23,9 @@ export default function LandingPage() {
 
       {/* 1. Hero with communities banner */}
       <Hero />
-      <LogoCarousel />
+      {/* <LogoCarousel /> */}
 
-      <SectionDivider />
+      {/* <SectionDivider /> */}
 
       {/* 2. Pain section */}
       <PainSection />
@@ -34,10 +35,12 @@ export default function LandingPage() {
       {/* 3. How it works */}
       <WidgetShowcase />
 
+      <BentoSection />
+
       <SectionDivider />
 
       {/* 4. Benefits */}
-      <BentoGridSection />
+      {/* <BentoGridSection /> */}
 
       <SectionDivider />
 
