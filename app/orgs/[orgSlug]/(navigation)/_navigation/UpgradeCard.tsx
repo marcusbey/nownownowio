@@ -1,4 +1,6 @@
-import { buttonVariants } from "@/components/ui/button";
+'use client';
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,53 +8,51 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
-import { ArrowUpCircle } from "lucide-react";
-import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
+import { useOrganization } from "@/query/org/org.query";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export const UpgradeCard = async () => {
-  const { org: organization } = await getRequiredCurrentOrgCache();
+export function UpgradeCard() {
+  const router = useRouter();
+  const params = useParams();
+  const orgSlug = params.orgSlug as string;
+  const { organization, isLoading } = useOrganization(orgSlug);
+
+  if (isLoading) {
+    return (
+      <Card className="mt-4">
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-full mt-2" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!organization) return null;
 
   // Check if plan exists and is not FREE
   if (!organization.plan || organization.plan.id !== "FREE") return null;
 
   return (
-    <>
-      <Card className="hidden md:block">
-        <CardHeader className="p-2 pt-0 md:p-4">
-          <CardTitle>Upgrade to PRO</CardTitle>
-          <CardDescription>
-            Unlock all features and get unlimited access to our app.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-          <Link
-            href={`/orgs/${organization.slug}/settings/billing`}
-            className={buttonVariants({ className: "w-full" })}
-          >
-            Upgrade
-          </Link>
-        </CardContent>
-      </Card>
-      <Card className="hidden sm:block sm:border-none sm:bg-transparent md:hidden">
-        <CardContent className="p-2">
-          <Link
-            href={`/orgs/${organization.slug}/settings/billing`}
-            className={buttonVariants({ className: "w-full" })}
-          >
-            Upgrade
-          </Link>
-        </CardContent>
-      </Card>
-      <Link
-        href={`/orgs/${organization.slug}/settings/billing`}
-        className={buttonVariants({
-          variant: "secondary",
-          className: "sm:hidden aspect-square p-2",
-        })}
-      >
-        <ArrowUpCircle className="h-4 w-4" />
-      </Link>
-    </>
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle>Upgrade to Free Bird</CardTitle>
+        <CardDescription>
+          Get lifetime access to all features with our Free Bird plan
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button
+          onClick={() => router.push(`/orgs/${orgSlug}/settings/billing`)}
+          className="w-full"
+        >
+          Upgrade Now
+        </Button>
+      </CardContent>
+    </Card>
   );
-};
+}

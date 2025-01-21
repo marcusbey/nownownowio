@@ -4,128 +4,56 @@ import { Typography } from "@/components/ui/typography";
 import { SectionLayout } from "../landing/SectionLayout";
 import { PricingCard } from "./PricingCard";
 import { Plan, PLANS } from "./plans";
-import { getStripePrices } from "@/lib/stripe";
-import { config } from "@/lib/config";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
-export function PricingSection() {
-  const [plans, setPlans] = useState<Plan[]>(PLANS);
-  const [isLoading, setIsLoading] = useState(true);
+interface PricingSectionProps {
+  variant?: "default" | "compact";
+}
 
-  useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        setIsLoading(true);
-        const stripePrices = await getStripePrices();
-        
-        const updatedPlans = PLANS.map((plan) => {
-          if (plan.type === "recurring") {
-            const monthlyPrice = stripePrices.find(
-              price => price.id === config.stripe.priceIds.proMonthly
-            );
-            const yearlyPrice = stripePrices.find(
-              price => price.id === config.stripe.priceIds.proYearly
-            );
-
-            if (!monthlyPrice?.unit_amount || !yearlyPrice?.unit_amount) {
-              console.error('Missing price data for plan:', plan.id);
-              return plan;
-            }
-
-            return {
-              ...plan,
-              price: monthlyPrice.unit_amount / 100,
-              yearlyPrice: yearlyPrice.unit_amount / 100,
-              priceId: monthlyPrice.id,
-              yearlyPriceId: yearlyPrice.id,
-              currency: monthlyPrice.currency.toUpperCase(),
-            };
-          } else {
-            const lifetimePrice = stripePrices.find(
-              price => price.id === config.stripe.priceIds.proLifetime
-            );
-
-            if (!lifetimePrice?.unit_amount) {
-              console.error('Missing price data for plan:', plan.id);
-              return plan;
-            }
-
-            return {
-              ...plan,
-              price: lifetimePrice.unit_amount / 100,
-              priceId: lifetimePrice.id,
-              currency: lifetimePrice.currency.toUpperCase(),
-            };
-          }
-        });
-
-        setPlans(updatedPlans);
-      } catch (error) {
-        console.error('Error fetching prices:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPrices();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <SectionLayout
-        size="base"
-        id="pricing"
-        className="flex w-full flex-col items-center gap-16"
-      >
-        <div className="space-y-2 text-center">
-          <Typography
-            variant="small"
-            className="font-extrabold uppercase text-primary"
-          >
-            Pricing
-          </Typography>
-          <Typography variant="h2">
-            Choose the best plan for your business
-          </Typography>
-        </div>
-
-        <div className="flex w-full justify-center gap-4 max-md:flex-col lg:gap-8 xl:gap-12">
-          {PLANS.map((card) => (
-            <div key={card.id} className="w-full max-w-sm">
-              <Skeleton className="h-[600px] w-full rounded-xl" />
-            </div>
-          ))}
-        </div>
-      </SectionLayout>
-    );
-  }
+export function PricingSection({ variant = "default" }: PricingSectionProps) {
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <SectionLayout
-      size="base"
-      id="pricing"
-      className="flex w-full flex-col items-center gap-16"
-    >
-      <div className="space-y-2 text-center">
-        <Typography
-          variant="small"
-          className="font-extrabold uppercase text-primary"
-        >
-          Pricing
-        </Typography>
-        <Typography variant="h2">
-          Choose the best plan for your business
-        </Typography>
-      </div>
+    <SectionLayout id="pricing">
+      {variant === "default" && (
+        <div className="mx-auto max-w-4xl text-center">
+          <Typography variant="h2" className="mb-4">
+            Simple, transparent pricing
+          </Typography>
+          <Typography variant="large" className="text-muted-foreground">
+            Choose the perfect plan for your needs
+          </Typography>
+        </div>
+      )}
 
-      <div className="flex w-full justify-center gap-4 max-md:flex-col lg:gap-8 xl:gap-12">
-        {plans.map((card) => (
-          <PricingCard
-            key={card.id}
-            {...card}
-          />
-        ))}
+      <div 
+        className={cn(
+          "mx-auto mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2",
+          variant === "default" ? "max-w-5xl" : "max-w-3xl"
+        )}
+      >
+        {isLoading ? (
+          <>
+            <Skeleton className={cn(
+              "w-full",
+              variant === "default" ? "h-[600px]" : "h-[400px]"
+            )} />
+            <Skeleton className={cn(
+              "w-full",
+              variant === "default" ? "h-[600px]" : "h-[400px]"
+            )} />
+          </>
+        ) : (
+          PLANS.map((plan) => (
+            <PricingCard 
+              key={plan.id} 
+              plan={plan} 
+              variant={variant}
+            />
+          ))
+        )}
       </div>
     </SectionLayout>
   );

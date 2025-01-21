@@ -9,9 +9,9 @@ import { ReviewGrid } from "@/features/landing/review/ReviewGrid";
 import { FaqSection } from "@/features/landing/FAQSection";
 import { Footer } from "@/features/layout/Footer";
 import { BentoSection } from "@/features/landing/BentoSection";
-import { PricingSection } from "@/features/plans/PricingSection";
-// import { BentoGridSection } from "@/features/landing/BentoSection";
+import { ClientPricingSection } from "@/features/plans/ClientPricingSection";
 import { WidgetShowcase } from "@/features/landing/WidgetShowcase";
+// import { BentoGridSection } from "@/features/landing/BentoSection";
 // import { LogoCarousel } from "@/features/landing/LogoCarousel";
 
 export default function LandingPage() {
@@ -71,7 +71,9 @@ export default function LandingPage() {
       <SectionDivider />
 
       {/* 6. Pricing */}
-      <PricingSection />
+      <section className="py-24">
+        <ClientPricingSection variant="default" />
+      </section>
 
       <SectionDivider />
 

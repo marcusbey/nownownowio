@@ -1,3 +1,5 @@
+'use client';
+
 import type { ComponentPropsWithoutRef } from "react";
 import { Typography } from "../../components/ui/typography";
 import { cn } from "../../lib/utils";
@@ -27,7 +29,7 @@ export const LayoutHeader = (props: ComponentPropsWithoutRef<"div">) => {
     <div
       {...props}
       className={cn(
-        "flex items-start gap-2 flex-col w-full md:flex-1 min-w-[200px]",
+        "flex items-start gap-2 flex-col w-full md:flex-1 min-w-[200px] mb-6",
         props.className,
       )}
     />
@@ -49,5 +51,7 @@ export const LayoutActions = (props: ComponentPropsWithoutRef<"div">) => {
 };
 
 export const LayoutContent = (props: ComponentPropsWithoutRef<"div">) => {
-  return <div {...props} className={cn("w-full", props.className)} />;
+  return (
+    <div {...props} className={cn("w-full space-y-6", props.className)} />
+  );
 };

@@ -35,7 +35,7 @@ export const notifyUserOfPremiumUpgrade = async (user: Organization) => {
   
   await sendEmail({
     to: user.email,
-    subject: `Success! You've Unlocked Full Access to Our Features`,
+    subject: `Welcome to Free Bird! You Now Have Lifetime Access`,
     react: SuccessUpgradeEmail(),
   });
 };
@@ -57,7 +57,7 @@ export const notifyUserOfPaymentFailure = async (org: Organization) => {
   
   await sendEmail({
     to: org.email,
-    subject: `Action Needed: Update Your Payment to Continue Enjoying Our Services`,
+    subject: `Action Needed: Complete Your Free Bird Purchase`,
     react: SubscriptionFailedEmail({
       url: `${getServerUrl()}/${org.slug}/settings/billing`,
     }),
@@ -67,7 +67,7 @@ export const notifyUserOfPaymentFailure = async (org: Organization) => {
 export const notifyUserOfPaymentActionRequired = async (org: Organization) => {
   await sendEmail({
     to: org.email ?? "",
-    subject: "Additional Authentication Required for Your Payment",
+    subject: "Additional Authentication Required for Your Free Bird Purchase",
     react: SubscriptionFailedEmail({
       organizationName: org.name,
       portalUrl: `${getServerUrl()}/orgs/${org.slug}/settings/billing`,

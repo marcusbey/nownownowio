@@ -1,68 +1,52 @@
-export type Plan = {
+import { z } from "zod";
+
+export const PlanId = z.enum(["FREEBIRD_RECURRING", "FREEBIRD_LIFETIME"]);
+export type PlanId = z.infer<typeof PlanId>;
+
+export interface Plan {
   id: string;
   name: string;
-  subtitle: string;
-  price: number;
-  yearlyPrice?: number;
-  currency: string;
+  description: string;
   features: string[];
-  isPopular?: boolean;
-  type: "recurring" | "lifetime";
-  interval?: "month" | "year";
-  className?: string;
-  priceId: string;
+  price?: number;
+  yearlyPrice?: number;
+  priceId?: string;
   yearlyPriceId?: string;
-  cta: string;
-  ctaSubtitle: string;
-  savings?: string;
-};
+  type: "recurring" | "lifetime";
+}
 
-export const PLANS = [
+export const PLANS: Plan[] = [
   {
-    id: "PRO",
-    name: "Pro",
-    subtitle: "Perfect for content creators",
-    price: 14,
-    yearlyPrice: 129,
-    currency: "USD",
+    id: "FREEBIRD_RECURRING",
+    name: "Free Bird",
+    description: "For solopreneurs who want flexibility",
     features: [
-      "Unlimited users",
-      "Advanced widget customization",
-      "Priority support",
+      "1 organization member",
       "Advanced analytics",
-      "Custom branding",
-      "API access",
-      "Webhooks integration"
+      "Priority support",
+      "All features included",
+      "Monthly or yearly billing",
     ],
-    isPopular: true,
     type: "recurring",
-    interval: "month",
-    priceId: "price_1QjQJS00GvYcfU0MA4GzNyp6",
-    yearlyPriceId: "price_1Qji9P00GvYcfU0MR1g0gItW",
-    cta: "Get Started",
-    ctaSubtitle: "Billed monthly",
-    savings: "Save 23%",
+    price: 14, // Monthly price
+    yearlyPrice: 129, // Yearly price
+    priceId: "price_1QjQJS00GvYcfU0MA4GzNyp6", // Monthly price ID
+    yearlyPriceId: "price_1Qji9P00GvYcfU0MR1g0gItW", // Yearly price ID
   },
   {
-    id: "LIFETIME",
-    name: "Lifetime",
-    subtitle: "One-time payment, forever access",
-    price: 199,
-    currency: "USD",
+    id: "FREEBIRD_LIFETIME",
+    name: "Free Bird Lifetime",
+    description: "For solopreneurs who want lifetime access",
     features: [
-      "Everything in Pro",
-      "Lifetime updates",
-      "No recurring bills",
-      "Priority feature requests",
-      "Early access to new features",
-      "Dedicated support",
-      "Custom development hours"
+      "1 organization member",
+      "Advanced analytics",
+      "Priority support",
+      "All features included",
+      "One-time payment",
+      "Lifetime access",
     ],
-    isPopular: false,
     type: "lifetime",
-    priceId: "price_1QjQJb00GvYcfU0MoBCU9kiy",
-    cta: "Get Lifetime Access",
-    ctaSubtitle: "One-time payment",
-    className: "border-primary",
-  }
-] satisfies Plan[];
+    price: 199,
+    priceId: "price_1QjQJb00GvYcfU0MoBCU9kiy", // Live one-time price
+  },
+];
