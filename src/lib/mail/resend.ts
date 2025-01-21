@@ -14,13 +14,15 @@ export async function getResendInstance() {
 
 export const resend = getResendInstance();
 
-export async function sendEmail(params: {
+interface SendEmailParams {
   to: string | string[];
   subject: string;
   html?: string;
   react?: JSX.Element;
   from?: string;
-}) {
+}
+
+export async function sendEmail(params: SendEmailParams) {
   const resendClient = await getResendInstance();
   const to = Array.isArray(params.to) ? params.to : [params.to];
   
@@ -30,5 +32,5 @@ export async function sendEmail(params: {
     subject: params.subject,
     html: params.html,
     react: params.react,
-  });
+  } as any); // Type assertion needed due to Resend types not including react
 }
