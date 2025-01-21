@@ -127,7 +127,7 @@ export const sendUpdateEmailVerificationCodeAction = authAction.action(
     });
 
     await sendEmail({
-      to: ctx.user.email,
+      to: [ctx.user.email],
       subject: "[Action required] Update your profile",
       react: MarkdownEmail({
         markdown: `Hi,
@@ -138,8 +138,8 @@ Here is your verification code: ${verificationToken.token}
 
 ⚠️ If you didn't request this, please ignore this email.
 
-Best,`,
-        preview: "Request to update your profile email",
+Best,
+The NowNowNow Team`,
       }),
     });
 
