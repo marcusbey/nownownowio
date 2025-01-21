@@ -3,41 +3,66 @@ export type Plan = {
   name: string;
   subtitle: string;
   price: number;
-  barredPrice?: number;
+  yearlyPrice?: number;
   currency: string;
   features: string[];
   isPopular?: boolean;
-  type?: "monthly" | "yearly" | "one-time";
+  type: "recurring" | "lifetime";
+  interval?: "month" | "year";
   className?: string;
   priceId: string;
+  yearlyPriceId?: string;
   cta: string;
   ctaSubtitle: string;
+  savings?: string;
 };
 
 export const PLANS = [
   {
-    id: "FREE",
-    name: "Free",
-    subtitle: "Perfect for tiny creator",
-    price: 0,
+    id: "PRO",
+    name: "Pro",
+    subtitle: "Perfect for content creators",
+    price: 14,
+    yearlyPrice: 129,
     currency: "USD",
-    features: ["1 user"],
-    isPopular: false,
-    priceId: "",
-    cta: "Start for free",
-    ctaSubtitle: "No credit card required",
+    features: [
+      "Unlimited users",
+      "Advanced widget customization",
+      "Priority support",
+      "Advanced analytics",
+      "Custom branding",
+      "API access",
+      "Webhooks integration"
+    ],
+    isPopular: true,
+    type: "recurring",
+    interval: "month",
+    priceId: "price_1QjQJS00GvYcfU0MA4GzNyp6",
+    yearlyPriceId: "price_1Qji9P00GvYcfU0MR1g0gItW",
+    cta: "Get Started",
+    ctaSubtitle: "Billed monthly",
+    savings: "Save 23%",
   },
   {
-    id: "PREMIUM",
-    name: "Premium",
-    subtitle: "Perfect for content creator",
-    price: 49,
+    id: "LIFETIME",
+    name: "Lifetime",
+    subtitle: "One-time payment, forever access",
+    price: 199,
     currency: "USD",
-    features: ["5 users"],
-    isPopular: true,
-    type: "monthly",
-    priceId: "price_1PmuveGPhxExaYaQXj6bys02",
-    cta: "Start now",
-    ctaSubtitle: "Then $49/month",
-  },
+    features: [
+      "Everything in Pro",
+      "Lifetime updates",
+      "No recurring bills",
+      "Priority feature requests",
+      "Early access to new features",
+      "Dedicated support",
+      "Custom development hours"
+    ],
+    isPopular: false,
+    type: "lifetime",
+    priceId: "price_1QjQJb00GvYcfU0MoBCU9kiy",
+    cta: "Get Lifetime Access",
+    ctaSubtitle: "One-time payment",
+    className: "border-primary",
+  }
 ] satisfies Plan[];
