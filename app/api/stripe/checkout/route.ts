@@ -1,10 +1,10 @@
-import { getServerSession } from "@/lib/auth";
+import { auth } from "@/lib/auth/helper";
 import { getStripeInstance } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
+    const session = await auth();
     if (!session?.user) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
