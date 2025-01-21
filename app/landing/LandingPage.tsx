@@ -3,20 +3,15 @@
 import { Hero } from "@/features/landing/Hero";
 import { LandingHeader } from "@/features/landing/LandingHeader";
 import { SectionDivider } from "@/features/landing/SectionDivider";
-import { StatsSection } from "@/features/landing/StatsSection";
 import { PainSection } from "@/features/landing/Pain";
 import { ReviewTriple } from "@/features/landing/review/ReviewTriple";
-import { ReviewSingle } from "@/features/landing/review/ReviewSingle";
 import { ReviewGrid } from "@/features/landing/review/ReviewGrid";
-import { FeaturesSection } from "@/features/landing/FeatureSection";
-import { CTAImageSection } from "@/features/landing/cta/CTAImageSection";
-import { CTASectionCard } from "@/features/landing/cta/CTACardSection";
-import { CtaSection } from "@/features/landing/cta/CTASection";
 import { FaqSection } from "@/features/landing/FAQSection";
 import { Footer } from "@/features/layout/Footer";
-import { PricingSection } from "@/components/landing/pricing/PricingSection";
-import Image from "next/image";
+import { PricingSection } from "@/features/plans/PricingSection";
 import { BentoGridSection } from "@/features/landing/BentoSection";
+import { WidgetShowcase } from "@/features/landing/WidgetShowcase";
+import { LogoCarousel } from "@/features/landing/LogoCarousel";
 
 export default function LandingPage() {
   return (
@@ -25,20 +20,28 @@ export default function LandingPage() {
 
       <LandingHeader />
 
+      {/* 1. Hero with communities banner */}
       <Hero />
+      <LogoCarousel />
 
-      <StatsSection />
+      <SectionDivider />
 
-      <BentoGridSection />
-
+      {/* 2. Pain section */}
       <PainSection />
 
       <SectionDivider />
 
-      <PricingSection />
+      {/* 3. How it works */}
+      <WidgetShowcase />
 
       <SectionDivider />
 
+      {/* 4. Benefits */}
+      <BentoGridSection />
+
+      <SectionDivider />
+
+      {/* 5. First testimonials */}
       <ReviewTriple
         reviews={[
           {
@@ -64,127 +67,12 @@ export default function LandingPage() {
 
       <SectionDivider />
 
-      <ReviewSingle
-        image="https://i.pravatar.cc/300?u=5"
-        name="Michel"
-        review={`Threader **has completely transformed** the way I manage my social media content. The ability to schedule posts and use AI for content suggestions **has saved me hours each week.**`}
-        role="Digital Marketer"
-        compagnyImage="https://1000logos.net/wp-content/uploads/2017/03/McDonalds-Logo-2003.png"
-        key={1}
-      /> 
-
-      <FeaturesSection
-        features={[
-          {
-            badge: "⏰ Schedule",
-            title: "Schedule your post",
-            description: "Schedule your post on the Threader in a few clicks.",
-            component: (
-              <Image
-                src="/images/placeholder1.gif"
-                alt=""
-                width={200}
-                height={100}
-                className="h-auto w-full object-cover"
-              />
-            ),
-          },
-          {
-            badge: "📅 Calendar",
-            title: "See what you scheduled",
-            description:
-              "With the calendar view, you can see what you scheduled and when.",
-            component: (
-              <Image
-                src="/images/placeholder1.gif"
-                alt=""
-                width={200}
-                height={100}
-                className="h-auto w-full object-cover"
-              />
-            ),
-          },
-          {
-            badge: "👁️ Preview",
-            title: "Preview your post",
-            description:
-              "Preview your post before scheduling it to see how it will look like.",
-            component: (
-              <Image
-                src="/images/placeholder1.gif"
-                alt=""
-                width={200}
-                height={100}
-                className="h-auto w-full object-cover"
-              />
-            ),
-          },
-          {
-            badge: "🔄 Repost",
-            title: "Schedule repost",
-            description:
-              "Automatically repost your post after a certain amount of time.",
-            component: (
-              <Image
-                src="/images/placeholder1.gif"
-                alt=""
-                width={200}
-                height={100}
-                className="h-auto w-full object-cover"
-              />
-            ),
-          },
-        ]}
-      />
-
-      <CTAImageSection />
-
-      <CTASectionCard />
-
-      <CtaSection />
-
-      <FaqSection
-        faq={[
-          {
-            question: "What is Threader?",
-            answer:
-              "Threader is an innovative platform designed to help you write, schedule, and publish content to your account with the assistance of AI, enhancing your business's online presence.",
-          },
-          {
-            question: "How does AI Content Generation work?",
-            answer:
-              "Our AI Content Generation feature leverages the power of artificial intelligence to create unique and engaging content for your Threads, making content creation easier and more efficient.",
-          },
-          {
-            question: "Can I schedule my threads in advance?",
-            answer:
-              "Yes, with Threader, you can schedule your threads for a specific time, allowing you to maintain a consistent online presence without the need to manually post every day.",
-          },
-          {
-            question: "What is the Now.TS project?",
-            answer:
-              "Now.TS is a new project announced on our platform that enables users to create professional Next.js applications in days, streamlining the development process.",
-          },
-          {
-            question: "How can I get more followers?",
-            answer:
-              "To gain more followers, focus on creating content related to Next.js, as our analysis shows it's highly engaging. Utilize our research tools to understand trends and improve your content strategy.",
-          },
-          {
-            question: "What are the benefits of posting with Threader?",
-            answer:
-              "Posting with Threader allows you to schedule posts, avoid daily manual postings, track your scheduled content easily, and maintain consistency in your online activity.",
-          },
-          {
-            question: "What pricing plans does Threader offer?",
-            answer:
-              "Threader offers two pricing plans: THREADER FREE, perfect for tiny creators, allowing you to schedule 1 post in advance; and THREADER PREMIUM, ideal for content creators, offering unlimited scheduling, post previews, and auto-reposting features.",
-          },
-        ]}
-      /> 
+      {/* 6. Pricing */}
+      <PricingSection />
 
       <SectionDivider />
-    
+
+      {/* 7. More testimonials */}
       <ReviewGrid
         reviews={[
           {
@@ -218,8 +106,40 @@ export default function LandingPage() {
         ]}
       />
 
-      <SectionDivider /> 
+      <SectionDivider />
 
+      {/* 8. FAQ */}
+      <FaqSection
+        faq={[
+          {
+            question: "What is Threader?",
+            answer:
+              "Threader is a social platform designed for organizations to communicate and share content internally while maintaining a social network feel. It combines the best of enterprise communication tools with modern social media features.",
+          },
+          {
+            question: "How does pricing work?",
+            answer:
+              "We offer flexible pricing plans based on your organization's needs. Our basic plan is free and includes essential features. Premium plans unlock additional capabilities like increased member limits and enhanced organization features.",
+          },
+          {
+            question: "Can I try before committing?",
+            answer:
+              "Yes! You can start with our free plan to explore the platform's features. When you're ready to scale, upgrading to a premium plan is seamless and can be done at any time.",
+          },
+          {
+            question: "How secure is my data?",
+            answer:
+              "Security is our top priority. We implement industry-standard encryption, regular security audits, and strict access controls to ensure your organization's data remains protected.",
+          },
+          {
+            question: "What kind of support do you offer?",
+            answer:
+              "We provide comprehensive support including documentation, email support, and priority assistance for premium plans. Our team is committed to helping you make the most of Threader.",
+          },
+        ]}
+      />
+
+      {/* 9. Footer */}
       <Footer />
     </div>
   );
