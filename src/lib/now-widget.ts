@@ -1,11 +1,8 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { env } from './env';
 
-const SECRET_KEY = process.env.WIDGET_SECRET_KEY!;
-
-if (!SECRET_KEY) {
-    throw new Error('WIDGET_SECRET_KEY is not defined');
-}
+const SECRET_KEY = env.WIDGET_SECRET_KEY;
 
 interface ApiKeyOptions {
     userId: string;
@@ -13,47 +10,44 @@ interface ApiKeyOptions {
 }
 
 export function generateApiKey({ userId, expiresIn = 86400 }: ApiKeyOptions): string {
-    const secret = process.env.API_KEY_SECRET;
-    if (!secret) {
-        throw new Error('API_KEY_SECRET is not defined');
-    }
+    const secret = env.API_KEY_SECRET;
     const expirationTime = Math.floor(Date.now() / 1000) + expiresIn;
     const data = `${userId}|${expirationTime}`;
-    const hmac = crypto.createHmac('sha256', secret);
-    const signature = hmac.update(data).digest('hex');
-    return `${data}|${signature}`;
+    const hash = crypto.createHmac('sha256', secret).update(data).digest('hex');
+    return `${data}|${hash}`;
 }
 
 export function verifyApiKey(apiKey: string): { isValid: boolean; userId?: string } {
-    const secret = process.env.API_KEY_SECRET;
-    if (!secret) {
-        throw new Error('API_KEY_SECRET is not defined');
-    }
-    const [userId, expirationTime, signature] = apiKey.split('|');
-    if (!userId || !expirationTime || !signature) {
+    const secret = env.API_KEY_SECRET;
+    try {
+        const [userId, expirationTime, hash] = apiKey.split('|');
+        const data = `${userId}|${expirationTime}`;
+        const expectedHash = crypto.createHmac('sha256', secret).update(data).digest('hex');
+
+        if (hash !== expectedHash) {
+            return { isValid: false };
+        }
+
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (currentTime > parseInt(expirationTime)) {
+            return { isValid: false };
+        }
+
+        return { isValid: true, userId };
+    } catch {
         return { isValid: false };
     }
-    const data = `${userId}|${expirationTime}`;
-    const hmac = crypto.createHmac('sha256', secret);
-    const expectedSignature = hmac.update(data).digest('hex');
-    const isValid = crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature)) &&
-        parseInt(expirationTime, 10) > Math.floor(Date.now() / 1000);
-    return { isValid, userId: isValid ? userId : undefined };
 }
 
 export function generateWidgetToken(userId: string): string {
-    const secret = process.env.WIDGET_SECRET_KEY;
-    if (!secret) {
-        throw new Error('WIDGET_SECRET_KEY is not defined');
-    }
-    return jwt.sign({ userId }, secret, { expiresIn: '30d' });
+    return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '24h' });
 }
 
 export function verifyWidgetToken(token: string, userId: string): boolean {
     try {
         const decoded = jwt.verify(token, SECRET_KEY) as { userId: string };
         return decoded.userId === userId;
-    } catch (error) {
+    } catch {
         return false;
     }
 }

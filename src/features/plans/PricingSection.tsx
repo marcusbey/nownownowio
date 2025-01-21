@@ -3,7 +3,7 @@ import { SectionLayout } from "../landing/SectionLayout";
 import { PricingCard } from "./PricingCard";
 import { PLANS } from "./plans";
 
-export const Pricing = () => {
+export const PricingSection = () => {
   return (
     <SectionLayout
       size="base"
