@@ -7,7 +7,11 @@ let stripeInstance: Stripe | null = null;
 
 export async function getStripeInstance() {
   if (!stripeInstance) {
-    stripeInstance = new Stripe(env.STRIPE_SECRET_KEY, {
+    // Use test keys in development and test environments
+    const isTestMode = process.env.NODE_ENV !== 'production';
+    const secretKey = isTestMode ? env.STRIPE_SECRET_KEY_TEST : env.STRIPE_SECRET_KEY;
+    
+    stripeInstance = new Stripe(secretKey, {
       typescript: true,
       apiVersion: '2023-10-16',
     });
