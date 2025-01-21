@@ -1,6 +1,13 @@
-import { env } from "@/lib/env";
-import { logger } from "@/lib/logger";
-import { getResend } from "./resend";
+"use server";
+
+import { getResendInstance } from "./resend";
+
+interface SendEmailParams {
+  to: string | string[];
+  subject: string;
+  react: React.ReactElement;
+  from?: string;
+}
 
 /**
  * sendEmail will send an email using resend.
@@ -9,24 +16,18 @@ import { getResend } from "./resend";
  * @param params : payload
  * @returns a promise of the email sent
  */
-export async function sendEmail(params: {
-  to: string | string[];
-  subject: string;
-  html?: string;
-  react?: JSX.Element;
-  from?: string;
-}) {
+export async function sendEmail(params: SendEmailParams) {
   if (env.NODE_ENV === "development") {
     params.subject = `[DEV] ${params.subject}`;
   }
-  const resendClient = await getResend();
+  const resend = await getResendInstance();
+  
   const to = Array.isArray(params.to) ? params.to : [params.to];
 
-  const result = await resendClient.emails.send({
-    from: params.from || env.RESEND_EMAIL_FROM,
+  const result = await resend.emails.send({
+    from: params.from || "NowNowNow <no-reply@nownownow.io>",
     to,
     subject: params.subject,
-    html: params.html,
     react: params.react,
   } as any);
 

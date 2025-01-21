@@ -1,18 +1,20 @@
+"use server";
+
 import { Resend } from "resend";
 import { env } from "../env";
 
 let resendInstance: Resend | null = null;
 
-async function getResendInstance() {
+async function initResendInstance() {
   if (!resendInstance) {
     resendInstance = new Resend(env.RESEND_API_KEY);
     await resendInstance.init();
   }
-  return resendInstance;
 }
 
-export async function getResend() {
-  return getResendInstance();
+export async function getResendInstance() {
+  await initResendInstance();
+  return resendInstance;
 }
 
 interface SendEmailParams {
@@ -36,4 +38,21 @@ export async function sendEmail(params: SendEmailParams) {
     html: params.html,
     react: params.react,
   } as any); // Type assertion needed due to Resend types not including react
+}
+
+export async function deleteContact(audienceId: string, email: string) {
+  const resend = await getResendInstance();
+  return resend.contacts.remove({
+    audienceId,
+    email,
+  });
+}
+
+export async function createContact(audienceId: string, email: string) {
+  const resend = await getResendInstance();
+  return resend.contacts.create({
+    audienceId,
+    email,
+    unsubscribed: false,
+  });
 }
