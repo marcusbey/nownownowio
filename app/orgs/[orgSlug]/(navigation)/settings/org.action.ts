@@ -112,6 +112,14 @@ export const updateOrganizationDetailsAction = orgAction
         id: ctx.org.id,
       },
       data: parsedInput,
+      include: {
+        plan: true,
+        members: {
+          include: {
+            user: true
+          }
+        }
+      }
     });
 
     return updatedOrganization;

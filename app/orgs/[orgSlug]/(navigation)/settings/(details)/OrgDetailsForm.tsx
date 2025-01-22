@@ -7,6 +7,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
   useZodForm,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import {
   type OrgDetailsFormSchemaType,
 } from "../org.schema";
 import { useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 type ProductFormProps = {
   defaultValues: OrgDetailsFormSchemaType;
@@ -34,32 +36,48 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
   const router = useRouter();
   const isDirty = form.formState.isDirty;
   const isPending = form.formState.isSubmitting;
+  const bioLength = form.watch("bio")?.length || 0;
 
   const mutation = useMutation({
     mutationFn: async (values: OrgDetailsFormSchemaType) => {
       const result = await updateOrganizationDetailsAction(values);
-
-      if (!result || result.serverError) {
-        toast.error(result?.serverError ?? "Failed to update organization");
-        return;
+      return result;
+    },
+    onSuccess: (data) => {
+      if ('data' in data && data.data) {
+        toast.success("Organization updated successfully");
+        form.reset(data.data);
+        // Only refresh after form state is updated
+        setTimeout(() => {
+          router.refresh();
+        }, 0);
+      } else if ('serverError' in data && data.serverError) {
+        toast.error(data.serverError);
       }
-
-      toast.success("Organization updated successfully");
-      router.refresh();
-      form.reset(result.data as OrgDetailsFormSchemaType);
+    },
+    onError: (error) => {
+      console.error("Update failed:", error);
+      toast.error("Failed to update organization");
     },
   });
 
-  // Reset form when defaultValues change
+  // Keep form in sync with defaultValues when they change
   useEffect(() => {
     form.reset(defaultValues);
-  }, [defaultValues, form]);
+  }, [form, defaultValues]);
 
   return (
     <Form
       form={form}
       onSubmit={async (values) => {
-        await mutation.mutateAsync(values);
+        try {
+          await mutation.mutateAsync(values);
+        } catch (error) {
+          console.error("Update failed:", error);
+          toast.error(
+            error instanceof Error ? error.message : "An unexpected error occurred. Please try again."
+          );
+        }
       }}
     >
       <div className="space-y-6">
@@ -73,9 +91,13 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
                 <ImageFormItem
                   className="size-24 rounded-lg"
                   onChange={(url) => field.onChange(url)}
-                  imageUrl={field.value || defaultValues.image}
+                  imageUrl={field.value || defaultValues.image || undefined}
+                  showPreview
                 />
               </FormControl>
+              <FormDescription>
+                Recommended size: 256x256px. Maximum size: 5MB
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -88,7 +110,7 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
             <FormItem>
               <FormLabel>Organization Name</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} placeholder="Enter organization name" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -102,8 +124,11 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
             <FormItem>
               <FormLabel>Organization Email</FormLabel>
               <FormControl>
-                <Input {...field} type="email" />
+                <Input {...field} type="email" placeholder="organization@example.com" />
               </FormControl>
+              <FormDescription>
+                This email will be used for organization-related communications
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -116,8 +141,16 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
             <FormItem>
               <FormLabel>Bio</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value || ""} />
+                <Textarea 
+                  {...field} 
+                  value={field.value || ""} 
+                  placeholder="Tell us about your organization..."
+                  maxLength={500}
+                />
               </FormControl>
+              <FormDescription>
+                {bioLength}/500 characters
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -130,8 +163,17 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
             <FormItem>
               <FormLabel>Website URL</FormLabel>
               <FormControl>
-                <Input {...field} type="url" value={field.value || ""} />
+                <Input 
+                  {...field} 
+                  type="url" 
+                  value={field.value || ""} 
+                  placeholder="https://example.com"
+                  pattern="https?://.*"
+                />
               </FormControl>
+              <FormDescription>
+                Must start with http:// or https://
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -141,7 +183,7 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
           <LoadingButton
             type="submit"
             loading={isPending}
-            disabled={!form.formState.isDirty}
+            disabled={!isDirty}
           >
             Save Changes
           </LoadingButton>

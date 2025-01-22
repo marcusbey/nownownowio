@@ -11,15 +11,46 @@ import { z } from "zod";
  * and the second schema will never be used
  */
 export const OrgDetailsFormSchema = z.object({
-  // This field need to be here not in DangerFormSchema
-  // slug: z.string().refine((v) => !RESERVED_SLUGS.includes(v), {
-  //   message: "This organization slug is reserved",
-  // }),
-  name: z.string(),
-  email: z.union([z.string().email(), z.string().length(0)]).optional(),
-  image: z.string().nullable(),
-  bio: z.string().max(500).optional(),
-  websiteUrl: z.string().url().optional(),
+  name: z.string().min(2, {
+    message: "Organization name must be at least 2 characters",
+  }).max(50, {
+    message: "Organization name must be less than 50 characters",
+  }),
+  email: z.union([
+    z.string().email({
+      message: "Please enter a valid email address",
+    }), 
+    z.string().length(0)
+  ]).optional(),
+  image: z.string().nullable().refine((val) => {
+    if (!val) return true;
+    try {
+      const url = new URL(val);
+      return url.protocol === 'https:' || url.protocol === 'http:';
+    } catch {
+      return false;
+    }
+  }, {
+    message: "Please provide a valid image URL",
+  }),
+  bio: z.string().max(500, {
+    message: "Bio must be less than 500 characters",
+  }).optional(),
+  websiteUrl: z.union([
+    z.string().url({
+      message: "Please enter a valid URL starting with http:// or https://",
+    }).refine((val) => {
+      try {
+        const url = new URL(val);
+        return url.protocol === 'https:' || url.protocol === 'http:';
+      } catch {
+        return false;
+      }
+    }, {
+      message: "URL must start with http:// or https://",
+    }),
+    z.string().length(0)
+  ]).optional(),
 });
 
 export const OrgMemberFormSchema = z.object({
@@ -32,10 +63,19 @@ export const OrgMemberFormSchema = z.object({
 });
 
 export const OrgDangerFormSchema = z.object({
-  // We can add live check for slug availability
-  slug: z.string().refine((v) => !RESERVED_SLUGS.includes(v), {
-    message: "This organization slug is reserved",
-  }),
+  slug: z.string()
+    .min(3, {
+      message: "Slug must be at least 3 characters",
+    })
+    .max(50, {
+      message: "Slug must be less than 50 characters",
+    })
+    .regex(/^[a-z0-9-]+$/, {
+      message: "Slug can only contain lowercase letters, numbers, and hyphens",
+    })
+    .refine((v) => !RESERVED_SLUGS.includes(v), {
+      message: "This organization slug is reserved",
+    }),
 });
 
 export type OrgDetailsFormSchemaType = z.infer<typeof OrgDetailsFormSchema>;

@@ -93,6 +93,7 @@ model Organization {
   planId           String    @default("FREE")
   plan             OrganizationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
   image            String?
+  bio              String?   @db.Text
   members          OrganizationMembership[]
   invitations      OrganizationInvitation[]
   posts            Post[]

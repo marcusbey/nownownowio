@@ -10,6 +10,8 @@ type OrganizationWithPlan = {
   name: string;
   email: string | null;
   image: string | null;
+  bio: string | null;
+  websiteUrl: string | null;
   slug: string;
   stripeCustomerId: string | null;
   plan: {
@@ -44,8 +46,8 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
     name: organization.name,
     email: organization.email || "",
     image: defaultImage || null,
-    bio: "",
-    websiteUrl: "",
+    bio: organization.bio || "",
+    websiteUrl: organization.websiteUrl || "",
   };
 
   return (
