@@ -47,7 +47,17 @@ export const EmailLayout = (
             padding: "1.5rem",
           }}
         >
-          <Tailwind>
+          <Tailwind
+            config={{
+              theme: {
+                extend: {
+                  colors: {
+                    brand: "#0F172A",
+                  },
+                },
+              },
+            }}
+          >
             <table cellPadding={0} cellSpacing={0}>
               <tr>
                 <td className="pr-2">
@@ -68,9 +78,31 @@ export const EmailLayout = (
           {props.disableTailwind ? (
             props.children
           ) : (
-            <Tailwind>{props.children}</Tailwind>
+            <Tailwind
+              config={{
+                theme: {
+                  extend: {
+                    colors: {
+                      brand: "#0F172A",
+                    },
+                  },
+                },
+              }}
+            >
+              {props.children}
+            </Tailwind>
           )}
-          <Tailwind>
+          <Tailwind
+            config={{
+              theme: {
+                extend: {
+                  colors: {
+                    brand: "#0F172A",
+                  },
+                },
+              },
+            }}
+          >
             <Hr className="mb-6 mt-12 border-gray-300" />
 
             <table cellPadding={0} cellSpacing={0}>

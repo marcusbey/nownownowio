@@ -1,8 +1,9 @@
+import { NextResponse } from "next/server";
 import { authAction } from "@/lib/actions/safe-actions";
 import { createCommunityPromotionCode } from "@/lib/stripe";
 import { z } from "zod";
 
-export const createCommunityPromotionCodeAction = authAction
+const createCommunityPromotionCodeAction = authAction
   .schema(
     z.object({
       communityName: z.string(),
@@ -23,3 +24,9 @@ export const createCommunityPromotionCodeAction = authAction
 
     return promotionCode;
   });
+
+export async function POST(request: Request) {
+  const data = await request.json();
+  const result = await createCommunityPromotionCodeAction(data);
+  return NextResponse.json(result);
+}

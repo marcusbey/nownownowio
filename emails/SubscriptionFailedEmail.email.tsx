@@ -3,11 +3,17 @@ import { Preview, Text } from "@react-email/components";
 import { EmailLayout } from "./utils/EmailLayout";
 import { EmailLink, EmailSection, EmailText } from "./utils/components.utils";
 
-export default function SubscriptionFailedEmail({ url }: { url: string }) {
+export default function SubscriptionFailedEmail({
+  organizationName,
+  portalUrl,
+}: {
+  organizationName: string;
+  portalUrl: string;
+}) {
   return (
     <EmailLayout>
       <Preview>
-        Important information about your {SiteConfig.title} account
+        Important information about your {organizationName} account on {SiteConfig.title}
       </Preview>
       <EmailSection>
         <EmailText>Hello,</EmailText>
@@ -25,7 +31,7 @@ export default function SubscriptionFailedEmail({ url }: { url: string }) {
           straightforward!
         </EmailText>
         <EmailText>
-          <EmailLink href={url}>
+          <EmailLink href={portalUrl}>
             👉 Click to Update Payment and Keep Using {SiteConfig.title} 👈
           </EmailLink>
         </EmailText>

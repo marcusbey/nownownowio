@@ -14,6 +14,7 @@ import { NavigationLinks } from "./OrgLinks";
 import { OrgsSelect } from "./OrgsSelect";
 import { UpgradeCard } from "./UpgradeCard";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
+import { OrganizationMembershipRole } from "@prisma/client";
 
 // Server Component
 export async function OrgNavigation({ children }: PropsWithChildren) {
@@ -46,7 +47,7 @@ function ClientOrgNavigation({
   children 
 }: PropsWithChildren<{
   org: any;
-  roles: string[];
+  roles: OrganizationMembershipRole[];
   userOrganizations: any[];
   session: any;
 }>) {

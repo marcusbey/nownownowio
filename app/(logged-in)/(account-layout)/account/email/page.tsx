@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import { auth } from "@/lib/auth/helper";
 import { combineWithParentMetadata } from "@/lib/metadata";
-import { getResend } from "@/lib/mail/resend";
+import { getResendInstance } from "@/lib/mail/resend";
+import { GetContactResponse } from "resend";
 import { prisma } from "@/lib/prisma";
 import { 
   Card,
@@ -42,7 +43,7 @@ export default async function MailProfilePage() {
     return <ErrorComponent />;
   }
 
-  const resendClient = await getResend();
+  const resendClient = await getResendInstance();
   const contact = await resendClient.contacts.get({ 
     id: user.resendContactId,
     audienceId: env.RESEND_AUDIENCE_ID,
@@ -67,7 +68,7 @@ export default async function MailProfilePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ToggleEmailCheckbox unsubscribed={contact.unsubscribed} />
+          <ToggleEmailCheckbox subscribed={!contact.unsubscribed} />
         </CardContent>
         <CardFooter>
           <ContactSupportDialog />

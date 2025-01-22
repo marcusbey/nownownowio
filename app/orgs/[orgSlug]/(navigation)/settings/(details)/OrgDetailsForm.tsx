@@ -44,15 +44,19 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
       return result;
     },
     onSuccess: (data) => {
-      if ('data' in data && data.data) {
+      if (data?.data) {
         toast.success("Organization updated successfully");
-        form.reset(data.data);
+        form.reset({
+          name: data.data.name,
+          email: data.data.email ?? undefined,
+          image: data.data.image,
+          bio: data.data.bio ?? undefined,
+          websiteUrl: data.data.websiteUrl ?? undefined,
+        });
         // Only refresh after form state is updated
         setTimeout(() => {
           router.refresh();
         }, 0);
-      } else if ('serverError' in data && data.serverError) {
-        toast.error(data.serverError);
       }
     },
     onError: (error) => {
@@ -92,7 +96,6 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
                   className="size-24 rounded-lg"
                   onChange={(url) => field.onChange(url)}
                   imageUrl={field.value || defaultValues.image || undefined}
-                  showPreview
                 />
               </FormControl>
               <FormDescription>

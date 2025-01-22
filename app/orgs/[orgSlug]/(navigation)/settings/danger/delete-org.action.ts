@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { getResend } from "@/lib/mail/resend";
+import { getResendInstance } from "@/lib/mail/resend";
 import OrgConfirmDeletionEmail from "@/emails/OrgConfirmDeletion.email";
 import { redirect } from "next/navigation";
 import { OrganizationMembershipRole } from "@prisma/client";
@@ -37,7 +37,7 @@ export async function organizationDeleteAction(input: { orgSlug: string }) {
       where: { id: org.id },
     });
 
-    const resendClient = await getResend();
+    const resendClient = await getResendInstance();
     await resendClient.emails.send({
       from: "noreply@nownownow.io",
       subject: `Your organization has been deleted (${org.slug})`,

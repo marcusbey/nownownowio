@@ -10,17 +10,18 @@ async function initResendInstance() {
     resendInstance = new Resend(env.RESEND_API_KEY);
     await resendInstance.init();
   }
+  return resendInstance;
 }
 
 export async function getResendInstance() {
-  await initResendInstance();
-  return resendInstance;
+  return await initResendInstance();
 }
 
 interface SendEmailParams {
   to: string | string[];
   subject: string;
   html?: string;
+  text?: string;
   react?: JSX.Element;
   from?: string;
 }
@@ -36,6 +37,7 @@ export async function sendEmail(params: SendEmailParams) {
     to,
     subject: params.subject,
     html: params.html,
+    text: params.text,
     react: params.react,
   } as any); // Type assertion needed due to Resend types not including react
 }

@@ -9,16 +9,16 @@ import { toast } from "sonner";
 import { toggleSubscribedAction } from "./mail-account.action";
 
 type ToggleEmailCheckboxProps = {
-  unsubscribed: boolean;
+  subscribed: boolean;
 };
 
 export const ToggleEmailCheckbox = ({
-  unsubscribed,
+  subscribed,
 }: ToggleEmailCheckboxProps) => {
   const mutation = useMutation({
-    mutationFn: async (unsubscribed: boolean) => {
+    mutationFn: async (subscribed: boolean) => {
       const result = await toggleSubscribedAction({
-        unsubscribed,
+        subscribed,
       });
 
       if (!result?.data) {
@@ -40,8 +40,8 @@ export const ToggleEmailCheckbox = ({
       )}
     >
       <Checkbox
-        id="unsubscribed-checkbox"
-        defaultChecked={unsubscribed}
+        id="subscribed-checkbox"
+        defaultChecked={subscribed}
         disabled={mutation.isPending}
         onCheckedChange={(checked) => {
           const newChecked = Boolean(checked);
@@ -50,10 +50,9 @@ export const ToggleEmailCheckbox = ({
         }}
       />
       <div className="space-y-1 leading-none">
-        <Label htmlFor="unsubscribed-checkbox">Unsubscribed</Label>
+        <Label htmlFor="subscribed-checkbox">Subscribed</Label>
         <Typography variant="muted">
-          If enabled, you will not receive any marketing or promotional emails
-          from us.
+          If enabled, you will receive marketing or promotional emails from us.
         </Typography>
       </div>
     </div>

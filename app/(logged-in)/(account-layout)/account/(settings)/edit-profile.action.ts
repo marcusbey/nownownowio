@@ -18,6 +18,8 @@ import {
   EditPasswordFormSchema,
   ProfileFormSchema,
 } from "./edit-profile.schema";
+import { Html, Text } from "@react-email/components";
+import ProfileUpdateEmail from "@/emails/ProfileUpdateEmail";
 
 export const updateProfileAction = authAction
   .schema(ProfileFormSchema.and(z.object({ token: z.string().optional() })))
@@ -127,15 +129,9 @@ export const sendUpdateEmailVerificationCodeAction = authAction.action(
     });
 
     await sendEmail({
-      to: [ctx.user.email],
+      to: ctx.user.email,
       subject: "[Action required] Update your profile",
-      html: `
-        <p>Hi,</p>
-        <p>You have requested to update your profile email.</p>
-        <p>Here is your verification code: <strong>${verificationToken.token}</strong></p>
-        <p>⚠️ If you didn't request this, please ignore this email.</p>
-        <p>Best,<br/>The NowNowNow Team</p>
-      `,
+      react: ProfileUpdateEmail({ verificationToken: verificationToken.token }),
     });
 
     return {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createOrganizationQuery } from "../../query/org/org-create.query";
 import { env } from "../env";
 import { getNameFromEmail, getSlugFromUser } from "../format/id";
-import { getResend } from "../mail/resend";
+import { getResendInstance } from "../mail/resend";
 import { prisma } from "../prisma";
 import { logger } from "../logger";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -16,7 +16,7 @@ export const setupResendCustomer = async (user: User) => {
       return;
     }
 
-    const resendClient = await getResend();
+    const resendClient = await getResendInstance();
     const contact = await resendClient.contacts.create({
       email: user.email,
       firstName: user.name ?? "",
@@ -133,7 +133,7 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
 };
 
 export async function getAuthConfig() {
-  const resendClient = await getResend();
+  const resendClient = await getResendInstance();
   
   return {
     adapter: PrismaAdapter(prisma),

@@ -53,13 +53,12 @@ export const notifyUserOfPremiumDowngrade = async (org: Organization) => {
 };
 
 export const notifyUserOfPaymentFailure = async (org: Organization) => {
-  if (!org.email) return;
-  
   await sendEmail({
-    to: org.email,
+    to: org.email ?? "",
     subject: `Action Needed: Complete Your Free Bird Purchase`,
     react: SubscriptionFailedEmail({
-      url: `${getServerUrl()}/${org.slug}/settings/billing`,
+      organizationName: org.name,
+      portalUrl: `${getServerUrl()}/orgs/${org.slug}/settings/billing`,
     }),
   });
 };
