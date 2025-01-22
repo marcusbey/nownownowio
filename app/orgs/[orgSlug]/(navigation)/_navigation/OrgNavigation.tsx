@@ -4,59 +4,54 @@ import { Button } from "@/components/ui/button";
 import { UserDropdown } from "@/features/auth/UserDropdown";
 import { ContactFeedbackPopover } from "@/features/contact/feedback/ContactFeedbackPopover";
 import { NavigationWrapper } from "@/features/navigation/NavigationWrapper";
+import { NavigationSkeleton } from "@/components/skeletons/NavigationSkeleton";
 import { auth } from "@/lib/auth/helper";
-import { prisma } from "@/lib/prisma";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
-import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
 import { redirect } from "next/navigation";
 import { PropsWithChildren } from "react";
 import { OrganizationCommand } from "./OrgCommand";
 import { NavigationLinks } from "./OrgLinks";
 import { OrgsSelect } from "./OrgsSelect";
 import { UpgradeCard } from "./UpgradeCard";
+import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
 
+// Server Component
 export async function OrgNavigation({ children }: PropsWithChildren) {
   const session = await auth();
   if (!session?.user?.email) {
     redirect("/sign-in");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email }
-  });
-
-  if (!user) {
-    redirect("/sign-in");
-  }
-
   const { org, roles } = await getRequiredCurrentOrgCache();
-
   const userOrganizations = await getUsersOrgs();
 
   return (
+    <ClientOrgNavigation 
+      org={org}
+      roles={roles}
+      userOrganizations={userOrganizations}
+      session={session}
+    >
+      {children}
+    </ClientOrgNavigation>
+  );
+}
+
+// Client Component
+function ClientOrgNavigation({ 
+  org, 
+  roles, 
+  userOrganizations, 
+  session,
+  children 
+}: PropsWithChildren<{
+  org: any;
+  roles: string[];
+  userOrganizations: any[];
+  session: any;
+}>) {
+  return (
     <>
-      {/* <div className="sm:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="fixed left-4 top-4 z-50"
-            >
-              <Menu className="size-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] sm:w-[350px]">
-            <NavigationLinks
-              links="organization"
-              variant="mobile"
-              organizationSlug={org.slug}
-              roles={roles}
-            />
-          </SheetContent>
-        </Sheet>
-      </div> */}
       <NavigationWrapper
         logoChildren={
           <OrgsSelect
@@ -66,10 +61,10 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
           >
             <Avatar className="size-8">
               <AvatarFallback>
-                {org.name ? org.name.slice(0, 2).toUpperCase() : user.email?.slice(0, 2).toUpperCase() || "??"}
+                {org.name ? org.name.slice(0, 2).toUpperCase() : session.user.email?.slice(0, 2).toUpperCase() || "??"}
               </AvatarFallback>
-              {(org.image || user.image) && (
-                <AvatarImage src={org.image || user.image} alt={org.name || user.name || "Organization"} />
+              {org.image && (
+                <AvatarImage src={org.image} alt={org.name || "Organization"} />
               )}
             </Avatar>
           </OrgsSelect>
@@ -102,9 +97,9 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
               >
                 <Avatar className="size-8">
                   <AvatarFallback>
-                    {user.name ? user.name.slice(0, 2).toUpperCase() : user.email?.slice(0, 2).toUpperCase() || "??"}
+                    {session.user.name ? session.user.name.slice(0, 2).toUpperCase() : session.user.email?.slice(0, 2).toUpperCase() || "??"}
                   </AvatarFallback>
-                  {user.image && <AvatarImage src={user.image} alt={user.name || "User"} />}
+                  {session.user.image && <AvatarImage src={session.user.image} alt={session.user.name || "User"} />}
                 </Avatar>
               </Button>
             </UserDropdown>
