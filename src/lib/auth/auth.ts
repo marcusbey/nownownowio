@@ -42,8 +42,40 @@ const authConfig = {
         },
       };
     },
+    async jwt({ token, user, account }) {
+      try {
+        if (account && user) {
+          return {
+            ...token,
+            userId: user.id,
+            provider: account.provider,
+          };
+        }
+        return token;
+      } catch (error) {
+        logger.error("[Auth] JWT callback error", { error });
+        return token;
+      }
+    },
+  },
+  events: {
+    async error(error) {
+      if (error.name === "PrismaClientInitializationError") {
+        logger.error("[Auth] Database connection error", {
+          error: error.message,
+          code: error.code,
+        });
+      } else {
+        logger.error("[Auth] Authentication error", {
+          error: error.message,
+          type: error.type,
+        });
+      }
+    },
   },
   secret: env.NEXTAUTH_SECRET,
+  trustHost: true,
+  debug: process.env.NODE_ENV === "development",
 } satisfies NextAuthConfig;
 
 export const { auth, signIn, signOut, handlers } = NextAuth(authConfig);
