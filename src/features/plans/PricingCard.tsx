@@ -22,9 +22,10 @@ import { Badge } from "@/components/ui/badge";
 interface PricingCardProps {
   plan: Plan;
   variant?: "default" | "compact";
+  onSelect: (planId: string) => void;
 }
 
-export function PricingCard({ plan, variant = "default" }: PricingCardProps) {
+export function PricingCard({ plan, variant = "default", onSelect }: PricingCardProps) {
   const router = useRouter();
   const params = useParams();
   const [isYearly, setIsYearly] = useState(false);
@@ -116,12 +117,11 @@ export function PricingCard({ plan, variant = "default" }: PricingCardProps) {
       </CardContent>
       <CardFooter className="p-0 pt-6">
         <Button
-          onClick={handleClick}
-          variant="default"
-          size={variant === "default" ? "lg" : "default"}
           className="w-full"
+          size="lg"
+          onClick={() => onSelect(plan.id)}
         >
-          Upgrade Now
+          Join Community
         </Button>
       </CardFooter>
     </Card>

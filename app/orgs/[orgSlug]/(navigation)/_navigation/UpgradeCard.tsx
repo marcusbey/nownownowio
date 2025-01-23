@@ -37,6 +37,8 @@ export function UpgradeCard() {
   // Check if plan exists and is not FREE
   if (!organization.plan || organization.plan.id !== "FREE") return null;
 
+  const handleClick = () => router.push(`/orgs/${orgSlug}/settings/billing`);
+
   return (
     <Card className="mt-4">
       <CardHeader>
@@ -47,10 +49,12 @@ export function UpgradeCard() {
       </CardHeader>
       <CardContent>
         <Button
-          onClick={() => router.push(`/orgs/${orgSlug}/settings/billing`)}
+          onClick={handleClick}
+          variant="default"
+          size="default"
           className="w-full"
         >
-          Upgrade Now
+          Join Community
         </Button>
       </CardContent>
     </Card>
