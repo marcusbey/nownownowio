@@ -8,7 +8,7 @@ export function AuthCheck() {
 
   if (!session) {
     return (
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/50 p-8 backdrop-blur-xl">
+      <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900/50 p-8 backdrop-blur-xl">
         <SignUpProviders />
       </div>
     );

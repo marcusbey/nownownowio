@@ -1,7 +1,8 @@
 "use client";
 
-import { ProviderButton } from "@/app/auth/ProviderButton";
+import { ProviderButton } from "@/components/auth/ProviderButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
@@ -52,42 +53,61 @@ export const SignUpProviders = () => {
   }
 
   return (
-    <div className="flex min-w-96 flex-col gap-8">
-      {providers.credentials ? (
-        <>
+    <div className="flex w-full flex-col gap-4">
+      {providers.credentials && (
+        <div className="space-y-3">
           <div className="flex flex-col gap-2">
-            {providers.google ? (
-              <ProviderButton providerId="google" action="signup" />
-            ) : null}
-            {providers.twitter ? (
-              <ProviderButton providerId="twitter" action="signup" />
-            ) : null}
-            {providers.github ? (
-              <ProviderButton providerId="github" action="signup" />
-            ) : null}
+            {providers.google && (
+              <ProviderButton
+                providerId="google"
+                action="signup"
+                className="h-10 text-sm"
+              />
+            )}
+            {providers.twitter && (
+              <ProviderButton
+                providerId="twitter"
+                action="signup"
+                className="h-10 text-sm"
+              />
+            )}
+            {providers.github && (
+              <ProviderButton
+                providerId="github"
+                action="signup"
+                className="h-10 text-sm"
+              />
+            )}
           </div>
-          <Divider>or</Divider>
-        </>
-      ) : null}
-      <Link href="/auth/signup">
-        <button type="submit" className="w-full">
-          Create account
-        </button>
-      </Link>
+          <div className="relative">
+            <Divider>
+              <span className="px-2 text-xs text-muted-foreground">or</span>
+            </Divider>
+          </div>
+        </div>
+      )}
 
-      {providers.credentials ? (
-        <Typography variant="small" className="flex justify-center">
+      <Button
+        asChild
+        variant="default"
+        className="h-10 w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-sm text-white hover:from-blue-700 hover:to-indigo-700"
+      >
+        <Link href="/auth/signup">Create account</Link>
+      </Button>
+
+      {providers.credentials && (
+        <Typography variant="small" className="flex justify-center text-xs text-muted-foreground">
           Already have an account?{" "}
           <Typography
             variant="link"
             as={Link}
             href="/auth/signin"
-            className="pl-2"
+            className="pl-2 font-medium text-blue-600 hover:text-blue-500"
           >
             Sign in
           </Typography>
         </Typography>
-      ) : null}
+      )}
     </div>
   );
 };
