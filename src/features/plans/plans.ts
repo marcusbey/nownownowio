@@ -7,12 +7,16 @@ export interface Plan {
   id: string;
   name: string;
   description: string;
+  subtitle?: string;
   features: string[];
   price?: number;
   yearlyPrice?: number;
   priceId?: string;
   yearlyPriceId?: string;
   type: "recurring" | "lifetime";
+  isPopular?: boolean;
+  className?: string;
+  currency?: string;
 }
 
 export const PLANS: Plan[] = [

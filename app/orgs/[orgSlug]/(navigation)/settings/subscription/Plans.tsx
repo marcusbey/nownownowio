@@ -52,13 +52,13 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
       <div className="grid gap-6 lg:grid-cols-2">
         {PLANS.map((plan) => {
           const isCurrentPlan = currentPlan?.id === plan.id;
-          const buttonDisabled = isCurrentPlan || isPending;
+          const buttonDisabled = isCurrentPlan || isPending || !plan.yearlyPriceId || !plan.priceId;
           const currentPrice = isYearly && plan.type === "recurring" ? plan.yearlyPrice || plan.price : plan.price;
           const currentPriceId = isYearly && plan.type === "recurring" ? plan.yearlyPriceId || plan.priceId : plan.priceId;
-          const monthlyPrice = plan.price;
+          const monthlyPrice = plan.price ?? 0;
           const yearlyPrice = plan.yearlyPrice;
           const yearlyMonthlyPrice = yearlyPrice ? yearlyPrice / 12 : null;
-          const savings = yearlyMonthlyPrice ? Math.round((1 - yearlyMonthlyPrice / monthlyPrice) * 100) : 0;
+          const savings = monthlyPrice && yearlyMonthlyPrice ? Math.round((1 - yearlyMonthlyPrice / monthlyPrice) * 100) : 0;
 
           return (
             <Card
@@ -84,7 +84,7 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
                   <p className="text-lg font-bold uppercase text-primary">
                     {plan.name}
                   </p>
-                  <Typography variant="muted">{plan.subtitle}</Typography>
+                  <Typography variant="muted">{plan.subtitle || plan.description}</Typography>
                 </div>
 
                 {/* Pricing Section - Fixed Height */}
@@ -163,7 +163,7 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
                     size="lg"
                     variant={plan.isPopular ? "default" : "outline"}
                     disabled={buttonDisabled}
-                    onClick={() => handleSubscriptionUpdate(currentPriceId)}
+                    onClick={() => currentPriceId && handleSubscriptionUpdate(currentPriceId)}
                   >
                     {isCurrentPlan
                       ? "Current Plan"

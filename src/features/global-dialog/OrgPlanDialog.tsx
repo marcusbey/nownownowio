@@ -24,7 +24,7 @@ export const OrgPlanDialog = () => {
         </DialogHeader>
         <div className="mt-8 flex w-full justify-center gap-4 max-md:flex-col lg:mt-12 lg:gap-8 xl:gap-12">
           {PLANS.map((card, i) => (
-            <PricingCard key={i} {...card} />
+            <PricingCard key={i} plan={card} />
           ))}
         </div>
       </DialogContent>

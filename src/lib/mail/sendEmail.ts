@@ -1,12 +1,15 @@
 "use server";
 
 import { getResendInstance } from "./resend";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
-interface SendEmailParams {
+export interface SendEmailParams {
   to: string | string[];
   subject: string;
   react: React.ReactElement;
   from?: string;
+  replyTo?: string;
 }
 
 /**
@@ -29,6 +32,7 @@ export async function sendEmail(params: SendEmailParams) {
     to,
     subject: params.subject,
     react: params.react,
+    replyTo: params.replyTo,
   } as any);
 
   if (result.error) {

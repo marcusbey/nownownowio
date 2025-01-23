@@ -6,6 +6,7 @@ import { env } from "@/lib/env";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
 import { ContactFeedbackSchema } from "./contact-feedback.schema";
+import { FeedbackEmail } from "../../../../emails/FeedbackEmail";
 
 export const contactSupportAction = action
   .schema(ContactFeedbackSchema)
@@ -26,7 +27,10 @@ export const contactSupportAction = action
     await sendEmail({
       to: env.NEXT_PUBLIC_EMAIL_CONTACT,
       subject: `New feedback from ${email}`,
-      text: `Review: ${feedback.review}\n\nMessage: ${feedback.message}`,
+      react: FeedbackEmail({
+        review: feedback.review,
+        message: feedback.message
+      }),
       replyTo: email,
     });
 

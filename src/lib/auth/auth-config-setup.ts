@@ -22,17 +22,18 @@ export const setupResendCustomer = async (user: User) => {
       firstName: user.name ?? "",
       lastName: "",
       unsubscribed: false,
-    });
+      audienceId: env.RESEND_AUDIENCE_ID,
+    }) as { error?: { message: string }; email?: string };
 
-    if (!contact.id) {
+    if ('error' in contact || !contact) {
       logger.error("setupResendCustomer: Failed to create contact", { 
-        error: contact.error,
+        error: 'error' in contact ? contact.error : 'No contact returned',
         email: user.email 
       });
       return;
     }
 
-    return contact.id;
+    return contact.email;
   } catch (error) {
     logger.error("setupResendCustomer: Unexpected error", { error, user });
     return;
@@ -154,7 +155,13 @@ export async function getAuthConfig() {
         from: env.RESEND_EMAIL_FROM,
         server: "",
         maxAge: 24 * 60 * 60,
-        async sendVerificationRequest({ identifier, url }) {
+        async sendVerificationRequest({ 
+          identifier,
+          url 
+        }: { 
+          identifier: string;
+          url: string;
+        }) {
           try {
             await resendClient.emails.send({
               from: env.RESEND_EMAIL_FROM,
@@ -170,12 +177,31 @@ export async function getAuthConfig() {
       },
     ],
     callbacks: {
-      async signIn({ user }) {
+      async signIn({ 
+        user 
+      }: { 
+        user: { 
+          email: string;
+          name?: string;
+        }
+      }) {
         await setupResendCustomer(user);
         await setupDefaultOrganizationsOrInviteUser(user);
         return true;
       },
-      async session({ session, token }) {
+      async session({ 
+        session,
+        token 
+      }: { 
+        session: { 
+          user?: { 
+            id?: string;
+          }
+        };
+        token: {
+          sub?: string;
+        }
+      }) {
         if (token.sub && session.user) {
           session.user.id = token.sub;
         }

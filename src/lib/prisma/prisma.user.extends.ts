@@ -5,10 +5,10 @@ import {
   DynamicQueryExtensionCb,
   InternalArgs,
 } from "@prisma/client/runtime/library";
-import { env } from "process";
+import { prisma } from "@/lib/prisma";
+import { env } from "@/lib/env";
+import { getResendInstance } from "@/lib/mail/resend";
 import { setupResendCustomer } from "../auth/auth-config-setup";
-import { getResendInstance } from "../mail/resend";
-import { prisma } from "../prisma";
 
 export const onUserUpdate: DynamicQueryExtensionCb<
   Prisma.TypeMap<InternalArgs & DefaultArgs, Prisma.PrismaClientOptions>,
@@ -65,10 +65,15 @@ const syncWithResendContact: DynamicQueryExtensionCb<
     return;
   }
 
-  await resend.contacts.remove({
-    audienceId: env.RESEND_AUDIENCE_ID,
-    id: user.resendContactId,
-  });
+  try {
+    const resend = await getResendInstance();
+    await resend.contacts.remove({
+      audienceId: env.RESEND_AUDIENCE_ID,
+      id: user.resendContactId,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
   const newResendContactId = await setupResendCustomer(user);
 
@@ -147,7 +152,7 @@ const syncWithOrganizations: DynamicQueryExtensionCb<
 };
 
 export const userExtends: Prisma.UserDelegate = {
-  async delete(args) {
+  async delete(args: Prisma.UserDeleteArgs) {
     const resendClient = await getResendInstance();
     const user = await this.findUnique({
       where: args.where,
@@ -157,7 +162,10 @@ export const userExtends: Prisma.UserDelegate = {
     });
 
     if (user?.email) {
-      await resendClient.contacts.delete({ email: user.email });
+      await resendClient.contacts.remove({ 
+        audienceId: env.RESEND_AUDIENCE_ID,
+        email: user.email 
+      });
     }
 
     return this.delete(args);

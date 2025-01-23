@@ -8,7 +8,6 @@ let resendInstance: Resend | null = null;
 async function initResendInstance() {
   if (!resendInstance) {
     resendInstance = new Resend(env.RESEND_API_KEY);
-    await resendInstance.init();
   }
   return resendInstance;
 }
