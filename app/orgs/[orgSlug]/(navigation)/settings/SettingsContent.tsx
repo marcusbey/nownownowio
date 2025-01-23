@@ -39,13 +39,13 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
   );
   
   // Always use owner's profile image if organization image is not set
-  const defaultImage = organization.image || ownerMember?.user.image;
+  const defaultImage = organization.image || ownerMember?.user.image || null;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
     name: organization.name,
     email: organization.email || "",
-    image: defaultImage || null,
+    image: defaultImage,
     bio: organization.bio || "",
     websiteUrl: organization.websiteUrl || "",
   };
