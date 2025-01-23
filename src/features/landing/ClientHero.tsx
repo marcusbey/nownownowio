@@ -25,28 +25,58 @@ export function ClientHero({ children }: ClientHeroProps) {
       {/* Main Content */}
       <div className="relative z-10 flex flex-1 flex-col max-w-7xl mx-auto w-full">
         {/* Upper Section: Tagline and Auth */}
-        <div className="flex flex-col lg:flex-row items-start justify-between px-6 py-12 w-full gap-8">
+        <div className="flex flex-col lg:flex-row items-start justify-between px-6 py-12 w-full gap-6">
           {/* Tagline */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-left lg:max-w-2xl"
+            className="text-left lg:max-w-xl"
           >
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl mb-4">
-              Share Your Journey
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                Build Trust in Real-Time
+            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl mb-6">
+              <span className="block mb-2">Show Your Progress</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                Build Trust Instantly
               </span>
             </h1>
-            <p className="text-lg leading-8 text-gray-300">
-              Transform visitors into loyal customers by sharing your progress as it happens.
-              Create authentic connections and watch your conversion rates soar.
+            <p className="text-lg leading-8 text-gray-300 max-w-lg mb-8">
+              Let your customers see you're working on their needs in real-time. 
+              Companies using NowNowNow see up to 
+              <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400"> 3x more engagement </span>
+              from their audience.
             </p>
+
+            {/* Social Proof Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-lg">
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+                  47%
+                </div>
+                <div className="text-sm text-gray-400">
+                  Faster Project<br />Delivery
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                  3x
+                </div>
+                <div className="text-sm text-gray-400">
+                  More Social<br />Shares
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-blue-400">
+                  89%
+                </div>
+                <div className="text-sm text-gray-400">
+                  Higher Customer<br />Trust
+                </div>
+              </div>
+            </div>
           </motion.div>
 
-          {/* Auth Section - Keep Original */}
-          <div className="w-full lg:w-[400px] lg:min-w-[400px] lg:max-w-[400px]">
+          {/* Auth Section */}
+          <div className="w-full lg:w-[440px] lg:min-w-[440px] lg:max-w-[440px]">
             {children}
           </div>
         </div>
