@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ReactNode } from "react";
+import { HeroContent } from "./HeroContent";
 import { WidgetPreview } from "./WidgetPreview";
 
 interface ClientHeroProps {
@@ -52,14 +53,31 @@ export function ClientHero({ children }: ClientHeroProps) {
 
         {/* Lower Section: Widget Preview */}
         <div className="flex-1 flex items-center justify-center px-6 pb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full"
-          >
-            <WidgetPreview className="shadow-2xl" />
-          </motion.div>
+          <div className="relative w-full">
+            {/* Glow Effect Container */}
+            <div className="absolute inset-0 -z-10">
+              <div className="absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2">
+                {/* Primary large glow */}
+                <div className="absolute inset-0 rounded-full bg-purple-600/70 mix-blend-multiply blur-[120px]" />
+                {/* Secondary intense glow */}
+                <div className="absolute inset-0 rounded-full bg-violet-500/60 mix-blend-multiply blur-[80px]" />
+                {/* Core bright glow */}
+                <div className="absolute inset-0 scale-75 rounded-full bg-fuchsia-400/50 mix-blend-multiply blur-[60px]" />
+              </div>
+            </div>
+
+            {/* Preview Container */}
+            <div className="relative z-10 w-full px-6 lg:px-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="w-full"
+              >
+                <WidgetPreview className="w-full shadow-2xl" />
+              </motion.div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

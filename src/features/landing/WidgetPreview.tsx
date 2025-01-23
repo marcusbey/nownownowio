@@ -68,30 +68,28 @@ export function WidgetPreview({ className }: WidgetPreviewProps): JSX.Element {
           damping: 30
         }}
       >
+        {/* Overlay when panel is open */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-10"
+            />
+          )}
+        </AnimatePresence>
+
         {/* Navigation Bar */}
         <div className="flex items-center justify-between mb-12 max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500" />
             <span className="font-semibold text-xl text-slate-900">Guardian Shield</span>
           </div>
-          <div className="flex items-center gap-8">
-            <div className="hidden sm:flex gap-8 text-sm">
-              <span className="text-slate-600 hover:text-slate-900 cursor-pointer">Coverage</span>
-              <span className="text-slate-600 hover:text-slate-900 cursor-pointer">Claims</span>
-              <span className="text-slate-600 hover:text-slate-900 cursor-pointer">Support</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(!isOpen)}
-              className={cn(
-                "h-10 w-10 rounded-full bg-amber-400 hover:bg-amber-500 text-slate-900",
-                "shadow-lg hover:shadow-xl transition-all duration-200",
-                "border-2 border-amber-500/20"
-              )}
-            >
-              {isOpen ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-            </Button>
+          <div className="hidden sm:flex gap-8 text-sm">
+            <span className="text-slate-600 hover:text-slate-900 cursor-pointer">Coverage</span>
+            <span className="text-slate-600 hover:text-slate-900 cursor-pointer">Claims</span>
+            <span className="text-slate-600 hover:text-slate-900 cursor-pointer">Support</span>
           </div>
         </div>
 
@@ -147,6 +145,20 @@ export function WidgetPreview({ className }: WidgetPreviewProps): JSX.Element {
             ))}
           </div>
         </div>
+
+        {/* Fixed Position Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn(
+            "fixed bottom-8 left-8 h-16 w-16 rounded-full bg-amber-400 hover:bg-amber-500 text-slate-900",
+            "shadow-lg hover:shadow-xl transition-all duration-200",
+            "border-2 border-amber-500/20"
+          )}
+        >
+          {isOpen ? <ChevronLeft className="h-8 w-8" /> : <ChevronRight className="h-8 w-8" />}
+        </Button>
       </motion.div>
 
       {/* Sliding Panel */}
