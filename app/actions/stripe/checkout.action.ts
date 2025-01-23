@@ -6,7 +6,7 @@ import { createStripeCheckoutSession } from "@/lib/stripe";
 import { redirect } from "next/navigation";
 import { createStripeCustomer } from "./customer.action";
 
-export async function createCheckoutSession(priceId: string) {
+export async function createCheckoutSession(priceId: string, orgSlug: string) {
   const session = await auth();
   if (!session?.user?.email) {
     throw new Error("Not authenticated");
@@ -42,8 +42,9 @@ export async function createCheckoutSession(priceId: string) {
   const checkoutSession = await createStripeCheckoutSession({
     priceId,
     customerId: stripeCustomerId,
-    successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/account/billing?success=true`,
-    cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/account/billing?canceled=true`,
+    origin: process.env.NEXT_PUBLIC_APP_URL!,
+    orgSlug,
+    orgId: organization.id,
   });
 
   if (!checkoutSession.url) {

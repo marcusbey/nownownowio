@@ -13,7 +13,7 @@ export async function getStripeInstance() {
     
     stripeInstance = new Stripe(secretKey, {
       typescript: true,
-      apiVersion: '2023-10-16',
+      apiVersion: '2024-06-20',
     });
   }
   return stripeInstance;
@@ -117,21 +117,24 @@ export async function getPromotionCodeStats(code: string) {
 }
 
 export async function createStripeCheckoutSession(params: {
+  origin: string;
+  orgSlug: string;
+  orgId: string;
   priceId: string;
   customerId: string;
-  successUrl: string;
-  cancelUrl: string;
-  promotionCode?: string;
 }) {
   const stripe = await getStripeInstance();
   return stripe.checkout.sessions.create({
     customer: params.customerId,
     line_items: [{ price: params.priceId, quantity: 1 }],
     mode: 'subscription',
-    success_url: params.successUrl,
-    cancel_url: params.cancelUrl,
-    allow_promotion_codes: true,
-    promotion_code: params.promotionCode,
+    success_url: `${params.origin}/orgs/${params.orgSlug}/settings/subscription?success=true`,
+    cancel_url: `${params.origin}/orgs/${params.orgSlug}/settings/subscription?canceled=true`,
+    subscription_data: {
+      metadata: {
+        orgId: params.orgId,
+      },
+    },
   });
 }
 
