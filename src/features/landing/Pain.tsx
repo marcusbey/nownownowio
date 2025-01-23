@@ -11,31 +11,31 @@ export const PainSection = () => {
       className="flex flex-col items-center justify-center gap-4"
     >
       <div className="flex w-full flex-col items-center gap-3 lg:gap-4 xl:gap-6">
-        <Typography variant="h1">I love posting on Threads...</Typography>
+        <Typography variant="h1">Keeping Your Site Up-to-Date...</Typography>
         <Typography variant="large">
-          But I loose my time going and publishing each days
+          Your deployment page shouldn't be a static wasteland of outdated information
         </Typography>
         <div className="flex items-start gap-4 max-lg:flex-col">
           <div className="flex-1 rounded-lg bg-red-500/20 p-4 lg:p-6">
             <Typography variant="h3" className="text-red-500">
-              😞 Posting without Threader
+              😞 Static Deployment Pages
             </Typography>
             <ul className="ml-4 mt-4 flex list-disc flex-col gap-2 text-lg text-foreground/80">
-              <li>Going on Thread every day to post</li>
-              <li>Be distracted when I go on the app</li>
-              <li>Losing track of my post</li>
-              <li>Incosistent</li>
+              <li>Outdated status information</li>
+              <li>Manual deployment updates</li>
+              <li>No real-time progress tracking</li>
+              <li>Users left guessing about changes</li>
             </ul>
           </div>
           <div className="flex-1 rounded-lg bg-green-500/20 p-4 lg:p-6">
             <Typography variant="h3" className="text-green-500">
-              😎 Posting WITH Threader
+              😎 Dynamic with NowNowNow
             </Typography>
             <ul className="ml-4 mt-4 flex list-disc flex-col gap-2 text-lg text-foreground/80">
-              <li>Schedule your post on the Threader UI</li>
-              <li>Avoiding opening the app every day</li>
-              <li>See excatly what you have scheduled</li>
-              <li>Be consistent</li>
+              <li>Live deployment status updates</li>
+              <li>Real-time feature rollouts</li>
+              <li>Automated changelog generation</li>
+              <li>Users always in the loop</li>
             </ul>
           </div>
         </div>
