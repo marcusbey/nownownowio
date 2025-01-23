@@ -1,0 +1,8 @@
+# Lock critical files
+src/lib/prisma/prisma.user.extends.ts lockfile
+src/lib/auth/auth-config-setup.ts lockfile
+app/orgs/[orgSlug]/(navigation)/settings/subscription/Plans.tsx lockfile
+src/features/contact/support/contact-support.action.ts lockfile
+
+# Merge strategies
+*.lockfile merge=binary

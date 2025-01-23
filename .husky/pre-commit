@@ -1,0 +1,18 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check for changes in locked files
+protected_files=(
+  "src/lib/prisma/prisma.user.extends.ts"
+  "src/lib/auth/auth-config-setup.ts"
+  "app/orgs/[orgSlug]/(navigation)/settings/subscription/Plans.tsx"
+  "src/features/contact/support/contact-support.action.ts"
+)
+
+for file in "${protected_files[@]}"; do
+  if git diff --cached --name-only | grep -q "^$file$"; then
+    echo "Error: $file is locked and cannot be modified."
+    echo "Please contact the team lead if changes are necessary."
+    exit 1
+  fi
+done
