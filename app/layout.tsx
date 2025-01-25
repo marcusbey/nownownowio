@@ -1,41 +1,32 @@
-import { TailwindIndicator } from "@/components/utils/TailwindIndicator";
-import { FloatingLegalFooter } from "@/features/legal/FloatingLegalFooter";
-import { NextTopLoader } from "@/features/page/NextTopLoader";
-import { getServerUrl } from "@/lib/server-url";
-import { cn } from "@/lib/utils";
-import { SiteConfig } from "@/site-config";
-import type { LayoutParams } from "@/types/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
-import type { Metadata } from "next";
-import PlausibleProvider from "next-plausible";
-import type { ReactNode } from "react";
+import { Metadata } from "next";
 import { Suspense } from "react";
+import { cn } from "@/lib/utils";
 import "./code-theme.scss";
 import "./globals.scss";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: SiteConfig.title,
-  description: SiteConfig.description,
-  metadataBase: new URL(getServerUrl()),
+  title: "NowNowNow - Modern Social Platform for Organizations",
+  description: "Connect, share, and engage with your organization in real-time.",
 };
 
-const NonCriticalUI = () => (
-  <Suspense fallback={null}>
-    <TailwindIndicator />
-    <FloatingLegalFooter />
-  </Suspense>
-);
+const fontSans = GeistSans;
+const fontMono = GeistMono;
 
 export default function RootLayout({
   children,
   modal,
-}: LayoutParams & { modal: ReactNode }) {
+}: {
+  children: React.ReactNode;
+  modal: React.ReactNode;
+}) {
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <PlausibleProvider domain={SiteConfig.domain} />
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="theme-color" content="#000000" />
       </head>
       <body
         suppressHydrationWarning
@@ -47,11 +38,6 @@ export default function RootLayout({
       >
         <Providers>
           <div className="flex h-full flex-col">
-            <NextTopLoader
-              delay={100}
-              showSpinner={false}
-              color="hsl(var(--primary))"
-            />
             <Suspense fallback={
               <div className="flex h-full items-center justify-center">
                 <div className="animate-pulse">Loading...</div>
@@ -63,14 +49,35 @@ export default function RootLayout({
               {modal}
             </Suspense>
           </div>
-          <NonCriticalUI />
         </Providers>
         <script
           defer
-          data-website-id="671fb98a7acececdf6464e99"
           data-domain="nownownow.io"
           src="https://datafa.st/js/script.js"
         />
+        {process.env.NODE_ENV === 'development' ? (
+          <script 
+            defer 
+            src="http://localhost:5173/dist/now-widget.js" 
+            data-user-id="OeoG_hDne0W" 
+            data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJPZW9HX2hEbmUwVyIsImlhdCI6MTczNzY1ODQ1MiwiZXhwIjoxNzM3NzQ0ODUyfQ.cvLxlsllkFo1CX3SHZF0vtx3d0FvIt5p26S6nVYqBhY" 
+            data-theme="dark" 
+            data-position="left" 
+            data-button-color="#1a73e8" 
+            data-button-size="90"
+          />
+        ) : (
+          <script 
+            defer 
+            src="https://widget.nownownow.io/now-widget.js"
+            data-user-id="OeoG_hDne0W" 
+            data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJPZW9HX2hEbmUwVyIsImlhdCI6MTczNzY1ODQ1MiwiZXhwIjoxNzM3NzQ0ODUyfQ.cvLxlsllkFo1CX3SHZF0vtx3d0FvIt5p26S6nVYqBhY" 
+            data-theme="dark" 
+            data-position="left" 
+            data-button-color="#1a73e8" 
+            data-button-size="90"
+          />
+        )}
       </body>
     </html>
   );

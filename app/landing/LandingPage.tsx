@@ -11,8 +11,7 @@ import { Footer } from "@/features/layout/Footer";
 import { BentoSection } from "@/features/landing/BentoSection";
 import { ClientPricingSection } from "@/features/plans/ClientPricingSection";
 import { WidgetShowcase } from "@/features/landing/WidgetShowcase";
-// import { BentoGridSection } from "@/features/landing/BentoSection";
-// import { LogoCarousel } from "@/features/landing/LogoCarousel";
+import { Suspense } from "react";
 
 export default function LandingPage() {
   return (
@@ -22,7 +21,13 @@ export default function LandingPage() {
       <LandingHeader />
 
       {/* 1. Hero with communities banner */}
-      <Hero />
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-4 border-indigo-500 rounded-full animate-spin border-t-transparent"></div>
+        </div>
+      }>
+        <Hero />
+      </Suspense>
       {/* <LogoCarousel /> */}
 
       {/* <SectionDivider /> */}
@@ -35,9 +40,6 @@ export default function LandingPage() {
 
       {/* 3. How it works */}
       <WidgetShowcase />
-
-
-      <SectionDivider />
 
       {/* 4. Benefits */}
       {/* <BentoGridSection /> */}
