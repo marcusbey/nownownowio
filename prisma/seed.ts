@@ -1,10 +1,10 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prismaClient = new PrismaClient();
 
 async function main() {
   // Create or update the Free plan
-  await prisma.organizationPlan.upsert({
+  await prismaClient.organizationPlan.upsert({
     where: { id: 'FREE' },
     update: {
       name: 'Free',
@@ -18,16 +18,16 @@ async function main() {
   });
 
   // Create or update the Free Bird plan
-  await prisma.organizationPlan.upsert({
-    where: { id: 'FREEBIRD' },
+  await prismaClient.organizationPlan.upsert({
+    where: { id: 'FREE_BIRD' },
     update: {
       name: 'Free Bird',
-      maximumMembers: 1,
+      maximumMembers: 5,
     },
     create: {
-      id: 'FREEBIRD',
+      id: 'FREE_BIRD',
       name: 'Free Bird',
-      maximumMembers: 1,
+      maximumMembers: 5,
     },
   });
 }
@@ -38,5 +38,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await prismaClient.$disconnect();
   });

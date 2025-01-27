@@ -4,12 +4,19 @@ import { Typography } from "@/components/ui/typography";
 import { PricingCard } from "./PricingCard";
 import { PLANS } from "./plans";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface ClientPricingSectionProps {
   variant?: "default" | "compact";
 }
 
 export function ClientPricingSection({ variant = "default" }: ClientPricingSectionProps) {
+  const router = useRouter();
+
+  const handlePlanSelect = (planId: string) => {
+    router.push(`/sign-up?plan=${planId}`);
+  };
+
   return (
     <div>
       {variant === "default" && (
@@ -34,6 +41,7 @@ export function ClientPricingSection({ variant = "default" }: ClientPricingSecti
             key={plan.id} 
             plan={plan} 
             variant={variant}
+            onSelect={handlePlanSelect}
           />
         ))}
       </div>

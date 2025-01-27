@@ -42,13 +42,25 @@ interface WidgetPreviewProps {
 export function WidgetPreview({ className }: WidgetPreviewProps): JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isMounted, setIsMounted] = useState<boolean>(false);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
   useEffect(() => {
     setIsMounted(true);
-    return () => setIsMounted(false);
+    return () => {
+      setIsOpen(false);
+      setIsMounted(false);
+      setIsAnimating(false);
+    };
   }, []);
 
   if (!isMounted) return <></>;
+
+  const handleToggle = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setIsOpen(prev => !prev);
+    setTimeout(() => setIsAnimating(false), 300);
+  };
 
   return (
     <div className={cn("relative w-full overflow-hidden rounded-lg bg-background/5 backdrop-blur-sm", className)}>
@@ -150,7 +162,7 @@ export function WidgetPreview({ className }: WidgetPreviewProps): JSX.Element {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggle}
           className={cn(
             "fixed bottom-8 left-8 h-16 w-16 rounded-full bg-amber-400 hover:bg-amber-500 text-slate-900",
             "shadow-lg hover:shadow-xl transition-all duration-200",
@@ -184,7 +196,7 @@ export function WidgetPreview({ className }: WidgetPreviewProps): JSX.Element {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsOpen(false)}
+              onClick={handleToggle}
               className="h-8 w-8 text-slate-400 hover:text-slate-200"
             >
               <X className="h-4 w-4" />

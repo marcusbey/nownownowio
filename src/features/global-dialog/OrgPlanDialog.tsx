@@ -8,8 +8,16 @@ import {
 import { PLANS } from "../plans/plans";
 import { PricingCard } from "../plans/PricingCard";
 import { closeGlobalDialog } from "./GlobalDialogStore";
+import { useRouter } from "next/navigation";
 
 export const OrgPlanDialog = () => {
+  const router = useRouter();
+
+  const handlePlanSelect = (planId: string) => {
+    closeGlobalDialog();
+    router.push(`/sign-up?plan=${planId}`);
+  };
+
   return (
     <Dialog open={true} onOpenChange={() => closeGlobalDialog()}>
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-auto px-8 py-6 lg:px-16 lg:py-14">
@@ -24,7 +32,11 @@ export const OrgPlanDialog = () => {
         </DialogHeader>
         <div className="mt-8 flex w-full justify-center gap-4 max-md:flex-col lg:mt-12 lg:gap-8 xl:gap-12">
           {PLANS.map((card, i) => (
-            <PricingCard key={i} plan={card} />
+            <PricingCard 
+              key={i} 
+              plan={card} 
+              onSelect={handlePlanSelect}
+            />
           ))}
         </div>
       </DialogContent>

@@ -7,6 +7,7 @@ import { Plan, PLANS } from "./plans";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface PricingSectionProps {
   variant?: "default" | "compact";
@@ -14,6 +15,11 @@ interface PricingSectionProps {
 
 export function PricingSection({ variant = "default" }: PricingSectionProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handlePlanSelect = (planId: string) => {
+    router.push(`/sign-up?plan=${planId}`);
+  };
 
   return (
     <SectionLayout id="pricing">
@@ -51,6 +57,7 @@ export function PricingSection({ variant = "default" }: PricingSectionProps) {
               key={plan.id} 
               plan={plan} 
               variant={variant}
+              onSelect={handlePlanSelect}
             />
           ))
         )}
