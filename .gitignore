@@ -25,6 +25,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
+.env.*
+!.env.example
 .env*.local
 
 # vercel
@@ -32,9 +35,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-
-# .env
-# .env.local
 
 .cursorrules
 
