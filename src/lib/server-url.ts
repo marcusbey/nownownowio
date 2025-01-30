@@ -1,4 +1,5 @@
 import { SiteConfig } from "@/site-config";
+import { env } from "@/lib/env";
 
 /**
  * This method returns the server URL based on the environment.
@@ -14,14 +15,6 @@ export const getServerUrl = () => {
     return `https://${process.env.VERCEL_URL}`;
   }
 
-  // Fallback to NEXTAUTH_URL or localhost
-  const nextAuthUrl = process.env.NEXTAUTH_URL?.replace(/\/+$/, "");
-  if (nextAuthUrl) {
-    // Ensure URL uses HTTPS unless it's localhost
-    return nextAuthUrl.startsWith('http://localhost') 
-      ? nextAuthUrl 
-      : nextAuthUrl.replace('http://', 'https://');
-  }
-
-  return "http://localhost:3000";
+  // Use NEXT_PUBLIC_BASE_URL from env
+  return env.NEXT_PUBLIC_BASE_URL;
 };
