@@ -23,9 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
   modal: React.ReactNode;
 }) {
-  const widgetUrl = process.env.NODE_ENV === 'development' 
-    ? "http://localhost:5173/dist/now-widget.js"
-    : `${env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js`;
+  const widgetUrl = `${env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js`;
 
   return (
     <html lang="en" suppressHydrationWarning>
