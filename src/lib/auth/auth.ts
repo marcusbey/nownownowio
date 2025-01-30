@@ -34,13 +34,21 @@ const authConfig = {
   },
   callbacks: {
     async session({ session, user }) {
-      return {
+      if (!session?.user) return session;
+      
+      const cachedSession = await getCachedSession(session.user.id);
+      if (cachedSession) return cachedSession;
+
+      const enhancedSession = {
         ...session,
         user: {
           ...session.user,
           id: user.id,
         },
       };
+
+      setCachedSession(user.id, enhancedSession);
+      return enhancedSession;
     },
     async jwt({ token, user, account }) {
       try {
@@ -90,32 +98,8 @@ const authConfig = {
 
 export const { auth, signIn, signOut, handlers } = NextAuth(authConfig);
 
-// Export auth config for use in API routes
-export const authOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers: getNextAuthConfigProviders(),
-  pages: {
-    signIn: "/auth/signin",
-    signOut: "/auth/signout",
-    error: "/auth/error",
-    verifyRequest: "/auth/verify-request",
-    newUser: "/orgs",
-  },
-  session: {
-    strategy: "database",
-    maxAge: 365 * 24 * 60 * 60, // 1 year
-    updateAge: 7 * 24 * 60 * 60, // Refresh weekly
-  },
-  callbacks: authConfig.callbacks,
-  events: {
-    async createUser({ user }: { user: User }) {
-      await setupDefaultOrganizationsOrInviteUser(user);
-    },
-  },
-  secret: env.NEXTAUTH_SECRET,
-  trustHost: true,
-  debug: false,
-};
+// Export auth config for API routes
+export const authOptions = authConfig;
 
 export async function handleOAuthSignIn(profile: {
   email: string;

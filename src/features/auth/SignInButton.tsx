@@ -45,10 +45,13 @@ export const LoggedInButton = ({
     <UserDropdown>
       <button className="group size-9 rounded-full">
         <Avatar className="mr-2 size-full group-active:scale-95">
+          <AvatarImage 
+            src={user.image || "/images/avatar-placeholder.png"} 
+            alt={user.name || user.email}
+          />
           <AvatarFallback className="bg-card">
-            {user.email.slice(0, 1).toUpperCase()}
+            {user.name?.slice(0, 1).toUpperCase() || user.email.slice(0, 1).toUpperCase()}
           </AvatarFallback>
-          {user.image && <AvatarImage src={user.image} />}
         </Avatar>
       </button>
     </UserDropdown>
