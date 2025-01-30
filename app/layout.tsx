@@ -57,24 +57,26 @@ export default function RootLayout({
         />
         {process.env.NODE_ENV === 'development' ? (
           <script 
-            defer 
+            defer
+            type="module"
             src="http://localhost:5173/dist/now-widget.js" 
             data-user-id="OeoG_hDne0W" 
             data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJPZW9HX2hEbmUwVyIsImlhdCI6MTczNzY1ODQ1MiwiZXhwIjoxNzM3NzQ0ODUyfQ.cvLxlsllkFo1CX3SHZF0vtx3d0FvIt5p26S6nVYqBhY" 
             data-theme="dark" 
             data-position="left" 
-            data-button-color="#1a73e8" 
+            data-button-color="#1a348e" 
             data-button-size="90"
           />
         ) : (
           <script 
             defer 
+            type="module"
             src="https://widget.nownownow.io/now-widget.js"
             data-user-id="OeoG_hDne0W" 
             data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJPZW9HX2hEbmUwVyIsImlhdCI6MTczNzY1ODQ1MiwiZXhwIjoxNzM3NzQ0ODUyfQ.cvLxlsllkFo1CX3SHZF0vtx3d0FvIt5p26S6nVYqBhY" 
             data-theme="dark" 
             data-position="left" 
-            data-button-color="#1a73e8" 
+            data-button-color="#1a348e" 
             data-button-size="90"
           />
         )}

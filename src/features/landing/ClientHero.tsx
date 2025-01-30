@@ -97,7 +97,7 @@ export function ClientHero({ children }: ClientHeroProps) {
             </div>
 
             {/* Preview Container */}
-            <div className="relative z-10 w-full px-6 lg:px-8">
+            <div className="relative z-10 w-full">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

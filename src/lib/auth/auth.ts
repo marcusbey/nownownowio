@@ -59,16 +59,26 @@ const authConfig = {
     },
   },
   events: {
-    async error(error) {
-      if (error.name === "PrismaClientInitializationError") {
-        logger.error("[Auth] Database connection error", {
-          error: error.message,
-          code: error.code,
-        });
-      } else {
-        logger.error("[Auth] Authentication error", {
-          error: error.message,
-          type: error.type,
+    async signIn({ user }) {
+      logger.info("[Auth] User signed in", {
+        userId: user.id,
+      });
+    },
+    async createUser({ user }) {
+      logger.info("[Auth] User created", {
+        userId: user.id,
+      });
+    },
+    async linkAccount({ user, account }) {
+      logger.info("[Auth] Account linked", {
+        userId: user.id,
+        provider: account.provider,
+      });
+    },
+    async session({ session }) {
+      if (session?.user) {
+        logger.info("[Auth] Session created", {
+          userId: session.user.id,
         });
       }
     },

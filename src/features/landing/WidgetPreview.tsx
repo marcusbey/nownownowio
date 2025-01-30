@@ -109,9 +109,9 @@ export function WidgetPreview({ className }: WidgetPreviewProps): JSX.Element {
         <div className="space-y-16 max-w-7xl mx-auto">
           <div className="space-y-6">
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900">
-              Protect What
+              Your website
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500">
-                Matters Most
+                home page
               </span>
             </h1>
             <p className="text-lg text-slate-600 max-w-lg">
