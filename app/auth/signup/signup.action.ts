@@ -54,6 +54,14 @@ export const signUpAction = action
       // Send verification email using Resend
       try {
         const resendClient = await getResendInstance();
+        
+        // Log email attempt
+        logger.info('Attempting to send verification email', { 
+          to: user.email,
+          from: env.RESEND_EMAIL_FROM,
+          nextAuthUrl: env.NEXTAUTH_URL
+        });
+
         const emailResult = await resendClient.emails.send({
           from: env.RESEND_EMAIL_FROM,
           to: user.email,
@@ -63,17 +71,22 @@ export const signUpAction = action
             <p>Please verify your email address by clicking the link below:</p>
             <a href="${env.NEXTAUTH_URL}/auth/verify?token=${token.token}">Verify Email</a>
             <p>This link will expire in 24 hours.</p>
+            <p>If you didn't request this email, please ignore it.</p>
           `,
         });
         
-        logger.info('Verification email sent', { 
+        logger.info('Verification email sent successfully', { 
           userId: user.id, 
-          emailId: emailResult.id 
+          to: user.email,
+          from: env.RESEND_EMAIL_FROM
         });
       } catch (emailError) {
         logger.error('Failed to send verification email', { 
-          error: emailError, 
-          userId: user.id 
+          error: emailError,
+          userId: user.id,
+          to: user.email,
+          from: env.RESEND_EMAIL_FROM,
+          nextAuthUrl: env.NEXTAUTH_URL
         });
         // Don't throw here - user is created but email failed
         // They can request a new verification email later
