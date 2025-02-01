@@ -3,13 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function OPTIONS(req: NextRequest) {
-    const origin = req.headers.get('origin');
-
-    if (origin) {
-        return new NextResponse(null, {
-            status: 204,
-            headers: {
-                'Access-Control-Allow-Origin': origin,
+    return new NextResponse(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
                 'Access-Control-Max-Age': '86400', // Cache preflight response for 1 day
@@ -17,18 +14,10 @@ export async function OPTIONS(req: NextRequest) {
         });
     }
 
-    return new NextResponse(null, { status: 403 });
-}
 
 export async function GET(req: NextRequest) {
-    const origin = req.headers.get('origin');
-
-    if (!origin) {
-        return new NextResponse(null, { status: 403 });
-    }
-
     const headers = {
-        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
