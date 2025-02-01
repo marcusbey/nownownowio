@@ -1,20 +1,20 @@
 # Lock critical files
-src/lib/prisma/prisma.user.extends.ts lockfile
-src/lib/auth/auth-config-setup.ts lockfile
-app/orgs/[orgSlug]/(navigation)/settings/subscription/Plans.tsx lockfile
-src/features/contact/support/contact-support.action.ts lockfile
-src/lib/auth/auth.ts lockfile
-src/lib/auth/session-cache.ts lockfile
-src/features/navigation/LogInNavigationWrapper.tsx lockfile
-src/features/navigation/NavigationWrapper.tsx lockfile
-src/lib/organizations/getOrg.ts lockfile
-src/lib/metadata.ts lockfile
-src/lib/env.ts lockfile
-src/lib/logger.ts lockfile
-prisma/schema.prisma lockfile
-src/features/auth/SignInButton.tsx lockfile
-src/features/auth/AuthButton.tsx lockfile
-src/components/ui/avatar.tsx lockfile
+# src/lib/prisma/prisma.user.extends.ts lockfile
+# src/lib/auth/auth-config-setup.ts lockfile
+# app/orgs/[orgSlug]/(navigation)/settings/subscription/Plans.tsx lockfile
+# src/features/contact/support/contact-support.action.ts lockfile
+# src/lib/auth/auth.ts lockfile
+# src/lib/auth/session-cache.ts lockfile
+# src/features/navigation/LogInNavigationWrapper.tsx lockfile
+# src/features/navigation/NavigationWrapper.tsx lockfile
+# src/lib/organizations/getOrg.ts lockfile
+# src/lib/metadata.ts lockfile
+# src/lib/env.ts lockfile
+# src/lib/logger.ts lockfile
+# prisma/schema.prisma lockfile
+# src/features/auth/SignInButton.tsx lockfile
+# src/features/auth/AuthButton.tsx lockfile
+# src/components/ui/avatar.tsx lockfile
 
 # Merge strategies
 *.lockfile merge=binary
