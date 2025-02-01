@@ -1,0 +1,464 @@
+# NowNowNow Product Requirements Document
+
+## 1. Authentication & Access Control
+
+### 1.1 User Registration
+
+#### 1.1.1 Magic Link Flow
+
+A. New Email Registration
+- User enters new email on signup form
+  - System validates email format
+  - If email is new:
+    - Send magic link email
+    - Show "Check your email" message
+    - Email contains validation button/link
+    - User clicks validation link
+    - System creates new account
+    - Auto sign in user
+    - Redirect to "/for-you" feed page
+
+B. Existing Email Handling
+- User enters existing email on signup form
+  - System checks email existence
+  - If email exists:
+    - Show sign-in modal automatically
+    - Pre-fill email in sign-in form
+    - Offer options:
+      1. Request new magic link for sign-in
+      2. Use password if set
+      3. Use available OAuth providers
+    - If user requests magic link:
+      - Send sign-in magic link
+      - Show "Check your email" message
+    - If user chooses OAuth:
+      - Initiate provider flow
+      - Link accounts if needed
+
+C. Magic Link Validation States
+- Valid magic link clicked
+  - For new email → Create account & sign in
+  - For existing email → Sign in to existing account
+  - Update last login timestamp
+  - Set authentication session
+  - Redirect to "/for-you" page
+
+- Invalid magic link scenarios
+  - Expired link → Show expiration message with new link request option
+  - Already used link → Show "Link already used" with sign-in option
+  - Tampered link → Show security warning
+  - Link for deleted account → Show account recovery option
+
+#### 1.1.2 Provider Registration (OAuth)
+- User clicks provider button (Google/Twitter)
+  - System initiates OAuth flow
+  - Provider authentication window opens
+  - User authorizes application
+  - Provider returns OAuth tokens
+  - System creates new user account
+  - Auto sign in user
+  - Redirect to "/for-you" feed page
+  - If provider email exists → Link accounts
+  - If error during OAuth → Show error message
+
+#### 1.1.3 Multi-Device & Multi-Provider Scenarios
+
+- Cross-Device Authentication
+  - User logged in on Device A, attempts login on Device B
+    - Show active session notification on both devices
+    - Option to maintain both sessions or force logout others
+    - Real-time session status updates across devices
+    - Handle connection loss between devices
+  
+- Multiple Provider Authentication
+  - User signs up with Google, later uses LinkedIn
+    - Check email match across providers
+    - If match → Link accounts automatically
+    - If no match → Ask user if they want to link accounts
+    - Maintain provider-specific tokens separately
+  
+- Account Merging Scenarios
+  - User has multiple accounts with different providers
+    - Provide account merging interface
+    - Migrate all data (posts, follows, etc.) to primary account
+    - Handle conflicts (e.g., different display names)
+    - Allow user to choose primary account
+  
+- Session Management
+  - Track all active sessions
+    - Display list of active devices/locations
+    - Allow individual session termination
+    - Force logout from all devices option
+    - Session timeout policies per device
+  
+- Security Considerations
+  - Suspicious login detection
+    - New device/location alerts
+    - Unusual activity patterns
+    - Multiple failed attempts across devices
+  - Provider token management
+    - Handle expired provider tokens
+    - Refresh token rotation
+    - Provider disconnection handling
+
+#### 1.1.4 Error Scenarios
+- Invalid email format
+  - Show immediate validation error
+  - Disable submit button until fixed
+- Network failure
+  - Show connection error message
+  - Allow retry
+- Rate limiting
+  - Show "Too many attempts" message
+  - Indicate wait time before retry
+- Provider errors
+  - Handle OAuth failure gracefully
+  - Show provider-specific error messages
+- Email delivery failure
+  - Show "Unable to send email" message
+  - Offer resend option
+
+#### 1.2.1 Credential-Based Authentication
+
+A. Sign In Options Display
+- User arrives at sign-in modal/page
+  - System shows both options:
+    1. Password input field
+    2. "Sign in with Magic Link" button
+  - Email field is common for both methods
+  - Clear toggle between methods
+  - Remember last used method
+
+B. Password Authentication
+- User chooses password method
+  - Enter email and password
+  - Validate credentials
+  - If valid:
+    - Create session
+    - Redirect to "/for-you"
+  - If invalid:
+    - Show error message
+    - Increment failed attempt counter
+    - Suggest magic link after 3 failed attempts
+    - Lock password attempts after 5 fails (15 min)
+
+C. Magic Link Option
+- User chooses magic link
+  - Enter email (or pre-filled if known)
+  - Send magic link email
+  - Show "Check your email" message
+  - Link expires in 10 minutes
+  - One-time use only
+  - Previous links invalidated when new one sent
+
+D. Concurrent Authentication Methods
+- Handling multiple sign-in attempts:
+  - User requests magic link, then tries password:
+    - Both methods remain valid
+    - First successful method wins
+    - Other method invalidated after successful login
+  
+  - User enters wrong password, switches to magic link:
+    - Reset failed password counter
+    - Previous magic links remain valid
+    - Success with either method acceptable
+
+E. Security Considerations
+- Rate limiting across both methods
+  - Combined attempt limit (10 per hour)
+  - Separate tracking for password/magic link
+  - IP-based rate limiting
+  
+- Account protection
+  - Notify user of authentication method switch
+  - Alert on multiple failed attempts
+  - Log authentication method used
+  - Option to disable either method
+  - Require recent authentication for sensitive actions
+
+### 1.3 Organization Access
+- Organization membership
+  - No organization → Redirect to org creation
+  - Invalid organization → Show 404
+  - Insufficient permissions → Show access denied
+  - Role-based access → Validate permissions
+  - Organization switching → Update context
+  - Multiple memberships → Handle navigation
+
+## 2. Organization Management
+
+### 2.1 Organization Creation
+- New organization setup
+  - Valid organization details → Success
+  - Duplicate slug → Show error
+  - Invalid data → Show validation
+  - Free tier limits → Enforce restrictions
+  - Premium features → Available based on plan
+  - Initial owner role → Automatically assigned
+
+### 2.2 Member Management
+- Member operations
+  - Invite new members → Send email
+  - Accept invitation → Join organization
+  - Decline invitation → Remove invite
+  - Remove member → Update permissions
+  - Change roles → Update access
+  - Exceed member limit → Show upgrade prompt
+
+## 3. Widget System
+
+### 3.1 Free Tier Widget
+- Basic widget functionality
+  - Generate embed script → Limited features
+  - Display last post only → Enforce limit
+  - Show upgrade banner → Premium promotion
+  - Basic customization → Limited options
+  - Widget preview → Show limitations
+  - Performance metrics → Basic tracking
+
+### 3.2 Premium Widget
+- Enhanced widget features
+  - Multiple posts display → Full history
+  - Advanced customization → All options
+  - Custom domain support → Configuration
+  - Remove branding → Clean interface
+  - Analytics → Detailed metrics
+  - Multiple widgets → Organization-wide
+
+## 4. Social Features
+
+### 4.1 Post Management
+- Post creation and interaction
+  - Create text post → Success
+  - Upload media → Process files
+  - Edit post → Update content
+  - Delete post → Remove content
+  - Post visibility → Public/private
+  - Character limits → Enforce restrictions
+  - Media limits → Check quotas
+
+### 4.2 Social Interactions
+- User engagement features
+  - Like post → Update count
+  - Unlike post → Remove like
+  - Add comment → Show in thread
+  - Delete comment → Remove from thread
+  - Follow user → Update relationship
+  - Unfollow user → Remove connection
+  - Bookmark post → Save for later
+
+### 4.3 Notifications
+- Real-time notification system
+  - New like → Send notification
+  - New comment → Alert user
+  - New follower → Update count
+  - Mention in post → Alert mentioned user
+  - Organization invite → Send email
+  - Read notifications → Mark as read
+  - Clear notifications → Remove all
+
+## 5. Account Settings
+
+### 5.1 Profile Management
+- User profile settings
+  - Update display name → Save changes
+  - Change avatar → Process image
+  - Edit bio → Update profile
+  - Privacy settings → Update preferences
+  - Email preferences → Manage notifications
+  - Widget settings → Update configuration
+  - Delete account → Confirmation process
+
+### 5.2 Subscription Management
+- Plan management
+  - Upgrade to premium → Process payment
+  - Downgrade to free → Handle limitations
+  - Update billing → Change payment method
+  - Cancel subscription → Confirmation flow
+  - View invoices → Download history
+  - Plan features → Show comparison
+  - Payment failure → Handle errors
+
+## 6. QA Testing Workflows
+
+### 6.1 Test Environment Setup
+1. Database preparation
+   - Clean test data
+   - Sample content generation
+   - User states simulation
+   - Organization hierarchy
+
+2. Test account types
+   - Free tier users
+   - Premium users
+   - Organization owners
+   - Organization admins
+   - Regular members
+   - Suspended accounts
+
+### 6.2 Testing Procedures
+1. Authentication Testing Scenarios
+
+   a. Credential Authentication Testing
+      
+      - Password Authentication
+        - Successful password login → Verify session
+        - Failed password attempts → Verify counter
+        - Password lockout → Verify timeout
+        - Reset password counter → Verify reset
+        - Password complexity → Verify requirements
+        
+      - Magic Link Authentication
+        - Request magic link → Verify email sent
+        - Use valid link → Verify login
+        - Multiple link requests → Verify previous invalidation
+        - Expired link → Verify handling
+        
+      - Dual Authentication Scenarios
+        - Switch between methods → Verify state preservation
+        - Concurrent valid attempts → Verify first-win
+        - Failed password to magic link → Verify counter reset
+        - Magic link while password locked → Verify allowed
+        
+      - Rate Limiting
+        - Combined method limits → Verify thresholds
+        - IP-based limits → Verify tracking
+        - Timeout periods → Verify reset
+        
+      - Security Testing
+        - Method switching alerts → Verify notifications
+        - Multiple device attempts → Verify handling
+        - Session management → Verify token handling
+        - Audit logging → Verify method tracking
+
+   b. Multi-Provider Authentication Testing
+      - Test account linking with matched emails
+      - Test account linking with different emails
+      - Verify provider token refresh
+      - Test provider disconnection
+      - Verify data consistency across providers
+      - Test provider fallback scenarios
+
+   c. Account Merging Testing
+      - Test data migration between accounts
+      - Verify conflict resolution
+      - Test failed merge scenarios
+      - Verify notification delivery
+      - Test partial merge recovery
+      - Validate merged account permissions
+
+   d. Security Testing
+      - Test concurrent session limits
+      - Verify session invalidation
+      - Test suspicious activity detection
+      - Verify device fingerprinting
+      - Test rate limiting across devices
+      - Validate token rotation
+
+   a. Magic Link Testing
+      - New Email Scenarios
+        - Submit new email → Verify registration magic link sent
+        - Click registration link → Verify account creation
+        - Verify redirect to /for-you after account creation
+      
+      - Existing Email Scenarios
+        - Enter existing email → Verify sign-in modal appears
+        - Verify email pre-filled in modal
+        - Request magic link → Verify sign-in magic link sent
+        - Click sign-in link → Verify successful login
+        - Test OAuth provider options in modal
+        
+      - Edge Cases
+        - Submit email, then try different provider before clicking link
+        - Multiple magic link requests in short succession
+        - Magic link request while already signed in
+        - Click magic link while signed in as different user
+        - Try registration link on different device
+        - Use magic link after session timeout
+
+   b. Provider Authentication Testing
+      - Test Google OAuth flow → Verify redirect to /for-you
+      - Test Twitter OAuth flow → Verify redirect to /for-you
+      - Test account linking with existing email
+      - Test provider authentication failure scenarios
+      - Verify session persistence after OAuth
+      - Test provider disconnect/reconnect
+
+   c. Cross-cutting Authentication Scenarios
+      - Verify CSRF protection
+      - Test rate limiting
+      - Test concurrent authentication attempts
+      - Verify session timeout handling
+      - Test authentication state persistence
+      - Verify secure cookie handling
+
+2. Organization testing
+   - Creation process
+   - Member management
+   - Role assignments
+   - Plan limitations
+   - Feature access
+
+3. Widget testing
+   - Script generation
+   - Display testing
+   - Customization options
+   - Performance metrics
+   - Error handling
+
+4. Social feature testing
+   - Post creation
+   - Media handling
+   - Social interactions
+   - Notification delivery
+   - Real-time updates
+
+### 6.3 Performance Testing
+1. Load testing
+   - Concurrent users
+   - Widget embedding
+   - Media uploads
+   - API response times
+   - Database queries
+
+2. Security testing
+   - Authentication flows
+   - Authorization checks
+   - Data protection
+   - API endpoints
+   - Widget security
+
+### 6.4 Bug Reporting
+1. Issue tracking
+   - Reproduction steps
+   - Expected behavior
+   - Actual behavior
+   - Environment details
+   - Priority levels
+
+2. Resolution process
+   - Issue assignment
+   - Fix verification
+   - Regression testing
+   - Documentation updates
+
+## 7. Monitoring & Analytics
+
+### 7.1 System Monitoring
+- Key metrics tracking
+  - Server performance
+  - Database health
+  - API response times
+  - Error rates
+  - Resource usage
+  - Security events
+
+### 7.2 User Analytics
+- Usage metrics
+  - Active users
+  - Widget impressions
+  - Post engagement
+  - Premium conversions
+  - Feature adoption
+  - User retention
+  - Growth metrics
