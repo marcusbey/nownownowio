@@ -462,3 +462,41 @@ E. Security Considerations
   - Feature adoption
   - User retention
   - Growth metrics
+
+
+
+
+### Pricing plan 
+
+- Free Tier Limitations
+
+Widget Display Restrictions
+
+Content Limitations
+    Display only most recent status/post
+    No historical posts visible
+    No post scheduling
+    Text-only posts (no rich media)
+
+
+Visual Constraints
+    Fixed widget dimensions (width 450px)
+    Default light/dark theme only
+    No custom colors or fonts
+    No custom CSS
+    Mandatory "Powered by NowNowNow" branding
+
+Fixed position (bottom right)
+    Non-removable
+    Standard styling
+    Links to NowNowNow platform
+
+Technical Limitations
+    Default refresh rate (5 minutes)
+    No real-time updates
+    Generic subdomain only (widget.nownownow.com/[username])
+    Basic embedding options
+    No custom parameters
+
+
+
