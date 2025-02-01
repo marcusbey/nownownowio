@@ -58,7 +58,7 @@ export default function RootLayout({
           data-domain="nownownow.io"
           src="https://datafa.st/js/script.js"
         />
-        <script type="module" defer src="http://localhost:5173/dist/now-widget.js" data-user-id="OeoG_hDne0W" data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJPZW9HX2hEbmUwVyIsImlhdCI6MTczODM1MTQwMSwiZXhwIjoxNzM4NDM3ODAxfQ.sT2VGWjeQ5A8RpZsuXMgw76cONmnIyvNop0n_Nd3a8Q" data-theme="dark" data-position="left" data-button-color="#1a73e8" data-button-size="90" />
+        {/* <script type="module" defer src="http://localhost:5173/dist/now-widget.js" data-user-id="OeoG_hDne0W" data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJPZW9HX2hEbmUwVyIsImlhdCI6MTczODM1MTQwMSwiZXhwIjoxNzM4NDM3ODAxfQ.sT2VGWjeQ5A8RpZsuXMgw76cONmnIyvNop0n_Nd3a8Q" data-theme="dark" data-position="left" data-button-color="#1a73e8" data-button-size="90" /> */}
       </body>
     </html>
   );

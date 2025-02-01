@@ -171,9 +171,10 @@ Check the fiel structure in the latest file inthe 'tree-maker' repo
 - Alway refer to the code structure before refactoring
 - Refactor only when necessary
 - Don't remove comments
-- Don't remove working features and functionality. 
+- Don't remove working features and functionality  or anything that my case bigger issues or rabit whole corrections. 
 - Don't break existing features and functionality
 - Make sure the refactoring is consistent with the code structure and won't create new issues.
+- only change what is necessary. 
 
 ## Testing
 - Write unit tests for utilities and components
