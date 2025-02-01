@@ -1,6 +1,7 @@
 "use server";
 
 import { ActionError, action } from "@/lib/actions/safe-actions";
+import { getResendInstance } from "@/lib/mail/resend";
 import {
   setupDefaultOrganizationsOrInviteUser,
   setupResendCustomer,
@@ -37,15 +38,52 @@ export const signUpAction = action
         data: {
           ...userData,
           resendContactId,
+          emailVerified: null, // Mark email as unverified
         },
       });
 
-      // Handle any pending invitations
+      // Generate verification token
+      const token = await prisma.verificationToken.create({
+        data: {
+          identifier: user.email,
+          token: `${Math.random().toString(36).substring(2)}${Date.now()}`,
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        },
+      });
+
+      // Send verification email using Resend
+      try {
+        const resendClient = await getResendInstance();
+        const emailResult = await resendClient.emails.send({
+          from: env.RESEND_EMAIL_FROM,
+          to: user.email,
+          subject: 'Verify your email address',
+          html: `
+            <h1>Welcome to NowNowNow!</h1>
+            <p>Please verify your email address by clicking the link below:</p>
+            <a href="${env.NEXTAUTH_URL}/auth/verify?token=${token.token}">Verify Email</a>
+            <p>This link will expire in 24 hours.</p>
+          `,
+        });
+        
+        logger.info('Verification email sent', { 
+          userId: user.id, 
+          emailId: emailResult.id 
+        });
+      } catch (emailError) {
+        logger.error('Failed to send verification email', { 
+          error: emailError, 
+          userId: user.id 
+        });
+        // Don't throw here - user is created but email failed
+        // They can request a new verification email later
+      }
+
+      // Handle any pending invitations and get the user's primary organization
       await setupDefaultOrganizationsOrInviteUser(user);
 
-      // If there's a pending invitation, we'll be redirected to it
-      // Otherwise, redirect to the organizations page
-      redirect("/orgs");
+      // Redirect to verification pending page without scroll
+      redirect('/auth/verify-request', { scroll: false });
 
       return user;
     } catch (error) {

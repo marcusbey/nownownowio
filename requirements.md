@@ -466,37 +466,229 @@ E. Security Considerations
 
 
 
-### Pricing plan 
-
-- Free Tier Limitations
-
-Widget Display Restrictions
-
-Content Limitations
-    Display only most recent status/post
-    No historical posts visible
-    No post scheduling
-    Text-only posts (no rich media)
-
-
-Visual Constraints
-    Fixed widget dimensions (width 450px)
-    Default light/dark theme only
-    No custom colors or fonts
-    No custom CSS
-    Mandatory "Powered by NowNowNow" branding
-
-Fixed position (bottom right)
-    Non-removable
-    Standard styling
-    Links to NowNowNow platform
-
-Technical Limitations
-    Default refresh rate (5 minutes)
-    No real-time updates
-    Generic subdomain only (widget.nownownow.com/[username])
-    Basic embedding options
-    No custom parameters
 
 
 
+
+
+
+
+################# Pricing Plans #################
+
+# NowNowNow Premium vs Free Tier Requirements
+
+## 1. Widget Features
+
+### Free Tier Limitations
+
+#### Widget Display Restrictions
+- Content Limitations
+  - Display only most recent status/post
+  - No historical posts visible
+  - No post scheduling
+  - Text-only posts (no rich media)
+
+- Visual Constraints
+  - Fixed widget dimensions (300x200px)
+  - Default light/dark theme only
+  - No custom colors or fonts
+  - No custom CSS
+  - Mandatory "Powered by NowNowNow" branding
+    - Fixed position (bottom right)
+    - Non-removable
+    - Standard styling
+    - Links to NowNowNow platform
+
+- Technical Limitations
+  - Default refresh rate (5 minutes)
+  - No real-time updates
+  - Generic subdomain only (widget.nownownow.com/[username])
+  - Basic embedding options
+  - No custom parameters
+
+#### Usage Restrictions
+- Account Limitations
+  - Single widget per user account
+  - One active embed code
+  - No multiple widget versions
+
+- Performance Constraints
+  - Maximum 500 widget loads per month
+    - Counter resets monthly
+    - Overage shows upgrade prompt
+    - Basic error page when limit reached
+  
+- API Limitations
+  - Rate limiting: 100 requests/hour
+  - Basic endpoints only
+  - No webhook support
+
+- Analytics Restrictions
+  - Basic view counter only
+  - No geographic data
+  - No referrer tracking
+  - No user interaction metrics
+  - Daily view limit indicator
+
+### Premium Tier Features
+- Enhanced Widget Display
+  - Show multiple statuses/posts (up to 10)
+  - Custom color schemes and branding
+  - Real-time updates
+  - Custom widget sizes
+  - Custom domains for widgets
+  - Remove "Powered by NowNowNow" branding
+  - Custom CSS support
+  - Interactive elements (likes, comments)
+
+- Advanced Usage
+  - Multiple widgets per account
+  - Unlimited widget loads
+  - Detailed analytics dashboard
+  - Higher rate limits (1000 requests/hour)
+  - Priority API access
+
+## 2. Implementation Requirements
+
+### Widget Generation & Display
+```typescript
+interface WidgetConfig {
+  tier: 'free' | 'premium';
+  display: {
+    maxPosts: number;        // 1 for free, up to 10 for premium
+    dimensions: {
+      width: number;         // fixed 300px for free
+      height: number;        // fixed 200px for free
+    };
+    branding: {
+      powered: {
+        show: boolean;       // always true for free
+        position: 'bottomRight' | 'bottomLeft';  // fixed bottomRight for free
+        style: BrandingStyle; // fixed style for free
+      };
+    };
+    theme: {
+      mode: 'light' | 'dark';  // user selectable even in free
+      custom: boolean;         // false for free
+      colors?: ThemeColors;    // undefined for free
+      fonts?: FontConfig;      // undefined for free
+    };
+  };
+  technical: {
+    refreshRate: number;      // fixed 300000ms (5min) for free
+    realtimeEnabled: boolean; // false for free
+    domain: {
+      useCustom: boolean;     // false for free
+      subdomain?: string;     // username for free
+    };
+  };
+  limits: {
+    monthlyViews: number;     // 500 for free
+    rateLimit: {
+      requestsPerHour: number;  // 100 for free
+      cooldownMs: number;       // 36000ms for free
+    };
+  };
+}
+```
+
+### Rate Limiting Implementation
+```typescript
+interface RateLimitConfig {
+  tier: 'free' | 'premium';
+  requestsPerHour: number;
+  widgetLoadsPerMonth: number;
+  cooldownPeriod: number;
+}
+```
+
+## 3. Upgrade Flow
+
+### Free-to-Premium Conversion Points
+- Widget Customization
+  - Show upgrade modal when attempting to:
+    1. Change widget colors
+    2. Add multiple widgets
+    3. Access advanced analytics
+    4. Configure real-time updates
+
+- Usage Limits
+  - Display upgrade prompts when:
+    1. Approaching monthly widget load limit
+    2. Attempting to create additional widgets
+    3. Accessing premium-only features
+
+### Premium Trial
+- 14-day full access trial
+- No credit card required
+- Access to all premium features
+- Clear trial expiration notifications
+- Smooth upgrade path
+
+## 4. Feature Enforcement
+
+### System Checks
+```typescript
+interface FeatureCheck {
+  async canUseFeature(userId: string, feature: string): Promise<boolean>;
+  async getUsageLimits(userId: string): Promise<UsageLimits>;
+  async enforceRateLimit(userId: string): Promise<boolean>;
+}
+```
+
+### Database Schema Extensions
+```prisma
+model Account {
+  tier: String           // 'free' | 'premium'
+  trialEndsAt: DateTime?
+  widgetCount: Int
+  monthlyLoads: Int
+  customDomain: String?
+  features: Json        // enabled feature flags
+}
+```
+
+## 5. Testing Scenarios
+
+### Feature Access Testing
+- Verify free tier limitations
+  - Attempt to access premium features
+  - Test widget load limits
+  - Verify customization restrictions
+
+- Premium tier validation
+  - Verify all premium features accessible
+  - Test unlimited widget creation
+  - Validate custom domain setup
+
+### Upgrade/Downgrade Testing
+- Test upgrade flow
+  - Feature enablement timing
+  - Data migration if needed
+  - Analytics preservation
+
+- Test downgrade scenarios
+  - Grace period handling
+  - Feature degradation
+  - Data preservation strategy
+
+### Edge Cases
+- Mid-month tier changes
+- Trial expiration handling
+- Usage limit transitions
+- Rate limit boundary conditions
+
+## 6. Monitoring & Analytics
+
+### Usage Tracking
+- Track per-user metrics
+  - Widget load counts
+  - Feature usage patterns
+  - Upgrade conversion points
+  - Trial completion rates
+
+### System Metrics
+- Monitor rate limiting
+- Track feature access patterns
+- Analyze upgrade triggers
+- Measure system load by tier

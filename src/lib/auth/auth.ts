@@ -32,6 +32,47 @@ const authConfig = {
     verifyRequest: "/auth/verify-request",
     newUser: "/orgs",
   },
+  events: {
+    async signIn({ user }) {
+      try {
+        // Check if email is verified
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { emailVerified: true }
+        });
+
+        if (!dbUser?.emailVerified) {
+          // If email is not verified, redirect to verification page
+          await prisma.session.updateMany({
+            where: { userId: user.id },
+            data: { redirectUrl: '/auth/verify-request' }
+          });
+          return;
+        }
+
+        // Get user's primary organization
+        const primaryOrg = await prisma.organizationMembership.findFirst({
+          where: {
+            userId: user.id,
+            roles: { has: 'OWNER' }
+          },
+          include: {
+            organization: true
+          }
+        });
+
+        if (primaryOrg) {
+          // Update the redirect URL in the session
+          await prisma.session.updateMany({
+            where: { userId: user.id },
+            data: { redirectUrl: `/orgs/${primaryOrg.organization.slug}/for-you` }
+          });
+        }
+      } catch (error) {
+        logger.error('Error setting redirect URL', { error, userId: user.id });
+      }
+    },
+  },
   callbacks: {
     async session({ session, user }) {
       if (!session?.user) return session;
@@ -39,12 +80,19 @@ const authConfig = {
       const cachedSession = await getCachedSession(session.user.id);
       if (cachedSession) return cachedSession;
 
+      // Get the redirect URL from the session
+      const dbSession = await prisma.session.findFirst({
+        where: { userId: user.id },
+        select: { redirectUrl: true }
+      });
+
       const enhancedSession = {
         ...session,
         user: {
           ...session.user,
           id: user.id,
         },
+        redirectUrl: dbSession?.redirectUrl
       };
 
       setCachedSession(user.id, enhancedSession);

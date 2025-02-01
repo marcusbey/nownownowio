@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { signUpAction } from './signup.action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Alert } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { PasswordInput } from '@/components/PasswordInput';
 import type { LoginCredentialsFormType } from './signup.schema';
@@ -24,7 +28,9 @@ const initialFormState: FormState = {
 };
 
 export const SignUpCredentialsForm = () => {
+  const path = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
   const [formState, setFormState] = useState<FormState>(initialFormState);
   
   const form = useForm<LoginCredentialsFormType>({
@@ -35,35 +41,75 @@ export const SignUpCredentialsForm = () => {
       password: '',
       verifyPassword: '',
     },
-    mode: 'onBlur',
+    mode: 'onSubmit', // Only validate on submit
+    shouldUnregister: false,
   });
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!path.startsWith('/auth/signup')) {
+      form.reset(form.formState.defaultValues);
+      form.clearErrors();
+      setFormState(initialFormState);
+    }
+  }, [path, form]);
 
   const onSubmit = async (values: LoginCredentialsFormType) => {
     try {
       setFormState(prev => ({ ...prev, isLoading: true, error: null }));
       
+      toast({
+        title: 'Creating your account...',
+        description: 'Please wait while we set up your workspace.',
+      });
+
       const result = await signUpAction(values);
 
-      if (result?.serverError) {
-        setFormState(prev => ({ ...prev, error: result.serverError }));
+      if (result?.error) {
+        setFormState(prev => ({ ...prev, error: result.error.message }));
+        toast({
+          variant: 'destructive',
+          title: 'Error creating account',
+          description: result.error.message || 'Failed to create account. Please try again.',
+        });
         return;
       }
 
+      // Show success message before redirecting
+      toast({
+        title: 'Account created successfully!',
+        description: 'Please check your email to verify your account.',
+        variant: 'default',
+      });
+
+      // After successful signup, sign in and redirect
       const signInResult = await signIn('credentials', {
         email: values.email,
         password: values.password,
-        redirect: false,
-        callbackUrl: '/for-you',
+        redirect: false // We'll handle the redirect after checking for errors
       });
 
       if (signInResult?.error) {
         setFormState(prev => ({ ...prev, error: 'Failed to sign in after account creation.' }));
+        toast({
+          variant: 'destructive',
+          title: 'Sign in error',
+          description: 'Account created but failed to sign in. Please try signing in manually.',
+        });
+        router.push('/auth/signin');
         return;
       }
 
-      router.push('/for-you');
+      // Redirect to verification page with replace to prevent back navigation
+      router.replace('/auth/verify-request', { scroll: false });
     } catch (error) {
-      setFormState(prev => ({ ...prev, error: 'An unexpected error occurred. Please try again.' }));
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      setFormState(prev => ({ ...prev, error: errorMessage }));
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: errorMessage,
+      });
       console.error('Sign up error:', error);
     } finally {
       setFormState(prev => ({ ...prev, isLoading: false }));
@@ -74,10 +120,18 @@ export const SignUpCredentialsForm = () => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <Toaster />
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault(); // Prevent default form behavior
+          form.handleSubmit(onSubmit)(e);
+        }} 
+        className="space-y-4"
+      >
         {formState.error && (
           <Alert variant="destructive">
-            {formState.error}
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{formState.error}</AlertDescription>
           </Alert>
         )}
         <FormField
@@ -90,6 +144,7 @@ export const SignUpCredentialsForm = () => {
                 <Input 
                   placeholder="John Doe" 
                   {...field} 
+                  value={field.value || ''}
                   disabled={formState.isLoading}
                 />
               </FormControl>
@@ -108,6 +163,7 @@ export const SignUpCredentialsForm = () => {
                   type="email"
                   placeholder="john@doe.com" 
                   {...field} 
+                  value={field.value || ''}
                   disabled={formState.isLoading}
                   autoComplete="email"
                 />
@@ -158,7 +214,14 @@ export const SignUpCredentialsForm = () => {
           className="w-full"
           disabled={formState.isLoading}
         >
-          {formState.isLoading ? "Creating account..." : "Create account"}
+          {formState.isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            'Create account'
+          )}
         </Button>
       </form>
     </FormProvider>

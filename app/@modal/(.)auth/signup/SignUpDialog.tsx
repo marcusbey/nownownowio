@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Typography } from "@/components/ui/typography";
 import Link from "next/link";
@@ -21,14 +22,28 @@ export  function SignUpDialog() {
       open={path.startsWith("/auth/signup")}
       onOpenChange={(open) => {
         if (!open) {
+          // Force immediate close without validation
           router.back();
         }
       }}
+      // Prevent form submission on Escape key
+      onEscapeKeyDown={(e) => {
+        e.preventDefault();
+        router.back();
+      }}
+      // Prevent form submission on overlay click
+      onInteractOutside={(e) => {
+        e.preventDefault();
+        router.back();
+      }}
     >
-      <DialogContent className="bg-card">
+      <DialogContent className="bg-card" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader className="flex flex-col items-center justify-center gap-2">
           <LogoSvg />
           <DialogTitle>Join today</DialogTitle>
+          <DialogDescription className="text-center">
+            Create your account to get started with NowNowNow
+          </DialogDescription>
         </DialogHeader>
         <SignUpCredentialsForm />
         <Typography variant="small" className="mt-8 flex justify-center">

@@ -23,8 +23,9 @@ export function SignInDialog() {
           router.back();
         }
       }}
+      modal={true}
     >
-      <DialogContent className="bg-card">
+      <DialogContent className="bg-card" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader className="flex flex-col items-center justify-center gap-2">
           <LogoSvg />
           <DialogTitle>Sign in to your account</DialogTitle>
