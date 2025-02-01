@@ -62,20 +62,23 @@ export const signUpAction = action
           nextAuthUrl: env.NEXTAUTH_URL
         });
 
+        // Import and use the React email template
+        const verifyUrl = `${env.NEXTAUTH_URL}/auth/verify?token=${token.token}`;
+        const VerifyEmail = (await import('@/emails/VerifyEmail.email')).default;
+        
         const emailResult = await resendClient.emails.send({
           from: env.RESEND_EMAIL_FROM,
           to: user.email,
-          subject: 'Verify your email address',
-          html: `
-            <h1>Welcome to NowNowNow!</h1>
-            <p>Please verify your email address by clicking the link below:</p>
-            <a href="${env.NEXTAUTH_URL}/auth/verify?token=${token.token}">Verify Email</a>
-            <p>This link will expire in 24 hours.</p>
-            <p>If you didn't request this email, please ignore it.</p>
-          `,
+          subject: 'Welcome to NowNowNow - Verify Your Email',
+          react: VerifyEmail({ url: verifyUrl })
         });
         
+        if (!emailResult?.id) {
+          throw new Error('No email ID returned from Resend');
+        }
+        
         logger.info('Verification email sent successfully', { 
+          emailId: emailResult.id,
           userId: user.id, 
           to: user.email,
           from: env.RESEND_EMAIL_FROM
@@ -88,15 +91,14 @@ export const signUpAction = action
           from: env.RESEND_EMAIL_FROM,
           nextAuthUrl: env.NEXTAUTH_URL
         });
-        // Don't throw here - user is created but email failed
-        // They can request a new verification email later
+        throw new ActionError('Failed to send verification email. Please try again or contact support.');
       }
 
       // Handle any pending invitations and get the user's primary organization
       await setupDefaultOrganizationsOrInviteUser(user);
 
-      // Redirect to verification pending page without scroll
-      redirect('/auth/verify-request', { scroll: false });
+      // Redirect to verification pending page with email
+      redirect(`/auth/verify-request?email=${encodeURIComponent(email)}`, { scroll: false });
 
       return user;
     } catch (error) {

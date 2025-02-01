@@ -1,16 +1,8 @@
 import { OrganizationMembershipRole } from "@prisma/client";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { auth } from "../auth/auth";
 import { prisma } from "../prisma";
 import { logger } from "../logger";
-
-const getOrgSlugFromUrl = (): string | undefined => {
-  const headersList = headers();
-  const host = headersList.get("host") || "";
-  const url = new URL(`http://${host}`);
-  return url.hostname.split(".")[0];
-};
 
 export const getOrg = async (orgSlug: string) => {
   try {
@@ -44,7 +36,7 @@ export const getOrg = async (orgSlug: string) => {
   }
 };
 
-export const getCurrentOrg = async (orgSlug?: string, requiredRoles?: OrganizationMembershipRole[]) => {
+export const getCurrentOrg = async (orgSlug: string, requiredRoles?: OrganizationMembershipRole[]) => {
   const session = await auth();
 
   if (!session?.user) {

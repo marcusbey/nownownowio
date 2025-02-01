@@ -75,33 +75,15 @@ export const SignUpCredentialsForm = () => {
         return;
       }
 
-      // Show success message before redirecting
+      // Show success message and redirect to verify-request
       toast({
         title: 'Account created successfully!',
         description: 'Please check your email to verify your account.',
         variant: 'default',
       });
 
-      // After successful signup, sign in and redirect
-      const signInResult = await signIn('credentials', {
-        email: values.email,
-        password: values.password,
-        redirect: false // We'll handle the redirect after checking for errors
-      });
-
-      if (signInResult?.error) {
-        setFormState(prev => ({ ...prev, error: 'Failed to sign in after account creation.' }));
-        toast({
-          variant: 'destructive',
-          title: 'Sign in error',
-          description: 'Account created but failed to sign in. Please try signing in manually.',
-        });
-        router.push('/auth/signin');
-        return;
-      }
-
-      // Redirect to verification page with replace to prevent back navigation
-      router.replace('/auth/verify-request', { scroll: false });
+      // Redirect to verify-request page with email
+      router.replace(`/auth/verify-request?email=${encodeURIComponent(values.email)}`, { scroll: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       setFormState(prev => ({ ...prev, error: errorMessage }));
