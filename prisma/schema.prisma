@@ -37,6 +37,7 @@ model User {
   followers           Follow[]       @relation("Followers")
   notifications       Notification[] @relation("Recipient")
   issuedNotifications Notification[] @relation("Issuer")
+  verificationTokens  VerificationToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -267,6 +268,8 @@ model VerificationToken {
   token      String   @unique
   expires    DateTime
   data       Json?    // Added optional JSON field for storing additional data
+  userId     String   // Link to user
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([identifier, token])
   @@map("verificationtokens")

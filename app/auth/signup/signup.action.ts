@@ -48,6 +48,11 @@ export const signUpAction = action
           identifier: user.email,
           token: `${Math.random().toString(36).substring(2)}${Date.now()}`,
           expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          user: {
+            connect: {
+              id: user.id
+            }
+          }
         },
       });
 
