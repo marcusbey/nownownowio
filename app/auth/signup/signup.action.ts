@@ -2,6 +2,7 @@
 
 import { ActionError, action } from "@/lib/actions/safe-actions";
 import { getResendInstance } from "@/lib/mail/resend";
+import VerifyEmail from "@/emails/VerifyEmail.email";
 import {
   setupDefaultOrganizationsOrInviteUser,
   setupResendCustomer,
@@ -90,23 +91,19 @@ export const signUpAction = action
           nextAuthUrl: env.NEXTAUTH_URL
         });
 
-        // Use a simple HTML template for testing
+        // Use proper email template
         const verifyUrl = `${env.NEXTAUTH_URL}/auth/verify?token=${token.token}`;
         
         const emailResult = await resendClient.emails.send({
-          from: env.RESEND_EMAIL_FROM,
+          from: `NowNowNow <${env.RESEND_EMAIL_FROM}>`,
           to: user.email,
           subject: 'Welcome to NowNowNow - Verify Your Email',
-          html: `
-            <div>
-              <h1>Welcome to NowNowNow!</h1>
-              <p>Please verify your email address by clicking the link below:</p>
-              <p><a href="${verifyUrl}">Click here to verify your email</a></p>
-              <p>If you didn't request this, please ignore this email.</p>
-              <p>This link will expire in 15 minutes.</p>
-            </div>
-          `,
-          text: `Welcome to NowNowNow! Please verify your email address by clicking this link: ${verifyUrl} (expires in 15 minutes)`
+          react: VerifyEmail({ url: verifyUrl }),
+          text: `Welcome to NowNowNow! Please verify your email address by clicking this link: ${verifyUrl} (expires in 15 minutes)`,
+          headers: {
+            'List-Unsubscribe': `<${env.NEXTAUTH_URL}/auth/unsubscribe?email=${encodeURIComponent(user.email)}>`,
+            'X-Entity-Ref-ID': user.id
+          }
         }).catch(error => {
           logger.error('Failed to send verification email', { error, email: user.email });
           throw new ActionError('Failed to send verification email. Please try again or contact support.');
