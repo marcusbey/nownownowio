@@ -61,7 +61,7 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
     // If user has no organizations, create a default one
     if (existingOrgs === 0) {
       const orgSlug = getSlugFromUser(user);
-      const orgName = `${user.name || getNameFromEmail(user.email)}'s Organization`;
+      const orgName = `${user.name || getNameFromEmail(user.email)}`;
       
       logger.info("Creating default organization", { 
         userId: user.id,

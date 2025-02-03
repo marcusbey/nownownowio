@@ -44,37 +44,59 @@ async function getConnectionUrl(): Promise<string> {
 
 async function connectWithRetry(client: PrismaClient, retries = MAX_RETRIES): Promise<void> {
   try {
+    console.info('prisma:info', 'Initializing database connection...')
+    
+    // Configure connection pool
+    const poolConfig = {
+      min: 2, // Minimum connections
+      max: 10, // Maximum connections
+      idle: 10000, // Max idle time in ms
+      acquire: 30000, // Max time to get connection
+      evict: 1000, // Time between eviction runs
+    }
+    
+    console.info('prisma:info', `Configuring connection pool: ${JSON.stringify(poolConfig)}`)
+    
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Connection timeout')), CONNECTION_TIMEOUT)
     })
 
+    // Attempt connection with timeout
     await Promise.race([
       client.$connect(),
       timeoutPromise
     ])
 
-    console.log('Successfully connected to database')
+    // Verify connection with a simple query
+    await client.$queryRaw`SELECT 1`
+    
+    console.info('prisma:info', 'Database connection established and verified')
+    return
   } catch (error) {
-    console.error(`Failed to connect to database (attempts remaining: ${retries}):`, error)
+    console.error(`Database connection failed (attempts remaining: ${retries}):`, error)
     
     if (retries > 0) {
-      // Check network status on retry
       const networkStatus = await checkNetworkConnectivity()
+      
       if (networkStatus.isRestricted) {
-        console.warn('Network restrictions detected. Using alternative connection method...')
+        console.warn('Network restrictions detected - adjusting connection parameters...')
+        // Reset client with restricted network settings
+        await client.$disconnect()
       }
       
-      console.log(`Retrying in ${RETRY_DELAY/1000} seconds...`)
+      console.info(`Retrying connection in ${RETRY_DELAY/1000} seconds...`)
       await new Promise(resolve => setTimeout(resolve, RETRY_DELAY))
       return connectWithRetry(client, retries - 1)
     }
     
-    throw error
+    throw new Error(`Failed to establish database connection after ${MAX_RETRIES} attempts: ${error.message}`)
   }
 }
 
-let isConnecting = false
-let connectionPromise: Promise<void> | null = null
+let isConnecting = false;
+let connectionPromise: Promise<void> | null = null;
+let connectionAttempts = 0;
+const MAX_CONNECTION_ATTEMPTS = 3;
 
 const prismaClientSingleton = async () => {
   // Get the appropriate connection URL based on network conditions
@@ -122,7 +144,33 @@ let prisma: PrismaClient
 
 const initializePrisma = async () => {
   if (!global.prisma) {
-    global.prisma = await prismaClientSingleton()
+    if (isConnecting) {
+      console.info('prisma:info', 'Connection already in progress, waiting...')
+      return connectionPromise
+    }
+
+    isConnecting = true
+    connectionPromise = (async () => {
+      try {
+        global.prisma = await prismaClientSingleton()
+        connectionAttempts = 0 // Reset on successful connection
+      } catch (error) {
+        connectionAttempts++
+        if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
+          console.error('prisma:error', 'Max connection attempts reached')
+          throw error
+        }
+        // Allow retry on next request
+        global.prisma = undefined
+        isConnecting = false
+        connectionPromise = null
+        throw error
+      } finally {
+        isConnecting = false
+      }
+    })()
+
+    await connectionPromise
   }
   prisma = global.prisma
 }

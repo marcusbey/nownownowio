@@ -22,7 +22,7 @@ export function VerifyContent({ email }: VerifyContentProps) {
     setToastState('idle');
     
     try {
-      await resendVerificationEmail(email);
+      await resendVerificationEmail({ input: { email } });
       setToastState('success');
     } catch (error) {
       setToastState('error');

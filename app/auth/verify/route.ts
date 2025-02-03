@@ -21,9 +21,8 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${env.NEXTAUTH_URL}/auth/signin?error=TokenNotFound`);
     }
 
-    // Check if token is expired (24 hours)
-    const tokenAge = Date.now() - verificationToken.createdAt.getTime();
-    if (tokenAge > 24 * 60 * 60 * 1000) {
+    // Check if token is expired
+    if (verificationToken.expires < new Date()) {
       await db.verificationToken.delete({ where: { token } });
       return NextResponse.redirect(`${env.NEXTAUTH_URL}/auth/signin?error=TokenExpired`);
     }
