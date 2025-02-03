@@ -28,17 +28,51 @@ interface SendEmailParams {
 export async function sendEmail(params: SendEmailParams) {
   'use server'
   
-  const resendClient = await getResendInstance();
-  const to = Array.isArray(params.to) ? params.to : [params.to];
-  
-  return resendClient.emails.send({
-    from: params.from || env.RESEND_EMAIL_FROM,
-    to,
-    subject: params.subject,
-    html: params.html,
-    text: params.text,
-    react: params.react,
-  } as any); // Type assertion needed due to Resend types not including react
+  try {
+    const resendClient = await getResendInstance();
+    const to = Array.isArray(params.to) ? params.to : [params.to];
+    
+    console.info('[Email] Attempting to send email', {
+      to,
+      from: params.from || env.RESEND_EMAIL_FROM,
+      subject: params.subject
+    });
+
+    const result = await resendClient.emails.send({
+      from: params.from || env.RESEND_EMAIL_FROM,
+      to,
+      subject: params.subject,
+      html: params.html,
+      text: params.text,
+      react: params.react,
+    } as any);
+
+    if (!result?.id) {
+      console.error('[Email] Failed to send email - no ID returned', {
+        to,
+        from: params.from || env.RESEND_EMAIL_FROM,
+        subject: params.subject
+      });
+      throw new Error('Failed to send email - no ID returned');
+    }
+
+    console.info('[Email] Successfully sent email', {
+      id: result.id,
+      to,
+      from: params.from || env.RESEND_EMAIL_FROM,
+      subject: params.subject
+    });
+
+    return result;
+  } catch (error) {
+    console.error('[Email] Error sending email', {
+      error,
+      to: params.to,
+      from: params.from || env.RESEND_EMAIL_FROM,
+      subject: params.subject
+    });
+    throw error;
+  }
 }
 
 export async function deleteContact(audienceId: string, email: string) {

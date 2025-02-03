@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/credentials-provider";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { LoginCredentialsFormScheme } from "./signup.schema";
 import { logger } from "@/lib/logger";
@@ -45,20 +46,42 @@ export const signUpAction = action
       // Generate verification token
       const token = await prisma.verificationToken.create({
         data: {
-          identifier: user.email,
-          token: `${Math.random().toString(36).substring(2)}${Date.now()}`,
-          expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          identifier: email,
+          token: crypto.randomUUID(),
+          expires: new Date(Date.now() + 900_000), // 15 minutes
+          data: { 
+            signupStage: 'user_created'
+          },
           user: {
             connect: {
               id: user.id
             }
           }
-        },
+        }
       });
-
+      
+      // Handle email sending errors gracefully without deleting the user
+      process.on('uncaughtException', async (error) => {
+        logger.error('Uncaught exception during signup', { 
+          error, 
+          userId: user?.id,
+          email 
+        });
+      });
+      
       // Send verification email using Resend
       try {
         const resendClient = await getResendInstance();
+        
+        // Validate environment variables
+        if (!env.RESEND_API_KEY || !env.RESEND_EMAIL_FROM || !env.NEXTAUTH_URL) {
+          logger.error('Missing required environment variables for email sending', {
+            hasApiKey: !!env.RESEND_API_KEY,
+            hasEmailFrom: !!env.RESEND_EMAIL_FROM,
+            hasNextAuthUrl: !!env.NEXTAUTH_URL
+          });
+          throw new Error('Email configuration is incomplete');
+        }
         
         // Log email attempt
         logger.info('Attempting to send verification email', { 
@@ -67,19 +90,31 @@ export const signUpAction = action
           nextAuthUrl: env.NEXTAUTH_URL
         });
 
-        // Import and use the React email template
+        // Use a simple HTML template for testing
         const verifyUrl = `${env.NEXTAUTH_URL}/auth/verify?token=${token.token}`;
-        const VerifyEmail = (await import('@/emails/VerifyEmail.email')).default;
         
         const emailResult = await resendClient.emails.send({
           from: env.RESEND_EMAIL_FROM,
           to: user.email,
           subject: 'Welcome to NowNowNow - Verify Your Email',
-          react: VerifyEmail({ url: verifyUrl })
+          html: `
+            <div>
+              <h1>Welcome to NowNowNow!</h1>
+              <p>Please verify your email address by clicking the link below:</p>
+              <p><a href="${verifyUrl}">Click here to verify your email</a></p>
+              <p>If you didn't request this, please ignore this email.</p>
+              <p>This link will expire in 15 minutes.</p>
+            </div>
+          `,
+          text: `Welcome to NowNowNow! Please verify your email address by clicking this link: ${verifyUrl} (expires in 15 minutes)`
+        }).catch(error => {
+          logger.error('Failed to send verification email', { error, email: user.email });
+          throw new ActionError('Failed to send verification email. Please try again or contact support.');
         });
         
         if (!emailResult?.id) {
-          throw new Error('No email ID returned from Resend');
+          logger.error('No email ID returned from Resend', { email: user.email });
+          throw new ActionError('Failed to send verification email. Please try again or contact support.');
         }
         
         logger.info('Verification email sent successfully', { 
