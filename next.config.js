@@ -2,6 +2,14 @@ const { withPlausibleProxy } = require("next-plausible");
     
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    experimental: {
+        outputFileTracingExcludes: {
+            '*': [
+                'node_modules/**',
+                'src/.next/**',
+            ],
+        },
+    },
     reactStrictMode: true,
     images: {
         remotePatterns: [

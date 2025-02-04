@@ -25,9 +25,14 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/lib/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/styles/*": ["./src/styles/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/types/*": ["./src/types/*"],
       "@/emails/*": ["./emails/*"],
-      "@/app/*": ["./app/*"]
+      "@/app/*": ["./src/app/*"]
     },
     "types": ["jest", "node"]
   },
