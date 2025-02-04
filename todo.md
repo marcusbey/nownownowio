@@ -15,3 +15,5 @@ Freelancer and Creators. then 'startup' with more featuers (chat integrate and A
 - Improve design on the landing page 
 
 - Fix panel and button display. 
+
+
