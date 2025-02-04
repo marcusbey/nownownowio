@@ -122,6 +122,7 @@ export const sendUpdateEmailVerificationCodeAction = authAction.action(
 
     const verificationToken = await prisma.verificationToken.create({
       data: {
+        user: { connect: { id: ctx.user.id } },
         identifier: `${ctx.user.email}-update-profile`,
         expires: addHours(new Date(), 1),
         token: nanoid(6),

@@ -6,8 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
 import { PropsWithChildren } from "react";
 import { NavigationWrapper } from "../../../src/features/navigation/NavigationWrapper";
-import { NavigationLinks } from "../../orgs/[orgSlug]/(navigation)/_navigation/OrgLinks";
-import { OrgsSelect } from "../../orgs/[orgSlug]/(navigation)/_navigation/OrgsSelect";
+import { NavigationLinks } from "@/app/orgs/[orgSlug]/navigation/_navigation/OrgLinks";
+import { OrgsSelect } from "@/app/orgs/[orgSlug]/navigation/_navigation/OrgsSelect";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 

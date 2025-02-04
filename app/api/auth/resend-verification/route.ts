@@ -1,4 +1,4 @@
-import { resendVerificationEmail } from "@/app/auth/verify-request/resend.action";
+import { resendVerificationEmail, SafeActionResult } from "@/app/auth/verify-request/resend.action";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       } 
     });
     
-    if (!result.success && result.serverError) {
+    if (result && 'serverError' in result) {
       console.error('Server error:', result.serverError);
       return NextResponse.json({ 
         error: result.serverError 
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     }
     console.log('Action result:', JSON.stringify(result, null, 2));
     
-    if (result.error) {
+    if (result && 'error' in result) {
       console.error('Action returned error:', result.error);
       return NextResponse.json({ 
         error: result.error.message,

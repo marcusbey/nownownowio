@@ -14,6 +14,13 @@ const ResendEmailSchema = z.object({
   }),
 });
 
+export type SafeActionResult<T = unknown> = {
+  success?: boolean;
+  error?: { message: string; details?: any };
+  serverError?: string;
+  data?: T;
+} | undefined;
+
 export const resendVerificationEmail = action
   .schema(ResendEmailSchema)
   .action(async ({ parsedInput: { input: { email } } }) => {

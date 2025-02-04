@@ -1,6 +1,6 @@
 "use client";
 
-import { ProviderButton } from "@/app/auth/ProviderButton";
+import { ProviderButton } from "@/components/auth/ProviderButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Divider } from "@/components/ui/divider";
 import { Skeleton } from "@/components/ui/skeleton";
