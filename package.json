@@ -16,12 +16,14 @@
     "postinstall": "prisma generate",
     "clean": "next lint --fix && tsc --noEmit && prettier --write .",
     "knip": "knip",
-    "test": "vitest",
-    "test:unit": "vitest",
-    "test:e2e": "tsx scripts/test-auth.ts",
-    "test:posts": "tsx scripts/test-posts.ts",
-    "test:profile": "tsx scripts/test-profile.ts",
-    "test:all": "tsx scripts/test-all.ts"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:auth": "jest auth/",
+    "test:db": "jest db/",
+    "test:posts": "jest posts/",
+    "test:profile": "jest profile/",
+    "test:e2e": "jest --config jest.e2e.config.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.59",
@@ -130,6 +132,11 @@
     "seed": "ts-node ./prisma/seed.ts"
   },
   "devDependencies": {
+    "@jest/types": "^29.6.3",
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "ts-jest": "^29.1.2",
     "@eslint/compat": "^1.1.1",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.10.0",
