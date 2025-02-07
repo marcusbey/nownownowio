@@ -1,76 +1,45 @@
-import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { CommentsPage, getCommentDataInclude } from "@/lib/types";
-import { NextRequest, NextResponse } from "next/server";
+import { createApiHandler } from "@/lib/api/apiHandler";
+import { withPagination, createPaginatedQuery } from "@/lib/api/middleware";
 
-export async function GET(
-  req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
-) {
-  try {
-    const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
-
-    const pageSize = 5;
-
-    const { user } = await validateRequest();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = createApiHandler(
+  async ({ user, params, middlewareData }) => {
+    const { cursor, pageSize } = middlewareData.pagination;
 
     const comments = await prisma.comment.findMany({
-      where: { postId },
+      where: { postId: params!.postId },
       include: getCommentDataInclude(user.id),
       orderBy: { createdAt: "asc" },
       take: pageSize + 1,
       cursor: cursor ? { id: cursor } : undefined,
     });
 
-    const hasMore = comments.length > pageSize;
-    const data: CommentsPage = {
-      comments: hasMore ? comments.slice(0, pageSize) : comments,
-      previousCursor: hasMore ? comments[pageSize].id : null,
+    const { data, nextCursor } = await createPaginatedQuery(comments, { pageSize });
+    
+    return { 
+      data: { comments: data, nextCursor },
+      status: 200 
     };
+  },
+  withPagination(5)
+);
 
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+export const POST = createApiHandler(async ({ user, params, req }) => {
+  const { content } = await req.json();
+
+  if (!content?.trim()) {
+    return { error: "Comment content is required", status: 400 };
   }
-}
 
-export async function POST(
-  req: NextRequest,
-  { params: { postId } }: { params: { postId: string } },
-) {
-  try {
-    const { user } = await validateRequest();
+  const comment = await prisma.comment.create({
+    data: {
+      content: content.trim(),
+      userId: user.id,
+      postId: params!.postId,
+    },
+    include: getCommentDataInclude(user.id),
+  });
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { content } = await req.json();
-
-    if (!content?.trim()) {
-      return NextResponse.json(
-        { error: "Comment content is required" },
-        { status: 400 }
-      );
-    }
-
-    const comment = await prisma.comment.create({
-      data: {
-        content: content.trim(),
-        userId: user.id,
-        postId,
-      },
-      include: getCommentDataInclude(user.id),
-    });
-
-    return NextResponse.json(comment);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+  return { data: comment, status: 201 };
+});
