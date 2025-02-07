@@ -1,4 +1,5 @@
-import * as React from "react";
+import { EmailText } from "@/emails/utils/components.utils";
+import { BaseTransactionalEmail } from "./BaseTransactionalEmail";
 
 interface SupportEmailProps {
   message: string;
@@ -6,8 +7,16 @@ interface SupportEmailProps {
 
 export function SupportEmail({ message }: SupportEmailProps) {
   return (
-    <div>
-      <p>{message}</p>
-    </div>
+    <BaseTransactionalEmail
+      previewText="Support Request Received"
+      header="Support Request"
+      content={
+        <>
+          <EmailText>Hi there,</EmailText>
+          <EmailText>{message}</EmailText>
+          <EmailText>We'll get back to you as soon as possible.</EmailText>
+        </>
+      }
+    />
   );
 }

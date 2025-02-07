@@ -1,4 +1,5 @@
-import * as React from "react";
+import { EmailText } from "@/emails/utils/components.utils";
+import { BaseTransactionalEmail } from "./BaseTransactionalEmail";
 
 interface FeedbackEmailProps {
   review: number;
@@ -7,9 +8,16 @@ interface FeedbackEmailProps {
 
 export function FeedbackEmail({ review, message }: FeedbackEmailProps) {
   return (
-    <div>
-      <p><strong>Review:</strong> {review}</p>
-      <p><strong>Message:</strong> {message}</p>
-    </div>
+    <BaseTransactionalEmail
+      previewText="New Feedback Received"
+      header="User Feedback"
+      content={
+        <>
+          <EmailText><strong>Rating:</strong> {"⭐".repeat(review)}</EmailText>
+          <EmailText><strong>Message:</strong> {message}</EmailText>
+          <EmailText>Thank you for your feedback! We appreciate your input.</EmailText>
+        </>
+      }
+    />
   );
 }

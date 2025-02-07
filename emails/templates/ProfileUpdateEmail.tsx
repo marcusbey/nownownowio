@@ -1,5 +1,5 @@
-import { Html, Text } from "@react-email/components";
-import { EmailLayout } from "./utils/EmailLayout";
+import { EmailText } from "@/emails/utils/components.utils";
+import { BaseTransactionalEmail } from "./BaseTransactionalEmail";
 
 export default function ProfileUpdateEmail({
   verificationToken,
@@ -7,13 +7,17 @@ export default function ProfileUpdateEmail({
   verificationToken: string;
 }) {
   return (
-    <EmailLayout>
-      <Text>Hi there,</Text>
-      <Text>You have requested to update your profile email.</Text>
-      <Text>Here is your verification code: {verificationToken}</Text>
-      <Text>⚠️ If you didn't request this, please ignore this email.</Text>
-      <Text>Best regards,</Text>
-      <Text>The NowNowNow Team</Text>
-    </EmailLayout>
+    <BaseTransactionalEmail
+      previewText="Verify your profile update request"
+      header="Profile Update Verification"
+      content={
+        <>
+          <EmailText>Hi there,</EmailText>
+          <EmailText>You have requested to update your profile email.</EmailText>
+          <EmailText>Here is your verification code: {verificationToken}</EmailText>
+          <EmailText>⚠️ If you didn't request this, please ignore this email.</EmailText>
+        </>
+      }
+    />
   );
 }
