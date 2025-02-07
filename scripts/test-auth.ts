@@ -1123,7 +1123,10 @@ async function testMagicLink(
         identifier: user.email,
         token: randomUUID(),
         expires: new Date(Date.now() + MAGIC_LINK_CONFIG.tokenExpiration),
-        data: { type: 'magic-link' }
+        data: { type: 'magic-link' },
+        user: {
+          connect: { id: user.id }
+        }
       }
     });
     
@@ -1219,13 +1222,28 @@ async function testOAuthFlow(
       }
     }
 
+    // Get or create a test user for OAuth
+    let user = await prisma.user.findFirst();
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: options.email || 'test@example.com',
+          displayName: 'Test User',
+          name: 'Test User'
+        }
+      });
+    }
+
     // Create a verification token for OAuth state
     const stateToken = await prisma.verificationToken.create({
       data: {
         identifier: provider,
         token: `oauth-state-${Date.now()}`,
         expires: new Date(Date.now() + OAUTH_CONFIG.stateExpiration),
-        data: { type: 'oauth-state' }
+        data: { type: 'oauth-state' },
+        user: {
+          connect: { id: user.id }
+        }
       }
     });
 
@@ -1270,12 +1288,24 @@ async function testOAuthFlow(
 }
 
 async function createVerificationToken(identifier: string, tokenType: string, expiresIn: number = 24 * 60 * 60 * 1000): Promise<any> {
+  // First find the user by email
+  const user = await prisma.user.findUnique({
+    where: { email: identifier }
+  });
+
+  if (!user) {
+    throw new Error(`User not found with email ${identifier}`);
+  }
+
   return await prisma.verificationToken.create({
     data: {
       identifier,
       token: randomUUID(),
       expires: new Date(Date.now() + expiresIn),
-      data: { type: tokenType }
+      data: { type: tokenType },
+      user: {
+        connect: { id: user.id }
+      }
     }
   });
 }
@@ -1741,7 +1771,10 @@ async function testAccountRecovery(
         identifier: email,
         token,
         expires: tokenExpiration,
-        data: { type: 'password-reset' }
+        data: { type: 'password-reset' },
+        user: {
+          connect: { id: user.id }
+        }
       }
     });
 
@@ -1958,12 +1991,27 @@ async function testSecurityFeatures(
         ? new Date(Date.now() - 1000)
         : new Date(Date.now() + SECURITY_CONFIG.csrfTokenExpiration);
 
+      // Get or create a test user for CSRF token
+      let user = await prisma.user.findFirst();
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email: 'test@example.com',
+            displayName: 'Test User',
+            name: 'Test User'
+          }
+        });
+      }
+
       await prisma.verificationToken.create({
         data: {
           identifier: 'csrf',
           token: csrfToken,
           expires: tokenExpiration,
-          data: { type: 'csrf-token' }
+          data: { type: 'csrf-token' },
+          user: {
+            connect: { id: user.id }
+          }
         }
       });
 
@@ -2353,27 +2401,55 @@ async function logTestResult(result: AuthTestResult) {
   logger.info(`${icon} ${result.scenario}${details}${error}`);
 }
 
+async function setupTestData() {
+  logger.info("🏗️ Setting up test data...");
+  try {
+    // Create default organization plan if it doesn't exist
+    const defaultPlan = await prisma.organizationPlan.upsert({
+      where: { id: 'FREE' },
+      update: {},
+      create: {
+        id: 'FREE',
+        name: 'Free Plan',
+        maximumMembers: 5
+      }
+    });
+    logger.info("✨ Test data setup complete");
+    return defaultPlan;
+  } catch (error) {
+    logger.error("Setup failed:", error);
+    throw error;
+  }
+}
+
 async function cleanupTestData(email: string) {
   logger.info("🧹 Cleaning up test data...");
   
   try {
-    // Delete verification tokens for the test user
-    await prisma.verificationToken.deleteMany({
-      where: {
-        identifier: email
-      }
-    });
-
-    // Delete the test user
-    await prisma.user.deleteMany({
-      where: {
-        email: email
-      }
-    });
+    // Use transaction to ensure atomic cleanup
+    await prisma.$transaction([
+      // Delete verification tokens
+      prisma.verificationToken.deleteMany({
+        where: { identifier: email }
+      }),
+      // Delete sessions
+      prisma.session.deleteMany({
+        where: { user: { email } }
+      }),
+      // Delete accounts
+      prisma.account.deleteMany({
+        where: { user: { email } }
+      }),
+      // Delete user
+      prisma.user.deleteMany({
+        where: { email }
+      })
+    ]);
 
     logger.info("✨ Test data cleanup complete");
   } catch (error) {
     logger.error("Cleanup failed:", error);
+    throw error;
   }
 }
 
@@ -2381,6 +2457,10 @@ async function runAuthTests() {
   logger.info("Starting Authentication Tests");
   
   try {
+    // Setup required test data first (organization plans, etc.)
+    await setupTestData();
+    logger.info("🔧 Test environment ready");
+
     const testUser = {
       email: 'test@example.com',
       password: 'Test123!@#',
