@@ -1,4 +1,4 @@
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config";
 import { Preview, Text, Container, Section, Hr } from "@react-email/components";
 import { EmailLayout } from "@/emails/utils/EmailLayout";
 import { EmailSection } from "@/emails/utils/components.utils";

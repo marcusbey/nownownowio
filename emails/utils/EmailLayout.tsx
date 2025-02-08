@@ -1,5 +1,5 @@
 import { getServerUrl } from "@/lib/server-url";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config";
 import {
   Body,
   Container,

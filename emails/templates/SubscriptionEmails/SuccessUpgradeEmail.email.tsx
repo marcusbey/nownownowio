@@ -1,4 +1,4 @@
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config";
 import { EmailText } from "@/emails/utils/components.utils";
 import { BaseTransactionalEmail } from "./BaseTransactionalEmail";
 

@@ -17,3 +17,6 @@ Freelancer and Creators. then 'startup' with more featuers (chat integrate and A
 - Fix panel and button display. 
 
 
+the seach bar on the right panel is not the same as the input for post. (radus border... )
+We can improve the input block design and layout. 
+we can also improve the navigation bar specially the 'feedback, profile, and toogle button' maybe combine them. 

@@ -1,5 +1,5 @@
 import { getServerUrl } from "@/lib/server-url";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config";
 import { Button, Section } from "@react-email/components";
 import { EmailText } from "@/emails/utils/components.utils";
 import { BaseTransactionalEmail } from "./BaseTransactionalEmail";
