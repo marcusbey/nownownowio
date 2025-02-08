@@ -1,4 +1,4 @@
-export const config = {
+export const envConfig = {
   nodeEnv: process.env.NODE_ENV,
   database: {
     url: process.env.DATABASE_URL,
@@ -17,3 +17,5 @@ export const config = {
     url: process.env.NEXT_PUBLIC_APP_URL,
   },
 } as const;
+
+export type EnvConfig = typeof envConfig;
