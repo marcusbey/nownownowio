@@ -25,6 +25,7 @@ const nextConfig = {
                 pathname: '/profile_images/**',
             },
         ],
+        domains: ['localhost'],
     },
     eslint: {
         ignoreDuringBuilds: true
