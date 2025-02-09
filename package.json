@@ -16,7 +16,7 @@
     "postinstall": "prisma generate",
     "clean": "next lint --fix && tsc --noEmit && prettier --write .",
     "knip": "knip",
-    "test": "jest",
+    "test": "jest --config jest.config.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:auth": "jest auth/",
