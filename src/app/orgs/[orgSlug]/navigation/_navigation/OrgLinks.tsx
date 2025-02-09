@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { OrganizationMembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ACCOUNT_LINKS } from "../../../../(logged-in)/(account-layout)/account-links";
+import { ACCOUNT_LINKS } from "../../../../(account-layout)/account-links";
 import { ORGANIZATION_LINKS } from "./org-navigation.links";
 
 const useCurrentPath = (links: NavigationLink[], organizationSlug?: string) => {

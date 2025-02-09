@@ -1,5 +1,5 @@
 import { NavigationLink } from "@/lib/types";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config/site-config";
 import {
   Bell,
   Bookmark,

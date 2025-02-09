@@ -2,11 +2,11 @@ import kyInstance from "@/lib/ky";
 import { CommentsPage, PostData } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ChevronDown, Loader2 } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "../button";
 import Comment from "./Comment";
 import CommentInput from "./CommentInput";
 import { motion, AnimatePresence } from "framer-motion";
-import { ScrollArea } from "../ui/scroll-area";
+import { ScrollArea } from "../scroll-area";
 
 interface CommentsProps {
   post: PostData;

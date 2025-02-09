@@ -6,9 +6,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { useToast } from "../ui/use-toast";
+import { Button } from "../button";
+import { Textarea } from "../textarea";
+import { useToast } from "../use-toast";
 import UserAvatar from "../UserAvatar";
 import { motion } from "framer-motion";
 

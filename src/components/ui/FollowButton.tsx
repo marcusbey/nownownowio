@@ -4,8 +4,8 @@ import useFollowerInfo from "@/hooks/useFollowerInfo";
 import kyInstance from "@/lib/ky";
 import { FollowerInfo } from "@/lib/types";
 import { QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "./ui/button";
-import { useToast } from "./ui/use-toast";
+import { Button } from "./button";
+import { useToast } from "./use-toast";
 
 interface FollowButtonProps {
   userId: string;

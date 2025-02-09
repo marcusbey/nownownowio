@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { PasswordInput } from '@/components/PasswordInput';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import type { LoginCredentialsFormType } from './signup.schema';
 import { LoginCredentialsFormScheme } from './signup.schema';
 

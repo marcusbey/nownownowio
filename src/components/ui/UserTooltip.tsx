@@ -12,7 +12,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "./ui/tooltip";
+} from "./tooltip";
 import UserAvatar from "./UserAvatar";
 
 interface UserTooltipProps extends PropsWithChildren {

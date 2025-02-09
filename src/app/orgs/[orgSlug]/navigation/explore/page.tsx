@@ -3,12 +3,12 @@
 import { useInfinitePosts, GetPostsResponse } from "@/lib/api/posts";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import Post from "@/components/posts/Post";
+import Post from "@/components/ui/posts/Post";
 import { useSearchParams } from "next/navigation";
-import PostEditor from "@/components/posts/editor/PostEditor";
+import PostEditor from "@/components/ui/posts/editor/PostEditor";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import InfiniteScrollContainer from "@/components/InfiniteScrollContainer";
+import InfiniteScrollContainer from "@/components/ui/InfiniteScrollContainer";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 

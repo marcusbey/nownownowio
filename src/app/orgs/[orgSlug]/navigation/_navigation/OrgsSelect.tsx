@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config/site-config";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 
