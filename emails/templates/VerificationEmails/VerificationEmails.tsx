@@ -4,9 +4,9 @@ import { BaseTransactionalEmail } from "../BaseTransactionalEmail";
 import { EmailLink, EmailText } from "@/emails/utils/components.utils";
 import { getServerUrl } from "@/lib/server-url";
 
-type VerificationEmailType = "magicLink" | "orgInvitation" | "verifyEmail";
+export type VerificationEmailType = "magicLink" | "orgInvitation" | "verifyEmail";
 
-interface VerificationEmailProps {
+export interface VerificationEmailProps {
   type: VerificationEmailType;
   data: {
     url?: string;
@@ -60,18 +60,24 @@ export default function VerificationEmail({ type, data }: VerificationEmailProps
       ),
     },
     verifyEmail: {
-      previewText: "Please click the link below to sign in to your account.",
-      header: "Verify Your Email",
+      previewText: "Verify your email address to complete registration",
+      header: "Email Verification",
       content: (
         <>
           <EmailText>
-            <EmailLink href={data.url}>
-              👉 Click here to verify your email 👈
-            </EmailLink>
+            Click the button below to verify your email and activate your NowNowNow account.
           </EmailText>
-          <EmailText>
-            If you didn't request this, please ignore this email.
+          <EmailText className="text-muted-foreground text-sm">
+            This link expires in {data.expiresIn}.
           </EmailText>
+          <Section className="mt-6 text-center">
+            <Button
+              className="bg-primary text-primary-foreground rounded-lg px-6 py-3"
+              href={data.url}
+            >
+              Verify Email
+            </Button>
+          </Section>
         </>
       ),
     },

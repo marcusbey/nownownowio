@@ -81,7 +81,7 @@ export default async function RoutePage(props: PageParams) {
 
   if (user.emailVerified) {
     redirect(
-      createSearchParamsMessageUrl("/account", {
+      createSearchParamsMessageUrl("/for-you", {
         type: "success",
         message: "Your email has been verified.",
       }),
@@ -104,7 +104,7 @@ export default async function RoutePage(props: PageParams) {
   });
 
   redirect(
-    createSearchParamsMessageUrl("/account", {
+    createSearchParamsMessageUrl("/for-you", {
       type: "success",
       message: "Your email has been verified.",
     }),

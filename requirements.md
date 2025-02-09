@@ -463,92 +463,45 @@ E. Security Considerations
   - User retention
   - Growth metrics
 
+## Subscription Plans
 
+### Plan Comparison
 
+| Feature | Free | Premium | Lifetime |
+|---------|------|---------|----------|
+| Status Lifetime | 7 days | Permanent | Permanent |
+| Weekly Impressions | 100 | Unlimited | Unlimited |
+| Image Uploads | ❌ | ✅ (10GB storage) | ✅ (Unlimited) |
+| AI Integration | ❌ | ✅ Basic | ✅ Advanced |
+| Analytics | Basic | Advanced | Advanced |
+| Custom Domains | ❌ | 1 domain | Unlimited |
+| Team Members | 1 | 5 | Unlimited |
+| Price | Free | $29/month | $299 one-time |
 
+### Free Plan Details
+- Statuses auto-delete after 7 days
+- 100 impression/week limit for dashboard metrics
+- No image upload capabilities
+- Basic analytics (24h retention)
+- No AI-powered features
 
+### Premium Plan Benefits
+- Permanent status preservation
+- Unlimited impressions tracking
+- Image uploads with EXIF stripping
+- GPT-4 integration for content suggestions
+- Advanced analytics (30d retention)
+- Custom domain support
+- Priority email support
 
+### Lifetime Plan Features
+- All Premium features
+- Unlimited storage for media
+- Early access to new features
+- Dedicated account manager
+- Custom branding options
 
-
-
-
-
-################# Pricing Plans #################
-
-# NowNowNow Premium vs Free Tier Requirements
-
-## 1. Widget Features
-
-### Free Tier Limitations
-
-#### Widget Display Restrictions
-- Content Limitations
-  - Display only most recent status/post
-  - No historical posts visible
-  - No post scheduling
-  - Text-only posts (no rich media)
-
-- Visual Constraints
-  - Fixed widget dimensions (300x200px)
-  - Default light/dark theme only
-  - No custom colors or fonts
-  - No custom CSS
-  - Mandatory "Powered by NowNowNow" branding
-    - Fixed position (bottom right)
-    - Non-removable
-    - Standard styling
-    - Links to NowNowNow platform
-
-- Technical Limitations
-  - Default refresh rate (5 minutes)
-  - No real-time updates
-  - Generic subdomain only (widget.nownownow.com/[username])
-  - Basic embedding options
-  - No custom parameters
-
-#### Usage Restrictions
-- Account Limitations
-  - Single widget per user account
-  - One active embed code
-  - No multiple widget versions
-
-- Performance Constraints
-  - Maximum 500 widget loads per month
-    - Counter resets monthly
-    - Overage shows upgrade prompt
-    - Basic error page when limit reached
-  
-- API Limitations
-  - Rate limiting: 100 requests/hour
-  - Basic endpoints only
-  - No webhook support
-
-- Analytics Restrictions
-  - Basic view counter only
-  - No geographic data
-  - No referrer tracking
-  - No user interaction metrics
-  - Daily view limit indicator
-
-### Premium Tier Features
-- Enhanced Widget Display
-  - Show multiple statuses/posts (up to 10)
-  - Custom color schemes and branding
-  - Real-time updates
-  - Custom widget sizes
-  - Custom domains for widgets
-  - Remove "Powered by NowNowNow" branding
-  - Custom CSS support
-  - Interactive elements (likes, comments)
-
-- Advanced Usage
-  - Multiple widgets per account
-  - Unlimited widget loads
-  - Detailed analytics dashboard
-  - Higher rate limits (1000 requests/hour)
-  - Priority API access
-
-## 2. Implementation Requirements
+## 8. Implementation Requirements
 
 ### Widget Generation & Display
 ```typescript
@@ -602,7 +555,7 @@ interface RateLimitConfig {
 }
 ```
 
-## 3. Upgrade Flow
+## 9. Upgrade Flow
 
 ### Free-to-Premium Conversion Points
 - Widget Customization
@@ -625,7 +578,7 @@ interface RateLimitConfig {
 - Clear trial expiration notifications
 - Smooth upgrade path
 
-## 4. Feature Enforcement
+## 10. Feature Enforcement
 
 ### System Checks
 ```typescript
@@ -648,7 +601,7 @@ model Account {
 }
 ```
 
-## 5. Testing Scenarios
+## 11. Testing Scenarios
 
 ### Feature Access Testing
 - Verify free tier limitations
@@ -678,7 +631,7 @@ model Account {
 - Usage limit transitions
 - Rate limit boundary conditions
 
-## 6. Monitoring & Analytics
+## 12. Monitoring & Analytics
 
 ### Usage Tracking
 - Track per-user metrics
@@ -692,3 +645,24 @@ model Account {
 - Track feature access patterns
 - Analyze upgrade triggers
 - Measure system load by tier
+
+## 13. Technical Limitations
+
+### Enforcement Requirements
+
+| Limitation              | Free          | Premium       | Lifetime      | Enforcement Method               |
+|-------------------------|---------------|---------------|---------------|-----------------------------------|
+| API Rate Limit          | 100 req/hour  | 1,000 req/hour| 5,000 req/hour| Token bucket algorithm            |
+| Storage Quota           | 100MB         | 10GB          | Unlimited     | Storage middleware checks         |
+| Data Retention          | 7 days        | 30 days       | Indefinite    | Daily purge cron job              |
+| Concurrent Connections  | 10            | 50            | 200           | WebSocket connection manager      |
+| Export Frequency        | 1/week        | 1/day         | Unlimited     | Export service quota checks       |
+| AI Model Access         | GPT-3.5       | GPT-4         | GPT-4 + Fine-Tuned | Feature flags               |
+
+**Implementation Requirements:**
+- Rate limiting middleware with plan-specific thresholds
+- Storage quota enforcement on upload endpoints  
+- Scheduled data retention workers
+- Connection pooling limits
+- Export quota tracking system
+- Plan-gated feature flags for AI model access

@@ -1,12 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
-const isEdgeRuntime = () => {
-  return process.env.NEXT_RUNTIME === 'edge';
-};
+const isEdgeRuntime = () => process.env.NEXT_RUNTIME === 'edge';
 
 const prismaClientSingleton = () => {
+  // Return null for Edge Runtime to allow fallback handling
   if (isEdgeRuntime()) {
-    throw new Error('PrismaClient is not supported in Edge Runtime');
+    return null;
   }
   return new PrismaClient();
 };
@@ -18,6 +17,10 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+if (prisma === null) {
+  throw new Error('Database operations are not supported in this environment. Please use Server Components or API Routes.');
+}
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;

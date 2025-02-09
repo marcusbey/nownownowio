@@ -8,10 +8,16 @@ import { getServerUrl } from "@/lib/server-url";
 import { addHours } from "date-fns";
 import { nanoid } from "nanoid";
 
+// verify-email.action.ts
 export const createVerifyEmailAction = authAction.action(async ({ ctx }) => {
   if (ctx.user.emailVerified) {
     throw new ActionError("Email is already verified");
   }
+
+  // Delete existing verification tokens for this email
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: ctx.user.email }
+  });
 
   const verificationToken = await prisma.verificationToken.create({
     data: {
@@ -21,6 +27,8 @@ export const createVerifyEmailAction = authAction.action(async ({ ctx }) => {
     },
   });
 
+  console.log("[DEV] Verification email sent to:", ctx.user.email); // Remove in production
+
   await sendEmail({
     to: ctx.user.email,
     subject: "Verify your email",
@@ -28,6 +36,7 @@ export const createVerifyEmailAction = authAction.action(async ({ ctx }) => {
       type: "verifyEmail",
       data: {
         url: `${getServerUrl()}/account/verify-email?token=${verificationToken.token}`,
+        expiresIn: "1 hour"
       },
     }),
   });

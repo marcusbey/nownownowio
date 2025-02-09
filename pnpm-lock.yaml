@@ -324,6 +324,9 @@ importers:
       '@fullhuman/postcss-purgecss':
         specifier: ^6.0.0
         version: 6.0.0(postcss@8.5.1)
+      '@jest/types':
+        specifier: ^29.6.3
+        version: 29.6.3
       '@next/eslint-plugin-next':
         specifier: ^14.2.11
         version: 14.2.23
@@ -420,6 +423,9 @@ importers:
       jest-axe:
         specifier: ^9.0.0
         version: 9.0.0
+      jest-environment-node:
+        specifier: ^29.7.0
+        version: 29.7.0
       jsdom:
         specifier: ^26.0.0
         version: 26.0.0

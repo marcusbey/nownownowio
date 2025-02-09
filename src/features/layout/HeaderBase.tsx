@@ -1,4 +1,4 @@
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config/site-config-full";
 import Image from "next/image";
 import Link from "next/link";
 import type { PropsWithChildren } from "react";

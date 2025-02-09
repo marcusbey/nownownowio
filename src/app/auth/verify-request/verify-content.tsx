@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, MailCheck, Send, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { resendVerificationEmail } from "./resend.action";
-import { SiteConfig } from "@/config/site-config";
+import { SiteConfig } from "@/config/site-config-full";
 
 interface VerifyContentProps {
   email: string;

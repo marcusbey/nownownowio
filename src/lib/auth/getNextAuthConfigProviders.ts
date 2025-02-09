@@ -1,14 +1,26 @@
-import MagicLinkMail from "@/emails/MagicLinkEmail.email";
-import { SiteConfig } from "@/site-config";
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 import Twitter from "next-auth/providers/twitter";
-import { env } from "../env";
-import { logger } from "../logger";
-import { sendEmail } from "../mail/sendEmail";
-import { getCredentialsProvider } from "./credentials-provider";
 import { cache } from 'react';
+
+import { SiteConfig } from "@/config/site-config-full";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
+import { sendEmail } from "@/lib/mail/sendEmail";
+import { getCredentialsProvider } from "@/lib/auth/credentials-provider";
+import { MagicLinkMail } from "@/emails/templates/VerificationEmails/MagicLinkMail";
+
+interface TwitterProfileData {
+  id: string;
+  name: string;
+  email?: string;
+  profile_image_url?: string;
+}
+
+interface TwitterProfile {
+  data: TwitterProfileData;
+}
 
 type Providers = NonNullable<NextAuthConfig["providers"]>;
 
@@ -28,25 +40,27 @@ export const getNextAuthConfigProviders = cache((): Providers => {
         try {
           const result = await sendEmail({
             to: email,
-            subject: `Sign in to ${SiteConfig.domain}`,
+            subject: `Sign in to ${SiteConfig.appName}`,
             react: MagicLinkMail({
               url,
             }),
           });
 
           if (result.error) {
-            logger.error("[Auth] Resend Provider Error", { 
+            logger.error("[Auth] Magic Link Error", { 
               error: result.error,
-              email 
+              email,
+              url
             });
-            throw new Error(`Failed to send email: ${result.error}`);
+            throw new Error(`Failed to send magic link: ${result.error}`);
           }
 
-          logger.info("[Auth] Magic link email sent successfully", { email });
+          logger.info("[Auth] Magic link sent", { email });
         } catch (error) {
-          logger.error("[Auth] Failed to send magic link email", { 
+          logger.error("[Auth] Magic link failed", { 
             error,
-            email 
+            email,
+            url
           });
           throw error;
         }
@@ -69,7 +83,7 @@ export const getNextAuthConfigProviders = cache((): Providers => {
           url: 'https://api.twitter.com/2/users/me',
           params: { 'user.fields': 'name,profile_image_url,email' }
         },
-        async profile(profile: { data: { id: string; name: string; email?: string; profile_image_url?: string } }) {
+        async profile(profile: TwitterProfile) {
           logger.info("[Auth] Twitter profile data", { profile });
           
           // Handle case where email might not be available
@@ -82,7 +96,7 @@ export const getNextAuthConfigProviders = cache((): Providers => {
             image: profile.data.profile_image_url,
           };
         },
-      } as any), // Type assertion to bypass strict type checking
+      }), // Removed any type assertion
     );
   }
 
