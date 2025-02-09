@@ -51,11 +51,21 @@ const authConfig = {
   events: {
     async signIn({ user }) {
       try {
+        if (!user?.id) {
+          logger.error('[Auth] No user ID in signIn callback');
+          return;
+        }
+
         // Check if email is verified
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
           select: { emailVerified: true }
         });
+
+        if (!dbUser) {
+          logger.error('[Auth] User not found in database', { userId: user.id });
+          return;
+        }
 
         if (!dbUser?.emailVerified) {
           // If email is not verified, redirect to verification page
