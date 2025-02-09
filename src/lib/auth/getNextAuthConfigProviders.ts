@@ -24,7 +24,7 @@ interface TwitterProfile {
 
 type Providers = NonNullable<NextAuthConfig["providers"]>;
 
-export const getNextAuthConfigProviders = cache((): Providers => {
+export const getNextAuthConfigProviders = cache(() => {
   // Debug logging
   logger.info('[Auth] Checking environment variables', {
     hasResendApiKey: !!env.RESEND_API_KEY,
@@ -38,81 +38,42 @@ export const getNextAuthConfigProviders = cache((): Providers => {
   // Add Resend (Magic Link) provider if API key is available
   if (env.RESEND_API_KEY) {
     providers.push(
-    Resend({
-      apiKey: env.RESEND_API_KEY,
-      sendVerificationRequest: async ({ identifier: email, url }) => {
-        try {
-          const result = await sendEmail({
-            to: email,
-            subject: `Sign in to ${SiteConfig.appName}`,
-            react: MagicLinkMail({
-              url,
-            }),
-          });
+      Resend({
+        apiKey: env.RESEND_API_KEY,
+        sendVerificationRequest: async ({ identifier: email, url }) => {
+          try {
+            const result = await sendEmail({
+              to: email,
+              subject: `Sign in to ${SiteConfig.appName}`,
+              react: MagicLinkMail({
+                url,
+              }),
+            });
 
-          if (result.error) {
-            logger.error("[Auth] Magic Link Error", { 
-              error: result.error,
+            if (result.error) {
+              logger.error("[Auth] Magic Link Error", { 
+                error: result.error,
+                email,
+                url
+              });
+              throw new Error(`Failed to send magic link: ${result.error}`);
+            }
+
+            logger.info("[Auth] Magic link sent", { email });
+          } catch (error) {
+            logger.error("[Auth] Magic link failed", { 
+              error,
               email,
               url
             });
-            throw new Error(`Failed to send magic link: ${result.error}`);
+            throw error;
           }
-
-          logger.info("[Auth] Magic link sent", { email });
-        } catch (error) {
-          logger.error("[Auth] Magic link failed", { 
-            error,
-            email,
-            url
-          });
-          throw error;
-        }
-      },
-    })
-  );
-
-  // Add Twitter provider if credentials are available
-  if (env.TWITTER_ID && env.TWITTER_SECRET) {
-    providers.push(
-      Twitter({
-        clientId: env.TWITTER_ID,
-        clientSecret: env.TWITTER_SECRET,
-        profile(profile: TwitterProfile) {
-          return {
-            id: profile.data.id,
-            name: profile.data.name,
-            email: profile.data.email,
-            image: profile.data.profile_image_url,
-          };
         },
       })
     );
   }
 
-  // Add Google provider if credentials are available
-  if (env.GOOGLE_ID && env.GOOGLE_SECRET) {
-    providers.push(
-      Google({
-        clientId: env.GOOGLE_ID,
-        clientSecret: env.GOOGLE_SECRET,
-      })
-    );
-  }
-
-  // Add password auth if enabled in config
-  if (SiteConfig.features.enablePasswordAuth) {
-    providers.push(getCredentialsProvider());
-  }
-
-  // Validate that we have at least one provider
-  if (providers.length === 0) {
-    logger.error('[Auth] No authentication providers configured');
-    throw new Error('No authentication providers configured. Please check your environment variables.');
-  }
-
-  return providers;
-
+  // Add Twitter provider if credentials are available
   if (env.TWITTER_ID && env.TWITTER_SECRET) {
     providers.push(
       Twitter({
@@ -141,10 +102,11 @@ export const getNextAuthConfigProviders = cache((): Providers => {
             image: profile.data.profile_image_url,
           };
         },
-      }), // Removed any type assertion
+      })
     );
   }
 
+  // Add Google provider if credentials are available
   if (env.GOOGLE_ID && env.GOOGLE_SECRET) {
     providers.push(
       Google({
@@ -167,12 +129,19 @@ export const getNextAuthConfigProviders = cache((): Providers => {
             emailVerified: profile.email_verified ? new Date() : null,
           };
         },
-      }),
+      })
     );
   }
 
+  // Add password auth if enabled in config
   if (SiteConfig.features.enablePasswordAuth) {
     providers.push(getCredentialsProvider());
+  }
+
+  // Validate that we have at least one provider
+  if (providers.length === 0) {
+    logger.error('[Auth] No authentication providers configured');
+    throw new Error('No authentication providers configured. Please check your environment variables.');
   }
 
   return providers;
