@@ -1,8 +1,8 @@
-import FollowButton from "@/components/FollowButton";
-import Linkify from "@/components/Linkify";
-import Post from "@/components/posts/Post";
-import UserAvatar from "@/components/UserAvatar";
-import UserTooltip from "@/components/UserTooltip";
+import FollowButton from "@/components/ui/FollowButton";
+import Linkify from "@/components/ui/Linkify";
+import Post from "@/components/ui/posts/Post";
+import UserAvatar from "@/components/ui/UserAvatar";
+import UserTooltip from "@/components/ui/UserTooltip";
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getPostDataInclude, UserData } from "@/lib/types";

@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { NextResponse } from "next/server";
 
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
   try {
     // Find the verification token
-    const verificationToken = await db.verificationToken.findUnique({
+    const verificationToken = await prisma.verificationToken.findUnique({
       where: { token },
       include: { user: true },
     });

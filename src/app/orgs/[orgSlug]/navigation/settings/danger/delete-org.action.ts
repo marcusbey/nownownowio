@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getResendInstance } from "@/lib/mail/resend";
-import OrgConfirmDeletionEmail from "@/emails/OrgConfirmDeletion.email";
+import OrgConfirmDeletionEmail from "@/emails/templates/OrgConfirmDeletion.email";
 import { redirect } from "next/navigation";
 import { OrganizationMembershipRole } from "@prisma/client";
 

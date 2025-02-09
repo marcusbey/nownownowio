@@ -1,6 +1,6 @@
 import { SiteConfig } from "@/config";
 import { EmailLink, EmailText } from "@/emails/utils/components.utils";
-import { BaseTransactionalEmail } from "./BaseTransactionalEmail";
+import { BaseTransactionalEmail } from "../BaseTransactionalEmail";
 
 export default function SubscriptionFailedEmail({
   organizationName,

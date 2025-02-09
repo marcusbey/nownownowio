@@ -1,7 +1,7 @@
 "use server";
 
-import AccountAskDeletionEmail from "@/emails/AccountAskDeletion.email";
-import AccountConfirmDeletionEmail from "@/emails/AccountConfirmDeletion.email";
+import AccountAskDeletionEmail from "@/emails/templates/AccountEmails/AccountAskDeletion.email";
+import AccountConfirmDeletionEmail from "@/emails/templates/AccountEmails/AccountConfirmDeletion.email";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";

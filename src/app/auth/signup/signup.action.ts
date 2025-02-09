@@ -2,7 +2,7 @@
 
 import { ActionError, action } from "@/lib/actions/safe-actions";
 import { getResendInstance } from "@/lib/mail/resend";
-import VerifyEmail from "@/emails/VerifyEmail.email";
+import VerifyEmail from "@/emails/templates/VerificationEmails/VerifyEmail.email";
 import {
   setupDefaultOrganizationsOrInviteUser,
   setupResendCustomer,

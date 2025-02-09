@@ -9,7 +9,7 @@ import {
 import { createSearchParamsMessageUrl } from "@/features/searchparams-message/createSearchParamsMessageUrl";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getServerUrl } from "@/lib/server-url";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config";
 import type { LayoutParams } from "@/types/next";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";

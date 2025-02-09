@@ -8,7 +8,7 @@ import {
 } from "@/features/page/layout";
 import { createSearchParamsMessageUrl } from "@/features/searchparams-message/createSearchParamsMessageUrl";
 import { requiredAuth } from "@/lib/auth/helper";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config";
 import { redirect } from "next/navigation";
 import { NewOrganizationForm } from "./NewOrgForm";
 

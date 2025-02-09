@@ -4,7 +4,7 @@ import { action } from "@/lib/actions/safe-actions";
 import { env } from "@/lib/env";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { ContactSupportSchema } from "./contact-support.schema";
-import { SupportEmail } from "../../../../emails/SupportEmail";
+import { SupportEmail } from "@/emails/templates/SupportEmail";
 
 export const contactSupportAction = action
   .schema(ContactSupportSchema)

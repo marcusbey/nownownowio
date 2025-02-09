@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
-import { useToast } from "../ui/use-toast";
+import { useToast } from "../use-toast";
 import { deletePost } from "./actions";
 
 export function useDeletePostMutation() {

@@ -1,6 +1,6 @@
 import { SiteConfig } from "@/config";
 import { EmailText } from "@/emails/utils/components.utils";
-import { BaseTransactionalEmail } from "./BaseTransactionalEmail";
+import { BaseTransactionalEmail } from "../BaseTransactionalEmail";
 
 export default function AccountConfirmDeletionEmail() {
   return (

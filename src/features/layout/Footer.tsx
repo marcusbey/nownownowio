@@ -1,4 +1,4 @@
-import logo from "@/app/icon.png";
+import logo from "@/public/images/icon.png";
 import config from "@/config";
 import Image from "next/image";
 import Link from "next/link";

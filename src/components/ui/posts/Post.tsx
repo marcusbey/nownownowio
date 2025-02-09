@@ -11,7 +11,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import Linkify from "../Linkify";
 import UserAvatar from "../UserAvatar";
 import UserTooltip from "../UserTooltip";
-import { Button } from "../ui/button";
+import { Button } from "../button";
 import BookmarkButton from "./BookmarkButton";
 import LikeButton from "./LikeButton";
 import PostMoreButton from "./PostMoreButton";

@@ -1,6 +1,6 @@
 "use client";
 
-import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/(navigation)/_navigation/org-navigation.links";
+import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/navigation/_navigation/org-navigation.links";
 import { cn } from "@/lib/utils";
 import { Feather } from "lucide-react";
 import Link from "next/link";

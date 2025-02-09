@@ -1,7 +1,7 @@
 "use client";
 
-import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/(navigation)/_navigation/org-navigation.links";
-import { LogoSvg } from "@/components/svg/LogoSvg";
+import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/navigation/_navigation/org-navigation.links";
+import { LogoSvg } from "@/components/ui/svg/LogoSvg";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Typography } from "@/components/ui/typography";

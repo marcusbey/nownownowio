@@ -1,8 +1,8 @@
 "use client";
 
-import LoadingButton from "@/components/LoadingButton";
+import LoadingButton from "@/components/ui/LoadingButton";
 import { Button } from "@/components/ui/button";
-import UserAvatar from "@/components/UserAvatar";
+import UserAvatar from "@/components/ui/UserAvatar";
 import { cn } from "@/lib/utils";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";

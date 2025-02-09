@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
+} from "../dialog";
 import { useDeletePostMutation } from "./mutations";
 
 interface DeletePostDialogProps {

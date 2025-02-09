@@ -1,6 +1,6 @@
-import SubscriptionDowngradeEmail from "@/emails/SubscriptionDowngradeEmail.email";
-import SubscriptionFailedEmail from "@/emails/SubscriptionFailedEmail.email";
-import SuccessUpgradeEmail from "@/emails/SuccessUpgradeEmail.email";
+import SubscriptionDowngradeEmail from "@/emails/templates/SubscriptionEmails/SubscriptionDowngradeEmail.email";
+import SubscriptionFailedEmail from "@/emails/templates/SubscriptionEmails/SubscriptionFailedEmail.email";
+import SuccessUpgradeEmail from "@/emails/templates/SubscriptionEmails/SuccessUpgradeEmail.email";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";

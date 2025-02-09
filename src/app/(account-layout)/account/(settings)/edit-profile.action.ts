@@ -19,7 +19,7 @@ import {
   ProfileFormSchema,
 } from "./edit-profile.schema";
 import { Html, Text } from "@react-email/components";
-import ProfileUpdateEmail from "@/emails/ProfileUpdateEmail";
+import ProfileUpdateEmail from "@/emails/templates/AccountEmails/ProfileUpdateEmail";
 
 export const updateProfileAction = authAction
   .schema(ProfileFormSchema.and(z.object({ token: z.string().optional() })))
