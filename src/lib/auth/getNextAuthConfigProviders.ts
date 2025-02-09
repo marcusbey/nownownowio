@@ -33,7 +33,11 @@ export const getNextAuthConfigProviders = cache((): Providers => {
     hasNextAuthUrl: !!env.NEXTAUTH_URL,
   });
 
-  const providers: Providers = [
+  const providers: Providers = [];
+
+  // Add Resend (Magic Link) provider if API key is available
+  if (env.RESEND_API_KEY) {
+    providers.push(
     Resend({
       apiKey: env.RESEND_API_KEY,
       sendVerificationRequest: async ({ identifier: email, url }) => {
@@ -65,8 +69,49 @@ export const getNextAuthConfigProviders = cache((): Providers => {
           throw error;
         }
       },
-    }),
-  ];
+    })
+  );
+
+  // Add Twitter provider if credentials are available
+  if (env.TWITTER_ID && env.TWITTER_SECRET) {
+    providers.push(
+      Twitter({
+        clientId: env.TWITTER_ID,
+        clientSecret: env.TWITTER_SECRET,
+        profile(profile: TwitterProfile) {
+          return {
+            id: profile.data.id,
+            name: profile.data.name,
+            email: profile.data.email,
+            image: profile.data.profile_image_url,
+          };
+        },
+      })
+    );
+  }
+
+  // Add Google provider if credentials are available
+  if (env.GOOGLE_ID && env.GOOGLE_SECRET) {
+    providers.push(
+      Google({
+        clientId: env.GOOGLE_ID,
+        clientSecret: env.GOOGLE_SECRET,
+      })
+    );
+  }
+
+  // Add password auth if enabled in config
+  if (SiteConfig.features.enablePasswordAuth) {
+    providers.push(getCredentialsProvider());
+  }
+
+  // Validate that we have at least one provider
+  if (providers.length === 0) {
+    logger.error('[Auth] No authentication providers configured');
+    throw new Error('No authentication providers configured. Please check your environment variables.');
+  }
+
+  return providers;
 
   if (env.TWITTER_ID && env.TWITTER_SECRET) {
     providers.push(
