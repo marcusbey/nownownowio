@@ -19,6 +19,10 @@ export default async function EditProfilePage() {
     redirect("/sign-in");
   }
 
+  if (!prisma) {
+    throw new Error('Database operations are not supported in this environment');
+  }
+
   const user = await prisma.user.findUnique({
     where: { email: session.user.email }
   });

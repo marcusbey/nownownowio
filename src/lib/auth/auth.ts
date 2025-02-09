@@ -100,39 +100,58 @@ const authConfig = {
     },
   },
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, token }) {
       try {
         if (!session?.user) {
           logger.warn('[Auth] No user in session');
           return session;
         }
+
+        // Ensure user has an ID from the token
+        if (!token?.sub) {
+          logger.error('[Auth] No user ID in token');
+          return session;
+        }
+
+        const userId = token.sub;
+        const cachedSession = await getCachedSession(userId);
         
-        const cachedSession = await getCachedSession(session.user.id);
         if (cachedSession) {
-          logger.debug('[Auth] Using cached session', { userId: session.user.id });
+          logger.debug('[Auth] Using cached session', { userId });
           return cachedSession;
         }
 
-        // Get the redirect URL from the session
-        const dbSession = await prisma.session.findFirst({
-          where: { userId: user.id },
-          select: { redirectUrl: true }
+        // Get user data from database
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            displayName: true,
+            bio: true
+          }
         });
+
+        if (!user) {
+          logger.error('[Auth] User not found in database', { userId });
+          return session;
+        }
 
         const enhancedSession = {
           ...session,
           user: {
             ...session.user,
-            id: user.id,
-          },
-          redirectUrl: dbSession?.redirectUrl
+            ...user,
+          }
         };
 
-        await setCachedSession(user.id, enhancedSession);
-        logger.debug('[Auth] Session enhanced and cached', { userId: user.id });
+        await setCachedSession(userId, enhancedSession);
+        logger.debug('[Auth] Session enhanced and cached', { userId });
         return enhancedSession;
       } catch (error) {
-        logger.error('[Auth] Error in session callback', { error, userId: user?.id });
+        logger.error('[Auth] Error in session callback', { error });
         return session;
       }
     },

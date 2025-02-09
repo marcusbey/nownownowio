@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getResendInstance } from "@/lib/mail/resend";
-import OrgConfirmDeletionEmail from "@/emails/templates/OrgConfirmDeletion.email";
+import MarkdownEmail from "@/emails/templates/Markdown.email";
 import { redirect } from "next/navigation";
 import { OrganizationMembershipRole } from "@prisma/client";
 
@@ -42,8 +42,8 @@ export async function organizationDeleteAction(input: { orgSlug: string }) {
       from: "noreply@nownownow.io",
       subject: `Your organization has been deleted (${org.slug})`,
       to: user.email,
-      react: OrgConfirmDeletionEmail({
-        org: org.name,
+      react: MarkdownEmail({
+        content: `Your organization ${org.name} has been successfully deleted.\n\nIf you believe this was done in error, please contact support immediately.`
       }),
     });
 

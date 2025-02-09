@@ -18,7 +18,7 @@ import {
 } from "@/features/posts/post-manager";
 import { formatDate } from "@/lib/format/date";
 import { logger } from "@/lib/logger";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config/site-config-full";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";

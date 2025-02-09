@@ -10,7 +10,7 @@ import { Loader } from "@/components/ui/loader";
 import { Typography } from "@/components/ui/typography";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { cn } from "@/lib/utils";
-import { SiteConfig } from "@/config/site";
+import { SiteConfig } from "@/config/site-config-full";
 import { useMutation } from "@tanstack/react-query";
 import { PropsWithChildren, useState } from "react";
 import { toast } from "sonner";

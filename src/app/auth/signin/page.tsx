@@ -34,10 +34,9 @@ export default async function AuthSignInPage(props: PageParams) {
             </AuthQueryProvider>
           </CardContent>
           {error ? (
-            <Alert>
-              <AlertTriangle size={16} />
-              <AlertDescription>{error}</AlertDescription>
-              <AlertTitle>{errorMessage}</AlertTitle>
+            <Alert className="mt-4" variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle className="ml-2">{errorMessage}</AlertTitle>
             </Alert>
           ) : null}
         </Card>

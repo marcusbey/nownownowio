@@ -5,6 +5,7 @@
 import { logger } from "@/lib/logger";
 
 const AUTH_ERRORS: Record<string, string> = {
+  Unauthenticated: "Please sign in to access this page.",
   AccountNotLinked:
     "This email is already associated with a different sign-in method. Please use the original sign-in method or contact support for help linking your accounts.",
   AdapterError:
@@ -81,7 +82,7 @@ export function getError(errorCode: unknown) {
   logger.info("[Auth] Processing auth error", { errorCode });
   
   const code = String(errorCode || "Default");
-  const error = "Configuration";
+  const error = code;
   const errorMessage = AUTH_ERRORS[code] || AUTH_ERRORS.Default;
 
   logger.error("[Auth] Auth error details", { 

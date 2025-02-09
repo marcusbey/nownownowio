@@ -1,6 +1,11 @@
 import { prisma } from '../src/lib/prisma'
 
 async function main() {
+  if (!prisma) {
+    console.error('Prisma client is not initialized');
+    process.exit(1);
+  }
+
   try {
     // Check if PostView table exists
     const postView = await prisma.postView.findFirst();

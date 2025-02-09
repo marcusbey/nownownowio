@@ -9,7 +9,7 @@ import {
 } from "@/features/page/layout";
 import { getPosts, getPostsTags } from "@/features/posts/post-manager";
 import { PostCard } from "@/features/posts/PostCard";
-import { SiteConfig } from "@/site-config";
+import { SiteConfig } from "@/config/site-config-full";
 import type { PageParams } from "@/types/next";
 import { FileQuestion } from "lucide-react";
 import { Metadata } from "next";

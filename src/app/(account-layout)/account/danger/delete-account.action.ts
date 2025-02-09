@@ -10,8 +10,51 @@ import { addHours } from "date-fns";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
+const TokenSchema = z.object({
+  deleteAccount: z.boolean(),
+});
+
+async function verifyDeleteAccountToken(
+  token: string,
+  userEmail: string,
+) {
+  if (!prisma) {
+    throw new Error('Database operations are not supported in this environment');
+  }
+
+  const verificationToken = await prisma.verificationToken.findUnique({
+    where: {
+      token,
+    },
+  });
+
+  if (!verificationToken) {
+    throw new ActionError("Invalid token");
+  }
+
+  const tokenData = TokenSchema.parse(String(verificationToken.data));
+
+  if (!tokenData.deleteAccount) {
+    throw new ActionError("Invalid token");
+  }
+
+  if (verificationToken.identifier !== `${userEmail}-delete-account`) {
+    throw new ActionError("Invalid token");
+  }
+
+  if (verificationToken.expires < new Date()) {
+    throw new ActionError("Token expired");
+  }
+
+  return verificationToken;
+}
+
 export const accountAskDeletionAction = authAction.action(async ({ ctx }) => {
   const userId = ctx.user.id;
+
+  if (!prisma) {
+    throw new Error('Database operations are not supported in this environment');
+  }
 
   const user = await prisma.user.findUnique({
     where: {
@@ -47,6 +90,7 @@ export const accountAskDeletionAction = authAction.action(async ({ ctx }) => {
         deleteAccount: true,
       },
       token: nanoid(32),
+      userId: user.id, // Add required userId field
     },
   });
 
@@ -56,48 +100,18 @@ export const accountAskDeletionAction = authAction.action(async ({ ctx }) => {
     react: AccountEmail({
       type: "askDeletion",
       data: {
-      organizationsToDelete: user.organizations?.map(
-        (o) => o.organization.name,
-      ),
-      confirmUrl: `${getServerUrl()}/account/delete/confirm?token=${token.token}`,
-    }),
-  });
-});
-
-const TokenSchema = z.object({
-  deleteAccount: z.boolean(),
-});
-
-export async function verifyDeleteAccountToken(
-  token: string,
-  userEmail: string,
-) {
-  const verificationToken = await prisma.verificationToken.findUnique({
-    where: {
-      token,
-    },
+        organizationsToDelete: user.organizations?.map(
+          (o) => o.organization.name
+        ),
+        confirmUrl: `${getServerUrl()}/account/delete/confirm?token=${token.token}`
+      }
+    })
   });
 
-  if (!verificationToken) {
-    throw new ActionError("Invalid token");
-  }
+  return { success: true };
+});
 
-  const tokenData = TokenSchema.parse(String(verificationToken.data));
-
-  if (!tokenData.deleteAccount) {
-    throw new ActionError("Invalid token");
-  }
-
-  if (verificationToken.identifier !== `${userEmail}-delete-account`) {
-    throw new ActionError("Invalid token");
-  }
-
-  if (verificationToken.expires < new Date()) {
-    throw new ActionError("Token expired");
-  }
-
-  return verificationToken;
-}
+export { verifyDeleteAccountToken };
 
 export const orgConfirmDeletionAction = authAction
   .schema(
@@ -107,6 +121,10 @@ export const orgConfirmDeletionAction = authAction
   )
   .action(async ({ parsedInput: { token }, ctx }) => {
     await verifyDeleteAccountToken(token, ctx.user.email);
+
+    if (!prisma) {
+      throw new Error('Database operations are not supported in this environment');
+    }
 
     // First delete all organizations linked to the user
     const organizationsToDelete = await prisma.organization.findMany({

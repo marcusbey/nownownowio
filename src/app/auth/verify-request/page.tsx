@@ -2,7 +2,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { Typography } from "@/components/ui/typography";
 import { MailCheck } from "lucide-react";
 import Image from "next/image";
-import { SiteConfig } from "@/config/site";
+import { SiteConfig } from "@/config/site-config-full";
 import { VerifyContent } from "./verify-content";
 
 interface VerifyRequestPageProps {

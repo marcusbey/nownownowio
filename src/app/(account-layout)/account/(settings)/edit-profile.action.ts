@@ -1,6 +1,6 @@
 "use server";
 
-import MarkdownEmail from "@/emails/Markdown.email";
+import MarkdownEmail from "@/emails/templates/Markdown.email";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import {
@@ -19,7 +19,7 @@ import {
   ProfileFormSchema,
 } from "./edit-profile.schema";
 import { Html, Text } from "@react-email/components";
-import ProfileUpdateEmail from "@/emails/templates/AccountEmails/ProfileUpdateEmail";
+
 
 export const updateProfileAction = authAction
   .schema(ProfileFormSchema.and(z.object({ token: z.string().optional() })))
@@ -47,6 +47,10 @@ export const updateProfileAction = authAction
       }
     }
 
+    if (!prisma) {
+      throw new Error('Database operations are not supported in this environment');
+    }
+
     const user = await prisma.user.update({
       where: {
         id: ctx.user.id,
@@ -66,6 +70,10 @@ export const editPasswordAction = authAction
   .schema(EditPasswordFormSchema)
   .action(async ({ parsedInput: input, ctx }) => {
     const session = await requiredAuth();
+    if (!prisma) {
+      throw new Error('Database operations are not supported in this environment');
+    }
+
     const { passwordHash } = await prisma.user.findUniqueOrThrow({
       where: {
         id: session.user.id,
@@ -112,6 +120,10 @@ export const editPasswordAction = authAction
 
 export const sendUpdateEmailVerificationCodeAction = authAction.action(
   async ({ ctx }) => {
+    if (!prisma) {
+      throw new Error('Database operations are not supported in this environment');
+    }
+
     await prisma.verificationToken.deleteMany({
       where: {
         identifier: {
@@ -132,7 +144,10 @@ export const sendUpdateEmailVerificationCodeAction = authAction.action(
     await sendEmail({
       to: ctx.user.email,
       subject: "[Action required] Update your profile",
-      react: ProfileUpdateEmail({ verificationToken: verificationToken.token }),
+      react: MarkdownEmail({
+        preview: 'Verify your email update',
+        markdown: `Click the link below to verify your email update:\n\n${verificationToken.token}`
+      }),
     });
 
     return {
@@ -148,6 +163,10 @@ export const verifyUpdateEmailTokenAction = authAction
     }),
   )
   .action(async ({ parsedInput: { token }, ctx }) => {
+    if (!prisma) {
+      throw new Error('Database operations are not supported in this environment');
+    }
+
     const verificationToken = await prisma.verificationToken.findUnique({
       where: {
         token,
