@@ -1,6 +1,4 @@
-import SubscriptionDowngradeEmail from "@/emails/templates/SubscriptionEmails/SubscriptionDowngradeEmail.email";
-import SubscriptionFailedEmail from "@/emails/templates/SubscriptionEmails/SubscriptionFailedEmail.email";
-import SuccessUpgradeEmail from "@/emails/templates/SubscriptionEmails/SuccessUpgradeEmail.email";
+import SubscriptionEmail from "@/emails/templates/SubscriptionEmails/SubscriptionEmails";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
@@ -36,7 +34,7 @@ export const notifyUserOfPremiumUpgrade = async (user: Organization) => {
   await sendEmail({
     to: user.email,
     subject: `Welcome to Free Bird! You Now Have Lifetime Access`,
-    react: SuccessUpgradeEmail(),
+    react: SubscriptionEmail({ type: "upgrade" }),
   });
 };
 
@@ -46,8 +44,9 @@ export const notifyUserOfPremiumDowngrade = async (org: Organization) => {
   await sendEmail({
     to: org.email,
     subject: `Important Update: Changes to Your Account Status`,
-    react: SubscriptionDowngradeEmail({
-      url: `${getServerUrl()}/${org.slug}/settings/billing`,
+    react: SubscriptionEmail({
+      type: "downgrade",
+      data: { url: `${getServerUrl()}/${org.slug}/settings/billing` }
     }),
   });
 };
@@ -56,9 +55,12 @@ export const notifyUserOfPaymentFailure = async (org: Organization) => {
   await sendEmail({
     to: org.email ?? "",
     subject: `Action Needed: Complete Your Free Bird Purchase`,
-    react: SubscriptionFailedEmail({
-      organizationName: org.name,
-      portalUrl: `${getServerUrl()}/orgs/${org.slug}/settings/billing`,
+    react: SubscriptionEmail({
+      type: "failed",
+      data: {
+        organizationName: org.name,
+        portalUrl: `${getServerUrl()}/orgs/${org.slug}/settings/billing`,
+      },
     }),
   });
 };
@@ -67,9 +69,12 @@ export const notifyUserOfPaymentActionRequired = async (org: Organization) => {
   await sendEmail({
     to: org.email ?? "",
     subject: "Additional Authentication Required for Your Free Bird Purchase",
-    react: SubscriptionFailedEmail({
-      organizationName: org.name,
-      portalUrl: `${getServerUrl()}/orgs/${org.slug}/settings/billing`,
+    react: SubscriptionEmail({
+      type: "failed",
+      data: {
+        organizationName: org.name,
+        portalUrl: `${getServerUrl()}/orgs/${org.slug}/settings/billing`,
+      },
     }),
   });
 };
