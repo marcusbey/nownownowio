@@ -2,7 +2,7 @@
 
 import { ActionError, action } from "@/lib/actions/safe-actions";
 import { getResendInstance } from "@/lib/mail/resend";
-import VerifyEmail from "@/emails/templates/VerificationEmails/VerifyEmail.email";
+import VerificationEmail from "@/emails/templates/VerificationEmails/VerificationEmails";
 import {
   setupDefaultOrganizationsOrInviteUser,
   setupResendCustomer,
@@ -98,7 +98,10 @@ export const signUpAction = action
           from: `NowNowNow <${env.RESEND_EMAIL_FROM}>`,
           to: user.email,
           subject: 'Welcome to NowNowNow - Verify Your Email',
-          react: VerifyEmail({ url: verifyUrl }),
+          react: VerificationEmail({
+            type: "verifyEmail",
+            data: { url: verifyUrl },
+          }),
           text: `Welcome to NowNowNow! Please verify your email address by clicking this link: ${verifyUrl} (expires in 15 minutes)`,
           headers: {
             'List-Unsubscribe': `<${env.NEXTAUTH_URL}/auth/unsubscribe?email=${encodeURIComponent(user.email)}>`,

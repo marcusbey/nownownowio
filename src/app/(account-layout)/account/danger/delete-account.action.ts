@@ -1,7 +1,6 @@
 "use server";
 
-import AccountAskDeletionEmail from "@/emails/templates/AccountEmails/AccountAskDeletion.email";
-import AccountConfirmDeletionEmail from "@/emails/templates/AccountEmails/AccountConfirmDeletion.email";
+import AccountEmail from "@/emails/templates/AccountEmails/AccountEmails";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
@@ -54,7 +53,9 @@ export const accountAskDeletionAction = authAction.action(async ({ ctx }) => {
   await sendEmail({
     subject: "[Action required] Confirm your account deletion",
     to: [user.email],
-    react: AccountAskDeletionEmail({
+    react: AccountEmail({
+      type: "askDeletion",
+      data: {
       organizationsToDelete: user.organizations?.map(
         (o) => o.organization.name,
       ),
@@ -140,6 +141,6 @@ export const orgConfirmDeletionAction = authAction
     await sendEmail({
       subject: "Your account has been deleted",
       to: ctx.user.email,
-      react: AccountConfirmDeletionEmail(),
+      react: AccountEmail({ type: "confirmDeletion" }),
     });
   });

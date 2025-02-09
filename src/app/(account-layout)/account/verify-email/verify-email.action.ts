@@ -1,6 +1,6 @@
 "use server";
 
-import VerifyEmail from "@/emails/templates/VerificationEmails/VerifyEmail.email";
+import VerificationEmail from "@/emails/templates/VerificationEmails/VerificationEmails";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
@@ -24,8 +24,11 @@ export const createVerifyEmailAction = authAction.action(async ({ ctx }) => {
   await sendEmail({
     to: ctx.user.email,
     subject: "Verify your email",
-    react: VerifyEmail({
-      url: `${getServerUrl()}/account/verify-email?token=${verificationToken.token}`,
+    react: VerificationEmail({
+      type: "verifyEmail",
+      data: {
+        url: `${getServerUrl()}/account/verify-email?token=${verificationToken.token}`,
+      },
     }),
   });
 });

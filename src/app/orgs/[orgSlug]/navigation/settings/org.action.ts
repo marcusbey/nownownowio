@@ -1,7 +1,7 @@
 "use server";
 
-import MarkdownEmail from "@/emails/templates/MarkdownEmail.email";
-import OrganizationInvitationEmail from "@/emails/templates/OrganizationEmails/OrganizationInvitationEmail.email";
+import MarkdownEmail from "@/emails/templates/Markdown.email";
+import VerificationEmail from "@/emails/templates/VerificationEmails/VerificationEmails";
 import { ActionError, orgAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
@@ -208,11 +208,14 @@ export const inviteUserInOrganizationAction = orgAction
         await sendEmail({
           to: email,
           subject: `Invitation to join ${ctx.org.name}`,
-          react: OrganizationInvitationEmail({
-            token: verificationToken.token,
-            orgSlug: ctx.org.slug,
-            organizationName: ctx.org.name,
-            expiresIn: `${INVITE_EXPIRATION_HOURS} hours`,
+          react: VerificationEmail({
+            type: "orgInvitation",
+            data: {
+              token: verificationToken.token,
+              orgSlug: ctx.org.slug,
+              organizationName: ctx.org.name,
+              expiresIn: `${INVITE_EXPIRATION_HOURS} hours`,
+            },
           }),
         });
       } catch (emailError) {
