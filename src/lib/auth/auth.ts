@@ -23,8 +23,24 @@ declare module "next-auth" {
 }
 
 const authConfig = {
+  debug: process.env.NODE_ENV === "development",
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   adapter: PrismaAdapter(prisma),
   providers: getNextAuthConfigProviders(),
+  cookies: {
+    sessionToken: {
+      name: `${process.env.NODE_ENV === "production" ? "__Secure-" : ""}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   pages: {
     signIn: "/auth/signin",
     signOut: "/auth/signout",
@@ -75,28 +91,40 @@ const authConfig = {
   },
   callbacks: {
     async session({ session, user }) {
-      if (!session?.user) return session;
-      
-      const cachedSession = await getCachedSession(session.user.id);
-      if (cachedSession) return cachedSession;
+      try {
+        if (!session?.user) {
+          logger.warn('[Auth] No user in session');
+          return session;
+        }
+        
+        const cachedSession = await getCachedSession(session.user.id);
+        if (cachedSession) {
+          logger.debug('[Auth] Using cached session', { userId: session.user.id });
+          return cachedSession;
+        }
 
-      // Get the redirect URL from the session
-      const dbSession = await prisma.session.findFirst({
-        where: { userId: user.id },
-        select: { redirectUrl: true }
-      });
+        // Get the redirect URL from the session
+        const dbSession = await prisma.session.findFirst({
+          where: { userId: user.id },
+          select: { redirectUrl: true }
+        });
 
-      const enhancedSession = {
-        ...session,
-        user: {
-          ...session.user,
-          id: user.id,
-        },
-        redirectUrl: dbSession?.redirectUrl
-      };
+        const enhancedSession = {
+          ...session,
+          user: {
+            ...session.user,
+            id: user.id,
+          },
+          redirectUrl: dbSession?.redirectUrl
+        };
 
-      setCachedSession(user.id, enhancedSession);
-      return enhancedSession;
+        await setCachedSession(user.id, enhancedSession);
+        logger.debug('[Auth] Session enhanced and cached', { userId: user.id });
+        return enhancedSession;
+      } catch (error) {
+        logger.error('[Auth] Error in session callback', { error, userId: user?.id });
+        return session;
+      }
     },
     async jwt({ token, user, account }) {
       try {
