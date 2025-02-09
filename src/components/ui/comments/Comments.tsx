@@ -19,7 +19,7 @@ export default function Comments({ post }: CommentsProps) {
       queryFn: ({ pageParam }) =>
         kyInstance
           .get(
-            `/api/posts/${post.id}/comments`,
+            `/api/posts/${post.id}/interactions?type=comment`,
             pageParam ? { searchParams: { cursor: pageParam } } : {},
           )
           .json<CommentsPage>(),

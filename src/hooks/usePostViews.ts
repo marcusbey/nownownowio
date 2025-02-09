@@ -23,7 +23,7 @@ export function usePostViews(postId: string) {
         if (lastViewed && now - lastViewed < 5 * 60 * 1000) {
           // Just get the count without incrementing
           const response = await kyInstance
-            .get(`/api/posts/${postId}/views`)
+            .get(`/api/posts/${postId}/analytics`, { searchParams: { type: 'view' } })
             .json<ViewCountResponse>();
           return response.viewCount;
         }
@@ -33,7 +33,7 @@ export function usePostViews(postId: string) {
 
         // Increment the view count
         const response = await kyInstance
-          .post(`/api/posts/${postId}/views`)
+          .post(`/api/posts/${postId}/analytics`, { searchParams: { type: 'view' } })
           .json<ViewCountResponse>();
 
         if (response.error) {

@@ -11,8 +11,10 @@ export async function createComment({
   content,
 }: CreateCommentParams): Promise<CommentData> {
   return kyInstance
-    .post(`/api/posts/${postId}/comments`, { json: { content } })
-    .json();
+    .post(`/api/posts/${postId}/interactions`, {
+      searchParams: { type: 'comment' },
+      json: { content }
+    }).json();
 }
 
 export async function deleteComment(commentId: string): Promise<void> {
@@ -21,6 +23,11 @@ export async function deleteComment(commentId: string): Promise<void> {
 
 export async function getComments(postId: string, cursor?: string | null) {
   return kyInstance
-    .get(`/api/posts/${postId}/comments`, cursor ? { searchParams: { cursor } } : {})
+    .get(`/api/posts/${postId}/interactions`, {
+      searchParams: {
+        type: 'comment',
+        ...(cursor ? { cursor } : {})
+      }
+    })
     .json();
 }

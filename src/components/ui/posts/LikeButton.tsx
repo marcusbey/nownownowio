@@ -34,7 +34,7 @@ export default function LikeButton({
   const { data } = useQuery({
     queryKey,
     queryFn: () =>
-      kyInstance.get(`/api/posts/${postId}/likes`).json<typeof initialState>(),
+      kyInstance.get(`/api/posts/${postId}/interactions`, { searchParams: { type: 'like' } }).json<typeof initialState>(),
     initialData: initialState,
     staleTime: Infinity,
   });
@@ -42,8 +42,8 @@ export default function LikeButton({
   const { mutate } = useMutation({
     mutationFn: () =>
       data.isLikedByUser
-        ? kyInstance.delete(`/api/posts/${postId}/likes`)
-        : kyInstance.post(`/api/posts/${postId}/likes`),
+        ? kyInstance.delete(`/api/posts/${postId}/interactions`, { searchParams: { type: 'like' } })
+        : kyInstance.post(`/api/posts/${postId}/interactions`, { searchParams: { type: 'like' } }),
     onMutate: async () => {
       toast({
         description: `Post ${data.isLikedByUser ? "un" : ""}liked`,
