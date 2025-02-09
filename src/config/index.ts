@@ -1,6 +1,5 @@
-export { default as appConfig } from './config';
-export { SiteConfig } from './site-config';
+export { SiteConfig } from './site-config-full';
 export { envConfig } from './env';
 
-// Re-export SiteConfig as default for backwards compatibility
-export { SiteConfig as default } from './site-config';
+// Re-export SiteConfig as default and appConfig for backwards compatibility
+export { SiteConfig as default, SiteConfig as appConfig } from './site-config-full';

@@ -1,9 +1,12 @@
-import logo from "@/public/images/icon.png";
-import config from "@/config";
+
+import { SiteConfig } from "@/config";
 import Image from "next/image";
 import Link from "next/link";
 
+
+
 export const Footer = () => {
+  const logo = SiteConfig.appIcon;
   return (
     <footer className="border border-border bg-card">
       <div className="mx-auto max-w-7xl px-8 py-24">
@@ -16,19 +19,20 @@ export const Footer = () => {
             >
               <Image
                 src={logo}
-                alt={`${config.appName} logo`}
+                alt={`${SiteConfig.appName} logo`}
                 priority={true}
                 className="size-6"
                 width={24}
                 height={24}
+                unoptimized
               />
               <strong className="text-base font-extrabold tracking-tight md:text-lg">
-                {config.appName}
+                {SiteConfig.appName}
               </strong>
             </Link>
 
             <p className="text-base-content/80 mt-3 text-sm">
-              {config.appDescription}
+              {SiteConfig.description}
             </p>
             <p className="text-base-content/60 mt-3 text-sm">
               Copyright © {new Date().getFullYear()} - All rights reserved
@@ -41,9 +45,9 @@ export const Footer = () => {
               </div>
 
               <div className="mb-10 flex flex-col items-center justify-center gap-2 text-sm md:items-start">
-                {config.mailgun.supportEmail && (
+                {SiteConfig.email.contact && (
                   <a
-                    href={`mailto:${config.mailgun.supportEmail}`}
+                    href={`mailto:${SiteConfig.email.contact}`}
                     target="_blank"
                     className="link link-hover"
                     aria-label="Contact Support"

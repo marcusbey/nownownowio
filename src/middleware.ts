@@ -1,9 +1,12 @@
-import { auth } from "@/lib/auth/auth";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
+  const token = await getToken({ 
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET
+  });
 
   // Allow public routes
   if (
@@ -17,7 +20,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect to login if not authenticated
-  if (!session) {
+  if (!token) {
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 

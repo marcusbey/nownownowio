@@ -22,45 +22,102 @@ export type Theme =
   | "dracula"
   | "";
 
+export interface PlanFeature {
+  name: string;
+}
+
+export interface Plan {
+  priceId: string;
+  name: string;
+  description: string;
+  price: number;
+  features: PlanFeature[];
+  isFeatured?: boolean;
+  isOneTime?: boolean;
+}
+
+export interface StripeConfig {
+  plans: Plan[];
+}
+
 export interface ConfigProps {
+  // Core Configuration
+  title: string;
+  description: string;
+  prodUrl: string;
+  domain: string;
+  appIcon: string;
   appName: string;
-  appDescription: string;
-  domainName: string;
-  crisp: {
-    id?: string;
-    onlyShowOnRoutes?: string[];
+
+  // Company Information
+  company: {
+    name: string;
+    address: string;
   };
-  stripe: {
-    plans: {
-      isFeatured?: boolean;
-      priceId: string;
-      name: string;
-      description?: string;
-      price: number;
-      priceAnchor?: number;
-      features: {
-        name: string;
-      }[];
-    }[];
+
+  // Branding
+  brand: {
+    primary: string;
   };
-  aws?: {
-    bucket?: string;
-    bucketUrl?: string;
-    cdn?: string;
+
+  // Email Configuration
+  email: {
+    from: string;
+    contact: string;
   };
+
+  // Maker Information
+  maker: {
+    image: string;
+    website: string;
+    twitter: string;
+    name: string;
+  };
+
+  // Feature Configuration
+  features: {
+    enableImageUpload: boolean;
+    enablePasswordAuth: boolean;
+  };
+
+  // Stripe Configuration
+  stripe: StripeConfig;
+
+  // AWS Configuration
+  aws: {
+    bucket: string;
+    bucketUrl: string;
+    cdn: string;
+  };
+
+  // Auth Configuration
+  auth: {
+    loginUrl: string;
+    callbackUrl: string;
+    loginLinkSecret: string;
+  };
+
+  // Analytics Configuration
+  analytics: {
+    vercelAnalytics: {
+      projectId: string;
+    };
+  };
+
+  // Email Configuration
   mailgun: {
     subdomain: string;
     fromNoReply: string;
     fromAdmin: string;
-    supportEmail?: string;
-    forwardRepliesTo?: string;
+    fromSupport: string;
+    supportEmail: string;
+    forwardRepliesTo: string;
+    replyToEmail: string;
   };
-  colors: {
-    theme: Theme;
-    main: string;
-  };
-  auth: {
-    loginUrl: string;
-    callbackUrl: string;
+
+  // Crisp Configuration
+  crisp: {
+    id: string;
+    onlyShowOnRoutes: string[];
   };
 }
