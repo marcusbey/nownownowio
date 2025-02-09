@@ -4,7 +4,7 @@ import { action } from "@/lib/actions/safe-actions";
 import { env } from "@/lib/env";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { ContactSupportSchema } from "./contact-support.schema";
-import { SupportEmail } from "@/emails/templates/SupportEmail";
+import SupportFeedbackEmail from "@/emails/templates/SupportFeedbackEmails/SupportFeedbackEmails";
 
 export const contactSupportAction = action
   .schema(ContactSupportSchema)
@@ -12,7 +12,10 @@ export const contactSupportAction = action
     await sendEmail({
       to: env.NEXT_PUBLIC_EMAIL_CONTACT,
       subject: `Support needed from ${email} - ${subject}`,
-      react: SupportEmail({ message }),
+      react: SupportFeedbackEmail({
+        type: "support",
+        data: { message },
+      }),
       replyTo: email,
     });
     return { message: "Your message has been sent to support." };
