@@ -8,6 +8,7 @@ import { AlertTriangle } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getError } from "../error/auth-error-mapping";
 import { SignInProviders } from "./SignInProviders";
+import { AuthQueryProvider } from "../AuthQueryProvider";
 
 export default async function AuthSignInPage(props: PageParams) {
   const { errorMessage, error } = getError(props.searchParams.error);
@@ -28,7 +29,9 @@ export default async function AuthSignInPage(props: PageParams) {
             <CardTitle>Sign in to your account</CardTitle>
           </CardHeader>
           <CardContent className="mt-8">
-            <SignInProviders />
+            <AuthQueryProvider>
+              <SignInProviders />
+            </AuthQueryProvider>
           </CardContent>
           {error ? (
             <Alert>
