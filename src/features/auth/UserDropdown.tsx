@@ -19,10 +19,11 @@ import type { PropsWithChildren } from "react";
 
 export const UserDropdown = ({ children }: PropsWithChildren) => {
   const logout = useMutation({
-    mutationFn: () => signOut({ callbackUrl: "/" }),
+    mutationFn: async () => {
+      await signOut({ callbackUrl: "/" });
+    },
     onError: (error) => {
       console.error("Logout failed:", error);
-      // Optionally, display an error message to the user
     },
   });
   const { data: session } = useSession();

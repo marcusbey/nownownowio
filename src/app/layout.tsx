@@ -1,7 +1,7 @@
 import { BaseLayout } from "@/features/layout/BaseLayout";
 import { auth } from "@/lib/auth/auth";
-import { SessionProvider } from "next-auth/react";
 import type { PropsWithChildren } from "react";
+import { Providers } from "./providers";
 
 export const metadata = {
   title: 'NowNowNow',
@@ -14,9 +14,9 @@ export default async function RouteLayout(props: PropsWithChildren) {
   return (
     <html lang="en">
       <body>
-        <SessionProvider session={session}>
+        <Providers session={session}>
           <BaseLayout>{props.children}</BaseLayout>
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   );

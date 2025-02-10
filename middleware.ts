@@ -4,6 +4,18 @@ import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+// Add type safety for public paths
+const PUBLIC_PATHS = [
+  '/auth/signin',
+  '/auth/signup',
+  '/auth/verify-request',
+  '/auth/error',
+] as const;
+
+// Add type for protected routes
+const PROTECTED_ROUTES = ['/orgs'] as const;
+
+// Keep the original config with improved type safety
 export const config = {
   matcher: [
     /*
@@ -17,71 +29,65 @@ export const config = {
      */
     "/((?!api|_next/static|_next/image|favicon.ico|admin|orgs/[^/]+/invitations/[^/]+).*)",
   ],
-};
+} as const;
 
 export function middleware(req: NextRequest) {
-  // Inject the current URL inside the request headers
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
-  // Get the session token from cookies
   const authCookie = req.cookies.get(AUTH_COOKIE_NAME);
-
-  // Get the current path and URL
   const { pathname } = req.nextUrl;
   const url = new URL(req.url);
 
-  // Skip middleware for API routes and auth-related API routes
+  // Helper function for consistent response with headers
+  const nextWithHeaders = () => NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+
+  // Check if path is public
+  const isPublicPath = PUBLIC_PATHS.includes(pathname as any);
+  
+  // Skip middleware for API routes
   if (pathname.startsWith('/api/')) {
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    return nextWithHeaders();
   }
 
-  // Allow access to auth pages during the auth flow
+  // Handle auth flow pages
   if (pathname.startsWith('/auth/') && (
     url.searchParams.has('callbackUrl') ||
     url.searchParams.has('error') ||
     pathname.includes('error') ||
-    pathname.includes('verify-request')
+    pathname.includes('verify-request') ||
+    isPublicPath
   )) {
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    return nextWithHeaders();
   }
 
   // Skip auth check for invitation links
   if (pathname.match(/^\/orgs\/[^/]+\/invitations\/[^/]+$/)) {
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    return nextWithHeaders();
   }
 
-  // If user is not authenticated and trying to access protected routes
-  if (!authCookie?.value && pathname.startsWith('/orgs')) {
-    return NextResponse.redirect(new URL('/auth/signin', req.url));
+  // Protected routes authentication check
+  if (!authCookie?.value && PROTECTED_ROUTES.some(route => pathname.startsWith(route))) {
+    const signInUrl = new URL('/auth/signin', req.url);
+    signInUrl.searchParams.set('callbackUrl', req.url);
+    signInUrl.searchParams.set('error', 'Unauthenticated');
+    return NextResponse.redirect(signInUrl);
   }
 
-  // If user is authenticated
+  // Authenticated user redirections
   if (authCookie?.value) {
-    // Redirect from landing page to orgs
     if (pathname === '/' && SiteConfig.features.enableLandingRedirection) {
       return NextResponse.redirect(new URL('/orgs', req.url));
     }
 
-    // Redirect from auth pages if already authenticated
     if (pathname.startsWith('/auth/')) {
       return NextResponse.redirect(new URL('/orgs', req.url));
     }
   }
 
-  // Always clean up isNewUser parameter
+  // Clean up isNewUser parameter
   if (url.searchParams.has('isNewUser')) {
     url.searchParams.delete('isNewUser');
     if (authCookie?.value) {
@@ -89,9 +95,5 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  return nextWithHeaders();
 }

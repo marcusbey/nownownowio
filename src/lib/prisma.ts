@@ -1,13 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { logger } from "./logger";
 
 const isEdgeRuntime = () => process.env.NEXT_RUNTIME === 'edge';
 
 const prismaClientSingleton = () => {
-  // Return null for Edge Runtime to allow fallback handling
   if (isEdgeRuntime()) {
     return null;
   }
-  return new PrismaClient();
+
+  return new PrismaClient({
+    log: [
+      { level: 'warn', emit: 'event' },
+      { level: 'error', emit: 'event' },
+    ],
+  });
 };
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
@@ -24,6 +30,23 @@ if (prisma === null) {
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
+}
+
+// Add event listeners for Prisma Client
+if (prisma) {
+  prisma.$on('error', (e) => {
+    logger.error('[Database] Prisma Client error', {
+      error: e.message,
+      target: e.target,
+    });
+  });
+
+  prisma.$on('warn', (e) => {
+    logger.warn('[Database] Prisma Client warning', {
+      message: e.message,
+      target: e.target,
+    });
+  });
 }
 
 export { prisma };
