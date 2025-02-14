@@ -6,6 +6,8 @@ import { LayoutGroup, motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NavigationGroup, NavigationLink } from "./navigation.type";
+import * as Icons from "lucide-react";
+import { useMemo } from "react";
 
 const useCurrentPath = (links: NavigationLink[]) => {
   const currentPath = usePathname().split("/").filter(Boolean);
@@ -38,7 +40,7 @@ export const NavigationLinks = ({
 }: {
   navigation: NavigationGroup[];
 }) => {
-  const links: NavigationLink[] = navigation
+  const links = navigation
     .flatMap((group: NavigationGroup) => group.links)
     .filter((l) => !l.hidden);
 
@@ -79,7 +81,10 @@ export const NavigationLinks = ({
                       ></motion.div>
                     )}
                     <div className="relative flex w-full items-center gap-x-1.5 text-left">
-                      <link.Icon className="size-4" />
+                      {(() => {
+                        const Icon = Icons[link.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+                        return Icon ? <Icon className="size-4" /> : null;
+                      })()}
                       {link.label}
                     </div>
                   </MotionLink>

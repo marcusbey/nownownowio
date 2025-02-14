@@ -1,6 +1,4 @@
 import type { OrganizationMembershipRole } from "@prisma/client";
-import type { IconProps } from "@radix-ui/react-icons/dist/types";
-import type { LucideIcon } from "lucide-react";
 
 export type NavigationGroup = {
   title: string;
@@ -11,11 +9,7 @@ export type NavigationGroup = {
 
 export type NavigationLink = {
   href: string;
-  Icon:
-    | React.ForwardRefExoticComponent<
-        IconProps & React.RefAttributes<SVGSVGElement>
-      >
-    | LucideIcon;
+  icon: string;
   label: string;
   roles?: OrganizationMembershipRole[];
   hidden?: boolean;
