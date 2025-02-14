@@ -1,5 +1,6 @@
 "use client";
 
+import * as Icons from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -71,7 +72,10 @@ export function OrgSidebar({
                     {link.links.map((item) => (
                       <SidebarMenuItem key={item.label}>
                         <SidebarMenuButtonLink href={item.href}>
-                          <item.Icon />
+                          {(() => {
+                            const Icon = Icons[item.icon as keyof typeof Icons];
+                            return Icon ? <Icon className="size-4" /> : null;
+                          })()}
                           <span>{item.label}</span>
                         </SidebarMenuButtonLink>
                       </SidebarMenuItem>

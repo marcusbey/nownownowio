@@ -75,8 +75,14 @@ export function OrgCommand() {
                     );
                   }}
                 >
-                  <link.Icon className="mr-2 size-4" />
-                  <span>{link.label}</span>
+                  <>
+                    {link.Icon ? (
+                      <link.Icon className="mr-2 size-4" />
+                    ) : (
+                      <span className="mr-2 size-4" />
+                    )}
+                    <span>{link.label}</span>
+                  </>
                 </CommandItem>
               ))}
             </CommandGroup>
