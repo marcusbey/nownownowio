@@ -1,0 +1,44 @@
+// social.prisma
+model Follow {
+  id          String @id @default(nanoid(11))
+  followerId  String
+  followingId String
+  follower    User   @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model Notification {
+  id          String           @id @default(nanoid(11))
+  recipientId String
+  issuerId    String
+  postId      String?
+  type        NotificationType
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  issuer      User             @relation("Issuer", fields: [issuerId], references: [id], onDelete: Cascade)
+  post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  recipient   User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Bookmark {
+  id        String   @id @default(nanoid(11))
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("bookmarks")
+}
+
+enum NotificationType {
+  LIKE
+  FOLLOW
+  COMMENT
+}
