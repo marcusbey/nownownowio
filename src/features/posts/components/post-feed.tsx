@@ -1,19 +1,18 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { getFeedPosts } from "./post-manager";
+import { getFeedPosts } from "../services/post-service";
 import { PostCard } from "./post-card";
-import { PostForm } from "./post-form";
-import type { Organization, User } from "@prisma/client";
+import type { ExtendedPost } from "../types";
 
-type PostFeedProps = {
-  organization: Organization;
-  currentUser: User;
-  initialPosts?: Awaited<ReturnType<typeof getFeedPosts>>;
-};
+interface PostFeedProps {
+  organizationId: string;
+  initialPosts?: ExtendedPost[];
+}
 
 export function PostFeed({
-  organization,
-  currentUser,
+  organizationId,
   initialPosts = [],
 }: PostFeedProps) {
   const [posts, setPosts] = useState(initialPosts);
@@ -28,7 +27,7 @@ export function PostFeed({
     try {
       const lastPost = posts[posts.length - 1];
       const newPosts = await getFeedPosts({
-        organizationId: organization.id,
+        organizationId,
         cursor: lastPost?.id,
       });
 

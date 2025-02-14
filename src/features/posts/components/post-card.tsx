@@ -1,22 +1,15 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { MessageCircle, Heart, Bookmark } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import type { Post, Comment, Organization, User } from "@prisma/client";
+import type { ExtendedPost } from "../types";
 
-type ExtendedPost = Post & {
-  organization: Organization;
-  user: User;
-  _count: {
-    comments: number;
-    likes: number;
-  };
-};
-
-type PostCardProps = {
+interface PostCardProps {
   post: ExtendedPost;
-};
+}
 
 export const PostCard = ({ post }: PostCardProps) => {
   return (

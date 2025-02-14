@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -9,10 +11,10 @@ import { createPost } from "../services/post-service";
 import type { Organization } from "@prisma/client";
 import type { PostFormData } from "../types";
 
-type PostFormProps = {
+interface PostFormProps {
   organization: Organization;
   userId: string;
-};
+}
 
 export function PostForm({ organization, userId }: PostFormProps) {
   const [content, setContent] = useState("");
