@@ -6,12 +6,11 @@ import {
   LayoutHeader,
   LayoutTitle,
 } from "@/features/page/layout";
-import { isInRoles } from "@/lib/organizations/is-in-roles";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
-import Link from "next/link";
-import InformationCards from "./information-cards";
-import { SubscribersChart } from "./subscribers-charts";
+import { PostForm } from "@/features/posts/components/post-form";
+import { PostFeed } from "@/features/posts/components/post-feed";
+import { getCurrentUser } from "@/lib/auth/session";
 
 export default async function RoutePage(
   props: PageParams<{
@@ -19,25 +18,20 @@ export default async function RoutePage(
   }>,
 ) {
   const org = await getRequiredCurrentOrgCache();
-  const params = await props.params;
+  const user = await getCurrentUser();
+  
+  if (!user) {
+    return null; // Handle unauthorized access
+  }
+
   return (
     <Layout>
       <LayoutHeader>
-        <LayoutTitle>Dashboard</LayoutTitle>
+        <LayoutTitle>Home</LayoutTitle>
       </LayoutHeader>
-      <LayoutActions>
-        {isInRoles(org.roles, ["ADMIN"]) ? (
-          <Link
-            href={`/orgs/${params.orgSlug}/settings/members`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Invite member
-          </Link>
-        ) : null}
-      </LayoutActions>
       <LayoutContent className="flex flex-col gap-4 lg:gap-8">
-        <InformationCards />
-        <SubscribersChart />
+        <PostForm organization={org} userId={user.id} />
+        <PostFeed organizationId={org.id} />
       </LayoutContent>
     </Layout>
   );

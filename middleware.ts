@@ -34,6 +34,21 @@ export async function middleware(req: NextRequest) {
     const authCookie = cookieList.get(AUTH_COOKIE_NAME);
 
     if (authCookie) {
+      // Get user's first organization from the database
+      const response = await fetch(`${req.nextUrl.origin}/api/orgs/first`, {
+        headers: {
+          Cookie: `${AUTH_COOKIE_NAME}=${authCookie.value}`,
+        },
+      });
+      
+      if (response.ok) {
+        const { slug } = await response.json();
+        const url = new URL(req.url);
+        url.pathname = `/orgs/${slug}`;
+        return NextResponse.redirect(url.toString());
+      }
+
+      // Fallback to orgs page if no organization found
       const url = new URL(req.url);
       url.pathname = "/orgs";
       return NextResponse.redirect(url.toString());
