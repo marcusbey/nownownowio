@@ -1,88 +1,83 @@
-import type { PageParams } from "@/types/next";
-import fm from "front-matter";
-import fs from "fs/promises";
-import path from "path";
-import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { type Post } from "@prisma/client";
 
-const postsDirectory = path.join(process.cwd(), "content/posts");
-
-const AttributeSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  keywords: z.array(z.string()),
-  status: z.enum(["draft", "published"]),
-  coverUrl: z.string(),
-  tags: z.array(z.string()).optional(),
-  date: z.date(),
-});
-
-type PostAttributes = z.infer<typeof AttributeSchema> & {
-  date: Date;
-};
-
-export type Post = {
-  slug: string;
-  attributes: PostAttributes;
-  content: string;
-};
-
-export const getPosts = async (tags?: string[]) => {
-  const fileNames = await fs.readdir(postsDirectory);
-  const posts: Post[] = [];
-  for await (const fileName of fileNames) {
-    const fullPath = path.join(postsDirectory, fileName);
-    const fileContents = await fs.readFile(fullPath, "utf8");
-
-    const matter = fm(fileContents);
-
-    const result = AttributeSchema.safeParse(matter.attributes);
-
-    if (!result.success) {
-      continue;
-    }
-
-    if (
-      process.env.VERCEL_ENV === "production" &&
-      result.data.status === "draft"
-    ) {
-      continue;
-    }
-
-    if (tags) {
-      if (!result.data.tags?.some((tag) => tags.includes(tag))) {
-        continue;
-      }
-    }
-
-    posts.push({
-      slug: fileName.replace(".mdx", ""),
-      content: matter.body,
-      attributes: {
-        ...result.data,
+export const getFeedPosts = async ({
+  organizationId,
+  cursor,
+  limit = 20,
+}: {
+  organizationId?: string;
+  cursor?: string;
+  limit?: number;
+}) => {
+  return prisma.post.findMany({
+    where: organizationId ? { organizationId } : undefined,
+    take: limit,
+    skip: cursor ? 1 : 0,
+    cursor: cursor ? { id: cursor } : undefined,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      organization: true,
+      user: true,
+      _count: {
+        select: {
+          comments: true,
+          likes: true,
+        },
       },
-    });
+    },
+  });
+};
+
+export const createPost = async ({
+  content,
+  userId,
+  organizationId,
+}: {
+  content: string;
+  userId: string;
+  organizationId: string;
+}) => {
+  return prisma.post.create({
+    data: {
+      content,
+      userId,
+      organizationId,
+    },
+    include: {
+      organization: true,
+      user: true,
+      _count: {
+        select: {
+          comments: true,
+          likes: true,
+        },
+      },
+    },
+  });
+};
+
+export const toggleLike = async ({
+  postId,
+  userId,
+  organizationId,
+}: {
+  postId: string;
+  userId: string;
+  organizationId: string;
+}) => {
+  const existingLike = await prisma.like.findFirst({
+    where: { postId, userId, organizationId },
+  });
+
+  if (existingLike) {
+    await prisma.like.delete({ where: { id: existingLike.id } });
+    return false;
   }
 
-  return posts;
+  await prisma.like.create({
+    data: { postId, userId, organizationId },
+  });
+  return true;
 };
 
-export const getPostsTags = async () => {
-  const posts = await getPosts();
-  const tags = new Set<string>();
-  for (const post of posts) {
-    if (!post.attributes.tags) {
-      continue;
-    }
-    for (const tag of post.attributes.tags) {
-      tags.add(tag);
-    }
-  }
-  return Array.from(tags);
-};
-
-export type PostParams = PageParams<{ slug: string }>;
-
-export const getCurrentPost = async (slug: string) => {
-  const posts = await getPosts();
-  return posts.find((p) => p.slug === slug);
-};

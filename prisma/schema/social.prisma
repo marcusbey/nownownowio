@@ -1,4 +1,3 @@
-// social.prisma
 model Follow {
   id          String @id @default(nanoid(11))
   followerId  String

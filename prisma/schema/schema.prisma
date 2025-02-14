@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["prismaSchemaFolder"]
@@ -12,47 +9,35 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-
 model User {
-  id              String    @id @default(nanoid(11))
-  name            String?
-  displayName     String?
-  email           String    @unique
-  emailVerified   DateTime?
-  image           String?
-  bio             String?
-  resendContactId String?
-  passwordHash    String?
-  widgetToken     String?
-  websiteUrl      String?
-  failedAttempts  Int       @default(0)
-  lockedUntil     DateTime?
-
-  // Core relationships
-  posts     Post[]
-  comments  Comment[]
-  likes     Like[]
-  usage     UserUsage[]
-
-  // Organization memberships
-  memberships   OrganizationMembership[]
-
-  // Auth relationships
-  accounts      Account[]
-  sessions      Session[]
-
-  // Social relationships
-  followers     Follow[]    @relation("Followers")
-  following     Follow[]    @relation("Following")
-  bookmarks     Bookmark[]
-  feedback      Feedback[]
-
-  // Notifications
-  notificationsReceived Notification[] @relation("Recipient")
-  notificationsSent    Notification[] @relation("Issuer")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                    String                   @id @default(nanoid(11))
+  name                  String?
+  displayName           String?
+  email                 String                   @unique
+  emailVerified         DateTime?
+  image                 String?
+  bio                   String?
+  resendContactId       String?
+  passwordHash          String?
+  widgetToken           String?
+  websiteUrl            String?
+  failedAttempts        Int                      @default(0)
+  lockedUntil           DateTime?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  accounts              Account[]
+  feedback              Feedback[]
+  memberships           OrganizationMembership[]
+  usage                 UserUsage[]
+  bookmarks             Bookmark[]
+  comments              Comment[]
+  following             Follow[]                 @relation("Following")
+  followers             Follow[]                 @relation("Followers")
+  likes                 Like[]
+  notificationsSent     Notification[]           @relation("Issuer")
+  notificationsReceived Notification[]           @relation("Recipient")
+  posts                 Post[]
+  sessions              Session[]
 
   @@index([email, emailVerified])
   @@index([resendContactId])
@@ -61,28 +46,28 @@ model User {
 }
 
 model Post {
-  id                  String         @id @default(nanoid(11))
-  content             String
-  title               String?        @db.VarChar(300)
-  userId              String
-  organizationId      String?
-  organization        Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdAt           DateTime       @default(now())
-  isPinned            Boolean        @default(false)
-  scheduledAt         DateTime?
-  comments            Comment[]
-  likes               Like[]
-  attachments         Media[]
-  views               PostView[]
-  bookmarks           Bookmark[]
-  notifications       Notification[]
-  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String         @id @default(nanoid(11))
+  content        String
+  title          String?        @db.VarChar(300)
+  userId         String
+  organizationId String?
+  createdAt      DateTime       @default(now())
+  isPinned       Boolean        @default(false)
+  scheduledAt    DateTime?
+  views          PostView[]
+  bookmarks      Bookmark[]
+  comments       Comment[]
+  likes          Like[]
+  notifications  Notification[]
+  media          Media[]
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("posts")
   @@index([userId])
   @@index([organizationId])
   @@index([createdAt])
   @@index([scheduledAt])
+  @@map("posts")
 }
 
 model Comment {
@@ -91,8 +76,8 @@ model Comment {
   userId    String
   postId    String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("comments")
 }
@@ -101,8 +86,8 @@ model Like {
   id     String @id @default(nanoid(11))
   userId String
   postId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@map("likes")
@@ -120,51 +105,44 @@ model Media {
 }
 
 model PostView {
-  id        String   @id @default(nanoid(11))
-  postId    String
-  viewerId  String
-  clientIp  String   // To prevent multiple counts from same IP
-  viewedAt  DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id       String   @id @default(nanoid(11))
+  postId   String
+  viewerId String
+  clientIp String
+  viewedAt DateTime @default(now())
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, viewerId, clientIp])
   @@index([postId])
   @@index([viewerId])
 }
 
-
-
 model UserUsage {
-  id             String   @id @default(nanoid(11))
-  user           User     @relation(fields: [userId], references: [id])
-  userId         String
-  date           DateTime @default(now())
-  postsCount     Int      @default(0)
-  commentsCount  Int      @default(0)
-  likesCount     Int      @default(0)
-  mediaCount     Int      @default(0)
-  
+  id            String   @id @default(nanoid(11))
+  userId        String
+  date          DateTime @default(now())
+  postsCount    Int      @default(0)
+  commentsCount Int      @default(0)
+  likesCount    Int      @default(0)
+  mediaCount    Int      @default(0)
+  user          User     @relation(fields: [userId], references: [id])
+
   @@unique([userId, date])
   @@index([date])
+}
+
+model Feedback {
+  id        String   @id @default(nanoid(11))
+  review    Int
+  message   String
+  email     String?
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 enum MediaType {
   IMAGE
   VIDEO
 }
-
-
-
-model Feedback {
-  id      String  @id @default(nanoid(11))
-  review  Int
-  message String
-  email   String?
-  userId  String?
-  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-

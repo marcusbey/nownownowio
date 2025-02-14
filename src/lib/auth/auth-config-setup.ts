@@ -48,7 +48,18 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
   // We create a default organization for the user
   if (tokens.length === 0) {
     console.log("Create default organization for user", user.id);
-    const orgSlug = generateSlug(user.name ?? getNameFromEmail(user.email));
+    let orgSlug = generateSlug(user.name ?? getNameFromEmail(user.email));
+    
+    // Check if slug exists and append random suffix if needed
+    const existingOrg = await prisma.organization.findUnique({
+      where: { slug: orgSlug },
+    });
+    
+    if (existingOrg) {
+      // Append random 4-character suffix
+      const randomSuffix = Math.random().toString(36).substring(2, 6);
+      orgSlug = `${orgSlug}-${randomSuffix}`;
+    }
     await createOrganizationQuery({
       slug: orgSlug,
       name: `${user.name ?? getNameFromEmail(user.email)}'s organization`,

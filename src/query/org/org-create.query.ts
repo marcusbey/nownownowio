@@ -13,7 +13,7 @@ export const createOrganizationQuery = async (
   const organization = await prisma.organization.create({
     data: {
       ...params,
-      planId: "FREE",
+      planId: "FREEBIRD_RECURRING",
       stripeCustomerId: customer.id,
     },
   });
