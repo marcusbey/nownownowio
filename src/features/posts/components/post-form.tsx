@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { createPost } from "../services/post-service";
 import type { Organization } from "@prisma/client";
 import type { PostFormData } from "../types";
@@ -20,7 +20,7 @@ export function PostForm({ organization, userId }: PostFormProps) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,17 +35,10 @@ export function PostForm({ organization, userId }: PostFormProps) {
       });
 
       setContent("");
-      toast({
-        title: "Post created",
-        description: "Your post has been published successfully.",
-      });
+      toast.success("Your post has been published successfully.");
       router.refresh();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create post. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to create post. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
