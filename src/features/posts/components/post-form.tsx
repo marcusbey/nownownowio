@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ImageIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
 import { createPost } from "../services/post-service";
 import type { Organization } from "@prisma/client";
-import type { PostFormData } from "../types";
 
 interface PostFormProps {
   organization: Organization;
@@ -21,9 +20,7 @@ export function PostForm({ organization, userId }: PostFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!content.trim()) return;
 
     setIsSubmitting(true);
@@ -45,40 +42,37 @@ export function PostForm({ organization, userId }: PostFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
-      <form onSubmit={handleSubmit}>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <Avatar className="size-10">
-              <AvatarImage src={organization?.image ?? ""} />
-              <AvatarFallback>
-                {organization?.name ? organization.name[0] : "O"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <Textarea
-                placeholder={`What's on your mind? Posting as ${organization?.name ?? 'your organization'}`}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between border-t px-6 py-3">
-          <span className="text-sm text-muted-foreground">
-            {content.length}/500 characters
-          </span>
-          <Button
-            type="submit"
-            disabled={!content.trim() || isSubmitting}
-            className="ml-auto"
-          >
-            {isSubmitting ? "Posting..." : "Post"}
+    <div className="flex gap-4 py-4 px-4">
+      <Avatar className="h-10 w-10">
+        <AvatarImage src={organization?.image ?? undefined} />
+        <AvatarFallback>
+          {organization?.name ? organization.name[0] : "O"}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 space-y-4">
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={`What's on your mind? Posting as ${organization?.name ?? 'your organization'}`}
+          className="min-h-[100px] resize-none border-none bg-transparent p-0 focus-visible:ring-0"
+        />
+        <div className="flex justify-between items-center">
+          <Button variant="outline" size="icon" className="rounded-full">
+            <ImageIcon className="h-4 w-4" />
           </Button>
-        </CardFooter>
-      </form>
-    </Card>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              {content.length}/500
+            </span>
+            <Button
+              onClick={handleSubmit}
+              disabled={!content.trim() || isSubmitting}
+            >
+              {isSubmitting ? "Posting..." : "Post"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

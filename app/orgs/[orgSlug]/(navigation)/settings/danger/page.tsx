@@ -10,9 +10,10 @@ import { combineWithParentMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
+import { OrganizationMembershipRole } from "@prisma/client";
 import Link from "next/link";
-import { OrganizationDangerForm } from "./org-danger-form";
-import { OrganizationDeleteDialog } from "./organization-delete-dialog";
+import { OrganizationDangerForm } from "./OrgDangerForm";
+import { OrganizationDeleteDialog } from "./OrganizationDeleteDialog";
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Danger",
@@ -20,7 +21,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function RoutePage(props: PageParams) {
-  const { org, user } = await getRequiredCurrentOrgCache(["OWNER"]);
+  const { org, user } = await getRequiredCurrentOrgCache(undefined, [
+    OrganizationMembershipRole.OWNER,
+  ]);
 
   const usersOrganizationsCount = await prisma.organizationMembership.count({
     where: {
@@ -32,7 +35,7 @@ export default async function RoutePage(props: PageParams) {
     <div className="flex flex-col gap-4 lg:gap-8">
       <OrganizationDangerForm defaultValues={org} />
       {usersOrganizationsCount <= 1 ? (
-        <Card className="border-destructive">
+        <Card>
           <CardHeader>
             <CardTitle>Delete the organization</CardTitle>
             <CardDescription>

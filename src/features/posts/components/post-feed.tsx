@@ -61,56 +61,30 @@ export function PostFeed({
 
   if (error && !posts.length) {
     return (
-      <div className="p-4 text-center text-red-500">
-        <p>{error}</p>
+      <div className="flex items-center justify-center h-32">
+        <p className="text-red-500 font-medium">{error}</p>
+      </div>
+    );
+  }
+
+  if (!posts.length && !isLoading) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <p className="text-muted-foreground font-medium">No posts yet. Be the first to post!</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="divide-y divide-border">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <div key={post.id} className="py-6 first:pt-0">
+          <PostCard post={post} />
+        </div>
       ))}
       {hasMore && (
-        <div ref={ref} className="flex justify-center p-4">
-          {isLoading && <Spinner />}
-        </div>
-      )}
-    </div>
-  );
-
-  useEffect(() => {
-    if (inView) {
-      loadMorePosts();
-    }
-  }, [inView]);
-
-  return (
-    <div className="flex flex-col items-center gap-6 py-6">
-      <PostForm organization={organization} userId={currentUser.id} />
-      
-      <div className="w-full space-y-6">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
-        ))}
-      </div>
-
-      {hasMore && (
-        <div ref={ref} className="py-4">
-          {isLoading && <div>Loading more posts...</div>}
-        </div>
-      )}
-
-      {!hasMore && posts.length > 0 && (
-        <div className="py-4 text-muted-foreground">
-          No more posts to load
-        </div>
-      )}
-
-      {!hasMore && posts.length === 0 && (
-        <div className="py-4 text-muted-foreground">
-          No posts yet. Be the first to post!
+        <div ref={ref} className="flex justify-center py-8">
+          {isLoading && <Spinner className="text-primary h-6 w-6" />}
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import { getCurrentPost } from "@/features/posts/post-manager";
+import { getCurrentPost } from "@/features/posts/services/post-manager";
 import { getOgImageFont } from "@/lib/og-image-font";
 import type { PageParams } from "@/types/next";
 import { ImageResponse } from "next/og";

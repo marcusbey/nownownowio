@@ -1,3 +1,7 @@
+import PostEditor from "@/components/posts/editor/PostEditor";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ForYouFeed from "./ForYouFeed";
+import FollowingFeed from "./FollowingFeed";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Layout,
@@ -10,7 +14,7 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { PostForm } from "@/features/posts/components/post-form";
 import { PostFeed } from "@/features/posts/components/post-feed";
-import { baseAuth } from "@/lib/auth/auth";
+import { baseAuth } from "@/lib/auth/auth"; 
 
 export default async function RoutePage(
   props: PageParams<{
@@ -28,11 +32,26 @@ export default async function RoutePage(
   return (
     <Layout>
       <LayoutHeader>
-        <LayoutTitle>Home</LayoutTitle>
+        <LayoutTitle>{org.name} Feed</LayoutTitle>
       </LayoutHeader>
-      <LayoutContent className="flex flex-col gap-4 lg:gap-8">
-        <PostForm organization={org} userId={user.id} />
-        <PostFeed organizationId={org.id} />
+      <LayoutContent>
+        <div className="mx-auto w-full max-w-2xl">
+          <div className="sticky top-16 z-10 bg-background/80 backdrop-blur-sm border-b mb-6">
+            <PostForm organization={org} userId={user.id} />
+          </div>
+          <Tabs defaultValue="for-you">
+          <TabsList>
+            <TabsTrigger value="for-you">For you</TabsTrigger>
+            <TabsTrigger value="following">Following</TabsTrigger>
+          </TabsList>
+          <TabsContent value="for-you">
+            <ForYouFeed />
+          </TabsContent>
+          <TabsContent value="following">
+            <FollowingFeed />
+          </TabsContent>
+        </Tabs>
+        </div>
       </LayoutContent>
     </Layout>
   );

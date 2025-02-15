@@ -1,10 +1,10 @@
-import { getCurrentUser } from "@/lib/auth/session";
+import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const user = await getCurrentUser();
+    const user = await auth();
     
     if (!user) {
       return new NextResponse("Unauthorized", { status: 401 });

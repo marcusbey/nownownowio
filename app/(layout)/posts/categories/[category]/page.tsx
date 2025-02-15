@@ -7,8 +7,8 @@ import {
   LayoutHeader,
   LayoutTitle,
 } from "@/features/page/layout";
-import { PostCard } from "@/features/posts/post-card";
-import { getPosts, getPostsTags } from "@/features/posts/post-manager";
+import { PostCard } from "@/features/posts/components/post-card";
+import { getPosts, getPostsTags } from "@/features/posts/services/post-manager";
 import { SiteConfig } from "@/site-config";
 import type { PageParams } from "@/types/next";
 import { FileQuestion } from "lucide-react";

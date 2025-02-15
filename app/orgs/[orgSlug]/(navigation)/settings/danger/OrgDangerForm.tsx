@@ -16,15 +16,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
-import { FormUnsavedBar } from "@/features/form/form-unsaved-bar";
+import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { formatId } from "@/lib/format/id";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateOrganizationDetailsAction } from "../org.action";
-import type { OrgDangerFormSchemaType } from "../org.schema";
-import { OrgDangerFormSchema } from "../org.schema";
+import { OrgDangerFormSchema, OrgDangerFormSchemaType } from "../org.schema";
 
 type ProductFormProps = {
   defaultValues: OrgDangerFormSchemaType;
@@ -75,10 +74,13 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
     >
       <Card>
         <CardHeader>
-          <CardTitle>Slug</CardTitle>
+          <CardTitle>Organization's slug</CardTitle>
           <CardDescription>
-            Slug is the unique identifier of your organization. It's used in all
-            the URLs, if you change it, all your URLs will be broken.
+            Slug is the unique identifier of your organization.
+          </CardDescription>
+          <CardDescription>
+            It's used in all the URLs, if you change it, all your URLs will be
+            broken.
           </CardDescription>
         </CardHeader>
         <CardContent>

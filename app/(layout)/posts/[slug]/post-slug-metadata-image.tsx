@@ -1,4 +1,4 @@
-import type { Post } from "@/features/posts/post-manager";
+import type { Post } from "@/features/posts/services/post-manager";
 import { SiteConfig } from "@/site-config";
 import { alt } from "./opengraph-image";
 

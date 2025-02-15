@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import type { PostFormData, PostToggleLikeData, ExtendedPost } from "../types";
+import { createMockPosts } from "../mock/posts.mock";
 
 interface GetFeedPostsParams {
   organizationId?: string;
@@ -14,23 +15,43 @@ export async function getFeedPosts({
   cursor,
   limit = 20,
 }: GetFeedPostsParams): Promise<ExtendedPost[]> {
-  return prisma.post.findMany({
-    where: organizationId ? { organizationId } : undefined,
-    take: limit,
-    skip: cursor ? 1 : 0,
-    cursor: cursor ? { id: cursor } : undefined,
-    orderBy: { createdAt: "desc" },
-    include: {
-      organization: true,
-      user: true,
-      _count: {
-        select: {
-          comments: true,
-          likes: true,
+  try {
+    // Use mock data in development
+    if (process.env.NODE_ENV === "development") {
+      if (!organizationId) return [];
+      
+      const mockPosts = createMockPosts(organizationId);
+      const cursorIndex = cursor
+        ? mockPosts.findIndex(post => post.id === cursor)
+        : -1;
+      
+      return mockPosts
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .slice(cursorIndex + 1, cursorIndex + 1 + limit);
+    }
+
+    // Use database in production
+    return prisma.post.findMany({
+      where: organizationId ? { organizationId } : undefined,
+      take: limit,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: { createdAt: "desc" },
+      include: {
+        organization: true,
+        user: true,
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    return [];
+  }
 }
 
 export async function createPost({

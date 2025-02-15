@@ -17,7 +17,8 @@ export const generateMetadata = combineWithParentMetadata({
   description: "Manage leads",
 });
 
-export default async function RoutePage(props: PageParams) {
+export default async function RoutePage(props: PageParams<{ orgSlug: string }>) {
+  const { orgSlug } = props.params;
   return (
     <Layout>
       <LayoutHeader>

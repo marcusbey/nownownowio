@@ -12,7 +12,6 @@ export const SidebarMenuButtonLink = ({
   ...props
 }: SidebarMenuButtonProps & { href: string }) => {
   const pathname = usePathname();
-  logger.debug({ pathname, href });
   return (
     <SidebarMenuButton {...props} asChild isActive={pathname === href}>
       <Link href={href}>{children}</Link>

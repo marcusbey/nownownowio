@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { getFeedPosts } from "@/features/posts/post-manager";
-import { PostFeed } from "@/features/posts/post-feed";
+import { getFeedPosts } from "@/features/posts/services/post-manager";
+import { PostFeed } from "@/features/posts/components/post-feed";
 import { notFound } from "next/navigation";
 
 interface PageProps {
