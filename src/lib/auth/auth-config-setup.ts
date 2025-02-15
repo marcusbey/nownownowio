@@ -1,9 +1,11 @@
+"use server";
+
 import type { User } from "next-auth";
 import { z } from "zod";
 import { createOrganizationQuery } from "../../query/org/org-create.query";
 import { env } from "../env";
 import { generateSlug, getNameFromEmail } from "../format/id";
-import { resend } from "../mail/resend";
+import { createContact } from "../mail/resend";
 import { prisma } from "../prisma";
 
 export const setupResendCustomer = async (user: User) => {
@@ -15,7 +17,7 @@ export const setupResendCustomer = async (user: User) => {
     return;
   }
 
-  const contact = await resend.contacts.create({
+  const contact = await createContact({
     audienceId: env.RESEND_AUDIENCE_ID,
     email: user.email,
     firstName: user.name ?? "",

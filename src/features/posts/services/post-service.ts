@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/lib/prisma";
 import type { PostFormData, PostToggleLikeData, ExtendedPost } from "../types";
 

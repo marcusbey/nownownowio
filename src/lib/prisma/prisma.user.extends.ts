@@ -1,3 +1,5 @@
+"use server";
+
 import { SiteConfig } from "@/site-config";
 import type { Prisma } from "@prisma/client";
 import type {
@@ -7,7 +9,7 @@ import type {
 } from "@prisma/client/runtime/library";
 import { env } from "process";
 import { setupResendCustomer } from "../auth/auth-config-setup";
-import { resend } from "../mail/resend";
+import { removeContact } from "../mail/resend";
 import { prisma } from "../prisma";
 
 export const onUserUpdate: DynamicQueryExtensionCb<
@@ -65,7 +67,7 @@ const syncWithResendContact: DynamicQueryExtensionCb<
     return;
   }
 
-  await resend.contacts.remove({
+  await removeContact({
     audienceId: env.RESEND_AUDIENCE_ID,
     id: user.resendContactId,
   });

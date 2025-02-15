@@ -4,9 +4,9 @@ import { ActionError, action } from "@/lib/actions/safe-actions";
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
-import { stripe } from "@/lib/stripe";
 import { z } from "zod";
 import { createSearchParamsMessageUrl } from "../searchparams-message/createSearchParamsMessageUrl";
+import { retrievePrice, createCheckoutSession } from "@/lib/stripe";
 
 const BuyButtonSchema = z.object({
   priceId: z.string(),
@@ -44,11 +44,10 @@ export const buyButtonAction = action
       );
     }
 
-    const price = await stripe.prices.retrieve(priceId);
-
+    const price = await retrievePrice(priceId);
     const priceType = price.type;
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await createCheckoutSession({
       customer: stripeCustomerId,
       mode: priceType === "one_time" ? "payment" : "subscription",
       payment_method_types: ["card", "link"],

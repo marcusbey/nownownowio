@@ -2,7 +2,7 @@
 
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import { env } from "@/lib/env";
-import { resend } from "@/lib/mail/resend";
+import { updateContact } from "@/lib/mail/resend";
 import { z } from "zod";
 
 const ToggleSubscribedActionSchema = z.object({
@@ -20,11 +20,11 @@ export const toggleSubscribedAction = authAction
       throw new ActionError("RESEND_AUDIENCE_ID is not set");
     }
 
-    const updateContact = await resend.contacts.update({
+    const result = await updateContact({
       audienceId: env.RESEND_AUDIENCE_ID,
       id: ctx.user.resendContactId,
       unsubscribed: input.unsubscribed,
     });
 
-    return updateContact;
+    return result;
   });

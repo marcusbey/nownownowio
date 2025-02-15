@@ -4,8 +4,8 @@ import type {
   DynamicQueryExtensionCb,
   InternalArgs,
 } from "@prisma/client/runtime/library";
-import { prisma } from "../prisma";
-import { stripe } from "../stripe";
+import { prisma } from "@/lib/prisma";
+import { updateCustomer } from "@/lib/stripe";
 
 export const onOrganizationUpdate: DynamicQueryExtensionCb<
   Prisma.TypeMap<InternalArgs & DefaultArgs, Prisma.PrismaClientOptions>,
@@ -53,7 +53,7 @@ const syncOrganizationEmailWithStripe: DynamicQueryExtensionCb<
     return;
   }
 
-  await stripe.customers.update(org.stripeCustomerId, {
+  await updateCustomer(org.stripeCustomerId, {
     email: email,
   });
 };
