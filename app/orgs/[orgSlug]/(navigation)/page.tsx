@@ -10,7 +10,7 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { PostForm } from "@/features/posts/components/post-form";
 import { PostFeed } from "@/features/posts/components/post-feed";
-import { getCurrentUser } from "@/lib/auth/session";
+import { baseAuth } from "@/lib/auth/auth";
 
 export default async function RoutePage(
   props: PageParams<{
@@ -18,7 +18,8 @@ export default async function RoutePage(
   }>,
 ) {
   const org = await getRequiredCurrentOrgCache();
-  const user = await getCurrentUser();
+  const session = await baseAuth();
+  const user = session?.user;
   
   if (!user) {
     return null; // Handle unauthorized access

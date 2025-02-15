@@ -50,12 +50,14 @@ export function PostForm({ organization, userId }: PostFormProps) {
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <Avatar className="size-10">
-              <AvatarImage src={organization.image ?? ""} />
-              <AvatarFallback>{organization.name[0]}</AvatarFallback>
+              <AvatarImage src={organization?.image ?? ""} />
+              <AvatarFallback>
+                {organization?.name ? organization.name[0] : "O"}
+              </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <Textarea
-                placeholder={`What's on your mind? Posting as ${organization.name}`}
+                placeholder={`What's on your mind? Posting as ${organization?.name ?? 'your organization'}`}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={3}
