@@ -2,8 +2,8 @@ import { NavigationLinks } from "@/features/navigation/navigation-links";
 import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/(navigation)/_navigation/org-navigation.links";
 import { RightSidebar } from "@/features/layout/right-sidebar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PostForm } from "../posts/components/post-form";
-import { PostFeed } from "../posts/components/post-feed";
+import { PostForm } from "../(navigation)/posts/components/post-form";
+import { PostFeed } from "../(navigation)/posts/components/post-feed";
 
 export default function MainLayout({
   children,

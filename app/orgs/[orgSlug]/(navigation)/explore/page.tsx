@@ -1,7 +1,7 @@
 "use client";
 
-import { getPosts } from "../../posts/services/post-client";
-import { ExtendedPost } from "../../posts/types";
+import { getPosts } from "../posts/services/post-client";
+import { ExtendedPost } from "../posts/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Post from "@/components/posts/Post";

@@ -1,27 +1,24 @@
-import type { Organization, Post, User } from "@prisma/client";
-
-export interface ExtendedPost extends Post {
-  organization: Organization;
-  user: User;
-  _count: {
-    comments: number;
-    likes: number;
-  };
+export interface Author {
+  id: string;
+  name: string;
+  image: string;
+  username: string;
+  emailVerified: null;
+  organizations: any[];
 }
 
-export interface PostFormData {
+export interface ExtendedPost {
+  id: string;
   content: string;
+  createdAt: string;
+  updatedAt: string;
   userId: string;
   organizationId: string;
-}
-
-export interface PostActionResult {
-  success: boolean;
-  error?: string;
-}
-
-export interface PostToggleLikeData {
-  postId: string;
-  userId: string;
-  organizationId: string;
+  author: Author;
+  _count: {
+    likes: number;
+    comments: number;
+  };
+  liked: boolean;
+  bookmarked: boolean;
 }

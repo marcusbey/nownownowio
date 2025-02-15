@@ -1,79 +1,58 @@
 import type { ExtendedPost } from "../types";
 
-const now = new Date();
-
-// This function will create mock posts for any organization
-export const createMockPosts = (orgId: string): ExtendedPost[] => [
+const mockUsers = [
   {
-    id: "1",
-    content: "🎉 Just launched our new social feed! Check out the modern design and improved interactions. Let me know what you think!",
-    createdAt: now,
-    updatedAt: now,
-    userId: "user1",
-    organizationId: orgId,
-    user: {
-      id: "user1",
-      name: "Marcus Bey",
-      email: "marcus@nownownow.io",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
-    },
-    organization: {
-      id: orgId,
-      name: "NowNowNow",
-      slug: "nownownow",
-      image: "https://api.dicebear.com/7.x/initials/svg?seed=NowNowNow",
-    },
-    _count: {
-      comments: 2,
-      likes: 5,
-    },
+    id: "user1",
+    name: "Alex Thompson",
+    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+    username: "alexthompson",
   },
   {
-    id: "2",
-    content: "💡 Working on some exciting new features for our platform. The development workflow is getting smoother every day.",
-    createdAt: new Date(now.getTime() - 15 * 60000), // 15 minutes ago
-    updatedAt: new Date(now.getTime() - 15 * 60000),
-    userId: "user2",
-    organizationId: orgId,
-    user: {
-      id: "user2",
-      name: "Sarah Dev",
-      email: "sarah@nownownow.io",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-    },
-    organization: {
-      id: orgId,
-      name: "NowNowNow",
-      slug: "nownownow",
-      image: "https://api.dicebear.com/7.x/initials/svg?seed=NowNowNow",
-    },
-    _count: {
-      comments: 3,
-      likes: 8,
-    },
+    id: "user2",
+    name: "Sarah Chen",
+    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+    username: "sarahchen",
   },
   {
-    id: "3",
-    content: "📊 Our analytics show great engagement with the new UI improvements. Users are spending more time interacting with posts!",
-    createdAt: new Date(now.getTime() - 30 * 60000), // 30 minutes ago
-    updatedAt: new Date(now.getTime() - 30 * 60000),
-    userId: "user1",
-    organizationId: orgId,
-    user: {
-      id: "user1",
-      name: "Marcus Bey",
-      email: "marcus@nownownow.io",
-      image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
-    },
-    organization: {
-      id: orgId,
-      name: "NowNowNow",
-      slug: "nownownow",
-      image: "https://api.dicebear.com/7.x/initials/svg?seed=NowNowNow",
-    },
-    _count: {
-      comments: 4,
-      likes: 12,
-    },
+    id: "user3",
+    name: "Marcus Rodriguez",
+    image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus",
+    username: "marcusrodriguez",
   },
 ];
+
+const mockContent = [
+  "Just wrapped up an amazing brainstorming session! 🧠 #Innovation",
+  "New feature deployment successful! 🚀 #TechLife",
+  "Great team meeting today - excited about our new direction! 📈",
+  "Working on improving our user experience. Any suggestions? 🤔",
+  "Coffee break with the team! ☕️ #WorkLife",
+];
+
+export function createMockPosts(orgSlug: string): ExtendedPost[] {
+  return Array.from({ length: 5 }, (_, i) => {
+    const user = mockUsers[i % mockUsers.length];
+    const date = new Date();
+    date.setHours(date.getHours() - i);
+
+    return {
+      id: `post-${i}-${orgSlug}`,
+      content: mockContent[i % mockContent.length],
+      createdAt: date.toISOString(),
+      updatedAt: date.toISOString(),
+      userId: user.id,
+      organizationId: orgSlug,
+      author: {
+        ...user,
+        emailVerified: null,
+        organizations: [],
+      },
+      _count: {
+        likes: Math.floor(Math.random() * 50),
+        comments: Math.floor(Math.random() * 20),
+      },
+      liked: Math.random() > 0.5,
+      bookmarked: Math.random() > 0.7,
+    };
+  });
+}
