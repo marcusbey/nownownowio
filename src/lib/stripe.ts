@@ -4,16 +4,16 @@ import { logger } from "./logger";
 
 const isProduction = process.env.NODE_ENV === "production";
 
-function getStripeKey(): string {
-  if (process.env.NODE_ENV === 'development') {
-    return env.STRIPE_SECRET_KEY_TEST || '';
-  }
-  return env.STRIPE_SECRET_KEY || '';
+const stripeKey = process.env.NODE_ENV === 'development'
+  ? env.STRIPE_SECRET_KEY_TEST
+  : env.STRIPE_SECRET_KEY;
+
+if (!stripeKey) {
+  throw new Error(`Missing Stripe secret key for ${process.env.NODE_ENV} environment`);
 }
 
-export const stripe = new Stripe(getStripeKey(), {
+export const stripe = new Stripe(stripeKey, {
   apiVersion: "2024-12-18.acacia",
   typescript: true,
   telemetry: false, // Disable Stripe telemetry in development
-  apiKey: getStripeKey(), // Explicitly set apiKey
 });
