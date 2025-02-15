@@ -64,19 +64,19 @@ export default function PostComposer() {
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl bg-card p-6 shadow-sm"
+      className="border-b border-border/40 pb-4 mb-6"
     >
       <div className="flex gap-4">
         <UserAvatar 
           avatarUrl={session.user.image} 
-          className="h-12 w-12 ring-2 ring-offset-2 ring-primary/10" 
+          className="h-10 w-10 ring-1 ring-offset-2 ring-primary/10" 
         />
         <div className="flex-1 space-y-4">
           <Textarea
-            placeholder="What is happening?"
+            placeholder="What's on your mind?"
             value={content}
             onChange={(e) => handleContentChange(e.target.value)}
-            className="min-h-[100px] resize-none border-none bg-transparent text-lg placeholder:text-muted-foreground/60 focus-visible:ring-0"
+            className="min-h-[80px] resize-none border-none bg-transparent text-lg placeholder:text-muted-foreground/60 focus-visible:ring-0 p-0"
           />
           
           <AnimatePresence>
@@ -85,19 +85,19 @@ export default function PostComposer() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="grid grid-cols-2 gap-2"
+                className="grid grid-cols-2 gap-2 rounded-lg border border-border/40 p-2"
               >
                 {/* Attachment previews would go here */}
               </motion.div>
             )}
           </AnimatePresence>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between border-t border-border/40 pt-3">
             <div className="flex items-center gap-2">
               <Button
                 size="icon"
                 variant="ghost"
-                className="rounded-full text-primary hover:bg-primary/10"
+                className="h-9 w-9 rounded-full text-primary hover:bg-primary/10"
               >
                 <FileImage className="h-5 w-5" />
               </Button>

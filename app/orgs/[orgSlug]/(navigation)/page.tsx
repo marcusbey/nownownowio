@@ -12,8 +12,8 @@ import {
 } from "@/features/page/layout";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
-import { PostForm } from "@/features/posts/components/post-form";
-import { PostFeed } from "@/features/posts/components/post-feed";
+import { PostForm } from "../posts/components/post-form";
+import { PostFeed } from "../posts/components/post-feed";
 import { baseAuth } from "@/lib/auth/auth"; 
 
 export default async function RoutePage(
