@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getResendInstance } from "@/lib/mail/resend";
-import  OrgConfirmDeletionEmail from "@email/org-confirm-deletion.email";
+import OrgConfirmDeletionEmail from "@/emails/org-confirm-deletion.email";
 import { redirect } from "next/navigation";
 import { OrganizationMembershipRole } from "@prisma/client";
 
@@ -25,7 +25,7 @@ export async function organizationDeleteAction(input: { orgSlug: string }) {
           include: { organization: true },
         },
       },
-    });
+    }) as { email: string; organizations: Array<{ organization: { id: string; name: string; slug: string } }> } | null;
 
     if (!user || !user.organizations[0]?.organization) {
       return { success: false, serverError: "No organization found" };

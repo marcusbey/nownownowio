@@ -10,7 +10,7 @@ import { requiredAuth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
-import MarkdownEmail from "@email/markdown.email";
+import MarkdownEmail from "@/emails/markdown.email";
 import { addHours } from "date-fns";
 import { nanoid } from "nanoid";
 import { z } from "zod";

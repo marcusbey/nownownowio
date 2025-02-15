@@ -1,11 +1,11 @@
 "use server";
 
-import { validateRequest } from "@/lib/auth/helper";
+import { requiredAuth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getPostDataInclude } from "@/lib/types";
 
 export async function deletePost(id: string) {
-  const { user } = await validateRequest();
+  const user = await requiredAuth();
 
   if (!user) throw new Error("Unauthorized");
 

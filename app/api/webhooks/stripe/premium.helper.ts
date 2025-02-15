@@ -2,9 +2,9 @@ import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
 import { stripe } from "@/lib/stripe";
-import SubscriptionDowngradeEmail from "@email/subscription-downgrade-email.email";
-import SubscriptionFailedEmail from "@email/subscription-failed-email.email";
-import SuccessUpgradeEmail from "@email/success-upgrade-email.email";
+import SubscriptionDowngradeEmail from "@/emails/subscription-downgrade-email.email";
+import SubscriptionFailedEmail from "@/emails/subscription-failed-email.email";
+import SuccessUpgradeEmail from "@/emails/success-upgrade-email.email";
 import type { Organization } from "@prisma/client";
 import type Stripe from "stripe";
 

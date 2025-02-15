@@ -1,7 +1,7 @@
 "use server";
 
-import { MarkdownEmail } from "@email/markdown.email";
-import { OrganizationInvitationEmail } from "@email/organization-invitation-email.email";
+import { MarkdownEmail } from "@/emails/markdown.email";
+import { OrganizationInvitationEmail } from "@/emails/organization-invitation-email.email";
 import { ActionError, orgAction } from "@/lib/actions/safe-actions";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";

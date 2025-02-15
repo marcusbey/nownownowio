@@ -1,6 +1,6 @@
 "use client";
 
-import useFollowerInfo from "@/hooks/use-follower-info";
+import { useFollowerInfo } from "@/hooks/use-follower-info";
 import { FollowerInfo } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 
