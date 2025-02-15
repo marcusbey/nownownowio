@@ -11,15 +11,22 @@ export async function constructStripeEvent(
 
   const stripeSignature = headerList.get("stripe-signature");
 
+  const isProduction = process.env.NODE_ENV === "production";
+  const webhookSecret = isProduction
+    ? env.STRIPE_WEBHOOK_SECRET_LIVE
+    : env.STRIPE_WEBHOOK_SECRET_TEST;
+
   let event: Stripe.Event | null = null;
   try {
     event = stripe.webhooks.constructEvent(
       body,
       stripeSignature ?? "",
-      env.STRIPE_WEBHOOK_SECRET ?? "",
+      webhookSecret,
     );
-  } catch {
-    logger.error("Request Failed - STRIPE_WEBHOOK_SECRET may be invalid");
+  } catch (error) {
+    logger.error(
+      `Webhook signature verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
     throw new Error("Invalid webhook signature");
   }
 
