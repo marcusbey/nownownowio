@@ -1,6 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { type Post } from "@prisma/client";
 
+export const getCurrentPost = async (slug: string) => {
+  return prisma.post.findFirst({
+    where: { slug },
+    include: {
+      organization: true,
+      user: true,
+      _count: {
+        select: {
+          comments: true,
+          likes: true,
+        },
+      },
+    },
+  });
+};
+
 export const getFeedPosts = async ({
   organizationId,
   cursor,

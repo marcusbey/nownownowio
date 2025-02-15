@@ -13,7 +13,7 @@ interface ImageFormItemProps {
   className?: string;
 }
 
-export default function ImageFormItem({
+export function ImageFormItem({
   name,
   label,
   control,
@@ -27,7 +27,7 @@ export default function ImageFormItem({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className={cn("space-y-3", className)}>
+        <FormItem className={cn("space-y-2", className)}>
           <FormLabel>{label}</FormLabel>
           <FormControl>
             <div className="flex flex-col items-center gap-4">
@@ -36,8 +36,9 @@ export default function ImageFormItem({
                   <Image
                     src={previewUrl}
                     alt="Preview"
-                    fill
                     className="object-cover"
+                    fill
+                    sizes="128px"
                   />
                 </div>
               )}
@@ -45,12 +46,12 @@ export default function ImageFormItem({
                 endpoint="imageUploader"
                 onClientUploadComplete={(res) => {
                   if (res?.[0]) {
-                    field.onChange(res[0].url);
                     setPreviewUrl(res[0].url);
+                    field.onChange(res[0].url);
                   }
                 }}
                 onUploadError={(error: Error) => {
-                  console.error("Upload error:", error);
+                  console.error(error);
                 }}
               />
             </div>

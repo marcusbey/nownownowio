@@ -1,7 +1,7 @@
 import { Markdown, Preview } from "@react-email/components";
 import { EmailLayout } from "./utils/email-layout";
 
-export default function MarkdownEmail(props: {
+export function MarkdownEmail(props: {
   markdown: string;
   preview?: string;
 }) {
@@ -19,7 +19,8 @@ export default function MarkdownEmail(props: {
             lineHeight: "1.5rem",
           },
           link: {
-            color: "#6366f1",
+            color: "#0066cc",
+            textDecoration: "underline",
           },
         }}
       >
@@ -28,3 +29,5 @@ export default function MarkdownEmail(props: {
     </EmailLayout>
   );
 }
+
+

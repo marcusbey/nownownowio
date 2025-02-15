@@ -4,7 +4,7 @@ import { Preview, Text } from "@react-email/components";
 import { EmailLayout } from "./utils/email-layout";
 import { EmailLink, EmailSection, EmailText } from "./utils/components.utils";
 
-export default function OrganizationInvitationEmail({
+export function OrganizationInvitationEmail({
   token,
   orgSlug,
   organizationName,

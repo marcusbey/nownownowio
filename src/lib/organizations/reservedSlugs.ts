@@ -1,5 +1,5 @@
 // List of reserved slugs that cannot be used for organization names
-export const reservedSlugs = [
+export const RESERVED_SLUGS = [
   "admin",
   "api",
   "app",
