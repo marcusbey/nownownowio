@@ -70,7 +70,11 @@ export async function POST(request: Request) {
       userId: session.user.id,
     };
 
+    // Validate and create post
+    console.log('[POST_DEBUG] Input:', input);
     const validatedData = createPostSchema.parse(input);
+    console.log('[POST_DEBUG] Validated data:', validatedData);
+    
     const post = await createPost(validatedData);
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {

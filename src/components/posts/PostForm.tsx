@@ -13,7 +13,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUploadThing } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { createPostSchema } from "@/features/posts/services/post-service";
 import { useParams } from "next/navigation";
 
 interface PostFormProps {
@@ -93,6 +92,12 @@ export function PostForm({ onSubmit }: PostFormProps) {
     
     setIsSubmitting(true);
     try {
+      // Validate organization slug
+      console.log('[FORM_DEBUG] Using org slug:', orgSlug);
+      if (!orgSlug) {
+        throw new Error('No organization slug provided');
+      }
+      
       let mediaUrls: string[] = [];
       if (selectedImages.length > 0) {
         const uploadResult = await startUpload(selectedImages);
@@ -110,12 +115,10 @@ export function PostForm({ onSubmit }: PostFormProps) {
         title: title.trim() || undefined,
         content: content.trim() || " ", // Ensure content is never empty
         mediaUrls,
-        organizationId: orgSlug as string,
+        orgSlug,
       };
 
-      // Validate against schema before sending
-      createPostSchema.parse(postData);
-
+      console.log('[FORM_DEBUG] Creating post with data:', postData);
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

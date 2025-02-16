@@ -1,8 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import type { PostFormData, PostToggleLikeData, ExtendedPost } from "../types";
+import type { ExtendedPost } from "../types";
 import { createMockPosts } from "../mock/posts.mock";
+import { createPost as createPostService } from "@/features/posts/services/post-service";
 
 interface GetFeedPostsParams {
   organizationId?: string;
@@ -57,32 +58,28 @@ export async function getFeedPosts({
 export async function createPost({
   content,
   userId,
-  organizationId,
-}: PostFormData): Promise<ExtendedPost> {
-  return prisma.post.create({
-    data: {
-      content,
-      userId,
-      organizationId,
-    },
-    include: {
-      organization: true,
-      user: true,
-      _count: {
-        select: {
-          comments: true,
-          likes: true,
-        },
-      },
-    },
-  });
+  organization,
+}: {
+  content: string;
+  userId: string;
+  organization: { id: string; slug: string };
+}): Promise<ExtendedPost> {
+  return createPostService({
+    content,
+    userId,
+    orgSlug: organization.slug,
+  }) as Promise<ExtendedPost>;
 }
 
 export async function toggleLike({
   postId,
   userId,
   organizationId,
-}: PostToggleLikeData): Promise<boolean> {
+}: {
+  postId: string;
+  userId: string;
+  organizationId: string;
+}): Promise<boolean> {
   const existingLike = await prisma.like.findFirst({
     where: { postId, userId, organizationId },
   });

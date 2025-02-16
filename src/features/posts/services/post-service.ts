@@ -18,8 +18,13 @@ export const createPostSchema = z.object({
     .max(4, "Maximum 4 images allowed")
     .optional()
     .default([]),
+  // These fields are handled by Prisma
+  media: z.array(z.object({
+    url: z.string().url(),
+    type: z.enum(['IMAGE', 'VIDEO'])
+  })).optional(),
   userId: z.string().min(1, "User ID is required"),
-  organizationId: z.string().min(1, "Organization ID is required"),
+  orgSlug: z.string().min(1, "Organization slug is required"),
 });
 
 // Custom error messages
@@ -60,16 +65,40 @@ export async function createPost(input: CreatePostInput): Promise<Post & {
   user: { id: string; name: string | null; image: string | null };
   _count: { likes: number; comments: number };
 }> {
-  const { title, content, mediaUrls, userId, organizationId } = input;
+  const { title, content, mediaUrls, userId, orgSlug } = input;
 
   try {
+    // First look up the organization
+    const organization = await prisma.organization.findFirst({
+      where: {
+        slug: orgSlug,
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!organization) {
+      throw new Error('Organization not found or user is not a member');
+    }
+
     return await prisma.post.create({
       data: {
         title: title?.trim(),
         content: content.trim(),
-        mediaUrls: mediaUrls || [],
         userId,
-        organizationId,
+        organizationId: organization.id,
+        media: {
+          create: (mediaUrls || []).map(url => ({
+            url,
+            type: 'IMAGE'
+          }))
+        }
       },
       include: {
         user: {
@@ -103,8 +132,7 @@ export async function getFeedPosts(input: GetFeedPostsInput): Promise<PostsRespo
   const { cursor, limit = 10, userId, organizationId } = input;
 
   try {
-    try {
-      const posts = await prisma.post.findMany({
+    const posts = await prisma.post.findMany({
       where: {
         organizationId,
         OR: [
