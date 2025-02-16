@@ -5,10 +5,13 @@ import Post from "@/components/posts/Post";
 import PostsLoadingSkeleton from "@/components/posts/PostsLoadingSkeleton";
 import kyInstance from "@/lib/ky";
 import { PostsPage } from "@/lib/types";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { EmptyFeed } from "@/components/posts/EmptyFeed";
+import { Button } from "@/components/ui/button";
 
 export default function FollowingFeed() {
+  const queryClient = useQueryClient();
   const {
     data,
     fetchNextPage,
@@ -16,40 +19,66 @@ export default function FollowingFeed() {
     isFetching,
     isFetchingNextPage,
     status,
+    error,
   } = useInfiniteQuery({
     queryKey: ["post-feed", "following"],
-    queryFn: ({ pageParam }) =>
-      kyInstance
-        .get(
-          "/api/posts/following",
-          pageParam ? { searchParams: { cursor: pageParam } } : {},
-        )
-        .json<PostsPage>(),
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await kyInstance
+          .get(
+            "/api/posts/following",
+            pageParam ? { searchParams: { cursor: pageParam } } : {},
+          )
+          .json<PostsPage>();
+      } catch (error: any) {
+        // If it's a 404 (no posts), return empty page
+        if (error.response?.status === 404) {
+          return { posts: [], nextCursor: null } as PostsPage;
+        }
+        throw error;
+      }
+    },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    retry: 1,
+    networkMode: 'offlineFirst',
   });
 
   const posts = data?.pages.flatMap((page) => page.posts) || [];
 
-  if (status === "pending") {
+  if (status === "pending" && !data) {
     return <PostsLoadingSkeleton />;
   }
 
-  if (status === "success" && !posts.length && !hasNextPage) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <p className="text-sm text-muted-foreground text-center max-w-md">
-          No posts found. Start following people to see their posts here.
-        </p>
-      </div>
-    );
+  // Show empty state if:
+  // 1. Query succeeded but no posts
+  // 2. Got a 404 response (no posts)
+  if (
+    (status === "success" && !posts.length && !hasNextPage) ||
+    (error as any)?.response?.status === 404
+  ) {
+    return <EmptyFeed message="No posts found. Start following people to see their posts here." />;
   }
 
   if (status === "error") {
     return (
-      <p className="text-center text-destructive">
-        An error occurred while loading posts.
-      </p>
+      <div className="flex flex-col items-center justify-center py-12 px-4 space-y-3">
+        <p className="text-center text-destructive font-medium">
+          An error occurred while loading posts
+        </p>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["post-feed", "following"] })}
+        >
+          Try again
+        </Button>
+      </div>
     );
   }
 

@@ -31,10 +31,10 @@ export default function ForYouFeed() {
             pageParam ? { searchParams: { cursor: pageParam } } : {},
           )
           .json<PostsPage>();
-      } catch (error) {
+      } catch (error: any) {
         // If it's a 404 (no posts), return empty page
         if (error.response?.status === 404) {
-          return { posts: [], nextCursor: null };
+          return { posts: [], nextCursor: null } as PostsPage;
         }
         throw error;
       }

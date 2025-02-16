@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { Post, Prisma } from "@prisma/client";
 import { z } from "zod";
 
@@ -51,23 +51,15 @@ export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type GetFeedPostsInput = z.infer<typeof getFeedPostsSchema>;
 
 // Response types
-export interface PostsResponse {
-  posts: Array<Post & {
-    user: {
-      id: string;
-      name: string | null;
-      image: string | null;
-    };
-    _count: {
-      likes: number;
-      comments: number;
-    };
-  }>;
-  nextCursor: string | null;
-}
+import { PostsPage } from "@/lib/types";
+
+export type PostsResponse = PostsPage;
 
 // Service functions
-export async function createPost(input: CreatePostInput): Promise<Post> {
+export async function createPost(input: CreatePostInput): Promise<Post & {
+  user: { id: string; name: string | null; image: string | null };
+  _count: { likes: number; comments: number };
+}> {
   const { title, content, mediaUrls, userId, organizationId } = input;
 
   try {
@@ -101,8 +93,9 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
       if (error.code === 'P2002') {
         throw new Error('A post with this content already exists');
       }
+      throw new Error('Database error: ' + error.message);
     }
-    throw error;
+    throw new Error('Failed to create post: ' + (error as Error).message);
   }
 }
 
@@ -110,7 +103,8 @@ export async function getFeedPosts(input: GetFeedPostsInput): Promise<PostsRespo
   const { cursor, limit = 10, userId, organizationId } = input;
 
   try {
-    const posts = await prisma.post.findMany({
+    try {
+      const posts = await prisma.post.findMany({
       where: {
         organizationId,
         OR: [
@@ -164,7 +158,8 @@ export async function getFeedPosts(input: GetFeedPostsInput): Promise<PostsRespo
       if (error.code === 'P2015') {
         throw new Error('Invalid cursor');
       }
+      throw new Error('Database error: ' + error.message);
     }
-    throw error;
+    throw new Error('Failed to fetch posts: ' + (error as Error).message);
   }
 }
