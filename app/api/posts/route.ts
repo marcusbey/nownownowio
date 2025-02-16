@@ -1,60 +1,98 @@
 import { NextResponse } from "next/server";
-import { getFeedPosts, createPost } from "@/features/posts/services/post-service";
+import { getFeedPosts, createPost, getFeedPostsSchema, createPostSchema } from "@/features/posts/services/post-service";
 import { baseAuth } from "@/lib/auth/auth";
-import { z } from "zod";
-
-// Validation schemas
-const getPostsSchema = z.object({
-  organizationId: z.string().optional(),
-  cursor: z.string().optional(),
-  limit: z.number().optional(),
-});
-
-const createPostSchema = z.object({
-  content: z.string(),
-  userId: z.string(),
-  organizationId: z.string(),
-});
+import { ZodError } from "zod";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
+    // Authentication
     const session = await baseAuth();
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json(
+        { error: "You must be logged in to view posts" },
+        { status: 401 }
+      );
     }
 
+    // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
     const params = {
+      userId: session.user.id,
       organizationId: searchParams.get("organizationId") || undefined,
       cursor: searchParams.get("cursor") || undefined,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : undefined,
     };
 
-    const validatedParams = getPostsSchema.parse(params);
-    const posts = await getFeedPosts(validatedParams);
+    const validatedParams = getFeedPostsSchema.parse(params);
+    const response = await getFeedPosts(validatedParams);
 
-    return NextResponse.json({ posts });
+    return NextResponse.json(response);
   } catch (error) {
     console.error("[POSTS_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { error: "Invalid request parameters", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { error: "Database error", message: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
+    // Authentication
     const session = await baseAuth();
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json(
+        { error: "You must be logged in to create a post" },
+        { status: 401 }
+      );
     }
 
+    // Parse and validate request body
     const body = await request.json();
-    const validatedData = createPostSchema.parse(body);
-    
+    const input = {
+      ...body,
+      userId: session.user.id,
+    };
+
+    const validatedData = createPostSchema.parse(input);
     const post = await createPost(validatedData);
-    
-    return NextResponse.json({ post });
+    return NextResponse.json({ post }, { status: 201 });
   } catch (error) {
     console.error("[POSTS_POST]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { error: "Invalid post data", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { error: "Database error", message: error.message },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

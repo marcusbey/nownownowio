@@ -13,6 +13,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUploadThing } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { createPostSchema } from "@/features/posts/services/post-service";
+import { useParams } from "next/navigation";
 
 interface PostFormProps {
   onSubmit?: () => void;
@@ -54,9 +56,40 @@ export function PostForm({ onSubmit }: PostFormProps) {
     });
   };
 
+  const { orgSlug } = useParams();
+
+  const validatePost = () => {
+    try {
+      if (!content.trim() && !title.trim()) {
+        return "Please enter some content for your post";
+      }
+
+      if (content.length > 1000) {
+        return "Post content is too long (maximum 1000 characters)";
+      }
+
+      if (title && title.length > 100) {
+        return "Title is too long (maximum 100 characters)";
+      }
+
+      return null;
+    } catch (error) {
+      return "Invalid post data";
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    
+    const validationError = validatePost();
+    if (validationError) {
+      toast({
+        title: "Validation Error",
+        description: validationError,
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -68,17 +101,31 @@ export function PostForm({ onSubmit }: PostFormProps) {
         }
       }
 
+      // Ensure we have either title or content
+      if (!content.trim() && !title.trim()) {
+        throw new Error("Please enter some content for your post");
+      }
+
+      const postData = {
+        title: title.trim() || undefined,
+        content: content.trim() || " ", // Ensure content is never empty
+        mediaUrls,
+        organizationId: orgSlug as string,
+      };
+
+      // Validate against schema before sending
+      createPostSchema.parse(postData);
+
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          title: title.trim(),
-          content: content.trim(), 
-          mediaUrls 
-        }),
+        body: JSON.stringify(postData),
       });
 
-      if (!response.ok) throw new Error("Failed to create post");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create post");
+      }
 
       setTitle("");
       setContent("");
@@ -94,7 +141,7 @@ export function PostForm({ onSubmit }: PostFormProps) {
     } catch (error) {
       toast({
         title: "Error creating post",
-        description: "Please try again later",
+        description: error instanceof Error ? error.message : "Please try again later",
         variant: "destructive",
       });
     } finally {
@@ -166,7 +213,7 @@ export function PostForm({ onSubmit }: PostFormProps) {
               type="submit"
               variant="default"
               size="sm"
-              disabled={!content.trim() && !title.trim() || isSubmitting || isUploading}
+              disabled={isSubmitting || isUploading}
               className={cn(
                 "px-5 h-9 rounded-full font-medium",
                 (isSubmitting || isUploading) && "cursor-not-allowed"
