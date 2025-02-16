@@ -1,6 +1,6 @@
 "use client";
 
-import { PostForm } from "../post-form";
+import { PostForm } from "@/components/posts/PostForm";
 import type { Organization } from "@prisma/client";
 
 interface PostFormWrapperProps {
@@ -9,5 +9,9 @@ interface PostFormWrapperProps {
 }
 
 export function PostFormWrapper({ organization, userId }: PostFormWrapperProps) {
-  return <PostForm organization={organization} userId={userId} />;
+  return (
+    <div className="w-full max-w-2xl mx-auto">
+      <PostForm />
+    </div>
+  );
 }

@@ -7,7 +7,9 @@ import kyInstance from "@/lib/ky";
 import { PostsPage } from "@/lib/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
+import { EmptyFeed } from "@/components/posts/EmptyFeed";
 
 export default function ForYouFeed() {
   const queryClient = useQueryClient();
@@ -18,15 +20,25 @@ export default function ForYouFeed() {
     isFetching,
     isFetchingNextPage,
     status,
+    error,
   } = useInfiniteQuery({
     queryKey: ["post-feed", "for-you"],
-    queryFn: ({ pageParam }) =>
-      kyInstance
-        .get(
-          "/api/posts/for-you",
-          pageParam ? { searchParams: { cursor: pageParam } } : {},
-        )
-        .json<PostsPage>(),
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await kyInstance
+          .get(
+            "/api/posts/for-you",
+            pageParam ? { searchParams: { cursor: pageParam } } : {},
+          )
+          .json<PostsPage>();
+      } catch (error) {
+        // If it's a 404 (no posts), return empty page
+        if (error.response?.status === 404) {
+          return { posts: [], nextCursor: null };
+        }
+        throw error;
+      }
+    },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -34,7 +46,7 @@ export default function ForYouFeed() {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    retry: false,
+    retry: 1,
     networkMode: 'offlineFirst',
   });
 
@@ -43,25 +55,34 @@ export default function ForYouFeed() {
     [data?.pages]
   );
 
-  if (status === "pending") {
+  if (status === "pending" && !data) {
     return <PostsLoadingSkeleton />;
   }
 
-  if (status === "success" && !posts.length && !hasNextPage) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 px-4">
-        <p className="text-sm text-muted-foreground text-center max-w-md">
-          No one has posted anything yet.
-        </p>
-      </div>
-    );
+  // Show empty state if:
+  // 1. Query succeeded but no posts
+  // 2. Got a 404 response (no posts)
+  if (
+    (status === "success" && !posts.length && !hasNextPage) ||
+    (error as any)?.response?.status === 404
+  ) {
+    return <EmptyFeed />;
   }
 
   if (status === "error") {
     return (
-      <p className="text-center text-destructive">
-        An error occurred while loading posts.
-      </p>
+      <div className="flex flex-col items-center justify-center py-12 px-4 space-y-3">
+        <p className="text-center text-destructive font-medium">
+          An error occurred while loading posts
+        </p>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["post-feed", "for-you"] })}
+        >
+          Try again
+        </Button>
+      </div>
     );
   }
 

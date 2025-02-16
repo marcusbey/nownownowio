@@ -24,3 +24,8 @@ export const requiredAuth = async () => {
 
   return user;
 };
+
+export const validateRequest = async () => {
+  const user = await requiredAuth();
+  return { user };
+};

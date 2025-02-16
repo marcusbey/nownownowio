@@ -34,26 +34,33 @@ export default async function RoutePage(
 
   return (
     <Layout>
-      <LayoutHeader>
-        <LayoutTitle>{org.name} Feed</LayoutTitle>
-      </LayoutHeader>
       <LayoutContent>
         <div className="mx-auto w-full max-w-2xl">
-          <div className="sticky top-16 z-10 bg-background/80 backdrop-blur-sm border-b mb-6">
+          <div className="sticky top-0 z-10 bg-background pt-6 pb-4">
             <PostFormWrapper organization={org} userId={user.id} />
+            <div className="h-px bg-border/40 mt-4" />
           </div>
-          <Tabs defaultValue="for-you" className="space-y-4">
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="for-you">For you</TabsTrigger>
-              <TabsTrigger value="following">Following</TabsTrigger>
-            </TabsList>
-            <TabsContent value="for-you" className="mt-0">
-              <ForYouFeed />
-            </TabsContent>
-            <TabsContent value="following" className="mt-0">
-              <FollowingFeed />
-            </TabsContent>
-          </Tabs>
+          
+          <div className="mt-4">
+            <Tabs defaultValue="for-you" className="space-y-6">
+              <TabsList className="w-full bg-muted/50 p-1 h-11">
+                <TabsTrigger value="for-you" className="flex-1 text-sm font-medium">
+                  For you
+                </TabsTrigger>
+                <TabsTrigger value="following" className="flex-1 text-sm font-medium">
+                  Following
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="for-you" className="mt-0">
+                <ForYouFeed />
+              </TabsContent>
+              
+              <TabsContent value="following" className="mt-0">
+                <FollowingFeed />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </LayoutContent>
     </Layout>
