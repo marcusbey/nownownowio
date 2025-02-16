@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Heart, Bookmark, Share2, Eye } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import type { ExtendedPost } from "../types";
+import type { ExtendedPost } from "./types";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 

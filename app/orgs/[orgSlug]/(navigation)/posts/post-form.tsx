@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
-import { createPost } from "../services/post-service";
+import { createPost } from "./services/post-service";
 import type { Organization } from "@prisma/client";
 
 interface PostFormProps {
