@@ -17,7 +17,33 @@ import { Footer } from "@/features/layout/footer";
 import { Pricing } from "@/features/plans/pricing-section";
 import Image from "next/image";
 
-export default function HomePage() {
+import { redirect } from "next/navigation";
+import { baseAuth } from "@/lib/auth/auth";
+import { prisma } from "@/lib/prisma";
+
+export default async function HomePage() {
+  const session = await baseAuth();
+  
+  // If not authenticated, show landing page
+  if (!session?.user) {
+    redirect("/auth/signin");
+  }
+
+  // Get user's first organization
+  const userOrg = await prisma.membership.findFirst({
+    where: { userId: session.user.id },
+    include: { organization: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  // If user has no organization, redirect to create one
+  if (!userOrg) {
+    redirect("/orgs/new");
+  }
+
+  // Redirect to the organization's feed
+  redirect(`/orgs/${userOrg.organization.slug}`);
+
   return (
     <div className="relative flex h-fit flex-col bg-background text-foreground">
       <div className="mt-16"></div>

@@ -46,7 +46,7 @@ export const ORGANIZATION_LINKS = [
     title: "ACTIVITIES",
     links: [
       {
-        href: prependOrgPath("/home"),
+        href: ORGANIZATION_PATH,
         icon: "home",
         label: "Home",
       },

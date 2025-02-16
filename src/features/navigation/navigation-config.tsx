@@ -9,13 +9,14 @@ import {
   PanelLeftIcon,
 } from "lucide-react";
 import type { NavigationGroup } from "./navigation.type";
+import { Icon } from "@/components/ui/icon";
 
 export const mainNavigation: NavigationGroup[] = [
   {
     title: "ACTIVITIES",
     links: [
       {
-        href: "/home",
+        href: "/",
         Icon: HomeIcon,
         label: "Home",
       },
