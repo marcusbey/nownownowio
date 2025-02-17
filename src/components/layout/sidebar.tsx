@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/core/button";
+import { Input } from "@/components/core/input";
+import { Separator } from "@/components/layout/separator";
+import { Sheet, SheetContent } from "@/components/composite/sheet";
+import { Skeleton } from "@/components/feedback/skeleton";
 import {
   Tooltip,
   TooltipContent,
