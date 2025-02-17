@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import {
   Form,
   FormControl,
@@ -9,9 +9,9 @@ import {
   FormLabel,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Typography } from "@/components/ui/typography";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
+import { Typography } from "@/components/data-display/typography";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useLocalStorage } from "react-use";

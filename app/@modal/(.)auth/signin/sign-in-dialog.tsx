@@ -1,13 +1,13 @@
 "use client";
 
-import { LogoSvg } from "@/components/svg/logo-svg";
+import { LogoSvg } from "@/components/icons/logo-svg";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composite/dialog";
 import { usePathname, useRouter } from "next/navigation";
 import { SignInProviders } from "../../../auth/signin/sign-in-providers";
 

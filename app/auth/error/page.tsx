@@ -1,11 +1,11 @@
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/core/button";
 import {
   Card,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/data-display/card";
 import { ContactSupportDialog } from "@/features/contact/support/contact-support-dialog";
 import { HeaderBase } from "@/features/layout/header-base";
 import {

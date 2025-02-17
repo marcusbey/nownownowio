@@ -7,7 +7,7 @@ interface CreateCommentData {
 }
 
 export async function createComment(data: CreateCommentData): Promise<CommentData> {
-  return kyInstance.post(`/api/posts/${data.postId}/comments`, { json: data }).json();
+  return kyInstance.post(`/api/v1/posts/${data.postId}/comments`, { json: data }).json();
 }
 
 export async function deleteComment(commentId: string): Promise<void> {

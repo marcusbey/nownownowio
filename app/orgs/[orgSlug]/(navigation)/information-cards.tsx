@@ -1,6 +1,6 @@
 import { Activity, Heart, MessageCircle, User2 } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/data-display/card";
 
 export default function InformationCards() {
   return (

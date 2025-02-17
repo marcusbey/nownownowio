@@ -1,5 +1,5 @@
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/core/button";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
 import { createSearchParamsMessageUrl } from "@/features/searchparams-message/createSearchParamsMessageUrl";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";

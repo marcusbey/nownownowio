@@ -6,15 +6,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/data-display/card";
 import {
   FormControl,
   FormField,
   FormItem,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
 import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
 import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";

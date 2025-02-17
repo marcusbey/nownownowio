@@ -1,31 +1,31 @@
 "use client";
 
-import { Alert } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/feedback/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/avatar";
+import { Button } from "@/components/core/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { FormField, useZodForm } from "@/components/ui/form";
-import { Progress } from "@/components/ui/progress";
+} from "@/components/data-display/card";
+import { FormField, useZodForm } from "@/components/core/form";
+import { Progress } from "@/components/feedback/progress";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/core/select";
 import {
   InlineTooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Typography } from "@/components/ui/typography";
+import { Typography } from "@/components/data-display/typography";
 import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
 import { openGlobalDialog } from "@/features/global-dialog/GlobalDialogStore";
 import { OrganizationMembershipRole } from "@prisma/client";
@@ -49,9 +49,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/components/feedback/alert-dialog";
 import { Mail } from "lucide-react";
-import { SettingsCard } from "@/components/settings/SettingsLayout";
+import { SettingsCard } from "@/components/layout/SettingsLayout";
 
 type OrgMembersFormProps = {
   defaultValues: OrgMemberFormSchemaType;

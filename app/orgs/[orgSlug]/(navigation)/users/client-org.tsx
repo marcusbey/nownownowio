@@ -5,7 +5,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/data-display/card";
 import { useCurrentOrg } from "../../use-current-org";
 
 export const ClientOrg = () => {

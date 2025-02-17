@@ -1,4 +1,4 @@
-import { Typography } from "@/components/ui/typography";
+import { Typography } from "@/components/data-display/typography";
 import { Layout, LayoutContent } from "@/features/page/layout";
 import { MDXRemote } from "next-mdx-remote-client/rsc";
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/core/button";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
 import {
   Layout,
   LayoutContent,

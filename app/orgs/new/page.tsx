@@ -3,8 +3,8 @@ import {
   LayoutContent,
   LayoutHeader,
   LayoutTitle,
-} from "@/features/page/layout";
-import { createSearchParamsMessageUrl } from "@/features/searchparams-message/createSearchParamsMessageUrl";
+} from "@/features/core/page/layout";
+import { createSearchParamsMessageUrl } from "@/features/ui/searchparams-message/createSearchParamsMessageUrl";
 import { requiredAuth } from "@/lib/auth/helper";
 import { SiteConfig } from "@/site-config";
 import { redirect } from "next/navigation";

@@ -6,8 +6,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@/components/data-display/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/data-display/tabs";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getCurrentOrg } from "@/lib/organizations/get-org";
 import type { PageParams } from "@/types/next";

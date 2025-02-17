@@ -1,4 +1,4 @@
-import { getPosts } from "@/features/posts/services/post-manager";
+import { getPosts } from "@/features/social/posts/services/post-manager";
 import type { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

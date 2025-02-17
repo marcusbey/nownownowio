@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import {
   Card,
   CardContent,
@@ -8,8 +8,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Typography } from "@/components/ui/typography";
+} from "@/components/data-display/card";
+import { Typography } from "@/components/data-display/typography";
 import { Check } from "lucide-react";
 import { PLANS } from "@/features/plans/plans";
 import type { OrganizationPlan } from "@prisma/client";
@@ -18,9 +18,9 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { updateSubscription } from "./actions";
 import { useTransition, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/data-display/badge";
+import { Switch } from "@/components/core/switch";
+import { Label } from "@/components/core/label";
 import { cn } from "@/lib/utils";
 
 interface PlansProps {

@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/composite/dialog";
 import {
   Form,
   FormControl,
@@ -16,8 +16,8 @@ import {
   FormLabel,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
 import { LoadingButton } from "@/features/form/SubmitButton";
 import { useMutation } from "@tanstack/react-query";
 import { Mail, Plus } from "lucide-react";

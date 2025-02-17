@@ -6,14 +6,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/data-display/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composite/dialog";
 import {
   Form,
   FormControl,
@@ -22,10 +22,10 @@ import {
   FormLabel,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
 import { InlineTooltip } from "@/components/ui/tooltip";
-import { Typography } from "@/components/ui/typography";
+import { Typography } from "@/components/data-display/typography";
 import { LoadingButton } from "@/features/form/submit-button";
 import { ImageFormItem } from "@/features/images/image-form-item";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";

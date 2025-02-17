@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { WidgetScriptGenerator } from "./GenerateScript";
 
 export default function WidgetPage({

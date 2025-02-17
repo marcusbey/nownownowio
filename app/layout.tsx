@@ -1,6 +1,6 @@
-import { TailwindIndicator } from "@/components/utils/tailwind-indicator";
-import { FloatingLegalFooter } from "@/features/legal/floating-legal-footer";
-import { NextTopLoader } from "@/features/page/next-top-loader";
+import { TailwindIndicator } from "@/components/data-display/tailwind-indicator";
+import { FloatingLegalFooter } from "@/features/marketing/legal/floating-legal-footer";
+import { NextTopLoader } from "@/features/core/page/next-top-loader";
 import { getServerUrl } from "@/lib/server-url";
 import { cn } from "@/lib/utils";
 import { SiteConfig } from "@/site-config";

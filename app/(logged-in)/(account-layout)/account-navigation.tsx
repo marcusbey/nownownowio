@@ -1,9 +1,9 @@
-import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/feedback/alert";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
+} from "@/components/layout/sidebar";
 import { Layout } from "@/features/page/layout";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
 import { CircleAlert } from "lucide-react";

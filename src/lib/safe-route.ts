@@ -50,7 +50,7 @@ export const authRoute = route.use(async () => {
   };
 });
 
-// Can only be used in /api/org/[organizationId]/* routes !
+// Can only be used in /api/v1/organizations/[organizationId]/* routes !
 export const orgRoute = authRoute.use(async () => {
   try {
     const organization = await getRequiredCurrentOrg();

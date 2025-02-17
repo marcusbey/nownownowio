@@ -1,14 +1,14 @@
 "use client";
 
-import InfiniteScrollContainer from "@/components/InfiniteScrollContainer";
-import Post from "@/components/posts/Post";
-import PostsLoadingSkeleton from "@/components/posts/PostsLoadingSkeleton";
+import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
+import Post from "@/features/posts/components/Post";
+import PostsLoadingSkeleton from "@/features/posts/components/PostsLoadingSkeleton";
 import kyInstance from "@/lib/ky";
-import { PostsPage } from "@/lib/types";
+import { PostsPage } from "@/features/posts/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { EmptyFeed } from "@/components/posts/EmptyFeed";
-import { Button } from "@/components/ui/button";
+import { EmptyFeed } from "@/features/posts/components/EmptyFeed";
+import { Button } from "@/components/core/button";
 
 export default function FollowingFeed() {
   const queryClient = useQueryClient();

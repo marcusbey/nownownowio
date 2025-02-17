@@ -35,7 +35,7 @@ export async function middleware(req: NextRequest) {
 
     if (authCookie) {
       // Get user's first organization from the database
-      const response = await fetch(`${req.nextUrl.origin}/api/orgs/first`, {
+      const response = await fetch(`${req.nextUrl.origin}/api/v1/organizations/first`, {
         headers: {
           Cookie: `${AUTH_COOKIE_NAME}=${authCookie.value}`,
         },

@@ -1,11 +1,11 @@
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/core/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/data-display/card";
 import { SubmitButton } from "@/features/form/submit-button";
 import AuthNavigationWrapper from "@/features/navigation/log-in-navigation-wrapper";
 import { NavigationWrapper } from "@/features/navigation/navigation-wrapper";

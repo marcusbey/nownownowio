@@ -1,7 +1,7 @@
 import { NavigationLinks } from "@/features/navigation/navigation-links";
 import { ORGANIZATION_LINKS } from "@/app/orgs/[orgSlug]/(navigation)/_navigation/org-navigation.links";
 import { RightSidebar } from "@/features/layout/right-sidebar";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/data-display/tabs";
 import { PostForm } from "../(navigation)/posts/post-form";
 import { PostFeed } from "../(navigation)/posts/post-feed";
 

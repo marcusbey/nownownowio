@@ -1,4 +1,4 @@
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/core/button";
 import { Header } from "@/features/layout/header";
 import {
   Layout,

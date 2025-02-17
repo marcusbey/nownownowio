@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
 import { SignInButton } from "@/features/auth/sign-in-button";
 import { Page400 } from "@/features/page/page-400";
 import { logger } from "@/lib/logger";

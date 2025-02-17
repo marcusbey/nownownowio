@@ -5,8 +5,8 @@ import {
   FormItem,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
 import { LoadingButton } from "@/features/form/submit-button";
 import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";

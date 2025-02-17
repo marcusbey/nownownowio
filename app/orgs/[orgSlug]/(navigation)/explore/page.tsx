@@ -2,14 +2,14 @@
 
 import { getPosts } from "../posts/services/post-client";
 import { ExtendedPost } from "../posts/types";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import Post from "@/components/posts/Post";
+import { Button } from "@/components/core/button";
+import { Skeleton } from "@/components/feedback/skeleton";
+import Post from "@/features/posts/components/Post";
 import { useSearchParams } from "next/navigation";
-import PostEditor from "@/components/posts/editor/PostEditor";
+import PostEditor from "@/features/posts/components/editor/PostEditor";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import InfiniteScrollContainer from "@/components/InfiniteScrollContainer";
+import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader } from "@/components/ui/loader";
-import { Typography } from "@/components/ui/typography";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/data-display/card";
+import { Loader } from "@/components/feedback/loader";
+import { Typography } from "@/components/data-display/typography";
 import { auth } from "@/lib/auth/helper";
 import { SiteConfig } from "@/site-config";
 import Image from "next/image";

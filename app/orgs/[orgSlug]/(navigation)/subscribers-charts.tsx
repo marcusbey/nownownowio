@@ -10,14 +10,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/data-display/card";
 import type {
-  ChartConfig} from "@/components/ui/chart";
+  ChartConfig} from "@/components/data-display/chart";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
+} from "@/components/data-display/chart";
 
 const chartData = [
   { month: "January", 2023: 186, 2024: 80 },

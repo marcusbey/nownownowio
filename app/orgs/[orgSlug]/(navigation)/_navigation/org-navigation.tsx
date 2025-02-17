@@ -2,7 +2,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
+} from "@/components/layout/sidebar";
 import { Layout } from "@/features/page/layout";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";

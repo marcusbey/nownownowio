@@ -9,8 +9,8 @@ import {
   FormMessage,
   FormDescription,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
 import { ImageFormItem } from "@/features/images/ImageFormItem";
 import { LoadingButton } from "@/features/form/SubmitButton";
 import { useMutation } from "@tanstack/react-query";
@@ -22,7 +22,7 @@ import {
   type OrgDetailsFormSchemaType,
 } from "../org.schema";
 import { useEffect } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/core/textarea";
 
 type ProductFormProps = {
   defaultValues: OrgDetailsFormSchemaType;

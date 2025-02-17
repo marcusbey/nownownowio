@@ -1,6 +1,6 @@
-import { Card } from "@/components/ui/card";
-import { Typography } from "@/components/ui/typography";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/components/data-display/card";
+import { Typography } from "@/components/data-display/typography";
+import { Button } from "@/components/core/button";
 import { HeartIcon, MessageSquare, UserPlus, BarChart } from "lucide-react";
 
 export default function DashboardPage() {

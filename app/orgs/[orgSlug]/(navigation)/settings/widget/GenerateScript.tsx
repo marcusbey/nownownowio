@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/core/button";
+import { Input } from "@/components/core/input";
+import { useToast } from "@/components/feedback/use-toast";
 import { Check } from "lucide-react";
 import { useState } from "react";
 import { WidgetSettings, WidgetSettingsForm } from "./WidgetSettingsForm";

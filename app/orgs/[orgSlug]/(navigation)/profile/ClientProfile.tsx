@@ -3,7 +3,7 @@
 import { UserData } from "@/lib/types";
 import ProfileHeader from "./ProfileHeader";
 import UserPosts from "./UserPosts";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/data-display/tabs";
 
 interface ClientProfileProps {
   user: UserData;

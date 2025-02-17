@@ -5,7 +5,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/data-display/card";
 import { ContactSupportDialog } from "@/features/contact/support/contact-support-dialog";
 import { requiredAuth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";

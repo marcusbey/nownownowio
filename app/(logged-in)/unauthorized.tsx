@@ -1,6 +1,6 @@
-import { Alert } from "@/components/ui/alert";
-import { buttonVariants } from "@/components/ui/button";
-import { Typography } from "@/components/ui/typography";
+import { Alert } from "@/components/feedback/alert";
+import { buttonVariants } from "@/components/core/button";
+import { Typography } from "@/components/data-display/typography";
 import { BaseLayout } from "@/features/layout/base-layout";
 import { Layout } from "@/features/page/layout";
 import { Rabbit } from "lucide-react";

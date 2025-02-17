@@ -1,11 +1,11 @@
 'use client';
 
-import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Typography } from "@/components/ui/typography";
-import { Badge } from "@/components/ui/badge";
+import { CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
+import { Typography } from "@/components/data-display/typography";
+import { Badge } from "@/components/data-display/badge";
 import { PLANS } from "@/features/plans/plans";
 import { ClientPricingSection } from "@/features/plans/ClientPricingSection";
-import { SettingsPage, SettingsCard, SettingsSection } from "@/components/settings/SettingsLayout";
+import { SettingsPage, SettingsCard, SettingsSection } from "@/components/layout/SettingsLayout";
 import { useOrganization } from "@/query/org/org.query";
 import { useParams } from "next/navigation";
 

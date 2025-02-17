@@ -8,8 +8,8 @@ import {
   FormLabel,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
 import { SubmitButton } from "@/features/form/submit-button";
 import { toast } from "sonner";
 import { editPasswordAction } from "./edit-profile.action";

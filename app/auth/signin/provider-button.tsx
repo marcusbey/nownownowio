@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/ui/loader";
+import { Button } from "@/components/core/button";
+import { Loader } from "@/components/feedback/loader";
 import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";
 import { signIn } from "next-auth/react";

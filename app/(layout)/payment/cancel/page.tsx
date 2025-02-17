@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/data-display/badge";
+import { buttonVariants } from "@/components/core/button";
 import { ContactSupportDialog } from "@/features/contact/support/contact-support-dialog";
 import {
   Layout,

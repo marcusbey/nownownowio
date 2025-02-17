@@ -3,8 +3,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Typography } from "@/components/ui/typography";
+} from "@/components/data-display/card";
+import { Typography } from "@/components/data-display/typography";
 import { SiteConfig } from "@/site-config";
 import Image from "next/image";
 

@@ -5,7 +5,7 @@ import { getOrgsMembers } from "@/query/org/get-orgs-members";
 import type { PageParams } from "@/types/next";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { OrgMembersForm } from "./OrgMembersForm";
-import { SettingsPage } from "@/components/settings/SettingsLayout";
+import { SettingsPage } from "@/components/layout/SettingsLayout";
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Organization Members",

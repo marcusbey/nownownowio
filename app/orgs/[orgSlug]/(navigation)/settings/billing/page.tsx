@@ -2,9 +2,9 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Typography } from "@/components/ui/typography";
+} from "@/components/data-display/card";
+import { Button } from "@/components/core/button";
+import { Typography } from "@/components/data-display/typography";
 import { formatDate } from "@/lib/format/date";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import type Stripe from "stripe";
@@ -13,7 +13,7 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { CreditCard, Receipt } from "lucide-react";
 import type { PageParams } from "@/types/next";
-import { SettingsPage, SettingsCard, SettingsSection } from "@/components/settings/SettingsLayout";
+import { SettingsPage, SettingsCard, SettingsSection } from "@/components/layout/SettingsLayout";
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Billing & Payment",

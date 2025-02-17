@@ -1,6 +1,6 @@
-import { Alert } from "@/components/ui/alert";
-import { buttonVariants } from "@/components/ui/button";
-import { Typography } from "@/components/ui/typography";
+import { Alert } from "@/components/feedback/alert";
+import { buttonVariants } from "@/components/core/button";
+import { Typography } from "@/components/data-display/typography";
 import { NavigationWrapper } from "@/features/navigation/navigation-wrapper";
 import { Layout } from "@/features/page/layout";
 import { auth } from "@/lib/auth/helper";
@@ -61,9 +61,9 @@ export default async function RouteLayout(
 
 
 
-// import { Alert } from "@/components/ui/alert";
-// import { buttonVariants } from "@/components/ui/button";
-// import { Typography } from "@/components/ui/typography";
+// import { Alert } from "@/components/feedback/alert";
+// import { buttonVariants } from "@/components/core/button";
+// import { Typography } from "@/components/data-display/typography";
 // import { NavigationWrapper } from "@/features/NavigationWrapper";
 // import { Layout } from "@/features/page/layout";
 // import { auth } from "@/lib/auth/helper";

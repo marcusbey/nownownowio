@@ -1,5 +1,5 @@
 // UI Components
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/data-display/tabs";
 import {
   Layout,
   LayoutContent,

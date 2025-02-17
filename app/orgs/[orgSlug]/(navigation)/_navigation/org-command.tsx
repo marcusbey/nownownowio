@@ -7,14 +7,14 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { DialogTitle } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
-import { Input } from "@/components/ui/input";
+} from "@/components/composite/command";
+import { DialogTitle } from "@/components/composite/dialog";
+import { VisuallyHidden } from "@/components/core/visually-hidden";
+import { Input } from "@/components/core/input";
 import {
   CmdOrOption,
   KeyboardShortcut,
-} from "@/components/ui/keyboard-shortcut";
+} from "@/components/composite/keyboard-shortcut";
 import { Search } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";

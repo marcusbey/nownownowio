@@ -5,7 +5,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@/components/data-display/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -17,8 +17,8 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar";
-import { SidebarMenuButtonLink } from "@/components/ui/sidebar-utils";
+} from "@/components/layout/sidebar";
+import { SidebarMenuButtonLink } from "@/components/layout/sidebar-utils";
 import type { NavigationGroup } from "@/features/navigation/navigation.type";
 import { SidebarUserButton } from "@/features/sidebar/sidebar-user-button";
 import type { OrganizationMembershipRole } from "@prisma/client";

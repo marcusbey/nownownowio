@@ -1,9 +1,9 @@
 "use client";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Divider } from "@/components/ui/divider";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Typography } from "@/components/ui/typography";
+import { Alert, AlertDescription, AlertTitle } from "@/components/feedback/alert";
+import { Divider } from "@/components/layout/divider";
+import { Skeleton } from "@/components/feedback/skeleton";
+import { Typography } from "@/components/data-display/typography";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import { SignInCredentialsAndMagicLinkForm } from "./sign-in-credentials-and-mag
 
 export const SignInProviders = () => {
   const { data: providers, isPending } = useQuery({
-    queryFn: async () => fetch(`/api/auth/providers`).then(async (res) => res.json()),
+    queryFn: async () => fetch(`/api/v1/auth/providers`).then(async (res) => res.json()),
     queryKey: ["providers"],
   });
 

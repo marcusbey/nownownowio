@@ -1,13 +1,13 @@
 import avatarPlaceholder from "@/assets/avatar-placeholder.png";
 import CropImageDialog from "@/components/CropImageDialog";
-import LoadingButton from "@/components/LoadingButton";
+import LoadingButton from "@/components/composite/LoadingButton";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/composite/dialog";
 import {
   Form,
   FormControl,
@@ -15,10 +15,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
+import { Label } from "@/components/core/label";
+import { Textarea } from "@/components/core/textarea";
 import { UserData } from "@/lib/types";
 import {
   updateUserProfileSchema,

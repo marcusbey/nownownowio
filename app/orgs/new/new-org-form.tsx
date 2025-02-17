@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/data-display/card";
 import {
   Form,
   FormControl,
@@ -10,8 +10,8 @@ import {
   FormLabel,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
 import { LoadingButton } from "@/features/form/submit-button";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { formatId } from "@/lib/format/id";

@@ -5,7 +5,7 @@ interface PostViews {
 }
 
 async function getPostViews(postId: string): Promise<PostViews> {
-  const response = await fetch(`/api/posts/${postId}/views`);
+  const response = await fetch(`/api/v1/posts/${postId}/views`);
   if (!response.ok) {
     throw new Error("Failed to fetch post views");
   }

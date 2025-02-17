@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
 import type { Organization, OrganizationMembershipRole, User } from "@prisma/client";
 import { OrgDetailsFormSchema, type OrgDetailsFormSchemaType } from "./org.schema";
