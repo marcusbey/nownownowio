@@ -26,8 +26,8 @@ import {
 import { Input } from "@/components/core/input";
 import { InlineTooltip } from "@/components/data-display/tooltip";
 import { Typography } from "@/components/data-display/typography";
-import { LoadingButton } from "@/features/ui/SubmitButton";
-import { ImageFormItem } from "@/features/ui/images/ImageFormItem";
+import { LoadingButton } from "@/features/ui/form/submit-button";
+import { ImageFormItem } from "@/features/ui/images/image-form-item";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { displayName } from "@/lib/format/display-name";
 import type { User } from "@prisma/client";

@@ -9,11 +9,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Typography } from "@/components/ui/typography";
+} from "@/components/feedback/alert-dialog";
+import { Input } from "@/components/core/input";
+import { Typography } from "@/components/data-display/typography";
 import { useState, type ReactElement, type ReactNode } from "react";
-import { LoadingButton } from "../form/SubmitButton";
+import { LoadingButton } from "../form/submit-button";
 type DialogBaseProps = {
   loading?: boolean;
 };

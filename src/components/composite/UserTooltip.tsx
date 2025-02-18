@@ -4,16 +4,16 @@ import { FollowerInfo, UserData } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PropsWithChildren, useMemo, lazy, Suspense } from "react";
-import FollowButton from "./FollowButton";
-import FollowerCount from "./FollowerCount";
-import Linkify from "./Linkify";
+import FollowButton from "@/components/composite/FollowButton";
+import FollowerCount from "@/components/data-display/FollowerCount";
+import Linkify from "@/components/data-display/Linkify";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "./ui/tooltip";
-import UserAvatar from "./UserAvatar";
+} from "@/components/data-display/tooltip";
+import UserAvatar from "@/components/composite/UserAvatar";
 
 interface UserTooltipProps extends PropsWithChildren {
   user: UserData;

@@ -16,7 +16,7 @@ import {
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
 import { alertDialog } from "@/features/ui/alert-dialog/alert-dialog-store";
-import { FormUnsavedBar } from "@/features/ui/FormUnsavedBar";
+import { FormUnsavedBar } from "@/features/ui/form/form-unsaved-bar";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { formatId } from "@/lib/format/id";
 import { useMutation } from "@tanstack/react-query";
@@ -24,7 +24,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateOrganizationDetailsAction } from "../org.action";
 import { OrgDangerFormSchema, OrgDangerFormSchemaType } from "../org.schema";
-
 type ProductFormProps = {
   defaultValues: OrgDangerFormSchemaType;
 };

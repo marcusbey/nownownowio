@@ -1,7 +1,7 @@
 "use client";
 
 import type { ButtonProps } from "@/components/core/button";
-import { LoadingButton } from "@/features/ui/SubmitButton";
+import { LoadingButton } from "@/features/ui/form/submit-button";
 import { useMutation } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";

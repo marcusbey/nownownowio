@@ -2,7 +2,7 @@
 
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
 import { SignInButton } from "@/features/core/auth/sign-in-button";
-import { Page400 } from "@/features/core/page-400";
+import { Page400 } from "@/features/core/page/page-400";
 import { logger } from "@/lib/logger";
 import type { ErrorParams } from "@/types/next";
 import { useSession } from "next-auth/react";

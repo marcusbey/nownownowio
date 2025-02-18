@@ -7,7 +7,7 @@ import {
   LayoutContent,
   LayoutHeader,
   LayoutTitle,
-} from "@/features/core/layout";
+} from "@/features/core/page/layout";
 import { logger } from "@/lib/logger";
 import type { ErrorParams } from "@/types/next";
 import { useEffect } from "react";

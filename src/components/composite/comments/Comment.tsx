@@ -4,17 +4,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "../ui/button";
+import { Button } from "@/components/core/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { useToast } from "../ui/use-toast";
-import Linkify from "../Linkify";
-import UserAvatar from "../UserAvatar";
-import UserTooltip from "../UserTooltip";
+} from "@/components/composite/dropdown-menu";
+import { useToast } from "@/components/feedback/use-toast";
+import Linkify from "@/components/data-display/Linkify";
+import UserAvatar from "@/components/composite/UserAvatar";
+import UserTooltip from "@/components/composite/UserTooltip";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { motion } from "framer-motion";

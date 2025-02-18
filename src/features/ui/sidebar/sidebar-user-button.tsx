@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/avatar";
 import { Button } from "@/components/core/button";
 import { useSession } from "next-auth/react";
-import { UserDropdown } from "../auth/user-dropdown";
+import { UserDropdown } from "@/features/core/auth/user-dropdown";
 
 export const SidebarUserButton = () => {
   const session = useSession();

@@ -37,41 +37,6 @@ interface ClientPricingSectionProps {
   currentPlan?: string;
 }
 
-export function ClientPricingSection({ currentPlan = "free" }: ClientPricingSectionProps) {
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {plans.map((plan) => (
-        <Card key={plan.name}>
-          <CardHeader>
-            <CardTitle>{plan.name}</CardTitle>
-            <CardDescription>{plan.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{plan.price}</div>
-            <ul className="mt-4 space-y-2">
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full"
-              variant={currentPlan === plan.name.toLowerCase() ? "outline" : "default"}
-              disabled={plan.disabled}
-            >
-              {plan.action}
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
 export default function ClientPricingSection({ currentPlan = "free" }: ClientPricingSectionProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2">

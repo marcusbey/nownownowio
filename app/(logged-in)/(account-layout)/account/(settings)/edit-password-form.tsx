@@ -10,7 +10,7 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { SubmitButton } from "@/features/ui/SubmitButton";
+import { SubmitButton } from "@/features/ui/form/submit-button";
 import { toast } from "sonner";
 import { editPasswordAction } from "./edit-profile.action";
 import type { EditPasswordFormType } from "./edit-profile.schema";

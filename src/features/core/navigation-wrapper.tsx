@@ -5,7 +5,7 @@ import { Button } from "@/components/core/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/composite/sheet";
 import { Typography } from "@/components/data-display/typography";
 import type { ReactNode } from "react";
-import { ThemeToggle } from "../theme/theme-toggle";
+import { ThemeToggle } from "@/features/core/theme/theme-toggle";
 
 export async function NavigationWrapper({
   children,

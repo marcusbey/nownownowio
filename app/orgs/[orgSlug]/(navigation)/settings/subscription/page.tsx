@@ -4,7 +4,7 @@ import { CardDescription, CardHeader, CardTitle } from "@/components/data-displa
 import { Typography } from "@/components/data-display/typography";
 import { Badge } from "@/components/data-display/badge";
 import { PLANS } from "@/features/billing/plans/plans";
-import { ClientPricingSection } from "@/features/billing/plans/ClientPricingSection";
+import { ClientPricingSection } from "@/features/billing/plans/client-pricing-section";
 import { SettingsPage, SettingsCard, SettingsSection } from "@/components/layout/SettingsLayout";
 import { useOrganization } from "@/query/org/org.query";
 import { useParams } from "next/navigation";

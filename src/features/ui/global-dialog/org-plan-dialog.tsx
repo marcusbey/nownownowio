@@ -4,9 +4,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { PLANS } from "../plans/plans";
-import { PricingCard } from "../plans/PricingCard";
+} from "@/components/composite/dialog";
+import { PLANS } from "@/features/billing/plans/plans";
+import { PricingCard } from "@/features/billing/plans/pricing-card";
 import { closeGlobalDialog } from "./global-dialog-store";
 import { useRouter } from "next/navigation";
 

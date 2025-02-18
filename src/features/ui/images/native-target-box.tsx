@@ -1,4 +1,4 @@
-import { Typography } from "@/components/ui/typography";
+import { Typography } from "@/components/data-display/typography";
 import { cn } from "@/lib/utils";
 import React, {
   ComponentPropsWithoutRef,

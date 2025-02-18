@@ -6,10 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { useToast } from "../ui/use-toast";
-import UserAvatar from "../UserAvatar";
+import { Button } from "@/components/core/button";
+import { Textarea } from "@/components/core/textarea";
+import { useToast } from "@/components/feedback/use-toast";
+import UserAvatar from "@/components/composite/UserAvatar";
 import { motion } from "framer-motion";
 
 interface CommentInputProps {

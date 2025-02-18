@@ -2,7 +2,7 @@
 
 import LoadingButton from "@/components/composite/LoadingButton";
 import { Button } from "@/components/core/button";
-import UserAvatar from "@/components/UserAvatar";
+import UserAvatar from "@/components/composite/UserAvatar";
 import { cn } from "@/lib/utils";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";

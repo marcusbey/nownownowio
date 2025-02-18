@@ -4,18 +4,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Loader } from "@/components/ui/loader";
-import { Typography } from "@/components/ui/typography";
+} from "@/components/composite/dialog";
+import { Input } from "@/components/core/input";
+import { Loader } from "@/components/feedback/loader";
+import { Typography } from "@/components/data-display/typography";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { cn } from "@/lib/utils";
 import { SiteConfig } from "@/site-config";
 import { useMutation } from "@tanstack/react-query";
 import { PropsWithChildren, useState } from "react";
 import { toast } from "sonner";
-import { LoadingButton } from "../form/SubmitButton";
-import { NativeTargetBox } from "./NativeTargetBox";
+import { LoadingButton } from "../form/submit-button";
+import { NativeTargetBox } from "./native-target-box";
 import { uploadImageAction } from "./upload-image.action";
 
 type ImageFormItemProps = {
