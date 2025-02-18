@@ -1,18 +1,6 @@
-import type {
-  NavigationGroup,
-  NavigationLink,
-} from "@/features/navigation/navigation.type";
+import type { NavigationGroup } from "@/features/core/navigation.type";
 import { isInRoles } from "@/lib/organizations/is-in-roles";
 import type { OrganizationMembershipRole } from "@prisma/client";
-import {
-  BarChart3,
-  Home,
-  MessageSquare,
-  Settings,
-  Users,
-} from "lucide-react";
-import type { ReactNode } from "react";
-
 
 const replaceSlug = (href: string, slug: string) => {
   return href.replace(":organizationSlug", slug);
@@ -29,10 +17,10 @@ export const getOrganizationNavigation = (
         ? replaceSlug(group.defaultOpenStartPath, slug)
         : undefined,
       links: group.links
-        .filter((link: NavigationLink) =>
+        .filter((link) =>
           link.roles ? isInRoles(userRoles, link.roles) : true,
         )
-        .map((link: NavigationLink) => {
+        .map((link) => {
           return {
             ...link,
             href: replaceSlug(link.href, slug),
@@ -48,14 +36,13 @@ const prependOrgPath = (href: string) => {
   return href.startsWith('/') ? `${ORGANIZATION_PATH}${href}` : href;
 };
 
-export const ORGANIZATION_LINKS = [
-  // Note: these links will be transformed by getOrganizationNavigation
+export const ORGANIZATION_LINKS: NavigationGroup[] = [
   {
     title: "ACTIVITIES",
     links: [
       {
         href: ORGANIZATION_PATH,
-        icon: <Home className="size-4" />,
+        icon: "home",
         label: "Home",
       },
       {
@@ -87,51 +74,48 @@ export const ORGANIZATION_LINKS = [
         href: prependOrgPath("/panel"),
         icon: "panel-left",
         label: "Panel",
+        roles: ["OWNER", "ADMIN"],
       },
       {
         href: prependOrgPath("/dashboard"),
         icon: "layout-dashboard",
         label: "Dashboard",
+        roles: ["OWNER", "ADMIN"],
       },
       {
         href: prependOrgPath("/settings"),
-        icon: <Settings className="size-4" />,
+        icon: "settings",
         label: "Settings",
+        roles: ["OWNER", "ADMIN"],
       },
     ],
   },
-] satisfies NavigationGroup[];
+];
 
-type NavigationLink = {
-  href: string;
-  label: string;
-  icon: ReactNode;
-};
-
-export const orgNavigationLinks: NavigationLink[] = [
+export const orgNavigationLinks = [
   {
     href: "/",
     label: "Home",
-    icon: <Home className="size-4" />,
+    icon: "home",
   },
   {
     href: "/members",
     label: "Members",
-    icon: <Users className="size-4" />,
+    icon: "users",
   },
   {
     href: "/messages",
     label: "Messages",
-    icon: <MessageSquare className="size-4" />,
+    icon: "message-square",
   },
   {
     href: "/analytics",
     label: "Analytics",
-    icon: <BarChart3 className="size-4" />,
+    icon: "bar-chart-3",
   },
   {
     href: "/settings",
     label: "Settings",
-    icon: <Settings className="size-4" />,
+    icon: "settings",
   },
 ];

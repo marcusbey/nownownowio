@@ -1,6 +1,5 @@
 "use client";
 
-import * as Icons from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,9 +18,10 @@ import {
   SidebarRail,
 } from "@/components/layout/sidebar";
 import { SidebarMenuButtonLink } from "@/components/layout/sidebar-utils";
-import type { NavigationGroup } from "@/features/navigation/navigation.type";
 import { SidebarUserButton } from "@/features/core/auth/user-dropdown";
+import type { NavigationGroup } from "@/features/navigation/navigation.type";
 import type { OrganizationMembershipRole } from "@prisma/client";
+import * as Icons from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { PropsWithChildren } from "react";
