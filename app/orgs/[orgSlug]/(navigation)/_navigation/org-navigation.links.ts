@@ -4,6 +4,14 @@ import type {
 } from "@/features/navigation/navigation.type";
 import { isInRoles } from "@/lib/organizations/is-in-roles";
 import type { OrganizationMembershipRole } from "@prisma/client";
+import {
+  BarChart3,
+  Home,
+  MessageSquare,
+  Settings,
+  Users,
+} from "lucide-react";
+import type { ReactNode } from "react";
 
 
 const replaceSlug = (href: string, slug: string) => {
@@ -47,7 +55,7 @@ export const ORGANIZATION_LINKS = [
     links: [
       {
         href: ORGANIZATION_PATH,
-        icon: "home",
+        icon: <Home className="size-4" />,
         label: "Home",
       },
       {
@@ -87,9 +95,43 @@ export const ORGANIZATION_LINKS = [
       },
       {
         href: prependOrgPath("/settings"),
-        icon: "settings",
+        icon: <Settings className="size-4" />,
         label: "Settings",
       },
     ],
   },
 ] satisfies NavigationGroup[];
+
+type NavigationLink = {
+  href: string;
+  label: string;
+  icon: ReactNode;
+};
+
+export const orgNavigationLinks: NavigationLink[] = [
+  {
+    href: "/",
+    label: "Home",
+    icon: <Home className="size-4" />,
+  },
+  {
+    href: "/members",
+    label: "Members",
+    icon: <Users className="size-4" />,
+  },
+  {
+    href: "/messages",
+    label: "Messages",
+    icon: <MessageSquare className="size-4" />,
+  },
+  {
+    href: "/analytics",
+    label: "Analytics",
+    icon: <BarChart3 className="size-4" />,
+  },
+  {
+    href: "/settings",
+    label: "Settings",
+    icon: <Settings className="size-4" />,
+  },
+];

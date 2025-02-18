@@ -7,7 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/data-display/accordion";
 import { Typography } from "@/components/data-display/typography";
-import { ClientMarkdown } from "../markdown/client-markdown";
+import { ClientMarkdown } from "@/features/ui/markdown/client-markdown";
 import { SectionLayout } from "./section-layout";
 
 type Faq = {

@@ -1,10 +1,10 @@
 "use client";
 
-import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
-import { EmptyFeed } from "@/features/social/posts/components/empty-feed";
-import Post from "@/features/social/posts/components/post";
-import PostsLoadingSkeleton from "@/features/social/posts/components/post-skeleton";
 import { Button } from "@/components/core/button";
+import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
+import { EmptyFeed } from "@/features/social/components/empty-feed";
+import Post from "@/features/social/components/post";
+import PostsLoadingSkeleton from "@/features/social/components/post-skeleton";
 import kyInstance from "@/lib/ky";
 import type { PostsPage } from "@/lib/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";

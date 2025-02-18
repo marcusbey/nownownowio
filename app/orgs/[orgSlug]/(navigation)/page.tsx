@@ -1,11 +1,11 @@
 // UI Components
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/data-display/tabs";
 import {
-  Layout,
-  LayoutContent,
-  LayoutHeader,
-  LayoutTitle,
-} from "@/features/page/layout";
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/data-display/tabs";
+import { Layout, LayoutContent } from "@/features/page/layout";
 
 // Auth & Data
 import { baseAuth } from "@/lib/auth/auth";
@@ -15,9 +15,9 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 
 // Local Components
-import { PostFormWrapper } from "./posts/components/post-form-wrapper";
-import ForYouFeed from "./ForYouFeed";
 import FollowingFeed from "./FollowingFeed";
+import ForYouFeed from "./ForYouFeed";
+import { PostFormWrapper } from "./post-form-wrapper";
 
 export default async function RoutePage(
   props: PageParams<{
@@ -27,7 +27,7 @@ export default async function RoutePage(
   const org = await getRequiredCurrentOrgCache();
   const session = await baseAuth();
   const user = session?.user;
-  
+
   if (!user) {
     return null; // Handle unauthorized access
   }
@@ -36,26 +36,32 @@ export default async function RoutePage(
     <Layout>
       <LayoutContent>
         <div className="mx-auto w-full max-w-2xl">
-          <div className="sticky top-0 z-10 bg-background pt-6 pb-4">
+          <div className="sticky top-0 z-10 bg-background pb-4 pt-6">
             <PostFormWrapper organization={org} userId={user.id} />
-            <div className="h-px bg-border/40 mt-4" />
+            <div className="mt-4 h-px bg-border/40" />
           </div>
-          
+
           <div className="mt-4">
             <Tabs defaultValue="for-you" className="space-y-6">
-              <TabsList className="w-full bg-muted/50 p-1 h-11">
-                <TabsTrigger value="for-you" className="flex-1 text-sm font-medium">
+              <TabsList className="h-11 w-full bg-muted/50 p-1">
+                <TabsTrigger
+                  value="for-you"
+                  className="flex-1 text-sm font-medium"
+                >
                   For you
                 </TabsTrigger>
-                <TabsTrigger value="following" className="flex-1 text-sm font-medium">
+                <TabsTrigger
+                  value="following"
+                  className="flex-1 text-sm font-medium"
+                >
                   Following
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="for-you" className="mt-0">
                 <ForYouFeed />
               </TabsContent>
-              
+
               <TabsContent value="following" className="mt-0">
                 <FollowingFeed />
               </TabsContent>

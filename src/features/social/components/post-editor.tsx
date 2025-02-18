@@ -1,8 +1,8 @@
 "use client";
 
 import LoadingButton from "@/components/composite/LoadingButton";
-import { Button } from "@/components/core/button";
 import UserAvatar from "@/components/composite/UserAvatar";
+import { Button } from "@/components/core/button";
 import { cn } from "@/lib/utils";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -11,10 +11,11 @@ import { useDropzone } from "@uploadthing/react";
 import { ImageIcon, Loader2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { ClipboardEvent, useRef } from "react";
+import type { ClipboardEvent } from "react";
+import { useRef } from "react";
+import useMediaUpload, { type Attachment } from "../hooks/use-media-upload";
 import { useSubmitPostMutation } from "../services/mutations";
 import "../styles.css";
-import useMediaUpload, { Attachment } from "../hooks/use-media-upload";
 
 export default function PostEditor() {
   const { data: session, status } = useSession();
@@ -53,13 +54,15 @@ export default function PostEditor() {
   const input =
     editor?.getText({
       blockSeparator: "\n",
-    }) || "";
+    }) ?? "";
 
   function onSubmit() {
     mutation.mutate(
       {
         content: input,
-        mediaIds: attachments.map((a) => a.mediaId).filter(Boolean) as string[],
+        mediaIds: attachments
+          .map((attachment) => attachment.mediaId)
+          .filter(Boolean) as string[],
       },
       {
         onSuccess: () => {
@@ -134,10 +137,10 @@ export default function PostEditor() {
   );
 }
 
-interface AddAttachmentsButtonProps {
+type AddAttachmentsButtonProps = {
   onFilesSelected: (files: File[]) => void;
   disabled: boolean;
-}
+};
 
 function AddAttachmentsButton({
   onFilesSelected,
@@ -163,7 +166,7 @@ function AddAttachmentsButton({
         ref={fileInputRef}
         className="sr-only hidden"
         onChange={(e) => {
-          const files = Array.from(e.target.files || []);
+          const files = Array.from(e.target.files ?? []);
           if (files.length) {
             onFilesSelected(files);
             e.target.value = "";
@@ -174,10 +177,10 @@ function AddAttachmentsButton({
   );
 }
 
-interface AttachmentPreviewsProps {
+type AttachmentPreviewsProps = {
   attachments: Attachment[];
   removeAttachment: (fileName: string) => void;
-}
+};
 
 function AttachmentPreviews({
   attachments,
@@ -201,10 +204,10 @@ function AttachmentPreviews({
   );
 }
 
-interface AttachmentPreviewProps {
+type AttachmentPreviewProps = {
   attachment: Attachment;
   onRemoveClick: () => void;
-}
+};
 
 function AttachmentPreview({
   attachment: { file, mediaId, isUploading },

@@ -1,8 +1,13 @@
-import { getPosts } from "@/features/social/posts/services/post-manager";
+import { getFeedPosts } from "@/features/social/services/post-service";
+import type { Post } from "@prisma/client";
 import type { MetadataRoute } from "next";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getPosts();
+  const posts = await getFeedPosts({
+    userId: "system",
+    limit: 100,
+  });
+
   return [
     {
       url: "https://codeline.app",
@@ -20,10 +25,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
     },
     ...posts.map(
-      (post) =>
+      (post: Post) =>
         ({
-          url: `https://codeline.app/posts/${post.slug}`,
-          lastModified: new Date(post.attributes.date),
+          url: `https://codeline.app/posts/${post.id}`,
+          lastModified: new Date(post.createdAt),
           changeFrequency: "monthly",
         }) as const,
     ),

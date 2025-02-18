@@ -1,9 +1,9 @@
 "use client";
 
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
-import PostsLoadingSkeleton from "@/features/social/posts/components/post-skeleton";
+import PostsLoadingSkeleton from "@/features/social/components/post-skeleton";
 import kyInstance from "@/lib/ky";
-import { NotificationsPage } from "@/lib/types";
+import type { NotificationsPage } from "@/lib/types";
 import {
   useInfiniteQuery,
   useMutation,
@@ -23,7 +23,7 @@ export default function Notifications() {
     status,
   } = useInfiniteQuery({
     queryKey: ["notifications"],
-    queryFn: ({ pageParam }) =>
+    queryFn: async ({ pageParam }) =>
       kyInstance
         .get(
           "/api/notifications",
@@ -37,7 +37,7 @@ export default function Notifications() {
   const queryClient = useQueryClient();
 
   const { mutate } = useMutation({
-    mutationFn: () => kyInstance.patch("/api/notifications/mark-as-read"),
+    mutationFn: async () => kyInstance.patch("/api/notifications/mark-as-read"),
     onSuccess: () => {
       queryClient.setQueryData(["unread-notification-count"], {
         unreadCount: 0,
@@ -52,7 +52,7 @@ export default function Notifications() {
     mutate();
   }, [mutate]);
 
-  const notifications = data?.pages.flatMap((page) => page.notifications) || [];
+  const notifications = data?.pages.flatMap((page) => page.notifications) ?? [];
 
   if (status === "pending") {
     return <PostsLoadingSkeleton />;
@@ -77,7 +77,9 @@ export default function Notifications() {
   return (
     <InfiniteScrollContainer
       className="space-y-5"
-      onBottomReached={() => hasNextPage && !isFetching && fetchNextPage()}
+      onBottomReached={async () =>
+        hasNextPage && !isFetching && fetchNextPage()
+      }
     >
       {notifications.map((notification) => (
         <Notification key={notification.id} notification={notification} />

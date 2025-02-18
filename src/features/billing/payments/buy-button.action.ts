@@ -1,12 +1,12 @@
 "use server";
 
+import { createSearchParamsMessageUrl } from "@/features/ui/searchparams-message/createSearchParamsMessageUrl";
 import { ActionError, action } from "@/lib/actions/safe-actions";
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
+import { createCheckoutSession, retrievePrice } from "@/lib/stripe";
 import { z } from "zod";
-import { createSearchParamsMessageUrl } from "../searchparams-message/createSearchParamsMessageUrl";
-import { retrievePrice, createCheckoutSession } from "@/lib/stripe";
 
 const BuyButtonSchema = z.object({
   priceId: z.string(),
@@ -59,17 +59,13 @@ export const buyButtonAction = action
       ],
       success_url: createSearchParamsMessageUrl(
         `${getServerUrl()}/orgs/${orgSlug}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
-        {
-          type: "success",
-          message: "Your payment has been successful",
-        },
+        "Your payment has been successful",
+        "success"
       ),
       cancel_url: createSearchParamsMessageUrl(
         `${getServerUrl()}/orgs/${orgSlug}/settings/billing`,
-        {
-          type: "error",
-          message: "Your payment has been cancelled",
-        },
+        "Your payment has been cancelled",
+        "error"
       ),
     });
 

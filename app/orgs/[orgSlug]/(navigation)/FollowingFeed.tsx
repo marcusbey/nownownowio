@@ -1,14 +1,14 @@
 "use client";
 
+import { Button } from "@/components/core/button";
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
-import Post from "@/features/social/posts/components/post";
-import PostsLoadingSkeleton from "@/features/social/posts/components/post-skeleton";
+import { EmptyFeed } from "@/features/social/components/empty-feed";
+import Post from "@/features/social/components/post";
+import PostsLoadingSkeleton from "@/features/social/components/post-skeleton";
 import kyInstance from "@/lib/ky";
-import { PostsPage } from "@/features/posts/types";
+import type { PostsPage } from "@/lib/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { EmptyFeed } from "@/features/social/posts/components/empty-feed";
-import { Button } from "@/components/core/button";
 
 export default function FollowingFeed() {
   const queryClient = useQueryClient();
@@ -30,9 +30,11 @@ export default function FollowingFeed() {
             pageParam ? { searchParams: { cursor: pageParam } } : {},
           )
           .json<PostsPage>();
-      } catch (error: any) {
+      } catch (error) {
         // If it's a 404 (no posts), return empty page
-        if (error.response?.status === 404) {
+        if (
+          (error as { response?: { status?: number } }).response?.status === 404
+        ) {
           return { posts: [], nextCursor: null } as PostsPage;
         }
         throw error;
@@ -46,12 +48,12 @@ export default function FollowingFeed() {
     refetchOnMount: false,
     refetchOnReconnect: false,
     retry: 1,
-    networkMode: 'offlineFirst',
+    networkMode: "offlineFirst",
   });
 
-  const posts = data?.pages.flatMap((page) => page.posts) || [];
+  const posts = data?.pages.flatMap((page) => page.posts) ?? [];
 
-  if (status === "pending" && !data) {
+  if (status === "pending") {
     return <PostsLoadingSkeleton />;
   }
 
@@ -60,21 +62,25 @@ export default function FollowingFeed() {
   // 2. Got a 404 response (no posts)
   if (
     (status === "success" && !posts.length && !hasNextPage) ||
-    (error as any)?.response?.status === 404
+    (error as { response?: { status?: number } }).response?.status === 404
   ) {
-    return <EmptyFeed message="No posts found. Start following people to see their posts here." />;
+    return <EmptyFeed />;
   }
 
   if (status === "error") {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 space-y-3">
-        <p className="text-center text-destructive font-medium">
+      <div className="flex flex-col items-center justify-center space-y-3 px-4 py-12">
+        <p className="text-center font-medium text-destructive">
           An error occurred while loading posts
         </p>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
-          onClick={() => queryClient.invalidateQueries({ queryKey: ["post-feed", "following"] })}
+          onClick={async () =>
+            queryClient.invalidateQueries({
+              queryKey: ["post-feed", "following"],
+            })
+          }
         >
           Try again
         </Button>
@@ -84,13 +90,19 @@ export default function FollowingFeed() {
 
   return (
     <InfiniteScrollContainer
-      className="no-scrollbar h-full overflow-y-auto space-y-4"
-      onBottomReached={() => hasNextPage && !isFetching && fetchNextPage()}
+      className="no-scrollbar h-full space-y-4 overflow-y-auto"
+      onBottomReached={async () =>
+        hasNextPage && !isFetching && fetchNextPage()
+      }
     >
       {posts.map((post) => (
         <Post key={post.id} post={post} />
       ))}
-      {isFetchingNextPage && <Loader2 className="mx-auto my-3 animate-spin" />}
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
     </InfiniteScrollContainer>
   );
 }

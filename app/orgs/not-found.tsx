@@ -1,10 +1,10 @@
-import AuthNavigationWrapper from "@/features/core/navigation/log-in-navigation-wrapper";
+import LogInNavigationWrapper from "@/features/core/log-in-navigation-wrapper";
 import { Page404 } from "@/features/core/page/page-404";
 
 export default function NotFoundPage() {
   return (
-    <AuthNavigationWrapper>
+    <LogInNavigationWrapper>
       <Page404 />
-    </AuthNavigationWrapper>
+    </LogInNavigationWrapper>
   );
 }

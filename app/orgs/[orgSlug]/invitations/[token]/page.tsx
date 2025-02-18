@@ -1,3 +1,4 @@
+import LoadingButton from "@/components/composite/LoadingButton";
 import { buttonVariants } from "@/components/core/button";
 import {
   Card,
@@ -6,16 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/data-display/card";
-import { SubmitButton } from "@/features/form/submit-button";
-import AuthNavigationWrapper from "@/features/navigation/log-in-navigation-wrapper";
-import { NavigationWrapper } from "@/features/navigation/navigation-wrapper";
+import LogInNavigationWrapper from "@/features/core/log-in-navigation-wrapper";
+import { NavigationWrapper } from "@/features/core/navigation-wrapper";
+import { Page400 } from "@/features/core/page/page-400";
 import {
   Layout,
   LayoutContent,
   LayoutHeader,
   LayoutTitle,
 } from "@/features/page/layout";
-import { Page400 } from "@/features/page/page-400";
 import { auth } from "@/lib/auth/helper";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
@@ -116,7 +116,7 @@ export default async function RoutePage(
   }
 
   return (
-    <AuthNavigationWrapper>
+    <LogInNavigationWrapper>
       <Layout>
         <LayoutHeader>
           <LayoutTitle>
@@ -134,7 +134,8 @@ export default async function RoutePage(
             </CardHeader>
             <CardContent>
               <form>
-                <SubmitButton
+                <LoadingButton
+                  loading={false}
                   formAction={async () => {
                     "use server";
                     await prisma.organizationMembership.create({
@@ -153,12 +154,12 @@ export default async function RoutePage(
                   }}
                 >
                   Join {organization.name}
-                </SubmitButton>
+                </LoadingButton>
               </form>
             </CardContent>
           </Card>
         </LayoutContent>
       </Layout>
-    </AuthNavigationWrapper>
+    </LogInNavigationWrapper>
   );
 }

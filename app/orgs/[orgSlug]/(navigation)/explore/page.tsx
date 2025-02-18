@@ -1,57 +1,89 @@
 "use client";
 
-import { getPosts } from "../posts/services/post-client";
-import { ExtendedPost } from "../posts/types";
 import { Button } from "@/components/core/button";
-import { Skeleton } from "@/components/feedback/skeleton";
-import Post from "@/features/social/posts/components/post";
-import { useSearchParams } from "next/navigation";
-import PostEditor from "@/features/social/posts/components/post-editor";
-import { motion } from "framer-motion";
-import Link from "next/link";
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
-import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/feedback/skeleton";
+import Post from "@/features/social/components/post";
+import PostEditor from "@/features/social/components/post-editor";
+import kyInstance from "@/lib/ky";
+import type { Post as PostType, PostsPage } from "@/lib/types";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const topics = [
   { id: "all", label: "All" },
-  { id: "hot", label: "Hot" },
-  { id: "startups", label: "Startups" },
-  { id: "fundraising", label: "Fundraising" },
   { id: "tech", label: "Tech" },
-  { id: "ai", label: "AI" },
-  { id: "product", label: "Product" },
   { id: "design", label: "Design" },
+  { id: "marketing", label: "Marketing" },
+  { id: "business", label: "Business" },
 ];
 
 export default function ExplorePage() {
   const searchParams = useSearchParams();
-  const topic = searchParams.get("topic") || "all";
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, error } = useInfinitePosts(topic);
+  const topic = searchParams.get("topic") ?? "all";
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    error,
+  } = useInfiniteQuery({
+    queryKey: ["post-feed", "explore", topic],
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await kyInstance
+          .get(
+            "/api/posts/explore",
+            pageParam
+              ? { searchParams: { cursor: pageParam, topic } }
+              : { searchParams: { topic } },
+          )
+          .json<PostsPage>();
+      } catch (error) {
+        if (
+          (error as { response?: { status?: number } }).response?.status === 404
+        ) {
+          return { posts: [], nextCursor: null } as PostsPage;
+        }
+        throw error;
+      }
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
+
+  const posts = data?.pages.flatMap((page) => page.posts) ?? [];
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setLoading(status !== "success");
-  }, [status]);
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, [topic]);
 
-  if (error) {
+  if (status === "error") {
     return (
-      <main className="flex w-full min-w-0 gap-5 p-4">
+      <main className="mx-auto flex w-full min-w-0 max-w-xl gap-5 p-4">
         <div className="w-full min-w-0 space-y-5">
-          <div className="rounded-lg bg-red-50 p-4">
-            <div className="flex flex-col items-center space-y-4">
-              <p className="text-sm text-red-800">
-                {error instanceof Error ? error.message : 'Error loading posts. Please try again.'}
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  window.location.reload();
-                }}
-              >
-                Retry Loading Posts
-              </Button>
-            </div>
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-sm text-red-800">
+              {error instanceof Error
+                ? error.message
+                : "Error loading posts. Please try again."}
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                window.location.reload();
+              }}
+            >
+              Retry
+            </Button>
           </div>
         </div>
       </main>
@@ -60,7 +92,7 @@ export default function ExplorePage() {
 
   if (loading) {
     return (
-      <main className="flex w-full min-w-0 gap-5 p-4">
+      <main className="mx-auto flex w-full min-w-0 max-w-xl gap-5 p-4">
         <div className="w-full min-w-0 space-y-5">
           {Array.from({ length: 3 }).map((_, i) => (
             <motion.div
@@ -78,43 +110,45 @@ export default function ExplorePage() {
   }
 
   return (
-    <main className="flex w-full min-w-0 gap-5 p-4 max-w-xl mx-auto">
+    <main className="mx-auto flex w-full min-w-0 max-w-xl gap-5 p-4">
       <div className="w-full min-w-0 space-y-5">
         <PostEditor />
-        
+
         <nav className="sticky top-0 bg-background/80 backdrop-blur-sm">
-          <div className="no-scrollbar flex gap-2 overflow-x-auto py-2 -mx-4 px-4">
+          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-2">
             {topics.map((t) => (
               <Button
                 key={t.id}
                 variant={topic === t.id ? "default" : "ghost"}
-                className="rounded-full whitespace-nowrap"
+                className="whitespace-nowrap rounded-full"
                 asChild
               >
-                <Link href={`?topic=${t.id}`}>{t.label}</Link>
+                <Link
+                  href={{
+                    query: t.id === "all" ? {} : { topic: t.id },
+                  }}
+                >
+                  {t.label}
+                </Link>
               </Button>
             ))}
           </div>
         </nav>
 
         <InfiniteScrollContainer
-          className="no-scrollbar h-full overflow-y-auto space-y-4"
+          className="no-scrollbar h-full space-y-4 overflow-y-auto"
           onBottomReached={() => {
             if (hasNextPage && !isFetchingNextPage) {
-              fetchNextPage();
+              void fetchNextPage();
             }
           }}
         >
-          {data?.pages.map((page, i) => (
-            <div key={i} className="space-y-4">
-              {page.posts.map((post) => (
-                <Post key={post.id} post={post} />
-              ))}
-            </div>
+          {posts.map((post: PostType) => (
+            <Post key={post.id} post={post} />
           ))}
           {isFetchingNextPage && (
             <div className="flex justify-center py-4">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
           )}
         </InfiniteScrollContainer>

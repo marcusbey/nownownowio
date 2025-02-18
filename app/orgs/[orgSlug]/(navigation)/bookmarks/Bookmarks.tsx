@@ -1,10 +1,10 @@
 "use client";
 
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
-import Post from "@/features/social/posts/components/post";
-import PostsLoadingSkeleton from "@/features/social/posts/components/post-skeleton";
+import Post from "@/features/social/components/post";
+import PostsLoadingSkeleton from "@/features/social/components/post-skeleton";
 import kyInstance from "@/lib/ky";
-import { PostsPage } from "@/lib/types";
+import type { PostsPage } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
@@ -18,7 +18,7 @@ export default function Bookmarks() {
     status,
   } = useInfiniteQuery({
     queryKey: ["post-feed", "bookmarks"],
-    queryFn: ({ pageParam }) =>
+    queryFn: async ({ pageParam }) =>
       kyInstance
         .get(
           "/api/v1/posts/bookmarked",
@@ -29,7 +29,7 @@ export default function Bookmarks() {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  const posts = data?.pages.flatMap((page) => page.posts) || [];
+  const posts = data?.pages.flatMap((page) => page.posts) ?? [];
 
   if (status === "pending") {
     return <PostsLoadingSkeleton />;
@@ -54,7 +54,9 @@ export default function Bookmarks() {
   return (
     <InfiniteScrollContainer
       className="space-y-5"
-      onBottomReached={() => hasNextPage && !isFetching && fetchNextPage()}
+      onBottomReached={async () =>
+        hasNextPage && !isFetching && fetchNextPage()
+      }
     >
       {posts.map((post) => (
         <Post key={post.id} post={post} />

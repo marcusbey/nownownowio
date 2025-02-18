@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { getFeedPosts, createPost, getFeedPostsSchema, createPostSchema } from "@/features/social/posts/services/post-service";
+import { createPost, createPostSchema, getFeedPosts, getFeedPostsSchema } from "@/features/social/services/post-service";
 import { baseAuth } from "@/lib/auth/auth";
-import { ZodError } from "zod";
-import { Prisma } from "@prisma/client";
 import type { PostsPage } from "@/lib/types";
+import { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 export async function GET(request: Request) {
   try {
@@ -18,12 +18,12 @@ export async function GET(request: Request) {
 
     // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
-    const feedType = searchParams.get("feed") || "org";
+    const feedType = searchParams.get("feed") ?? "org";
     const params = {
       userId: session.user.id,
-      organizationId: feedType === "org" ? searchParams.get("organizationId") || undefined : undefined,
-      cursor: searchParams.get("cursor") || undefined,
-      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!) : 20,
+      organizationId: feedType === "org" ? searchParams.get("organizationId") ?? undefined : undefined,
+      cursor: searchParams.get("cursor") ?? undefined,
+      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit") ?? "20") : 20,
     };
 
     const validatedParams = getFeedPostsSchema.parse(params);
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     console.log('[POST_DEBUG] Input:', input);
     const validatedData = createPostSchema.parse(input);
     console.log('[POST_DEBUG] Validated data:', validatedData);
-    
+
     const post = await createPost(validatedData);
     return NextResponse.json({ post }, { status: 201 });
   } catch (error) {

@@ -1,8 +1,8 @@
+import { PostCard } from "@/features/social/components/post-card";
+import { PostInput } from "@/features/social/components/post-input";
+import { mockPosts } from "@/features/social/mock/posts.mock";
 import { auth } from "@/lib/auth/helper";
 import { redirect } from "next/navigation";
-import { PostInput } from "@/features/social/posts/components/post-input";
-import { PostCard } from "@/features/social/posts/components/post-card";
-import { mockPosts } from "@/features/social/posts/mock/posts.mock";
 
 export default async function HomePage() {
   const session = await auth();
@@ -13,12 +13,9 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto">
-        <div className="sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
-          <PostInput
-            userImage={session.user?.image}
-            userName={session.user?.name}
-          />
+      <div className="mx-auto max-w-2xl">
+        <div className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
+          <PostInput userImage={session.image} userName={session.name} />
         </div>
         <div>
           {mockPosts.map((post) => (

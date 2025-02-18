@@ -1,44 +1,70 @@
-import { Alert } from "@/components/feedback/alert";
 import { buttonVariants } from "@/components/core/button";
 import { Typography } from "@/components/data-display/typography";
-import { NavigationWrapper } from "@/features/navigation/navigation-wrapper";
-import { Layout } from "@/features/page/layout";
+import { Alert } from "@/components/feedback/alert";
 import { auth } from "@/lib/auth/helper";
-import { getCurrentOrgCache } from "@/lib/react/cache";
-import type { LayoutParams } from "@/types/next";
+import { prisma } from "@/lib/prisma/prisma";
 import { Rabbit } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { OrgNavigation } from "./_navigation/org-navigation";
 
-export default async function RouteLayout(
-  props: LayoutParams<{ orgSlug: string }>,
-) {
-  const org = await getCurrentOrgCache();
-  const params = await props.params;
+async function loadData(orgSlug: string) {
+  try {
+    const session = await auth();
+    if (!session) {
+      return { error: "Unauthorized" };
+    }
 
-  if (!org) {
-    const user = await auth();
+    const org = await prisma.organization.findUnique({
+      where: { slug: orgSlug },
+      include: {
+        users: {
+          where: { userId: session.id },
+          select: { role: true },
+        },
+      },
+    });
+
+    if (!org) {
+      return { error: "Not found" };
+    }
+
+    return { org, user: session };
+  } catch (error) {
+    console.error("[ORG_LAYOUT]", error);
+    return { error: "Internal server error" };
+  }
+}
+
+function LoadingFallback() {
+  return <div className="flex min-h-screen animate-pulse bg-muted" />;
+}
+
+export default async function RouteLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: { orgSlug: string };
+}) {
+  const { org, user, error } = await loadData(params.orgSlug);
+
+  if (error) {
     return (
-      <NavigationWrapper>
-        <Layout>
+      <div className="flex min-h-screen flex-col">
+        <main className="flex-1">
           <Alert>
             <Rabbit className="size-4" />
             <div>
               <Typography variant="large">
-                Oh! You are not logged in or the organization with the ID{" "}
-                <Typography variant="code">{params.orgSlug}</Typography> was not
-                found.
+                {error === "Unauthorized"
+                  ? "You must be logged in to access this page."
+                  : error === "Not found"
+                    ? "Organization not found."
+                    : "An error occurred while loading the organization."}
               </Typography>
-              {user ? (
-                <Link
-                  href="/orgs"
-                  className={buttonVariants({
-                    className: "mt-2",
-                  })}
-                >
-                  Return to your organizations
-                </Link>
-              ) : (
+              {error === "Unauthorized" ? (
                 <Link
                   href="/auth/signin"
                   className={buttonVariants({
@@ -47,113 +73,28 @@ export default async function RouteLayout(
                 >
                   Sign in
                 </Link>
+              ) : (
+                <Link
+                  href="/orgs"
+                  className={buttonVariants({
+                    className: "mt-2",
+                  })}
+                >
+                  Return to your organizations
+                </Link>
               )}
             </div>
           </Alert>
-        </Layout>
-      </NavigationWrapper>
+        </main>
+      </div>
     );
   }
 
-  return <OrgNavigation>{props.children}</OrgNavigation>;
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Suspense fallback={<LoadingFallback />}>
+        <OrgNavigation>{children}</OrgNavigation>
+      </Suspense>
+    </div>
+  );
 }
-
-
-
-
-// import { Alert } from "@/components/feedback/alert";
-// import { buttonVariants } from "@/components/core/button";
-// import { Typography } from "@/components/data-display/typography";
-// import { NavigationWrapper } from "@/features/NavigationWrapper";
-// import { Layout } from "@/features/page/layout";
-// import { auth } from "@/lib/auth/helper";
-// import { getCurrentOrgCache } from "@/lib/react/cache";
-// import type { LayoutParams } from "@/types/next";
-// import { Rabbit } from "lucide-react";
-// import Link from "next/link";
-// import { Suspense } from "react";
-// import { OrgNavigation } from "./OrgNavigation.tsx";
-
-// async function loadData(orgSlug: string) {
-//   try {
-//     const [org, user] = await Promise.allSettled([
-//       getCurrentOrgCache(orgSlug),
-//       auth()
-//     ]);
-
-//     return {
-//       org: org.status === 'fulfilled' ? org.value : null,
-//       user: user.status === 'fulfilled' ? user.value : null,
-//       error: org.status === 'rejected' ? org.reason : null
-//     };
-//   } catch (error) {
-//     console.error('Error loading data:', error);
-//     return { org: null, user: null, error };
-//   }
-// }
-
-// function LoadingFallback() {
-//   return (
-//     <div className="flex h-full items-center justify-center">
-//       <div className="animate-pulse">Loading organization...</div>
-//     </div>
-//   );
-// }
-
-// export default async function RouteLayout(
-//   props: LayoutParams<{ orgSlug: string }>,
-// ) {
-//   const { org, user, error } = await loadData(props.params.orgSlug);
-
-//   if (error) {
-//     console.error('Error in RouteLayout:', error);
-//   }
-
-//   if (!org) {
-//     return (
-//       <NavigationWrapper>
-//         <Layout>
-//           <Alert>
-//             <Rabbit className="size-4" />
-//             <div>
-//               <Typography variant="large">
-//                 {error ? 'An error occurred while loading the organization.' : 
-//                   `Oh! You are not logged in or the organization with the ID 
-//                   ${props.params.orgSlug} was not found.`}
-//               </Typography>
-//               {user ? (
-//                 <Link
-//                   href="/orgs"
-//                   className={buttonVariants({
-//                     className: "mt-2",
-//                   })}
-//                 >
-//                   Return to your organizations
-//                 </Link>
-//               ) : (
-//                 <Link
-//                   href="/auth/signin"
-//                   className={buttonVariants({
-//                     className: "mt-2",
-//                   })}
-//                 >
-//                   Sign in
-//                 </Link>
-//               )}
-//             </div>
-//           </Alert>
-//         </Layout>
-//       </NavigationWrapper>
-//     );
-//   }
-
-//   return (
-//     <Suspense fallback={<LoadingFallback />}>
-//       <OrgNavigation>
-//         <Suspense fallback={<LoadingFallback />}>
-//           {props.children}
-//         </Suspense>
-//       </OrgNavigation>
-//     </Suspense>
-//   );
-// }
