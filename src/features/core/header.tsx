@@ -1,4 +1,4 @@
-import { AuthButton } from "../auth/auth-button";
+import { AuthButton } from "@/features/core/auth/auth-button";
 import { HeaderBase } from "./header-base";
 
 export function Header() {

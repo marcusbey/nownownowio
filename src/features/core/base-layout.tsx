@@ -1,5 +1,5 @@
-import { Footer } from "@/features/core/layout/footer";
-import { Header } from "@/features/core/layout/header";
+import { Footer } from "@/features/core/footer";
+import { Header } from "@/features/core/header";
 import type { PropsWithChildren } from "react";
 
 export function BaseLayout(props: PropsWithChildren) {

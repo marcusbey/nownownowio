@@ -1,10 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/avatar";
 import { Button } from "@/components/core/button";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/data-display/avatar";
+import { UserDropdown } from "@/features/core/auth/user-dropdown";
 import { auth } from "@/lib/auth/helper";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
 import type { PropsWithChildren } from "react";
 import { OrgsSelect } from "../../../app/orgs/[orgSlug]/(navigation)/_navigation/orgs-select";
-import { UserDropdown } from "../auth/user-dropdown";
 import { NavigationWrapper } from "./navigation-wrapper";
 
 export default async function AuthNavigationWrapper(props: PropsWithChildren) {

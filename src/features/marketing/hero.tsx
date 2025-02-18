@@ -1,9 +1,9 @@
 import { ShimmerButton } from "@/components/composite/shimmer-button";
-import { CircleSvg } from "@/components/icons/circle-svg";
 import { buttonVariants } from "@/components/core/button";
+import { Typography } from "@/components/data-display/typography";
+import { CircleSvg } from "@/components/icons/circle-svg";
 import Image from "next/image";
 import Link from "next/link";
-import { Typography } from "../../components/ui/typography";
 
 export const Hero = () => {
   return (

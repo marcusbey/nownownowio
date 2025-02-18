@@ -1,5 +1,5 @@
 import { Typography } from "@/components/data-display/typography";
-import { SectionLayout } from "../landing/section-layout";
+import { SectionLayout } from "@/features/marketing/section-layout";
 import { PLANS } from "./plans";
 import { PricingCard } from "./pricing-card";
 

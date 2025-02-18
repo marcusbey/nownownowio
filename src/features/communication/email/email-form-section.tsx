@@ -1,5 +1,5 @@
 import { Typography } from "@/components/data-display/typography";
-import { SectionLayout } from "../landing/section-layout";
+import { SectionLayout } from "@/features/marketing/section-layout";
 import { EmailForm } from "./email-form";
 
 export const EmailFormSection = () => {
