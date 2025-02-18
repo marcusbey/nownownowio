@@ -12,7 +12,7 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { LoadingButton } from "@/features/form/submit-button";
+import { LoadingButton } from "@/features/ui/SubmitButton";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { formatId } from "@/lib/format/id";
 import { useMutation } from "@tanstack/react-query";

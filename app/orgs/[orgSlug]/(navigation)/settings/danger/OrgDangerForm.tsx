@@ -15,8 +15,8 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
-import { FormUnsavedBar } from "@/features/form/FormUnsavedBar";
+import { alertDialog } from "@/features/ui/alert-dialog/alert-dialog-store";
+import { FormUnsavedBar } from "@/features/ui/FormUnsavedBar";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { formatId } from "@/lib/format/id";
 import { useMutation } from "@tanstack/react-query";

@@ -18,7 +18,7 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { LoadingButton } from "@/features/form/SubmitButton";
+import { LoadingButton } from "@/features/ui/SubmitButton";
 import { useMutation } from "@tanstack/react-query";
 import { Mail, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";

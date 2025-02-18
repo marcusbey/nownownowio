@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
-import { SignInButton } from "@/features/auth/sign-in-button";
-import { Page400 } from "@/features/page/page-400";
+import { SignInButton } from "@/features/core/auth/sign-in-button";
+import { Page400 } from "@/features/core/page-400";
 import { logger } from "@/lib/logger";
 import type { ErrorParams } from "@/types/next";
 import { useSession } from "next-auth/react";

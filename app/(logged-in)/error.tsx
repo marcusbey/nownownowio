@@ -1,7 +1,7 @@
 "use client";
 
-import { NavigationWrapper } from "@/features/navigation/navigation-wrapper";
-import { Page400 } from "@/features/page/page-400";
+import { NavigationWrapper } from "@/features/core/navigation-wrapper";
+import { Page400 } from "@/features/core/page-400";
 
 export default function NotFoundPage() {
   return (

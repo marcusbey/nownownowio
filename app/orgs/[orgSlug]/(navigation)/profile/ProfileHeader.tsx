@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/core/button";
-import UserAvatar from "@/components/UserAvatar";
+import UserAvatar from "@/components/composite/UserAvatar";
 import { UserData } from "@/lib/types";
 import { CalendarDays, Link2, MapPin } from "lucide-react";
 import Link from "next/link";

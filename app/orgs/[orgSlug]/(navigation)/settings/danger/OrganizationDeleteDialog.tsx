@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/core/button";
-import { alertDialog } from "@/features/alert-dialog/alert-dialog-store";
+import { alertDialog } from "@/features/ui/alert-dialog/alert-dialog-store";
 import { useMutation } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";

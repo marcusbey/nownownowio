@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ButtonProps } from "../../components/ui/button";
-import { LoadingButton } from "../form/submit-button";
+import { LoadingButton } from "@/features/ui/SubmitButton";
 import { buyButtonAction } from "./buy-button.action";
 
 type BuyButtonProps = {

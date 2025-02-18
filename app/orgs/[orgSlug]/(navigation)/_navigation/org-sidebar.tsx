@@ -20,7 +20,7 @@ import {
 } from "@/components/layout/sidebar";
 import { SidebarMenuButtonLink } from "@/components/layout/sidebar-utils";
 import type { NavigationGroup } from "@/features/navigation/navigation.type";
-import { SidebarUserButton } from "@/features/sidebar/sidebar-user-button";
+import { SidebarUserButton } from "@/features/core/auth/user-dropdown";
 import type { OrganizationMembershipRole } from "@prisma/client";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";

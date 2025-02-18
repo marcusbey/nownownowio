@@ -24,10 +24,10 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { InlineTooltip } from "@/components/ui/tooltip";
+import { InlineTooltip } from "@/components/data-display/tooltip";
 import { Typography } from "@/components/data-display/typography";
-import { LoadingButton } from "@/features/form/submit-button";
-import { ImageFormItem } from "@/features/images/image-form-item";
+import { LoadingButton } from "@/features/ui/SubmitButton";
+import { ImageFormItem } from "@/features/ui/images/ImageFormItem";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { displayName } from "@/lib/format/display-name";
 import type { User } from "@prisma/client";

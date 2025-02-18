@@ -11,8 +11,8 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { ImageFormItem } from "@/features/images/ImageFormItem";
-import { LoadingButton } from "@/features/form/SubmitButton";
+import { ImageFormItem } from "@/features/ui/images/ImageFormItem";
+import { LoadingButton } from "@/features/ui/SubmitButton";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

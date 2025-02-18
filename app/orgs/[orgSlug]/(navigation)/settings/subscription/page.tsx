@@ -3,8 +3,8 @@
 import { CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { Typography } from "@/components/data-display/typography";
 import { Badge } from "@/components/data-display/badge";
-import { PLANS } from "@/features/plans/plans";
-import { ClientPricingSection } from "@/features/plans/ClientPricingSection";
+import { PLANS } from "@/features/billing/plans/plans";
+import { ClientPricingSection } from "@/features/billing/plans/ClientPricingSection";
 import { SettingsPage, SettingsCard, SettingsSection } from "@/components/layout/SettingsLayout";
 import { useOrganization } from "@/query/org/org.query";
 import { useParams } from "next/navigation";
