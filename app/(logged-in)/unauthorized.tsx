@@ -1,8 +1,8 @@
 import { Alert } from "@/components/feedback/alert";
 import { buttonVariants } from "@/components/core/button";
 import { Typography } from "@/components/data-display/typography";
-import { BaseLayout } from "@/features/layout/base-layout";
-import { Layout } from "@/features/page/layout";
+import { BaseLayout } from "@/features/core/base-layout";
+import { Layout } from "@/features/core/layout";
 import { Rabbit } from "lucide-react";
 import Link from "next/link";
 

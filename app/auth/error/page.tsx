@@ -6,14 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/data-display/card";
-import { ContactSupportDialog } from "@/features/contact/support/contact-support-dialog";
-import { HeaderBase } from "@/features/layout/header-base";
+import { ContactSupportDialog } from "@/features/communication/contact/support/contact-support-dialog";
+import { HeaderBase } from "@/features/core/header-base";
 import {
   Layout,
   LayoutContent,
   LayoutHeader,
   LayoutTitle,
-} from "@/features/page/layout";
+} from "@/features/core/layout";
 import type { PageParams } from "@/types/next";
 import Link from "next/link";
 import { getError } from "./auth-error-mapping";

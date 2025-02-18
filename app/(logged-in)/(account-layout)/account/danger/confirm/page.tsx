@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/data-display/card";
-import { SubmitButton } from "@/features/form/submit-button";
+import { SubmitButton } from "@/features/ui/form/submit-button";
 import { requiredAuth } from "@/lib/auth/helper";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import type { PageParams } from "@/types/next";

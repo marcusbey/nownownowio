@@ -1,12 +1,12 @@
 import { buttonVariants } from "@/components/core/button";
-import { Header } from "@/features/layout/header";
+import { Header } from "@/features/core/header";
 import {
   Layout,
   LayoutContent,
   LayoutDescription,
   LayoutHeader,
   LayoutTitle,
-} from "@/features/page/layout";
+} from "@/features/core/layout";
 import type { PageParams } from "@/types/next";
 import Link from "next/link";
 import { redirect } from "next/navigation";

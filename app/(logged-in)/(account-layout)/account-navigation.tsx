@@ -4,7 +4,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/layout/sidebar";
-import { Layout } from "@/features/page/layout";
+import { Layout } from "@/features/core/layout";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
 import { CircleAlert } from "lucide-react";
 import type { PropsWithChildren } from "react";

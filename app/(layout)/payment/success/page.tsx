@@ -5,7 +5,7 @@ import {
   LayoutDescription,
   LayoutHeader,
   LayoutTitle,
-} from "@/features/page/layout";
+} from "@/features/core/layout";
 import Link from "next/link";
 
 export default function SuccessPaymentPage() {

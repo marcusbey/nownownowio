@@ -3,7 +3,7 @@ import {
   LayoutContent,
   LayoutHeader,
   LayoutTitle,
-} from "@/features/page/layout";
+} from "@/features/core/layout";
 import { requiredAuth } from "@/lib/auth/helper";
 import type { LayoutParams } from "@/types/next";
 

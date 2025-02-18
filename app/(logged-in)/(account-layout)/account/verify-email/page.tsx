@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/core/button";
 import { Card, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
-import { createSearchParamsMessageUrl } from "@/features/searchparams-message/createSearchParamsMessageUrl";
+import { createSearchParamsMessageUrl } from "@/features/ui/searchparams-message/createSearchParamsMessageUrl";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
 import type { PageParams } from "@/types/next";

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/data-display/card";
-import { ContactSupportDialog } from "@/features/contact/support/contact-support-dialog";
+import { ContactSupportDialog } from "@/features/communication/contact/support/contact-support-dialog";
 import { requiredAuth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";
 import { resend } from "@/lib/mail/resend";

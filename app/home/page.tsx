@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth/helper";
 import { redirect } from "next/navigation";
-import { PostInput } from "@/features/posts/components/post-input";
-import { PostCard } from "@/features/posts/components/post-card";
-import { mockPosts } from "@/features/posts/mock/posts.mock";
+import { PostInput } from "@/features/social/posts/components/post-input";
+import { PostCard } from "@/features/social/posts/components/post-card";
+import { mockPosts } from "@/features/social/posts/mock/posts.mock";
 
 export default async function HomePage() {
   const session = await auth();

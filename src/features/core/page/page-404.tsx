@@ -1,7 +1,7 @@
 import { ContactSupportDialog } from "@/features/communication/contact/support/contact-support-dialog";
 import Link from "next/link";
-import { buttonVariants } from "../../components/ui/button";
-import { Typography } from "../../components/ui/typography";
+import { buttonVariants } from "@/components/core/button";
+import { Typography } from "@/components/data-display/typography";
 
 export function Page404() {
   return (
