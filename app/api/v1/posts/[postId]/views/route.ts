@@ -66,7 +66,7 @@ export async function GET(
     const count = await getViewCount(params.postId);
     return NextResponse.json({ viewCount: count });
   } catch (error) {
-    console.error("Error in GET /api/posts/[postId]/views:", error);
+    console.error("Error in GET /api/v1/posts/[postId]/views:", error);
     return NextResponse.json(
       { error: "Failed to get view count" },
       { status: 500 }
@@ -94,7 +94,7 @@ export async function POST(
     return NextResponse.json({ viewCount: count });
   } catch (error) {
     // Log the full error details
-    console.error("Error in POST /api/posts/[postId]/views:", {
+    console.error("Error in POST /api/v1/posts/[postId]/views:", {
       error: error instanceof Error ? {
         message: error.message,
         stack: error.stack,

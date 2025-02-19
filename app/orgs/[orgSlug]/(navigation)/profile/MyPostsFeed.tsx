@@ -18,7 +18,7 @@ export default function MyPostsFeed({ userId }: MyPostsFeedProps) {
       queryKey: ["user-posts", userId],
       queryFn: async ({ pageParam }) =>
         kyInstance
-          .get(`/api/users/${userId}/posts`, {
+          .get(`/api/v1/users/${userId}/posts`, {
             searchParams: pageParam ? { cursor: pageParam } : {},
           })
           .json<PostsPage>(),

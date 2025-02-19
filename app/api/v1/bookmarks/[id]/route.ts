@@ -38,7 +38,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[DELETE /api/bookmarks/[id]]", error);
+    console.error("[DELETE /api/v1/bookmarks/[id]]", error);
     return NextResponse.json(
       { error: "Failed to delete bookmark" },
       { status: 500 }

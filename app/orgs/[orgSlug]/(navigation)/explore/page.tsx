@@ -38,7 +38,7 @@ export default function ExplorePage() {
       try {
         return await kyInstance
           .get(
-            "/api/posts/explore",
+            "/api/v1/posts/explore",
             pageParam
               ? { searchParams: { cursor: pageParam, topic } }
               : { searchParams: { topic } },

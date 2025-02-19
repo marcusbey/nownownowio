@@ -14,11 +14,11 @@ import { getNextAuthConfigProviders } from "./getNextAuthConfigProviders";
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   pages: {
-    signIn: "/auth/signin",
-    signOut: "/auth/signout",
-    error: "/auth/error",
-    verifyRequest: "/auth/verify-request",
-    newUser: "/orgs",
+    signIn: "/v1/auth/signin",
+    signOut: "/v1/auth/signout",
+    error: "/v1/auth/error",
+    verifyRequest: "/v1/auth/verify-request",
+    newUser: "/v1/orgs",
   },
   adapter: PrismaAdapter(prisma),
   providers: getNextAuthConfigProviders(),

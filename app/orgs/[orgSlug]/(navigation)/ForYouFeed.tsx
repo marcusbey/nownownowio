@@ -27,7 +27,7 @@ export default function ForYouFeed() {
       try {
         return await kyInstance
           .get(
-            "/api/posts/for-you",
+            "/api/v1/posts/for-you",
             pageParam ? { searchParams: { cursor: pageParam } } : {},
           )
           .json<PostsPage>();

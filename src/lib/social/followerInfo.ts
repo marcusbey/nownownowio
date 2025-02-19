@@ -7,5 +7,5 @@ export interface FollowerInfo {
 }
 
 export async function getFollowerInfo(userId: string): Promise<FollowerInfo> {
-  return kyInstance.get(`/api/users/${userId}/follower-info`).json();
+  return kyInstance.get(`/api/v1/users/${userId}/follower-info`).json();
 }

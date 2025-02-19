@@ -26,7 +26,7 @@ export default function FollowingFeed() {
       try {
         return await kyInstance
           .get(
-            "/api/posts/following",
+            "/api/v1/posts/following",
             pageParam ? { searchParams: { cursor: pageParam } } : {},
           )
           .json<PostsPage>();

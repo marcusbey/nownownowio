@@ -43,11 +43,14 @@ function LoadingFallback() {
 
 export default async function RouteLayout({
   children,
-  params: { orgSlug },
+  params,
 }: {
   children: ReactNode;
   params: { orgSlug: string };
 }) {
+  // Await params before using its properties
+  const { orgSlug } = await params;
+
   const { org, user, error } = await loadData(orgSlug);
 
   if (error) {

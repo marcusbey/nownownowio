@@ -78,7 +78,7 @@ export default async function BillingPage({ params }: PageParams) {
                   </div>
                 </div>
                 <Button variant="outline" asChild>
-                  <a href={`${process.env.NEXT_PUBLIC_URL}/api/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`${process.env.NEXT_PUBLIC_URL}/api/v1/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
                     Update
                   </a>
                 </Button>
@@ -87,7 +87,7 @@ export default async function BillingPage({ params }: PageParams) {
               <div className="flex items-center justify-between">
                 <Typography variant="default">No payment method on file</Typography>
                 <Button asChild>
-                  <a href={`${process.env.NEXT_PUBLIC_URL}/api/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`${process.env.NEXT_PUBLIC_URL}/api/v1/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
                     Add Payment Method
                   </a>
                 </Button>
@@ -133,7 +133,7 @@ export default async function BillingPage({ params }: PageParams) {
                 ))}
                 <div className="pt-4">
                   <Button variant="outline" className="w-full" asChild>
-                    <a href={`${process.env.NEXT_PUBLIC_URL}/api/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`${process.env.NEXT_PUBLIC_URL}/api/v1/stripe/portal/${organization.id}`} target="_blank" rel="noopener noreferrer">
                       View All Invoices
                     </a>
                   </Button>

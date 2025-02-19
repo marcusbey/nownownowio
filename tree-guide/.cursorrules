@@ -226,7 +226,7 @@ export const Form = () => {
 You need to use next-zod-route to create a safe route.
 
 ```ts
-// app/api/org/[orgId]/route.ts
+// app/api/v1/org/[orgId]/route.ts
 import { prisma } from "@/lib/prisma";
 import { orgRoute } from "@/lib/safe-route";
 import { z } from "zod";
@@ -256,8 +256,8 @@ export const POST = orgRoute
   });
 ```
 
-- Always create org related routes insides `/api/org/[orgId]/*`
-- Always use `orgRoute` to create safe routes inside `/api/org/[orgId]/*`
+- Always create org related routes insides `/api/v1/org/[orgId]/*`
+- Always use `orgRoute` to create safe routes inside `/api/v1/org/[orgId]/*`
 - In general, you can use `authRoute` to create safe routes that is NOT related to orgs.
 
 </safe-route>

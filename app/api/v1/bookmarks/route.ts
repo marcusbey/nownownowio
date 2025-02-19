@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(bookmarks);
   } catch (error) {
-    console.error("[GET /api/bookmarks]", error);
+    console.error("[GET /api/v1/bookmarks]", error);
     return NextResponse.json(
       { error: "Failed to fetch bookmarks" },
       { status: 500 }
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(bookmark);
   } catch (error) {
-    console.error("[POST /api/bookmarks]", error);
+    console.error("[POST /api/v1/bookmarks]", error);
     return NextResponse.json(
       { error: "Failed to create bookmark" },
       { status: 500 }

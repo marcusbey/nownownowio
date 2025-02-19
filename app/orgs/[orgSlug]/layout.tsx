@@ -1,12 +1,11 @@
-import { orgMetadata } from "@/lib/metadata";
-import { getCurrentOrgCache } from "@/lib/react/cache";
-import type { LayoutParams, PageParams } from "@/types/next";
-import type { Metadata } from "next";
-import { InjectCurrentOrgStore } from "./use-current-org";
 import { RightSidebar } from "@/features/layout/right-sidebar";
 import { NavigationLinks } from "@/features/navigation/navigation-links";
+import { orgMetadata } from "@/lib/metadata";
+import { getCurrentOrgCache } from "@/lib/react/cache";
+import type { PageParams } from "@/types/next";
+import type { Metadata } from "next";
 import { getOrganizationNavigation } from "./(navigation)/_navigation/org-navigation.links";
-import { Suspense } from "react";
+import { InjectCurrentOrgStore } from "./use-current-org";
 
 export async function generateMetadata(
   props: PageParams<{ orgSlug: string }>,
@@ -15,9 +14,15 @@ export async function generateMetadata(
   return orgMetadata(params.orgSlug);
 }
 
-export default async function RouteLayout(
-  props: LayoutParams<{ orgSlug: string }>,
-) {
+export default async function Layout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: { orgSlug: string };
+}) {
+  const { orgSlug } = await params;
+
   const org = await getCurrentOrgCache();
   const orgData = org?.org
     ? {
@@ -33,30 +38,28 @@ export default async function RouteLayout(
     <InjectCurrentOrgStore org={orgData}>
       <div className="flex min-h-screen bg-background">
         {/* Left Sidebar */}
-        <aside className="w-64 shrink-0 border-r border-border h-screen sticky top-0 bg-card">
-          <div className="flex flex-col h-full">
-            <div className="p-4 flex items-center gap-2">
-              <div className="size-8 rounded-full bg-yellow-500 flex items-center justify-center text-background font-medium">
-                {org?.org?.name?.[0] ?? "O"}
+        <aside className="sticky top-0 h-screen w-64 shrink-0 border-r border-border bg-card">
+          <div className="flex h-full flex-col">
+            <div className="flex items-center gap-2 p-4">
+              <div className="flex size-8 items-center justify-center rounded-full bg-yellow-500 font-medium text-background">
+                {org?.org.name[0] ?? "O"}
               </div>
-              <span>{org?.org?.name ?? "Organization"}</span>
+              <span>{org?.org.name ?? "Organization"}</span>
             </div>
-            <NavigationLinks 
+            <NavigationLinks
               navigation={getOrganizationNavigation(
-                org?.org?.slug ?? "",
-                org?.membership?.roles
-              )} 
+                org?.org.slug ?? "",
+                org?.roles,
+              )}
             />
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0">
-          {props.children}
-        </main>
+        <main className="min-w-0 flex-1">{children}</main>
 
         {/* Right Sidebar */}
-        <RightSidebar />
+        <RightSidebar>{null}</RightSidebar>
       </div>
     </InjectCurrentOrgStore>
   );

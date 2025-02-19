@@ -6,7 +6,7 @@ export function GenerateScriptButton({ userId }: { userId: string }) {
   const [script, setScript] = useState('');
 
   const generateScript = async () => {
-    const response = await fetch(`/api/widget/generate-script?userId=${userId}`);
+    const response = await fetch(`/api/v1/widget/generate-script?userId=${userId}`);
     const data = await response.json();
     setScript(data.script);
   };

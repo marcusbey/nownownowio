@@ -1,4 +1,4 @@
-// app/api/hello/route.ts
+// app/api/v1/hello/route.ts
 import { createZodRoute } from "next-zod-route";
 import { NextResponse } from "next/server";
 import { auth, AuthError } from "./auth/helper";

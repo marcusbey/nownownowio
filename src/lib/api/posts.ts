@@ -28,7 +28,7 @@ export async function createPost(data: CreatePostData) {
   }
 
   const response = await kyInstance
-    .post("/api/posts", {
+    .post("/api/v1/posts", {
       body: formData,
     })
     .json<PostData>();

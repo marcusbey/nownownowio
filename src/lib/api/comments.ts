@@ -11,5 +11,5 @@ export async function createComment(data: CreateCommentData): Promise<CommentDat
 }
 
 export async function deleteComment(commentId: string): Promise<void> {
-  await kyInstance.delete(`/api/comments/${commentId}`);
+  await kyInstance.delete(`/api/v1/comments/${commentId}`);
 }

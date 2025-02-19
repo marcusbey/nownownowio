@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       nextCursor,
     }, { headers });
   } catch (error) {
-    console.error("[GET /api/posts/for-you]", error);
+    console.error("[GET /api/v1/posts/for-you]", error);
     return NextResponse.json(
       { error: "Failed to fetch posts" },
       { status: 500, headers }
