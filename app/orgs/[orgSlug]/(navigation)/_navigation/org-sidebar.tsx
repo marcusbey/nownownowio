@@ -30,7 +30,7 @@ import type {
   NavigationLink,
 } from "../../../../../src/features/core/navigation.type";
 import { OrgCommand } from "./org-command";
-import OrgNav from "./org-navigation.links";
+import { getOrganizationNavigation } from "./org-navigation.links.client";
 import { OrgsSelect } from "./orgs-select";
 import { UpgradeCard } from "./upgrade-org-card";
 
@@ -48,7 +48,7 @@ export function OrgSidebar({
     image: string | null;
   }[];
 }) {
-  const links: NavigationGroup[] = OrgNav.getOrganizationNavigation(slug, roles);
+  const links: NavigationGroup[] = getOrganizationNavigation(slug, roles);
 
   return (
     <Sidebar variant="inset">

@@ -2,11 +2,11 @@ import { buttonVariants } from "@/components/core/button";
 import { Typography } from "@/components/data-display/typography";
 import { Alert } from "@/components/feedback/alert";
 import { auth } from "@/lib/auth/helper";
-import { prisma } from "@/lib/prisma/prisma";
 import { Rabbit } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
+import { prisma } from "../../../../src/lib/prisma/prisma";
 import { OrgNavigation } from "./_navigation/org-navigation";
 
 async function loadData(orgSlug: string) {
@@ -19,9 +19,9 @@ async function loadData(orgSlug: string) {
     const org = await prisma.organization.findUnique({
       where: { slug: orgSlug },
       include: {
-        users: {
+        members: {
           where: { userId: session.id },
-          select: { role: true },
+          select: { roles: true },
         },
       },
     });
@@ -46,9 +46,10 @@ export default async function RouteLayout({
   params,
 }: {
   children: ReactNode;
-  params: { orgSlug: string };
+  params: { orgSlug: string } | Promise<{ orgSlug: string }>;
 }) {
-  const { org, user, error } = await loadData(params.orgSlug);
+  const resolvedParams = await Promise.resolve(params);
+  const { org, user, error } = await loadData(resolvedParams.orgSlug);
 
   if (error) {
     return (
