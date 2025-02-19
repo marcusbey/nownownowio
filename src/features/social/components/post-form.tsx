@@ -14,6 +14,7 @@ import { useUploadThing } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 
 interface PostFormProps {
   onSubmit?: () => void;
@@ -143,7 +144,7 @@ export function PostForm({ onSubmit }: PostFormProps) {
       };
 
       console.log('[FORM_DEBUG] Creating post with data:', postData);
-      const response = await fetch("/api/posts", {
+      const response = await fetch(ENDPOINTS.POSTS, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(postData),

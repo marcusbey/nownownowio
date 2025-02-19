@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/core/button";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { Card } from "@/components/data-display/card";
 import type { Organization } from "@prisma/client";
 import { Spinner } from "@/components/feedback/spinner";
@@ -17,7 +18,7 @@ export function BillingForm({ organization }: BillingFormProps) {
   const handleSubscribe = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/v1/payments/create-checkout", {
+      const response = await fetch(ENDPOINTS.PAYMENT_CHECKOUT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ organizationId: organization.id }),
@@ -42,7 +43,7 @@ export function BillingForm({ organization }: BillingFormProps) {
   const handleManageSubscription = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/v1/payments/create-portal", {
+      const response = await fetch(ENDPOINTS.PAYMENT_PORTAL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ organizationId: organization.id }),

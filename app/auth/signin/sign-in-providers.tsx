@@ -5,6 +5,7 @@ import { Divider } from "@/components/layout/divider";
 import { Skeleton } from "@/components/feedback/skeleton";
 import { Typography } from "@/components/data-display/typography";
 import { useQuery } from "@tanstack/react-query";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { MagicLinkForm } from "./magic-link-form";
@@ -13,7 +14,7 @@ import { SignInCredentialsAndMagicLinkForm } from "./sign-in-credentials-and-mag
 
 export const SignInProviders = () => {
   const { data: providers, isPending } = useQuery({
-    queryFn: async () => fetch(`/api/v1/auth/providers`).then(async (res) => res.json()),
+    queryFn: async () => fetch(ENDPOINTS.AUTH_PROVIDERS).then(async (res) => res.json()),
     queryKey: ["providers"],
   });
 

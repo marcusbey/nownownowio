@@ -5,6 +5,7 @@ import { Input } from "@/components/core/input";
 import { useToast } from "@/components/feedback/use-toast";
 import { Check } from "lucide-react";
 import { useState } from "react";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { WidgetSettings, WidgetSettingsForm } from "./WidgetSettingsForm";
 
 export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
@@ -22,7 +23,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   const generateScript = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/widget/generate-script", {
+      const response = await fetch(ENDPOINTS.WIDGET_GENERATE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

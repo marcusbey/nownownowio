@@ -1,4 +1,5 @@
 import kyInstance from "@/lib/ky";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 
@@ -10,7 +11,7 @@ export function useOrganization() {
         queryKey: ["organization", orgSlug],
         queryFn: async () => {
             const response = await kyInstance
-                .get(`/api/v1/organizations/${orgSlug}`)
+                .get(ENDPOINTS.ORGANIZATION_BY_ID(orgSlug))
                 .json<{
                     id: string;
                     name: string;

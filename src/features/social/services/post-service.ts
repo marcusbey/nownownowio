@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma/prisma";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { z } from "zod";
 
 export const getFeedPostsSchema = z.object({
@@ -78,7 +79,7 @@ export async function createPost(data: z.infer<typeof createPostSchema>) {
 }
 
 export async function deletePost(postId: string): Promise<void> {
-  const response = await fetch(`/api/v1/posts/${postId}`, {
+  const response = await fetch(ENDPOINTS.POST_DETAIL(postId), {
     method: "DELETE",
   });
 
@@ -88,7 +89,7 @@ export async function deletePost(postId: string): Promise<void> {
 }
 
 export async function likePost(postId: string): Promise<void> {
-  const response = await fetch(`/api/v1/posts/${postId}/like`, {
+  const response = await fetch(ENDPOINTS.POST_LIKE(postId), {
     method: "POST",
   });
 
@@ -98,7 +99,7 @@ export async function likePost(postId: string): Promise<void> {
 }
 
 export async function bookmarkPost(postId: string): Promise<void> {
-  const response = await fetch(`/api/v1/posts/${postId}/bookmark`, {
+  const response = await fetch(ENDPOINTS.POST_BOOKMARK(postId), {
     method: "POST",
   });
 

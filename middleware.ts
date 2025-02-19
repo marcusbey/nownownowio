@@ -3,6 +3,7 @@ import { SiteConfig } from "@/site-config";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 
 export const config = {
   matcher: [
@@ -35,7 +36,7 @@ export async function middleware(req: NextRequest) {
 
     if (authCookie) {
       // Get user's first organization from the database
-      const response = await fetch(`${req.nextUrl.origin}/api/v1/organizations/first`, {
+      const response = await fetch(`${req.nextUrl.origin}${ENDPOINTS.ORGANIZATION_FIRST}`, {
         headers: {
           Cookie: `${AUTH_COOKIE_NAME}=${authCookie.value}`,
         },

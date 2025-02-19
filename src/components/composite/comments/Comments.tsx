@@ -1,4 +1,5 @@
 import kyInstance from "@/lib/ky";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { CommentsPage, PostData } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ChevronDown, Loader2 } from "lucide-react";
@@ -19,7 +20,7 @@ export default function Comments({ post }: CommentsProps) {
       queryFn: ({ pageParam }) =>
         kyInstance
           .get(
-            `/api/v1/posts/${post.id}/comments`,
+            ENDPOINTS.POST_COMMENTS(post.id),
             pageParam ? { searchParams: { cursor: pageParam } } : {},
           )
           .json<CommentsPage>(),

@@ -1,3 +1,24 @@
+# 2025-02-19
+
+## API Endpoint Centralization
+
+### Added
+- New centralized API endpoints in `apiEndpoints.ts`:
+  - Auth endpoints (providers, session, etc.)
+  - Post-related endpoints (views, likes, bookmarks, comments)
+
+### Changed
+- Updated components to use centralized endpoints:
+  - `SignInProviders`: Now uses `AUTH_PROVIDERS` endpoint
+  - `Comments`: Now uses `POST_COMMENTS` endpoint
+  - `PostViews`: Now uses `POST_VIEWS` endpoint
+  - `PostService`: Now uses centralized endpoints for post actions
+
+### Technical Details
+- Improved type safety with TypeScript endpoint definitions
+- Reduced code duplication across components
+- Easier maintenance with single source of truth for API endpoints
+
 # 2025-02-17
 
 ## Component Architecture Refactoring
