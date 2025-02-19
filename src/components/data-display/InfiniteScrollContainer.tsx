@@ -2,6 +2,10 @@ import { useInView } from "react-intersection-observer";
 
 import { cn } from "@/lib/utils";
 
+const styles = {
+  hideScrollbar: "scrollbar-none overflow-y-auto",
+};
+
 interface InfiniteScrollContainerProps extends React.PropsWithChildren {
   onBottomReached: () => void;
   className?: string;

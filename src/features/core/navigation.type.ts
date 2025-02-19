@@ -10,7 +10,7 @@ export type NavigationGroup = {
 
 export type NavigationLink = {
   href: string;
-  icon: string | LucideIcon;
+  icon: string;
   label: string;
   roles?: OrganizationMembershipRole[];
   hidden?: boolean;

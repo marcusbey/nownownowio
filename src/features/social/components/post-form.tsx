@@ -20,7 +20,31 @@ interface PostFormProps {
 }
 
 export function PostForm({ onSubmit }: PostFormProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!session?.user) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <div className="text-center text-muted-foreground">
+            Please log in to create posts.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

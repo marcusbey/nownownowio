@@ -77,7 +77,7 @@ export function OrgSidebar({
                         <SidebarMenuButtonLink href={item.href}>
                           {(() => {
                             if (typeof item.icon === 'string') {
-                              const Icon = Icons[item.icon as keyof typeof Icons];
+                              const Icon = Icons[item.icon as keyof typeof Icons] || Icons.Circle;
                               return Icon ? <Icon className="size-4" /> : null;
                             }
                             return item.icon ? <item.icon className="size-4" /> : null;

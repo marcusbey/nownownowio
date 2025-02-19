@@ -37,6 +37,7 @@ const prependOrgPath = (href: string) => {
 };
 
 export const ORGANIZATION_LINKS: NavigationGroup[] = [
+  // Activities section
   {
     title: "ACTIVITIES",
     links: [
@@ -47,17 +48,17 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
       },
       {
         href: prependOrgPath("/explore"),
-        icon: "compass",
+        icon: "Compass",
         label: "Explore",
       },
       {
         href: prependOrgPath("/profile"),
-        icon: "user",
+        icon: "User",
         label: "Profile",
       },
       {
         href: prependOrgPath("/notifications"),
-        icon: "bell",
+        icon: "Bell",
         label: "Notifications",
       },
       {
@@ -92,7 +93,8 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
   },
 ];
 
-export const navigationLinks = [
+export const navigationLinks: NavigationLink[] = [
+  // Main navigation links
   {
     href: "/",
     label: "Home",
