@@ -37,7 +37,7 @@ interface ClientPricingSectionProps {
   currentPlan?: string;
 }
 
-export default function ClientPricingSection({ currentPlan = "free" }: ClientPricingSectionProps) {
+export function ClientPricingSection({ currentPlan = "free" }: ClientPricingSectionProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {plans.map((plan) => (

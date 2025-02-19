@@ -93,6 +93,10 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
 ];
 
 export const orgNavigationLinks = [
+
+export default { getOrganizationNavigation, ORGANIZATION_LINKS, orgNavigationLinks };
+
+const navigationLinks = [
   {
     href: "/",
     label: "Home",

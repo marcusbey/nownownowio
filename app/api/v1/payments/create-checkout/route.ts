@@ -1,7 +1,7 @@
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
+import { createCheckoutSession } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth/auth";
+import { auth } from "@/lib/auth/helper";
 
 export async function POST(req: Request) {
   try {

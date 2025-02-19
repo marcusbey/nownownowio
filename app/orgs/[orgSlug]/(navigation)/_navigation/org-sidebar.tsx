@@ -18,16 +18,19 @@ import {
   SidebarRail,
 } from "@/components/layout/sidebar";
 import { SidebarMenuButtonLink } from "@/components/layout/sidebar-utils";
-import { SidebarUserButton } from "@/features/core/auth/user-dropdown";
-import type { NavigationGroup } from "@/features/navigation/navigation.type";
+import { SidebarUserButton } from "@/features/ui/sidebar/sidebar-user-button";
 import type { OrganizationMembershipRole } from "@prisma/client";
 import * as Icons from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { PropsWithChildren } from "react";
 import { useEffect, useState } from "react";
+import type {
+  NavigationGroup,
+  NavigationLink,
+} from "../../../../../src/features/core/navigation.type";
 import { OrgCommand } from "./org-command";
-import { getOrganizationNavigation } from "./org-navigation.links";
+import OrgNav from "./org-navigation.links";
 import { OrgsSelect } from "./orgs-select";
 import { UpgradeCard } from "./upgrade-org-card";
 
@@ -45,7 +48,7 @@ export function OrgSidebar({
     image: string | null;
   }[];
 }) {
-  const links: NavigationGroup[] = getOrganizationNavigation(slug, roles);
+  const links: NavigationGroup[] = OrgNav.getOrganizationNavigation(slug, roles);
 
   return (
     <Sidebar variant="inset">
@@ -69,12 +72,13 @@ export function OrgSidebar({
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {link.links.map((item) => (
+                    {link.links.map((item: NavigationLink) => (
                       <SidebarMenuItem key={item.label}>
                         <SidebarMenuButtonLink href={item.href}>
                           {(() => {
                             const Icon = Icons[item.icon as keyof typeof Icons];
-                            return Icon ? <Icon className="size-4" /> : null;
+                            const IconComponent = Icon as React.ElementType;
+                            return <IconComponent className="size-4" />;
                           })()}
                           <span>{item.label}</span>
                         </SidebarMenuButtonLink>

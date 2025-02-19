@@ -13,7 +13,7 @@ import {
   SidebarRail,
 } from "@/components/layout/sidebar";
 import { SidebarMenuButtonLink } from "@/components/layout/sidebar-utils";
-import type { NavigationGroup } from "@/features/navigation/navigation.type";
+import type { NavigationGroup } from "@/features/core/navigation.type";
 import { SidebarUserButton } from "@/features/ui/sidebar/sidebar-user-button";
 import { ChevronDown } from "lucide-react";
 import { OrgsSelect } from "../../orgs/[orgSlug]/(navigation)/_navigation/orgs-select";
@@ -48,7 +48,7 @@ export function AccountSidebar({
                 {link.links.map((item) => (
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButtonLink href={item.href}>
-                      <item.Icon />
+                      {typeof item.icon === 'string' ? item.icon : item.icon && <item.icon />}
                       <span>{item.label}</span>
                     </SidebarMenuButtonLink>
                   </SidebarMenuItem>

@@ -2,8 +2,8 @@
 
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { getResendInstance } from "@/lib/mail/resend";
-import OrgConfirmDeletionEmail from "@/emails/org-confirm-deletion.email";
+import { resendEmail } from "@/lib/mail/resend";
+import { OrgConfirmDeletionEmail } from "@/emails/org-confirm-deletion.email";
 import { redirect } from "next/navigation";
 import { OrganizationMembershipRole } from "@prisma/client";
 

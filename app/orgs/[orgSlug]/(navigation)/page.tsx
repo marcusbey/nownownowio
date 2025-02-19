@@ -24,11 +24,10 @@ export default async function RoutePage(
     orgSlug: string;
   }>,
 ) {
-  const org = await getRequiredCurrentOrgCache();
+  const { org: organization, user, roles } = await getRequiredCurrentOrgCache();
   const session = await baseAuth();
-  const user = session?.user;
 
-  if (!user) {
+  if (!session?.user?.id) {
     return null; // Handle unauthorized access
   }
 
@@ -37,7 +36,10 @@ export default async function RoutePage(
       <LayoutContent>
         <div className="mx-auto w-full max-w-2xl">
           <div className="sticky top-0 z-10 bg-background pb-4 pt-6">
-            <PostFormWrapper organization={org} userId={user.id} />
+            <PostFormWrapper
+              organization={{ id: organization.id, name: organization.name }}
+              userId={user.id}
+            />
             <div className="mt-4 h-px bg-border/40" />
           </div>
 

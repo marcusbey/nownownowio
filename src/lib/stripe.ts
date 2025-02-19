@@ -4,7 +4,7 @@ import { env } from "@/lib/env";
 import Stripe from "stripe";
 import { logger } from "./logger";
 
-const getStripeClient = () => {
+export async function getStripeInstance(): Promise<Stripe> {
   const stripeKey =
     env.NODE_ENV === "production"
       ? env.STRIPE_SECRET_KEY
@@ -16,42 +16,59 @@ const getStripeClient = () => {
     throw new Error(message);
   }
 
-  return new Stripe(stripeKey, {
-    apiVersion: "2023-10-16",
+  const stripe = new Stripe(stripeKey, {
+    apiVersion: "2024-12-18.acacia",
     typescript: true,
     telemetry: false,
   });
-};
+  return Promise.resolve(stripe);
+}
+
+let _stripe: Stripe | null = null;
+
+export async function getStripe(): Promise<Stripe> {
+  if (!_stripe) {
+    _stripe = await getStripeInstance();
+  }
+  return _stripe;
+}
 
 // Server-only actions
 export async function createCustomer(params: Stripe.CustomerCreateParams) {
-  return await getStripeClient().customers.create(params);
+  const stripe = await getStripe();
+  return stripe.customers.create(params);
 }
 
 export async function updateCustomer(id: string, params: Stripe.CustomerUpdateParams) {
-  return await getStripeClient().customers.update(id, params);
+  const stripe = await getStripe();
+  return stripe.customers.update(id, params);
 }
 
 export async function getCustomer(customerId: string) {
-  return await getStripeClient().customers.retrieve(customerId);
+  const stripe = await getStripe();
+  return stripe.customers.retrieve(customerId);
 }
 
 export async function deleteCustomer(customerId: string) {
-  return await getStripeClient().customers.del(customerId);
+  const stripe = await getStripe();
+  return stripe.customers.del(customerId);
 }
 
 export async function createCheckoutSession(params: Stripe.Checkout.SessionCreateParams) {
-  return await getStripeClient().checkout.sessions.create(params);
+  const stripe = await getStripe();
+  return stripe.checkout.sessions.create(params);
 }
 
 export async function retrievePrice(priceId: string) {
-  return await getStripeClient().prices.retrieve(priceId);
+  const stripe = await getStripe();
+  return stripe.prices.retrieve(priceId);
 }
 
 export async function constructWebhookEvent(payload: string, signature: string, webhookSecret: string) {
-  const secret = env.NODE_ENV === "production" 
-    ? env.STRIPE_WEBHOOK_SECRET_LIVE 
+  const secret = env.NODE_ENV === "production"
+    ? env.STRIPE_WEBHOOK_SECRET_LIVE
     : env.STRIPE_WEBHOOK_SECRET_TEST;
 
-  return getStripeClient().webhooks.constructEvent(payload, signature, webhookSecret || secret);
+  const stripe = await getStripe();
+  return stripe.webhooks.constructEvent(payload, signature, webhookSecret || secret);
 }
