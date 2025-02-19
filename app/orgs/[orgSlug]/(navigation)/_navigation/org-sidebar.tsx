@@ -30,7 +30,7 @@ import type {
   NavigationLink,
 } from "../../../../../src/features/core/navigation.type";
 import { OrgCommand } from "./org-command";
-import { getOrganizationNavigation } from "./org-navigation.links.client";
+import { getOrganizationNavigation } from "./org-navigation.links";
 import { OrgsSelect } from "./orgs-select";
 import { UpgradeCard } from "./upgrade-org-card";
 
@@ -76,9 +76,11 @@ export function OrgSidebar({
                       <SidebarMenuItem key={item.label}>
                         <SidebarMenuButtonLink href={item.href}>
                           {(() => {
-                            const Icon = Icons[item.icon as keyof typeof Icons];
-                            const IconComponent = Icon as React.ElementType;
-                            return <IconComponent className="size-4" />;
+                            if (typeof item.icon === 'string') {
+                              const Icon = Icons[item.icon as keyof typeof Icons];
+                              return Icon ? <Icon className="size-4" /> : null;
+                            }
+                            return item.icon ? <item.icon className="size-4" /> : null;
                           })()}
                           <span>{item.label}</span>
                         </SidebarMenuButtonLink>
