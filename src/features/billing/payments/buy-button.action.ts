@@ -16,62 +16,74 @@ const BuyButtonSchema = z.object({
 export const buyButtonAction = action
   .schema(BuyButtonSchema)
   .action(async ({ parsedInput: { priceId, orgSlug } }) => {
-    const user = await auth();
+    try {
+      const user = await auth();
 
-    if (!user) {
-      throw new ActionError("You must be authenticated to buy a plan");
-    }
+      if (!user) {
+        throw new ActionError("You must be authenticated to buy a plan");
+      }
 
-    const org = await prisma.organization.findFirst({
-      where: {
-        slug: orgSlug,
-        members: {
-          some: {
-            userId: user.id,
-            roles: {
-              hasSome: ["OWNER"],
+      const org = await prisma.organization.findFirst({
+        where: {
+          slug: orgSlug,
+          members: {
+            some: {
+              userId: user.id,
+              roles: {
+                hasSome: ["OWNER"],
+              },
             },
           },
         },
-      },
-    });
+      });
 
-    const stripeCustomerId = org?.stripeCustomerId ?? undefined;
+      if (!org) {
+        throw new ActionError("Organization not found");
+      }
 
-    if (!stripeCustomerId) {
-      throw new ActionError(
-        "You must be part of an organization to buy a plan",
-      );
-    }
+      const stripeCustomerId = org.stripeCustomerId;
 
-    const price = await retrievePrice(priceId);
-    const priceType = price.type;
+      if (!stripeCustomerId) {
+        throw new ActionError(
+          "Organization is not set up for billing. Please contact support."
+        );
+      }
 
-    const session = await createCheckoutSession({
-      customer: stripeCustomerId,
-      mode: priceType === "one_time" ? "payment" : "subscription",
-      payment_method_types: ["card", "link"],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      success_url: createSearchParamsMessageUrl(
-        `${getServerUrl()}/orgs/${orgSlug}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
-        "Your payment has been successful",
-        "success"
-      ),
-      cancel_url: createSearchParamsMessageUrl(
-        `${getServerUrl()}/orgs/${orgSlug}/settings/billing`,
-        "Your payment has been cancelled",
-        "error"
-      ),
-    });
+      const price = await retrievePrice(priceId);
+      if (!price) {
+        throw new ActionError("Invalid price ID");
+      }
+      const priceType = price.type;
+
+      const session = await createCheckoutSession({
+        customer: stripeCustomerId,
+        mode: priceType === "one_time" ? "payment" : "subscription",
+        payment_method_types: ["card", "link"],
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        success_url: createSearchParamsMessageUrl(
+          `${getServerUrl()}/orgs/${orgSlug}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
+          "Your payment has been successful",
+          "success"
+        ),
+        cancel_url: createSearchParamsMessageUrl(
+          `${getServerUrl()}/orgs/${orgSlug}/settings/billing`,
+          "Your payment has been cancelled",
+          "error"
+        ),
+      });
 
     if (!session.url) {
       throw new ActionError("Something went wrong while creating the session.");
     }
 
     return { url: session.url };
+    } catch (error) {
+      console.error('BuyButton action error:', error);
+      throw error instanceof ActionError ? error : new ActionError('Failed to create checkout session');
+    }
   });

@@ -14,7 +14,7 @@ const queryClient = new QueryClient();
 export const Providers = ({ children }: PropsWithChildren) => {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <SessionProvider>
+      <SessionProvider basePath="/api/v1/auth">
         <QueryClientProvider client={queryClient}>
           <Toaster />
           <AlertDialogRenderer />

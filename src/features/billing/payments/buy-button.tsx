@@ -32,24 +32,37 @@ export const BuyButton = ({ priceId, orgSlug, ...props }: BuyButtonProps) => {
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (session.status !== "authenticated") {
-        router.push("/auth/signin");
-        toast.error("You must be authenticated to buy a plan");
-        return;
+      try {
+        if (session.status !== "authenticated") {
+          router.push("/auth/signin");
+          throw new Error("You must be authenticated to buy a plan");
+        }
+
+        const result = await buyButtonAction({
+          priceId: priceId,
+          orgSlug: orgSlug,
+        });
+
+        if (!isActionSuccessful(result)) {
+          throw new Error(result?.serverError ?? "Failed to create checkout session");
+        }
+
+        if (!result.data?.url) {
+          throw new Error("No checkout URL returned from Stripe");
+        }
+
+        return result.data.url;
+      } catch (error) {
+        console.error("BuyButton error:", error);
+        throw error;
       }
-
-      const result = await buyButtonAction({
-        priceId: priceId,
-        orgSlug: orgSlug,
-      });
-
-      if (!isActionSuccessful(result)) {
-        toast.error(result?.serverError ?? "Something went wrong");
-        return;
-      }
-
-      router.push(result.data.url);
     },
+    onSuccess: (url) => {
+      router.push(url);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
+    }
   });
 
   return (
