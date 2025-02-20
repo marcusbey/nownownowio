@@ -1,4 +1,4 @@
-import PostEditor from "@/features/social/components/post-editor";
+import PostEditor from "@/features/social/posts/post-editor";
 
 type PostFormWrapperProps = {
   organization: {

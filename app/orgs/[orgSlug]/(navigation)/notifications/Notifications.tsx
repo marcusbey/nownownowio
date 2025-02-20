@@ -1,7 +1,7 @@
 "use client";
 
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
-import PostsLoadingSkeleton from "@/features/social/components/post-skeleton";
+import PostsLoadingSkeleton from "@/features/social/posts/post-skeleton";
 import kyInstance from "@/lib/ky";
 import type { NotificationsPage } from "@/lib/types";
 import {

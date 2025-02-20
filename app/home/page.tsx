@@ -1,5 +1,5 @@
-import { PostCard } from "@/features/social/components/post-card";
-import { PostInput } from "@/features/social/components/post-input";
+import { PostCard } from "@/features/social/posts/post-card";
+import { PostInput } from "@/features/social/posts/post-input";
 import { mockPosts } from "@/features/social/mock/posts.mock";
 import { auth } from "@/lib/auth/helper";
 import { redirect } from "next/navigation";

@@ -3,8 +3,8 @@
 import { Button } from "@/components/core/button";
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
 import { Skeleton } from "@/components/feedback/skeleton";
-import Post from "@/features/social/components/post";
-import PostEditor from "@/features/social/components/post-editor";
+import Post from "@/features/social/posts/post";
+import PostEditor from "@/features/social/posts/post-editor";
 import kyInstance from "@/lib/ky";
 import type { Post as PostType, PostsPage } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";

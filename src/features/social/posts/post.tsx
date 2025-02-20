@@ -12,12 +12,12 @@ import Linkify from "@/components/data-display/Linkify";
 import UserAvatar from "@/components/composite/UserAvatar";
 import UserTooltip from "@/components/composite/UserTooltip";
 import { Button } from "@/components/core/button";
-import { BookmarkButton, LikeButton, PostMoreButton } from "../components/post-actions";
+import { BookmarkButton, LikeButton, PostMoreButton } from "./post-actions";
 import { motion } from "framer-motion";
 import { lazy, Suspense } from "react";
 import { usePostViews } from "@/hooks/use-post-views";
 
-const LazyMediaPreviews = lazy(() => import('./media-preview').then(mod => ({ default: mod.MediaPreviews })));
+const LazyMediaPreviews = lazy(() => import('../components/media-preview').then(mod => ({ default: mod.MediaPreviews })));
 const Comments = lazy(() => import('@/components/composite/comments/Comments').then(mod => ({ default: mod.Comments })));
 
 interface PostProps {

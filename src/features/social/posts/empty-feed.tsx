@@ -2,8 +2,11 @@
 
 import { Button } from "@/components/core/button";
 import { Newspaper } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export function EmptyFeed() {
+  const pathname = usePathname();
+
   return (
     <div className="flex flex-col items-center justify-center py-24 px-4">
       <div className="p-5 rounded-full bg-muted/60 mb-6">
