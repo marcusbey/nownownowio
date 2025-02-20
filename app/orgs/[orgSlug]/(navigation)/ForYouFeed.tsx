@@ -2,9 +2,9 @@
 
 import { Button } from "@/components/core/button";
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
-import { EmptyFeed } from "@/features/social/components/empty-feed";
-import Post from "@/features/social/components/post";
-import PostsLoadingSkeleton from "@/features/social/components/post-skeleton";
+import { EmptyFeed } from "@/features/social/posts/empty-feed";
+import Post from "@/features/social/posts/post";
+import PostsLoadingSkeleton from "@/features/social/posts/post-skeleton";
 import kyInstance from "@/lib/ky";
 import type { PostsPage } from "@/lib/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -32,9 +32,8 @@ export default function ForYouFeed() {
           )
           .json<PostsPage>();
       } catch (error: unknown) {
-        if (
-          (error as { response?: { status?: number } }).response?.status === 404
-        ) {
+        const status = (error as { response?: { status?: number } }).response?.status;
+        if (status === 404 || status === 401) {
           return { posts: [], nextCursor: null } as PostsPage;
         }
         throw error;
@@ -63,10 +62,7 @@ export default function ForYouFeed() {
   // Show empty state if:
   // 1. Query succeeded but no posts
   // 2. Got a 404 response (no posts)
-  if (
-    (status === "success" && !posts.length && !hasNextPage) ||
-    (error as { response?: { status?: number } }).response?.status === 404
-  ) {
+  if (status === "success" && !posts.length) {
     return <EmptyFeed />;
   }
 
