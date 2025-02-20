@@ -23,8 +23,6 @@ export function getUserDataSelect(loggedInUserId: string) {
         followerId: true,
       },
     },
-    notifications: true,
-    issuedNotifications: true,
     posts: true,
     following: true,
     comments: true,
@@ -218,8 +216,6 @@ export type User = Prisma.UserGetPayload<{
     comments: true,
     likes: true,
     bookmarks: true,
-    notifications: true,
-    issuedNotifications: true,
   };
 }>;
 
@@ -230,7 +226,6 @@ export type Post = Prisma.PostGetPayload<{
     likes: true,
     bookmarks: true,
     comments: true,
-    linkedNotifications: true,
     _count: {
       select: {
         likes: true,

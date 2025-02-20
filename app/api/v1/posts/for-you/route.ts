@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth/helper";
+import { baseAuth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { getPostDataInclude } from "@/lib/types";
 import { NextRequest } from "next/server";
@@ -19,13 +19,13 @@ export async function GET(req: NextRequest) {
     const topic = req.nextUrl.searchParams.get("topic");
     const pageSize = 10;
 
-    const session = await auth();
-    if (!session?.user?.email) {
+    const session = await baseAuth();
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
     }
 
     const existingUser = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: session.user.id },
       select: { id: true } // Only select needed fields
     });
 

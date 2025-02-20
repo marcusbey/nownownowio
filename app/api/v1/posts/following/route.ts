@@ -1,4 +1,4 @@
-import { validateRequest } from "@/lib/auth/helper";
+import { baseAuth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import { getPostDataInclude, PostsPage } from "@/lib/types";
 import { NextRequest } from "next/server";
@@ -7,12 +7,10 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
-
     const pageSize = 10;
 
-    const { user } = await validateRequest();
-
-    if (!user) {
+    const session = await baseAuth();
+    if (!session?.user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -21,7 +19,7 @@ export async function GET(req: NextRequest) {
         user: {
           followers: {
             some: {
-              followerId: user.id,
+              followerId: session.user.id,
             },
           },
         },
@@ -29,7 +27,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       take: pageSize + 1,
       cursor: cursor ? { id: cursor } : undefined,
-      include: getPostDataInclude(user.id),
+      include: getPostDataInclude(session.user.id),
     });
 
     const nextCursor = posts.length > pageSize ? posts[pageSize].id : null;
@@ -41,7 +39,8 @@ export async function GET(req: NextRequest) {
 
     return Response.json(data);
   } catch (error) {
-    console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error in following posts:', errorMessage);
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
