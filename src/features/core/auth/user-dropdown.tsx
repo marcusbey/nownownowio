@@ -32,7 +32,7 @@ import type { PropsWithChildren } from "react";
 
 export const UserDropdown = ({ children }: PropsWithChildren) => {
   const logout = useMutation({
-    mutationFn: async () => signOut(),
+    mutationFn: async () => signOut({ callbackUrl: '/' }),
   });
   const session = useSession();
   const theme = useTheme();
