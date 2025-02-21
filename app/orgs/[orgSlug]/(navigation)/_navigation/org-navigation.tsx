@@ -3,6 +3,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/layout/sidebar";
+import { RightSidebar } from "@/features/core/right-sidebar";
 import { Layout } from "@/features/page/layout";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
@@ -15,31 +16,24 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
 
   return (
     <SidebarProvider>
-      <div className="mx-auto flex w-full max-w-7xl justify-center">
+      <div className="flex mx-auto w-full max-w-[1440px]">
         {/* Left Sidebar */}
         <OrgSidebar slug={org.slug} roles={roles} userOrgs={userOrganizations} />
         
         {/* Main Content */}
-        <SidebarInset className="min-h-screen w-full max-w-2xl border-x border-accent">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-accent px-4">
-            <Layout>
-              <SidebarTrigger className="-ml-1" />
-            </Layout>
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
-        </SidebarInset>
+        <div className="flex flex-1 justify-center">
+          <SidebarInset className="w-[600px] min-h-screen border-x border-accent">
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b border-accent px-4">
+              <Layout>
+                <SidebarTrigger className="-ml-1" />
+              </Layout>
+            </header>
+            <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+          </SidebarInset>
+        </div>
 
         {/* Right Sidebar */}
-        <div className="hidden w-[350px] flex-col gap-4 p-4 lg:flex">
-          <div className="rounded-lg border border-accent p-4">
-            <h3 className="mb-4 font-semibold">Who to follow</h3>
-            {/* Add UserSuggestions component here */}
-          </div>
-          <div className="rounded-lg border border-accent p-4">
-            <h3 className="mb-4 font-semibold">Trending</h3>
-            {/* Add TrendingTopics component here */}
-          </div>
-        </div>
+        <RightSidebar />
       </div>
     </SidebarProvider>
   );

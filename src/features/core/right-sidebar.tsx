@@ -20,7 +20,7 @@ const TRENDING_TOPICS = [
 
 export function RightSidebar() {
   return (
-    <aside className="hidden lg:block w-[350px] shrink-0 border-l border-border h-screen sticky top-0 p-4 bg-card/50">
+    <aside className="hidden lg:block w-[320px] shrink-0 border-l border-border h-screen sticky top-0 p-4 overflow-y-auto bg-card/50">
       <div className="space-y-6">
         {/* Search */}
         <div className="relative">
