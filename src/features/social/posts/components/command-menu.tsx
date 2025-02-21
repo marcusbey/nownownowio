@@ -38,10 +38,46 @@ const formatCommands: FormatCommand[] = [
     format: (text) => `### ${text}` 
   },
   { 
+    id: "bullet", 
+    label: "Bulleted List", 
+    command: "bullet", 
+    format: (text) => `- ${text}` 
+  },
+  { 
+    id: "numbered", 
+    label: "Numbered List", 
+    command: "numbered", 
+    format: (text) => `1. ${text}` 
+  },
+  { 
+    id: "todo", 
+    label: "Todo", 
+    command: "todo", 
+    format: (text) => `- [ ] ${text}` 
+  },
+  { 
     id: "divider", 
     label: "Divider", 
     command: "divider", 
     format: (text) => `${text}\n---\n` 
+  },
+  { 
+    id: "quote", 
+    label: "Quote", 
+    command: "quote", 
+    format: (text) => `> ${text}` 
+  },
+  { 
+    id: "code", 
+    label: "Code Block", 
+    command: "code", 
+    format: (text) => `\`\`\`\n${text}\n\`\`\`` 
+  },
+  { 
+    id: "callout", 
+    label: "Callout", 
+    command: "callout", 
+    format: (text) => `💡 ${text}` 
   },
 ];
 
@@ -56,7 +92,8 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
   // Filter commands based on input
   const filteredCommands = React.useMemo(() => 
     formatCommands.filter(cmd =>
-      cmd.command.toLowerCase().includes((filter || "").toLowerCase())
+      cmd.command.toLowerCase().includes((filter || "").toLowerCase()) ||
+      cmd.label.toLowerCase().includes((filter || "").toLowerCase())
     ), [filter]
   );
 

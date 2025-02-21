@@ -84,9 +84,15 @@ export function PostForm({ onSubmit, organization, userId, className }: PostForm
     if (e.key === 'Escape' && showCommandMenu) {
       setShowCommandMenu(false);
       setCommandText("");
-    } else if (e.key === ' ' && showCommandMenu) {
-      // Prevent space from being added when selecting command
+    } else if ((e.key === ' ' || e.key === 'Enter') && showCommandMenu) {
       e.preventDefault();
+      const matchingCommand = formatCommands.find(cmd => 
+        cmd.command.toLowerCase() === commandText.toLowerCase() ||
+        cmd.label.toLowerCase().includes(commandText.toLowerCase())
+      );
+      if (matchingCommand) {
+        handleCommandSelect(matchingCommand);
+      }
     }
   };
 
@@ -97,6 +103,17 @@ export function PostForm({ onSubmit, organization, userId, className }: PostForm
     const lines = content.split('\n');
     let currentLineStart = 0;
     let currentLineIndex = 0;
+    let currentLineEnd = 0;
+
+    // Find the current line and its boundaries
+    for (let i = 0; i < lines.length; i++) {
+      currentLineEnd = currentLineStart + lines[i].length;
+      if (currentLineStart <= cursorPosition && cursorPosition <= currentLineEnd) {
+        currentLineIndex = i;
+        break;
+      }
+      currentLineStart = currentLineEnd + 1; // +1 for newline character
+    }
 
     // Find the current line
     for (let i = 0; i < lines.length; i++) {
