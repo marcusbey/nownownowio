@@ -66,10 +66,11 @@ export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { postId: string } }
+  request: NextRequest,
+  context: { params: Promise<{ postId: string }> }
 ) {
   try {
+    const params = await context.params;
     const count = await getViewCount(params.postId);
     return NextResponse.json({ viewCount: count });
   } catch (error) {
@@ -80,7 +81,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  context: { params: Promise<{ postId: string }> }
 ) {
   try {
     const user = await auth();
@@ -92,7 +93,8 @@ export async function POST(
     }
 
     const clientIp = getClientIp(request);
-    await trackView(params.postId, user.user.id, clientIp);
+    const params = await context.params;
+    await trackView(params.postId, user.id, clientIp);
 
     const count = await getViewCount(params.postId);
     return NextResponse.json({ viewCount: count });
@@ -103,7 +105,7 @@ export async function POST(
         message: error.message,
         stack: error.stack,
       } : error,
-      postId: params.postId,
+      postId: context.params.postId,
     });
 
     // Return a more specific error message if possible
