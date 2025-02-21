@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/core/button";
 import { Card, CardContent, CardFooter } from "@/components/data-display/card";
-import { Input } from "@/components/core/input";
 import { Textarea } from "@/components/core/textarea";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import UserAvatar from "@/components/UserAvatar";
+import UserAvatar from "@/components/composite/UserAvatar";
 import { useToast } from "@/components/feedback/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUploadThing } from "@/lib/uploadthing";
@@ -15,13 +14,34 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
+import { CommandMenu, FormatCommand, formatCommands } from "./components/command-menu";
 
 interface PostFormProps {
   onSubmit?: () => void;
+  organization?: {
+    id: string;
+    name: string;
+  };
+  userId?: string;
+  className?: string;
 }
 
-export function PostForm({ onSubmit }: PostFormProps) {
+export function PostForm({ onSubmit, organization, userId, className }: PostFormProps) {
+  // All hooks at the top
   const { data: session, status } = useSession();
+  const [content, setContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [showCommandMenu, setShowCommandMenu] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [commandText, setCommandText] = useState("");
+  const [currentLine, setCurrentLine] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { startUpload, isUploading } = useUploadThing("postMedia");
+  const { orgSlug } = useParams();
 
   if (status === "loading") {
     return (
@@ -46,14 +66,89 @@ export function PostForm({ onSubmit }: PostFormProps) {
       </Card>
     );
   }
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { startUpload, isUploading } = useUploadThing("postMedia");
+
+
+
+  const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    const cursorPos = e.target.selectionStart;
+    const lines = newContent.split('\n');
+    
+    // Find the current line and its start position
+    let currentLineIndex = 0;
+    let currentPos = 0;
+    
+    for (let i = 0; i < lines.length; i++) {
+      if (currentPos + lines[i].length >= cursorPos) {
+        currentLineIndex = i;
+        break;
+      }
+      currentPos += lines[i].length + 1;
+    }
+    
+    const line = lines[currentLineIndex];
+    const isCommand = line.startsWith('/');
+    
+    setContent(newContent);
+    setCursorPosition(cursorPos);
+    setCurrentLine(line);
+    
+    if (isCommand) {
+      const command = line.slice(1).trim();
+      setCommandText(command);
+      setShowCommandMenu(true);
+    } else {
+      setCommandText('');
+      setShowCommandMenu(false);
+    }
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape' && showCommandMenu) {
+      setShowCommandMenu(false);
+      setCommandText("");
+    } else if (e.key === ' ' && showCommandMenu) {
+      // Prevent space from being added when selecting command
+      e.preventDefault();
+    }
+  };
+
+  const handleCommandSelect = useCallback((command: FormatCommand) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const lines = content.split('\n');
+    let currentLineStart = 0;
+    let currentLineIndex = 0;
+
+    // Find the current line
+    for (let i = 0; i < lines.length; i++) {
+      if (currentLineStart + lines[i].length >= cursorPosition) {
+        currentLineIndex = i;
+        break;
+      }
+      currentLineStart += lines[i].length + 1;
+    }
+
+    // Format the current line, handling empty commands
+    const lineContent = lines[currentLineIndex].slice(1).trim();
+    lines[currentLineIndex] = command.format(lineContent || '');
+
+    // Update content
+    const newContent = lines.join('\n');
+    setContent(newContent);
+    
+    // Close command menu
+    setShowCommandMenu(false);
+    setCommandText('');
+
+    // Focus and move cursor to end of line
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const newPosition = currentLineStart + lines[currentLineIndex].length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    });
+  }, [content, cursorPosition]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -80,20 +175,15 @@ export function PostForm({ onSubmit }: PostFormProps) {
     });
   };
 
-  const { orgSlug } = useParams();
 
   const validatePost = () => {
     try {
-      if (!content.trim() && !title.trim()) {
+      if (!content.trim()) {
         return "Please enter some content for your post";
       }
 
       if (content.length > 1000) {
         return "Post content is too long (maximum 1000 characters)";
-      }
-
-      if (title && title.length > 100) {
-        return "Title is too long (maximum 100 characters)";
       }
 
       return null;
@@ -131,14 +221,13 @@ export function PostForm({ onSubmit }: PostFormProps) {
         }
       }
 
-      // Ensure we have either title or content
-      if (!content.trim() && !title.trim()) {
+      // Ensure we have content
+      if (!content.trim()) {
         throw new Error("Please enter some content for your post");
       }
 
       const postData = {
-        title: title.trim() || undefined,
-        content: content.trim() || " ", // Ensure content is never empty
+        content: content.trim(),
         mediaUrls,
         orgSlug,
       };
@@ -155,7 +244,6 @@ export function PostForm({ onSubmit }: PostFormProps) {
         throw new Error(error.error || "Failed to create post");
       }
 
-      setTitle("");
       setContent("");
       setSelectedImages([]);
       setPreviewUrls(prev => {
@@ -180,25 +268,30 @@ export function PostForm({ onSubmit }: PostFormProps) {
   if (!session?.user) return null;
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={handleSubmit} className={cn("w-full", className)}>
       <div className="flex gap-4">
         <UserAvatar 
           avatarUrl={session.user.image}
           size={44}
           className="shrink-0"
         />
-        <div className="flex-1 space-y-3">
-          <Input
-            placeholder="Title (optional)"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            className="border-none bg-muted/40 px-4 h-11 text-base placeholder:text-muted-foreground/60 focus-visible:ring-0 rounded-lg"
-          />
+        <div className="flex-1 space-y-3 relative">
           <Textarea
-            placeholder="What's on your mind?"
+            ref={textareaRef}
+            placeholder="What's on your mind? Type / for formatting..."
             value={content}
-            onChange={e => setContent(e.target.value)}
+            onChange={handleContentChange}
+            onKeyDown={handleKeyDown}
             className="min-h-[120px] resize-none border-none bg-muted/40 px-4 py-3 text-base placeholder:text-muted-foreground/60 focus-visible:ring-0 rounded-lg"
+          />
+          <CommandMenu
+            isOpen={showCommandMenu}
+            onClose={() => {
+              setShowCommandMenu(false);
+              setCommandText("");
+            }}
+            onSelect={handleCommandSelect}
+            filter={commandText}
           />
           
           {previewUrls.length > 0 && (
