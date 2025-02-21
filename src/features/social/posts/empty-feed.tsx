@@ -4,8 +4,32 @@ import { Button } from "@/components/core/button";
 import { Newspaper } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-export function EmptyFeed() {
+interface EmptyFeedProps {
+  context?: 'following' | 'profile' | 'default';
+}
+
+export function EmptyFeed({ context = 'default' }: EmptyFeedProps) {
   const pathname = usePathname();
+
+  const messages = {
+    following: {
+      title: 'No posts from people you follow',
+      description: 'Follow more people to see their posts in your feed.',
+      action: 'Explore posts'
+    },
+    profile: {
+      title: 'No posts yet',
+      description: 'Share your first update, start a discussion, or post something interesting with your organization.',
+      action: 'Create your first post'
+    },
+    default: {
+      title: 'Your feed is empty',
+      description: 'Share your first update, start a discussion, or post something interesting with your organization.',
+      action: 'Create your first post'
+    }
+  };
+
+  const { title, description, action } = messages[context];
 
   return (
     <div className="flex flex-col items-center justify-center py-24 px-4">
@@ -13,9 +37,9 @@ export function EmptyFeed() {
         <Newspaper className="h-8 w-8 text-muted-foreground/80" />
       </div>
       <div className="text-center space-y-2 mb-8">
-        <h3 className="font-medium text-lg text-foreground/80">Your feed is empty</h3>
+        <h3 className="font-medium text-lg text-foreground/80">{title}</h3>
         <p className="text-sm text-muted-foreground/80 max-w-[320px] mx-auto leading-relaxed">
-          Share your first update, start a discussion, or post something interesting with your organization.
+          {description}
         </p>
       </div>
       <Button 
@@ -23,7 +47,7 @@ export function EmptyFeed() {
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className="font-medium"
       >
-        Create your first post
+        {action}
       </Button>
     </div>
   );

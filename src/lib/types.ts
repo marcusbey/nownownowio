@@ -28,7 +28,7 @@ export function getUserDataSelect(loggedInUserId: string) {
     comments: true,
     likes: true,
     bookmarks: true,
-    organizations: {
+    memberships: {
       select: {
         organization: {
           select: {
@@ -36,6 +36,7 @@ export function getUserDataSelect(loggedInUserId: string) {
             name: true,
           },
         },
+        role: true,
       },
     },
     _count: {

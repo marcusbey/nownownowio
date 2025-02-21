@@ -17,7 +17,7 @@ import type { PageParams } from "@/types/next";
 // Local Components
 import FollowingFeed from "./FollowingFeed";
 import ForYouFeed from "./ForYouFeed";
-import { PostFormWrapper } from "./post-form-wrapper";
+import { PostForm } from "@/features/social/posts/post-form";
 
 export default async function RoutePage(
   props: PageParams<{
@@ -36,10 +36,12 @@ export default async function RoutePage(
       <LayoutContent>
         <div className="mx-auto w-full max-w-2xl">
           <div className="sticky top-0 z-10 bg-background pb-4 pt-6">
-            <PostFormWrapper
-              organization={{ id: organization.id, name: organization.name }}
-              userId={user.id}
-            />
+            <div className="sticky top-0 z-10 bg-background/80 p-4 backdrop-blur-sm">
+              <PostForm
+                organization={{ id: organization.id, name: organization.name }}
+                userId={user.id}
+              />
+            </div>
             <div className="mt-4 h-px bg-border/40" />
           </div>
 

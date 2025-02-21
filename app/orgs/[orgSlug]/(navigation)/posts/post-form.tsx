@@ -2,7 +2,7 @@
 
 import { useOrganization } from "@/features/organization/hooks/use-organization";
 import { useSession } from "next-auth/react";
-import { PostFormWrapper } from "../post-form-wrapper";
+import { PostForm as BasePostForm } from "@/features/social/posts/post-form";
 
 export default function PostForm() {
   const { data: session } = useSession();
@@ -13,12 +13,14 @@ export default function PostForm() {
   }
 
   return (
-    <PostFormWrapper
-      organization={{
-        id: organization.id,
-        name: organization.name,
-      }}
-      userId={session.user.id}
-    />
+    <div className="sticky top-0 z-10 bg-background/80 p-4 backdrop-blur-sm">
+      <BasePostForm
+        organization={{
+          id: organization.id,
+          name: organization.name,
+        }}
+        userId={session.user.id}
+      />
+    </div>
   );
 }
