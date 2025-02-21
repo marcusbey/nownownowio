@@ -1,7 +1,7 @@
 import { baseAuth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { getPostDataInclude, PostsPage } from "@/lib/types";
-import { NextRequest } from "next/server";
+import type { PostsPage } from "@/lib/types";
+import type { NextRequest } from "next/server";
 
 export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
@@ -27,7 +27,23 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       take: pageSize + 1,
       cursor: cursor ? { id: cursor } : undefined,
-      include: getPostDataInclude(session.user.id),
+      include: {
+        user: {
+          select: {
+            memberships: {
+              select: {
+                organization: {
+                  select: {
+                    slug: true,
+                    name: true,
+                  },
+                },
+                roles: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     const nextCursor = posts.length > pageSize ? posts[pageSize].id : null;

@@ -60,7 +60,7 @@ export default function FollowingFeed() {
   // 1. Query succeeded but no posts
   // 2. Got a 404 response (no posts)
   if (status === "success" && !posts.length) {
-    return <EmptyFeed />;
+    return <EmptyFeed context="following" />;
   }
 
   if (status === "error") {

@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
 import { getClientIp } from "@/lib/api/ip";
 import { auth } from "@/lib/auth/helper";
+import { prisma } from "@/lib/prisma";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 // Helper function to get view count
 async function getViewCount(postId: string) {
@@ -58,8 +59,14 @@ async function trackView(postId: string, viewerId: string, clientIp: string) {
   }
 }
 
+// Make it fully dynamic
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 export async function GET(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { postId: string } }
 ) {
   try {
@@ -67,10 +74,7 @@ export async function GET(
     return NextResponse.json({ viewCount: count });
   } catch (error) {
     console.error("Error in GET /api/v1/posts/[postId]/views:", error);
-    return NextResponse.json(
-      { error: "Failed to get view count" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }
 
@@ -89,7 +93,7 @@ export async function POST(
 
     const clientIp = getClientIp(request);
     await trackView(params.postId, user.user.id, clientIp);
-    
+
     const count = await getViewCount(params.postId);
     return NextResponse.json({ viewCount: count });
   } catch (error) {

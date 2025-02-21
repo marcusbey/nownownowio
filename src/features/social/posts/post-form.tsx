@@ -29,6 +29,13 @@ interface PostFormProps {
 export function PostForm({ onSubmit, organization, userId, className }: PostFormProps) {
   // All hooks at the top
   const { data: session, status } = useSession();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { startUpload, isUploading } = useUploadThing("postMedia");
+  const { orgSlug } = useParams();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // State hooks
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -37,38 +44,8 @@ export function PostForm({ onSubmit, organization, userId, className }: PostForm
   const [cursorPosition, setCursorPosition] = useState(0);
   const [commandText, setCommandText] = useState("");
   const [currentLine, setCurrentLine] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { startUpload, isUploading } = useUploadThing("postMedia");
-  const { orgSlug } = useParams();
 
-  if (status === "loading") {
-    return (
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!session?.user) {
-    return (
-      <Card>
-        <CardContent className="p-4">
-          <div className="text-center text-muted-foreground">
-            Please log in to create posts.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-
-
+  // Callbacks
   const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     const cursorPos = e.target.selectionStart;
@@ -149,6 +126,31 @@ export function PostForm({ onSubmit, organization, userId, className }: PostForm
       textarea.setSelectionRange(newPosition, newPosition);
     });
   }, [content, cursorPosition]);
+
+  // Early returns after all hooks
+  if (status === "loading") {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!session?.user) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <div className="text-center text-muted-foreground">
+            Please log in to create posts.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);

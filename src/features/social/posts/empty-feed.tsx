@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/core/button";
-import { Newspaper } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Newspaper, Users } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 
 interface EmptyFeedProps {
   context?: 'following' | 'profile' | 'default';
@@ -10,12 +10,14 @@ interface EmptyFeedProps {
 
 export function EmptyFeed({ context = 'default' }: EmptyFeedProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const messages = {
     following: {
       title: 'No posts from people you follow',
-      description: 'Follow more people to see their posts in your feed.',
-      action: 'Explore posts'
+      description: 'Start following other members to see their posts and updates in your feed.',
+      action: 'Explore people',
+      icon: Users
     },
     profile: {
       title: 'No posts yet',
@@ -29,12 +31,12 @@ export function EmptyFeed({ context = 'default' }: EmptyFeedProps) {
     }
   };
 
-  const { title, description, action } = messages[context];
+  const { title, description, action, icon: Icon = Newspaper } = messages[context];
 
   return (
     <div className="flex flex-col items-center justify-center py-24 px-4">
       <div className="p-5 rounded-full bg-muted/60 mb-6">
-        <Newspaper className="h-8 w-8 text-muted-foreground/80" />
+        <Icon className="h-8 w-8 text-muted-foreground/80" />
       </div>
       <div className="text-center space-y-2 mb-8">
         <h3 className="font-medium text-lg text-foreground/80">{title}</h3>
@@ -44,7 +46,16 @@ export function EmptyFeed({ context = 'default' }: EmptyFeedProps) {
       </div>
       <Button 
         variant="outline" 
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        onClick={() => {
+          if (context === 'following') {
+            // Navigate to explore page
+            const exploreUrl = pathname.replace(/\/following$/, '/explore');
+            router.push(exploreUrl);
+          } else {
+            // Scroll to top for post creation
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }}
         className="font-medium"
       >
         {action}

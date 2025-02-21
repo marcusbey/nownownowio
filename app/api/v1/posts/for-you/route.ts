@@ -1,9 +1,8 @@
-import { NextResponse } from "next/server";
 import { baseAuth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
-import { getPostDataInclude } from "@/lib/types";
-import { NextRequest } from "next/server";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -47,7 +46,18 @@ export async function GET(req: NextRequest) {
             select: {
               id: true,
               name: true,
-              image: true
+              image: true,
+              memberships: {
+                select: {
+                  organization: {
+                    select: {
+                      slug: true,
+                      name: true,
+                    },
+                  },
+                  roles: true,
+                },
+              }
             }
           },
           _count: {
