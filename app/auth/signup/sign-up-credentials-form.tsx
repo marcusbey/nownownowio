@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/core/input";
 import { useMutation } from "@tanstack/react-query";
 import { signIn } from "next-auth/react";
+import { getServerUrl } from "@/lib/server-url";
 import { toast } from "sonner";
 import { signUpAction } from "./signup.action";
 import type { LoginCredentialsFormType } from "./signup.schema";
@@ -36,7 +37,7 @@ export const SignUpCredentialsForm = () => {
         email: values.email,
         password: values.password,
 
-        callbackUrl: `${window.location.origin}/`,
+        callbackUrl: `${getServerUrl()}/`,
       });
     },
   });
