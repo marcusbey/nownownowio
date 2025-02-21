@@ -1,6 +1,5 @@
 import { TailwindIndicator } from "@/components/data-display/tailwind-indicator";
 import { NextTopLoader } from "@/features/core/next-top-loader";
-import { FloatingLegalFooter } from "@/features/marketing/legal/floating-legal-footer";
 import { getServerUrl } from "@/lib/server-url";
 import { cn } from "@/lib/utils";
 import { SiteConfig } from "@/site-config";
@@ -49,7 +48,6 @@ export default function RootLayout({
             {children}
             {modal}
             <TailwindIndicator />
-            <FloatingLegalFooter />
           </Providers>
         </body>
       </html>

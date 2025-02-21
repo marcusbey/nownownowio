@@ -16,7 +16,7 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
 
   return (
     <SidebarProvider>
-      <div className="flex mx-auto w-full max-w-[1440px] mb-16">
+      <div className="flex mx-auto w-full max-w-[1440px]">
         {/* Left Sidebar */}
         <OrgSidebar slug={org.slug} roles={roles} userOrgs={userOrganizations} />
         

@@ -8,6 +8,7 @@ import { CtaSection } from "@/features/marketing/cta/cta-section";
 import { FAQSection } from "@/features/marketing/faq-section";
 import { FeaturesSection } from "@/features/marketing/feature-section";
 import { Hero } from "@/features/marketing/hero";
+import { FloatingLegalFooter } from "@/features/marketing/legal/floating-legal-footer";
 import { LandingHeader } from "@/features/marketing/landing-header";
 import { PainSection } from "@/features/marketing/pain";
 import { ReviewGrid } from "@/features/marketing/review/review-grid";
@@ -46,6 +47,7 @@ export default async function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <LandingHeader />
+      <FloatingLegalFooter />
 
       <main className="flex-1">
         <Hero />
