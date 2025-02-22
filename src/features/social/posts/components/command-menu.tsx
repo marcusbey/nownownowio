@@ -115,7 +115,7 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
   return (
     <div className="absolute bottom-full left-0 mb-1 w-64">
       <Command className="border border-border shadow-md">
-        <CommandList>
+        <CommandList className="max-h-[200px] overflow-y-auto">
           <CommandEmpty>No commands found.</CommandEmpty>
           <CommandGroup>
             {filteredCommands.map((cmd) => (
@@ -123,6 +123,7 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
                 key={cmd.id}
                 value={cmd.command}
                 onSelect={() => handleSelect(cmd)}
+                className="cursor-pointer hover:bg-accent"
               >
                 {cmd.label}
               </CommandItem>
