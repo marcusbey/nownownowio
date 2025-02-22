@@ -111,9 +111,7 @@ export default function Post({ post }: PostProps) {
       </div>
 
       <Linkify>
-        <div className="whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground/90 py-2 px-1">
-          {post.content}
-        </div>
+        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground/90 py-2 px-1" dangerouslySetInnerHTML={{ __html: post.content }} />
       </Linkify>
 
       {hasAttachments && (

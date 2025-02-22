@@ -1,8 +1,10 @@
 const plugin = require("tailwindcss/plugin");
 const svgToDataUri = require("mini-svg-data-uri");
+const typography = require("@tailwindcss/typography");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  plugins: [typography],
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
