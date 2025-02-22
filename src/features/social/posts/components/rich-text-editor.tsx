@@ -70,25 +70,32 @@ const formatCommands = [
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading' && node.attrs.level === 1) {
-            return 'Type your heading...';
+            return 'Heading 1';
           }
           if (node.type.name === 'heading' && node.attrs.level === 2) {
-            return 'Type your subheading...';
+            return 'Heading 2';
           }
           if (node.type.name === 'heading' && node.attrs.level === 3) {
-            return 'Type your section heading...';
+            return 'Heading 3';
+          }
+          if (node.type.name === 'bulletList') {
+            return '• List item';
+          }
+          if (node.type.name === 'orderedList') {
+            return '1. List item';
           }
           if (node.type.name === 'blockquote') {
-            return 'Enter a quote...';
+            return 'Quote';
           }
           if (node.type.name === 'codeBlock') {
-            return 'Enter your code...';
-          }
-          if (node.type.name === 'bulletList' || node.type.name === 'orderedList') {
-            return 'Enter a list item...';
+            return 'Code';
           }
           if (node.type.name === 'paragraph') {
-            return "Write, type '/' for formatting...";
+            // Check if this is the first paragraph in the document
+            const isFirstParagraph = node.pos === 0;
+            return isFirstParagraph
+              ? "What's on your mind? Type '/' for formatting..."
+              : "Write, type '/' for formatting...";
           }
           return "What's on your mind? Type '/' for formatting...";
         },
@@ -209,14 +216,22 @@ const formatCommands = [
         if (editor.isActive('bulletList')) {
           editor.chain().focus().liftListItem('listItem').run();
         } else {
-          editor.chain().focus().toggleBulletList().run();
+          editor.chain()
+            .focus()
+            .clearNodes()
+            .wrapInList('bulletList')
+            .run();
         }
         break;
       case 'numbered':
         if (editor.isActive('orderedList')) {
           editor.chain().focus().liftListItem('listItem').run();
         } else {
-          editor.chain().focus().toggleOrderedList().run();
+          editor.chain()
+            .focus()
+            .clearNodes()
+            .wrapInList('orderedList')
+            .run();
         }
         break;
       case 'quote':
