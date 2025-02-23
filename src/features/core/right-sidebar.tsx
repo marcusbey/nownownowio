@@ -24,6 +24,7 @@ export function TrendsSidebar() {
         }
       >
         <TrendingTopicsSection />
+        <div className="border-b border-accent mt-6 mb-4"></div>
         <WhoToFollowSection />
       </Suspense>
     </div>

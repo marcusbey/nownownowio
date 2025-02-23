@@ -19,6 +19,7 @@ type RichTextEditorProps = {
 function RichTextEditor({ onChange }: RichTextEditorProps) {
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+  const [commandSearch, setCommandSearch] = React.useState("");
   const menuRef = React.useRef<HTMLDivElement>(null);
   const formatCommands = [
     { id: "text", label: "Text", icon: "¶" },
@@ -32,6 +33,12 @@ function RichTextEditor({ onChange }: RichTextEditorProps) {
   ];
 
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
+
+  const filteredCommands = formatCommands.filter(
+    (cmd) =>
+      cmd.label.toLowerCase().includes(commandSearch.toLowerCase()) ||
+      cmd.id.toLowerCase().includes(commandSearch.toLowerCase()),
+  );
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -139,13 +146,23 @@ function RichTextEditor({ onChange }: RichTextEditorProps) {
           }
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            applyFormat(formatCommands[selectedIndex]);
+            applyFormat(filteredCommands[selectedIndex]);
             setShowCommandMenu(false);
             return true;
           }
           if (event.key === "Escape") {
             event.preventDefault();
             setShowCommandMenu(false);
+            return true;
+          }
+          if (event.key === "Backspace") {
+            event.preventDefault();
+            setCommandSearch((prev) => prev.slice(0, -1));
+            return true;
+          }
+          if (/^[a-zA-Z0-9]$/.test(event.key)) {
+            event.preventDefault();
+            setCommandSearch((prev) => prev + event.key);
             return true;
           }
           return true;
@@ -192,7 +209,8 @@ function RichTextEditor({ onChange }: RichTextEditorProps) {
           event.preventDefault();
           setShowCommandMenu(true);
           setSelectedIndex(0);
-          updateMenuPosition(editor); // Use the Tiptap Editor instance here
+          setCommandSearch("");
+          updateMenuPosition(editor);
           return true;
         }
         return false;
@@ -305,7 +323,7 @@ function RichTextEditor({ onChange }: RichTextEditorProps) {
           >
             <Command className="rounded-lg border bg-white shadow-md dark:border-gray-700 dark:bg-gray-900">
               <CommandGroup>
-                {formatCommands.map((command, index) => (
+                {filteredCommands.map((command, index) => (
                   <CommandItem
                     key={command.id}
                     onMouseEnter={() => setSelectedIndex(index)}
