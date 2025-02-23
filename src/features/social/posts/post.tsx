@@ -58,7 +58,7 @@ export default function Post({ post }: PostProps) {
     <motion.article 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/post space-y-3 bg-card rounded-lg border shadow-sm hover:shadow-md mb-6 p-4 transition-all duration-200"
+      className="group/post space-y-3 bg-background dark:bg-card rounded-lg border border-border/40 dark:border-border/60 shadow-sm hover:shadow-md mb-6 p-4 transition-all duration-200"
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
@@ -111,7 +111,7 @@ export default function Post({ post }: PostProps) {
       </div>
 
       <Linkify>
-        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground/90 py-3 px-2" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div className="prose prose-stone dark:prose-invert prose-sm max-w-none whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground/90 py-3 px-2" dangerouslySetInnerHTML={{ __html: post.content }} />
       </Linkify>
 
       {hasAttachments && (
@@ -122,7 +122,7 @@ export default function Post({ post }: PostProps) {
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/40">
+      <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/40 dark:border-border/60">
         <div className="flex items-center gap-6">
           <LikeButton
             postId={post.id}
