@@ -1,10 +1,10 @@
+import UserLinkWithTooltip from "@/components/composite/UserLinkWithTooltip";
 import Link from "next/link";
 import { LinkIt, LinkItUrl } from "react-linkify-it";
-import UserLinkWithTooltip from "@/components/composite/UserLinkWithTooltip";
 
-interface LinkifyProps {
+type LinkifyProps = {
   children: React.ReactNode;
-}
+};
 
 export default function Linkify({ children }: LinkifyProps) {
   return (
@@ -28,7 +28,9 @@ export default function Linkify({ children }: LinkifyProps) {
           </Link>
         )}
       >
-        <LinkItUrl className="text-primary hover:underline">{children}</LinkItUrl>
+        <LinkItUrl className="text-primary hover:underline">
+          {children}
+        </LinkItUrl>
       </LinkIt>
     </LinkIt>
   );
