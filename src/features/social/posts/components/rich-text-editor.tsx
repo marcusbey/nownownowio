@@ -39,10 +39,11 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
     const search = commandSearch.trim().toLowerCase();
     if (!search) return formatCommands;
     
-    const filtered = formatCommands.filter(cmd => 
-      cmd.id.toLowerCase().includes(search) || 
-      cmd.label.toLowerCase().includes(search)
-    );
+    // Check if any character in the search matches
+    const filtered = formatCommands.filter(cmd => {
+      const cmdText = (cmd.id + cmd.label).toLowerCase();
+      return search.split('').some(char => cmdText.includes(char));
+    });
     
     // Always show all commands if no matches found
     return filtered.length ? filtered : formatCommands;
