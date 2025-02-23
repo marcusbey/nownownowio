@@ -92,15 +92,10 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
   // Filter commands based on input
   const filteredCommands = React.useMemo(() => {
     if (!filter.trim()) return formatCommands;
-    
-    // Split filter into characters and check if any match
-    const chars = filter.toLowerCase().split('');
-    const filtered = formatCommands.filter(cmd => {
-      const cmdLower = cmd.command.toLowerCase();
-      const labelLower = cmd.label.toLowerCase();
-      return chars.some(char => cmdLower.includes(char) || labelLower.includes(char));
-    });
-    
+    const filtered = formatCommands.filter(cmd =>
+      cmd.command.toLowerCase().includes(filter.toLowerCase()) ||
+      cmd.label.toLowerCase().includes(filter.toLowerCase())
+    );
     return filtered.length ? filtered : formatCommands;
   }, [filter]);
 
