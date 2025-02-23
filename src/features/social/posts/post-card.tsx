@@ -29,7 +29,7 @@ type PostCardProps = {
 
 export function PostCard({ post, className }: PostCardProps) {
   return (
-    <div className={cn("border-b p-4", className)}>
+    <div className={cn("rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md mb-4", className)}>
       <div className="flex gap-3">
         <Avatar>
           <AvatarImage
@@ -50,8 +50,8 @@ export function PostCard({ post, className }: PostCardProps) {
               {formatDistanceToNow(post.createdAt, { addSuffix: true })}
             </span>
           </div>
-          <p className="whitespace-pre-wrap">{post.content}</p>
-          <div className="flex gap-4 pt-2">
+          <p className="whitespace-pre-wrap text-sm text-card-foreground py-2">{post.content}</p>
+          <div className="flex gap-4 pt-3 border-t mt-2">
             <Button variant="ghost" size="sm" className="gap-1">
               <Heart className="size-4" />
               {post._count.likes}
