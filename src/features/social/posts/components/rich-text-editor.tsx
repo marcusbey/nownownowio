@@ -35,11 +35,11 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
 
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
 
-  const filteredCommands = formatCommands.filter(
+  const filteredCommands = commandSearch.trim() === "" ? formatCommands : formatCommands.filter(
     (cmd) =>
       cmd.label.toLowerCase().includes(commandSearch.toLowerCase()) ||
       cmd.id.toLowerCase().includes(commandSearch.toLowerCase()),
-  );
+  ) || formatCommands;
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -362,9 +362,7 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
                   </CommandItem>
                 ))}
               </CommandGroup>
-              <CommandEmpty className="p-2 text-sm text-gray-500 dark:text-gray-400">
-                No results found.
-              </CommandEmpty>
+
             </Command>
           </div>
         )}
