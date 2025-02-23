@@ -369,5 +369,6 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
 
     </div>
   );
-}
+});
+
 export default RichTextEditor;
