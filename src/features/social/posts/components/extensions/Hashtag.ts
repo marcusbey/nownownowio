@@ -15,7 +15,7 @@ export const Hashtag = Mark.create({
                 "data-hashtag": "",
                 class: cn(
                     "text-foreground",
-                    "[&>#]:text-primary [&>#]:hover:underline"
+                    "[&>span]:has([data-hashtag]):text-primary hover:underline"
                 ),
             }),
             0,
