@@ -90,12 +90,14 @@ interface CommandMenuProps {
 
 export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuProps): JSX.Element | null {
   // Filter commands based on input
-  const filteredCommands = React.useMemo(() => 
-    formatCommands.filter(cmd =>
-      cmd.command.toLowerCase().includes((filter || "").toLowerCase()) ||
-      cmd.label.toLowerCase().includes((filter || "").toLowerCase())
-    ), [filter]
-  );
+  const filteredCommands = React.useMemo(() => {
+    if (!filter.trim()) return formatCommands;
+    const filtered = formatCommands.filter(cmd =>
+      cmd.command.toLowerCase().includes(filter.toLowerCase()) ||
+      cmd.label.toLowerCase().includes(filter.toLowerCase())
+    );
+    return filtered.length ? filtered : formatCommands;
+  }, [filter]);
 
   const handleSelect = useCallback((cmd: FormatCommand) => {
     onSelect(cmd);
@@ -116,7 +118,7 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
     <div className="absolute bottom-full left-0 mb-1 w-64">
       <Command className="border border-border shadow-md">
         <CommandList className="max-h-[120px] overflow-y-auto">
-          <CommandEmpty>No commands found.</CommandEmpty>
+
           <CommandGroup>
             {filteredCommands.map((cmd) => (
               <CommandItem
