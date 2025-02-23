@@ -290,17 +290,16 @@ const RichTextEditor = React.forwardRef<
   return (
     <div className="w-full">
       <div className="relative">
-        <div className="group relative grow">
-          <div className="absolute left-0 top-3 flex size-4 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <GripVertical className="size-3 cursor-move text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400" />
-          </div>
+        <div className="relative grow">
           <EditorContent
             editor={editor}
             className={cn(
               "w-full min-h-[150px]",
               "focus-within:outline-none",
               "rounded-lg",
-              "prose prose-sm dark:prose-invert max-w-none [&_*:not(.is-empty)]:!text-foreground [&_*:not(.is-empty)]:!opacity-100",
+              "prose prose-sm dark:prose-invert max-w-none",
+              "[&_*]:!text-foreground [&_*]:!opacity-100",
+              "[&_ul]:!text-foreground [&_ol]:!text-foreground [&_blockquote]:!text-foreground",
               "p-4",
               "bg-white dark:bg-gray-900",
               "border border-gray-200 dark:border-gray-700",
