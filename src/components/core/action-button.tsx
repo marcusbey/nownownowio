@@ -19,7 +19,7 @@ export function ActionButton({
       size={size}
       className={cn(
         "font-semibold transition-transform active:scale-95",
-        "bg-blue-600 hover:bg-blue-700",
+        "rounded-md bg-blue-600 hover:bg-blue-700",
         "dark:bg-blue-500 dark:hover:bg-blue-600",
         className,
       )}

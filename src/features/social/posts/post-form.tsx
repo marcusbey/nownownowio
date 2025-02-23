@@ -245,7 +245,7 @@ export function PostForm({
               size="sm"
               disabled={isSubmitting || isUploading}
               className={cn(
-                "px-5 h-9 rounded-full",
+                "px-5 h-9",
                 (isSubmitting || isUploading) && "cursor-not-allowed"
               )}
             >
