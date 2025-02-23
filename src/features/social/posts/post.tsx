@@ -74,7 +74,7 @@ export default function Post({ post }: PostProps) {
     () => post.user.displayName || post.user.name,
     [post.user],
   );
-  const hasAttachments = post.attachments.length > 0;
+  const hasAttachments = post.attachments?.length > 0;
 
   return (
     <motion.article
