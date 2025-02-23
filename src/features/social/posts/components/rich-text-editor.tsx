@@ -159,7 +159,7 @@ const RichTextEditor = React.forwardRef<
     },
     editorProps: {
       attributes: {
-        class: "prose-base focus:outline-none text-foreground leading-relaxed [&_p]:text-base [&_ul]:italic [&_ol]:italic [&_blockquote]:italic",
+        class: "prose-base focus:outline-none text-foreground leading-relaxed [&_p]:text-base [&_ul]:italic [&_ul]:text-foreground [&_ol]:italic [&_ol]:text-foreground [&_blockquote]:italic [&_blockquote]:text-foreground",
       },
       handleKeyDown: (view, event) => {
         // Restore slash-command menu navigation:
@@ -305,10 +305,10 @@ const RichTextEditor = React.forwardRef<
               "bg-white dark:bg-gray-900",
               "border border-gray-200 dark:border-gray-700",
               "[&_.ProseMirror]:min-h-[120px]",
-              "[&_p]:leading-4",
-              "[&_h1]:leading-7",
-              "[&_h2]:leading-6",
-              "[&_h3]:leading-5",
+              "[&_p]:leading-6",
+              "[&_h1]:leading-8",
+              "[&_h2]:leading-7",
+              "[&_h3]:leading-6",
               "[&_.ProseMirror_p.is-empty::before]:content-[attr(data-placeholder)]",
               "[&_.ProseMirror_p.is-empty::before]:text-gray-500",
               "[&_.ProseMirror_p.is-empty::before]:dark:text-gray-400",
