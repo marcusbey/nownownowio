@@ -39,6 +39,7 @@ export function PostForm({
   const { startUpload, isUploading } = useUploadThing("postMedia");
   const { orgSlug } = useParams();
   const [content, setContent] = useState("");
+  const editorRef = React.useRef<{ clearEditor: () => void } | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -163,6 +164,7 @@ export function PostForm({
       }
 
       setContent("");
+      editorRef.current?.clearEditor();
       setSelectedImages([]);
       setPreviewUrls((prev) => {
         prev.forEach((url) => URL.revokeObjectURL(url));
@@ -195,7 +197,7 @@ export function PostForm({
           className="shrink-0"
         />
         <div className="relative flex-1 space-y-3">
-          <RichTextEditor onChange={setContent} />
+          <RichTextEditor onChange={setContent} ref={editorRef} />
 
           {previewUrls.length > 0 && (
             <div className="grid grid-cols-2 gap-2">

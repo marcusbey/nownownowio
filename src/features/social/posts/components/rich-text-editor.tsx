@@ -11,12 +11,13 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { GripVertical } from "lucide-react";
 import React from "react";
+import { Hashtag } from "./extensions/Hashtag";
 
 type RichTextEditorProps = {
   onChange?: (content: string) => void;
 };
 
-function RichTextEditor({ onChange }: RichTextEditorProps) {
+const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEditorProps>(({ onChange }, ref) => {
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [commandSearch, setCommandSearch] = React.useState("");
@@ -113,6 +114,7 @@ function RichTextEditor({ onChange }: RichTextEditorProps) {
         showOnlyWhenEditable: true,
         showCursor: true,
       }),
+      Hashtag,
     ],
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
@@ -257,6 +259,14 @@ function RichTextEditor({ onChange }: RichTextEditorProps) {
     }
   };
 
+  React.useImperativeHandle(ref, () => ({
+    clearEditor: () => {
+      if (editor) {
+        editor.commands.clearContent(true);
+      }
+    }
+  }));
+
   return (
     <div className="w-full">
       <div className="relative">
@@ -356,6 +366,7 @@ function RichTextEditor({ onChange }: RichTextEditorProps) {
           </div>
         )}
       </div>
+
     </div>
   );
 }
