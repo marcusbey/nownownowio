@@ -5,10 +5,9 @@ Add drag and drop support for files
 
 ////
 
-INPUT: 
+INPUT:
 
 - Line height
 - Grip size
 - new line default - paragraph
-- 
-
+-

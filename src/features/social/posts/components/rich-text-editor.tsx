@@ -1,29 +1,35 @@
-import React from 'react';
-import { useEditor, EditorContent, Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Placeholder from '@tiptap/extension-placeholder';
-import { GripVertical } from 'lucide-react';
-import { Command, CommandEmpty, CommandGroup, CommandItem } from '@/components/composite/command';
-import { cn } from '@/lib/utils';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/composite/command";
+import { cn } from "@/lib/utils";
+import Placeholder from "@tiptap/extension-placeholder";
+import type { Editor } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { GripVertical } from "lucide-react";
+import React from "react";
 
-interface RichTextEditorProps {
+type RichTextEditorProps = {
   onChange?: (content: string) => void;
-}
+};
 
 function RichTextEditor({ onChange }: RichTextEditorProps) {
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const menuRef = React.useRef<HTMLDivElement>(null);
-const formatCommands = [
-  { id: 'text', label: 'Text', icon: '¶' },
-  { id: 'h1', label: 'Heading 1', icon: 'H1' },
-  { id: 'h2', label: 'Heading 2', icon: 'H2' },
-  { id: 'h3', label: 'Heading 3', icon: 'H3' },
-  { id: 'bullet', label: 'Bullet List', icon: '•' },
-  { id: 'numbered', label: 'Numbered List', icon: '1.' },
-  { id: 'quote', label: 'Quote', icon: '"' },
-  { id: 'code', label: 'Code Block', icon: '<>' },
-];
+  const formatCommands = [
+    { id: "text", label: "Text", icon: "¶" },
+    { id: "h1", label: "Heading 1", icon: "H1" },
+    { id: "h2", label: "Heading 2", icon: "H2" },
+    { id: "h3", label: "Heading 3", icon: "H3" },
+    { id: "bullet", label: "Bullet List", icon: "•" },
+    { id: "numbered", label: "Numbered List", icon: "1." },
+    { id: "quote", label: "Quote", icon: '"' },
+    { id: "code", label: "Code Block", icon: "<>" },
+  ];
 
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
 
@@ -34,8 +40,8 @@ const formatCommands = [
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const updateMenuPosition = (editor: Editor) => {
@@ -43,10 +49,10 @@ const formatCommands = [
     const { from } = view.state.selection;
     const start = view.coordsAtPos(from);
     const editorBox = view.dom.getBoundingClientRect();
-    
+
     setMenuPosition({
       x: start.left - editorBox.left,
-      y: start.top - editorBox.top + 24 // Add offset for menu to appear below cursor
+      y: start.top - editorBox.top + 24, // Add offset for menu to appear below cursor
     });
   };
 
@@ -54,190 +60,180 @@ const formatCommands = [
     extensions: [
       StarterKit.configure({
         heading: {
-          levels: [1, 2, 3]
+          levels: [1, 2, 3],
         },
         paragraph: {
           HTMLAttributes: {
-            class: 'is-empty'
-          }
+            class: "is-empty",
+          },
         },
-        paragraph: {
-          HTMLAttributes: {
-            class: 'paragraph'
-          }
-        }
       }),
       Placeholder.configure({
-        placeholder: ({ node }) => {
-          if (node.type.name === 'heading' && node.attrs.level === 1) {
-            return 'Heading 1';
+        placeholder: ({ node, editor }) => {
+          const doc = editor.state.doc;
+          const isFirstChild = doc.firstChild && doc.firstChild.eq(node);
+
+          if (isFirstChild && node.type.name === "paragraph") {
+            return "What's on your mind? Type '/' for formatting...";
           }
-          if (node.type.name === 'heading' && node.attrs.level === 2) {
-            return 'Heading 2';
+
+          switch (node.type.name) {
+            case "heading":
+              switch (node.attrs.level) {
+                case 1:
+                  return "Heading 1";
+                case 2:
+                  return "Heading 2";
+                case 3:
+                  return "Heading 3";
+                default:
+                  return "Heading";
+              }
+            case "bulletList":
+              return "• List item";
+            case "orderedList":
+              return "1. List item";
+            case "blockquote":
+              return "Quote";
+            case "codeBlock":
+              return "Code";
+            case "paragraph":
+              return "Write, type '/' for formatting...";
+            default:
+              return "Write, type '/' for formatting...";
           }
-          if (node.type.name === 'heading' && node.attrs.level === 3) {
-            return 'Heading 3';
-          }
-          if (node.type.name === 'bulletList') {
-            return '• List item';
-          }
-          if (node.type.name === 'orderedList') {
-            return '1. List item';
-          }
-          if (node.type.name === 'blockquote') {
-            return 'Quote';
-          }
-          if (node.type.name === 'codeBlock') {
-            return 'Code';
-          }
-          if (node.type.name === 'paragraph') {
-            // Check if this is the first paragraph in the document
-            const isFirstParagraph = node.pos === 0;
-            return isFirstParagraph
-              ? "What's on your mind? Type '/' for formatting..."
-              : "Write, type '/' for formatting...";
-          }
-          return "What's on your mind? Type '/' for formatting...";
         },
         showOnlyWhenEditable: true,
-        showCursor: true
-      })
+        showCursor: true,
+      }),
     ],
     onUpdate: ({ editor }) => {
-      // Remove any newlines within blocks
       const content = editor.getHTML();
-      if (content.includes('\n')) {
-        editor.commands.setContent(content.replace(/\n/g, ' '));
+      if (content.includes("\n")) {
+        editor.commands.setContent(content.replace(/\n/g, " "));
       }
-      // Notify parent component of content change
       onChange?.(editor.getHTML());
     },
     editorProps: {
       attributes: {
-        class: 'prose-sm focus:outline-none'
+        class: "prose-sm focus:outline-none",
       },
       transformPastedText(text) {
-        // Convert newlines to spaces when pasting
-        return text.replace(/\n/g, ' ');
+        return text.replace(/\n/g, " ");
       },
       handleKeyDown: (view, event) => {
         if (showCommandMenu) {
-          if (event.key === 'ArrowUp') {
+          if (event.key === "ArrowUp") {
             event.preventDefault();
-            setSelectedIndex((prev) => (prev > 0 ? prev - 1 : formatCommands.length - 1));
+            setSelectedIndex((prev) =>
+              prev > 0 ? prev - 1 : formatCommands.length - 1,
+            );
             return true;
           }
-          if (event.key === 'ArrowDown') {
+          if (event.key === "ArrowDown") {
             event.preventDefault();
-            setSelectedIndex((prev) => (prev < formatCommands.length - 1 ? prev + 1 : 0));
+            setSelectedIndex((prev) =>
+              prev < formatCommands.length - 1 ? prev + 1 : 0,
+            );
             return true;
           }
-          if (event.key === 'Enter' || event.key === ' ') {
+          if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             applyFormat(formatCommands[selectedIndex]);
             setShowCommandMenu(false);
             return true;
           }
-          if (event.key === 'Escape') {
+          if (event.key === "Escape") {
             event.preventDefault();
             setShowCommandMenu(false);
             return true;
           }
-          // Prevent any other key handling while menu is open
           return true;
         }
-            
-        // Get current node type
+
         const { $from } = view.state.selection;
         const node = $from.node();
 
-        // Handle lists
-        if (node.type.name === 'listItem') {
-          // If the list item is empty, lift it out of the list
-          if ($from.parent.textContent.trim() === '') {
-            editor?.chain().focus().liftListItem('listItem').run();
+        if (node.type.name === "listItem") {
+          if ($from.parent.textContent.trim() === "") {
+            editor?.chain().focus().liftListItem("listItem").run();
             return true;
           }
-          
-          // Otherwise split the list item
-          editor?.chain().focus().splitListItem('listItem').run();
+          editor?.chain().focus().splitListItem("listItem").run();
           return true;
         }
-        
-        // For non-list blocks, create a new block
-        if (event.key === 'Enter' && !event.shiftKey) {
+
+        if (event.key === "Enter" && !event.shiftKey && !showCommandMenu) {
           event.preventDefault();
 
-          if (node.type.name === 'paragraph') {
-            view.dispatch(view.state.tr.split($from.pos));
-          } else {
-            view.dispatch(view.state.tr.split($from.pos));
+          if (!editor) return false;
+
+          if (editor.can().splitBlock()) {
+            editor.chain().focus().splitBlock().run();
+            return true;
           }
-          
+
+          if (node.type.name !== "paragraph" && editor.can().setParagraph()) {
+            editor.chain().focus().setParagraph().run();
+          } else if (editor.can().splitBlock()) {
+            editor.chain().focus().splitBlock().run();
+          }
+
           return true;
         }
-        
-        // Allow continuing in the same block with Shift+Enter
-        if (event.key === 'Enter' && event.shiftKey) {
+
+        if (event.key === "Enter" && event.shiftKey) {
           event.preventDefault();
           editor?.commands.enter();
           return true;
         }
 
-        if (event.key === '/' && !showCommandMenu) {
+        if (event.key === "/" && !showCommandMenu) {
           event.preventDefault();
           setShowCommandMenu(true);
           setSelectedIndex(0);
-          updateMenuPosition(editor);
+          updateMenuPosition(editor); // Use the Tiptap Editor instance here
           return true;
         }
         return false;
-      }
-    }
+      },
+    },
   });
 
   const applyFormat = (command: { id: string }) => {
     if (!editor) return;
 
     switch (command.id) {
-      case 'text':
+      case "text":
         editor.chain().focus().clearNodes().setParagraph().run();
         break;
-      case 'h1':
+      case "h1":
         editor.chain().focus().clearNodes().setHeading({ level: 1 }).run();
         break;
-      case 'h2':
+      case "h2":
         editor.chain().focus().clearNodes().setHeading({ level: 2 }).run();
         break;
-      case 'h3':
+      case "h3":
         editor.chain().focus().clearNodes().setHeading({ level: 3 }).run();
         break;
-      case 'bullet':
-        if (editor.isActive('bulletList')) {
-          editor.chain().focus().liftListItem('listItem').run();
+      case "bullet":
+        if (editor.isActive("bulletList")) {
+          editor.chain().focus().liftListItem("listItem").run();
         } else {
-          editor.chain()
-            .focus()
-            .clearNodes()
-            .wrapInList('bulletList')
-            .run();
+          editor.chain().focus().clearNodes().wrapInList("bulletList").run();
         }
         break;
-      case 'numbered':
-        if (editor.isActive('orderedList')) {
-          editor.chain().focus().liftListItem('listItem').run();
+      case "numbered":
+        if (editor.isActive("orderedList")) {
+          editor.chain().focus().liftListItem("listItem").run();
         } else {
-          editor.chain()
-            .focus()
-            .clearNodes()
-            .wrapInList('orderedList')
-            .run();
+          editor.chain().focus().clearNodes().wrapInList("orderedList").run();
         }
         break;
-      case 'quote':
+      case "quote":
         editor.chain().focus().clearNodes().setBlockquote().run();
         break;
-      case 'code':
+      case "code":
         editor.chain().focus().clearNodes().setCodeBlock().run();
         break;
     }
@@ -246,69 +242,98 @@ const formatCommands = [
   return (
     <div className="w-full">
       <div className="relative">
-        <div className="flex items-start gap-1">
-          <div className="flex-none w-4 h-[1.75rem] flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <GripVertical className="w-3 h-3 text-gray-400 dark:text-gray-500 cursor-move hover:text-gray-600 dark:hover:text-gray-400 flex-shrink-0" />
+        <div className="group relative grow">
+          <div className="absolute left-0 top-3 flex size-4 items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <GripVertical className="size-3 cursor-move text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400" />
           </div>
-          <div className="flex-grow group">
-            <EditorContent
-              editor={editor}
-              className={cn(
-                'w-full min-h-[150px]',
-                'focus-within:outline-none',
-                'rounded-lg',
-                'prose prose-sm dark:prose-invert max-w-none leading-[1.75rem]',
-                'p-4',
-                'bg-white dark:bg-gray-900',
-                'border border-gray-200 dark:border-gray-700',
-                '[&_.ProseMirror]:min-h-[120px]',
-                '[&_.ProseMirror_p.is-empty::before]:content-[attr(data-placeholder)]',
-                '[&_.ProseMirror_p.is-empty::before]:text-gray-500',
-                '[&_.ProseMirror_p.is-empty::before]:dark:text-gray-400',
-                '[&_.ProseMirror_p.is-empty::before]:float-left',
-                '[&_.ProseMirror_p.is-empty::before]:pointer-events-none',
-                '[&_.ProseMirror_p.is-empty::before]:h-0',
-                '[&_.ProseMirror_p.is-empty]:!text-gray-500',
-                '[&_.ProseMirror_p.is-empty]:!dark:text-gray-400'
-              )}
-            />
-          </div>
+          <EditorContent
+            editor={editor}
+            className={cn(
+              "w-full min-h-[150px]",
+              "focus-within:outline-none",
+              "rounded-lg",
+              "prose prose-sm dark:prose-invert max-w-none",
+              "p-4",
+              "bg-white dark:bg-gray-900",
+              "border border-gray-200 dark:border-gray-700",
+              "[&_.ProseMirror]:min-h-[120px]",
+              "[&_p]:leading-3",
+              "[&_h1]:leading-7",
+              "[&_h2]:leading-6",
+              "[&_h3]:leading-5",
+              "[&_.ProseMirror_p.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_p.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_p.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_p.is-empty::before]:float-left",
+              "[&_.ProseMirror_p.is-empty::before]:pointer-events-none",
+              "[&_.ProseMirror_p.is-empty::before]:h-0",
+              "[&_.ProseMirror_p.is-empty]:!text-gray-500",
+              "[&_.ProseMirror_p.is-empty]:!dark:text-gray-400",
+              "[&_.ProseMirror_h1.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_h1.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_h1.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_h1.is-empty::before]:float-left",
+              "[&_.ProseMirror_h1.is-empty::before]:pointer-events-none",
+              "[&_.ProseMirror_h1.is-empty]:!text-gray-500",
+              "[&_.ProseMirror_h1.is-empty]:!dark:text-gray-400",
+              "[&_.ProseMirror_h2.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_h2.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_h2.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_h2.is-empty::before]:float-left",
+              "[&_.ProseMirror_h2.is-empty::before]:pointer-events-none",
+              "[&_.ProseMirror_h2.is-empty]:!text-gray-500",
+              "[&_.ProseMirror_h2.is-empty]:!dark:text-gray-400",
+              "[&_.ProseMirror_h3.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_h3.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_h3.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_h3.is-empty::before]:float-left",
+              "[&_.ProseMirror_h3.is-empty::before]:pointer-events-none",
+              "[&_.ProseMirror_h3.is-empty]:!text-gray-500",
+              "[&_.ProseMirror_h3.is-empty]:!dark:text-gray-400",
+            )}
+          />
         </div>
-        
+
         {showCommandMenu && (
-          <div 
-            className="absolute w-72 z-50"
+          <div
+            className="absolute z-50 w-72"
             ref={menuRef}
             style={{
               left: `${menuPosition.x}px`,
-              top: `${menuPosition.y}px`
+              top: `${menuPosition.y}px`,
             }}
           >
-            <Command className="rounded-lg border shadow-md bg-white dark:bg-gray-900 dark:border-gray-700">
+            <Command className="rounded-lg border bg-white shadow-md dark:border-gray-700 dark:bg-gray-900">
               <CommandGroup>
                 {formatCommands.map((command, index) => (
                   <CommandItem
                     key={command.id}
                     onMouseEnter={() => setSelectedIndex(index)}
                     onMouseDown={(e) => {
-                      e.preventDefault(); // Prevent editor from losing focus
+                      e.preventDefault();
                       applyFormat(command);
                       setShowCommandMenu(false);
                     }}
                     className={cn(
                       "flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer text-gray-900 dark:text-gray-100",
-                      selectedIndex === index 
-                        ? "bg-gray-100 dark:bg-gray-800" 
-                        : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      selectedIndex === index
+                        ? "bg-gray-100 dark:bg-gray-800"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
                     )}
                   >
-                    <span className="flex-none w-6 text-center">{command.icon}</span>
+                    <span className="w-6 flex-none text-center">
+                      {command.icon}
+                    </span>
                     <span>{command.label}</span>
-                    <kbd className="ml-auto text-xs text-gray-500 dark:text-gray-400">{command.id}</kbd>
+                    <kbd className="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                      {command.id}
+                    </kbd>
                   </CommandItem>
                 ))}
               </CommandGroup>
-              <CommandEmpty className="p-2 text-sm text-gray-500 dark:text-gray-400">No results found.</CommandEmpty>
+              <CommandEmpty className="p-2 text-sm text-gray-500 dark:text-gray-400">
+                No results found.
+              </CommandEmpty>
             </Command>
           </div>
         )}
@@ -316,5 +341,4 @@ const formatCommands = [
     </div>
   );
 }
-
 export default RichTextEditor;
