@@ -45,14 +45,15 @@ const RichTextEditor = React.forwardRef<
    */
   const filteredCommands = React.useMemo(() => {
     const searchWords = commandSearch.trim().toLowerCase().split(/\s+/);
-    if (searchWords.length === 0 || !commandSearch.trim()) return formatCommands;
+    if (searchWords.length === 0 || !commandSearch.trim())
+      return formatCommands;
 
     // Find the first word that matches any command
     let startIndex = -1;
     for (let i = 0; i < searchWords.length; i++) {
       const word = searchWords[i];
-      const matches = formatCommands.some(cmd => {
-        const cmdText = (cmd.id + " " + cmd.label).toLowerCase();
+      const matches = formatCommands.some((cmd) => {
+        const cmdText = `${cmd.id} ${cmd.label}`.toLowerCase();
         return cmdText.includes(word);
       });
       if (matches) {
@@ -66,9 +67,9 @@ const RichTextEditor = React.forwardRef<
 
     // Filter commands based on all words from the first matching word
     const relevantWords = searchWords.slice(startIndex);
-    return formatCommands.filter(cmd => {
-      const cmdText = (cmd.id + " " + cmd.label).toLowerCase();
-      return relevantWords.every(word => cmdText.includes(word));
+    return formatCommands.filter((cmd) => {
+      const cmdText = `${cmd.id} ${cmd.label}`.toLowerCase();
+      return relevantWords.every((word) => cmdText.includes(word));
     });
   }, [commandSearch]);
 
@@ -147,20 +148,14 @@ const RichTextEditor = React.forwardRef<
       }),
     ],
     onUpdate: ({ editor }) => {
-      const content = editor.getHTML();
-      if (content.includes("\n")) {
-        editor.commands.setContent(content.replace(/\n/g, " "));
-      }
       onChange?.(editor.getHTML());
     },
     editorProps: {
       attributes: {
         class: "prose-sm focus:outline-none",
       },
-      transformPastedText(text) {
-        return text.replace(/\n/g, " ");
-      },
       handleKeyDown: (view, event) => {
+        // Restore slash-command menu navigation:
         if (showCommandMenu) {
           if (event.key === "ArrowUp") {
             event.preventDefault();
@@ -207,37 +202,22 @@ const RichTextEditor = React.forwardRef<
         const node = $from.node();
 
         if (node.type.name === "listItem") {
-          if ($from.parent.textContent.trim() === "") {
-            editor?.chain().focus().liftListItem("listItem").run();
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            if ($from.parent.textContent.trim() === "") {
+              editor?.chain().focus().liftListItem("listItem").run();
+            } else {
+              editor?.chain().focus().splitListItem("listItem").run();
+            }
             return true;
           }
-          editor?.chain().focus().splitListItem("listItem").run();
-          return true;
-        }
-
-        if (event.key === "Enter" && !event.shiftKey && !showCommandMenu) {
-          event.preventDefault();
-
-          if (!editor) return false;
-
-          if (editor.can().splitBlock()) {
-            editor.chain().focus().splitBlock().run();
-            return true;
+          if (["Backspace", "Escape"].includes(event.key)) {
+            if ($from.parent.textContent.trim() === "") {
+              event.preventDefault();
+              editor?.chain().focus().liftListItem("listItem").run();
+              return true;
+            }
           }
-
-          if (node.type.name !== "paragraph" && editor.can().setParagraph()) {
-            editor.chain().focus().setParagraph().run();
-          } else if (editor.can().splitBlock()) {
-            editor.chain().focus().splitBlock().run();
-          }
-
-          return true;
-        }
-
-        if (event.key === "Enter" && event.shiftKey) {
-          event.preventDefault();
-          editor?.commands.enter();
-          return true;
         }
 
         if (event.key === "/" && !showCommandMenu) {
