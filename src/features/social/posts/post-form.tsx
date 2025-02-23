@@ -12,7 +12,7 @@ import { ImagePlus, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
 import { CommandMenu } from "@/features/social/posts/components/command-menu";
 
@@ -39,7 +39,7 @@ export function PostForm({
   const { startUpload, isUploading } = useUploadThing("postMedia");
   const { orgSlug } = useParams();
   const [content, setContent] = useState("");
-  const editorRef = React.useRef<{ clearEditor: () => void } | null>(null);
+  const editorRef = React.useRef<{ clearEditor: () => void }>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
