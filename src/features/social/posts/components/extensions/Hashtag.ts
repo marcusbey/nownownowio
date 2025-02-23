@@ -1,4 +1,5 @@
 import { Mark, markInputRule, mergeAttributes } from "@tiptap/core";
+import { cn } from "@/lib/utils";
 
 export const Hashtag = Mark.create({
     name: "hashtag",
@@ -12,7 +13,10 @@ export const Hashtag = Mark.create({
             "span",
             mergeAttributes(HTMLAttributes, {
                 "data-hashtag": "",
-                class: "text-blue-500",
+                class: cn(
+                    "text-foreground",
+                    "[&>#]:text-primary [&>#]:hover:underline"
+                ),
             }),
             0,
         ];
@@ -21,7 +25,7 @@ export const Hashtag = Mark.create({
     addInputRules() {
         return [
             markInputRule({
-                find: /(#\w+)/g, // capture #hashtags
+                find: /(#\w+)(?!>)/g, // capture #hashtags but not HTML tags
                 type: this.type,
             }),
         ];
