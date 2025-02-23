@@ -36,16 +36,15 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
 
   const filteredCommands = React.useMemo(() => {
-    if (!commandSearch.trim()) return formatCommands;
+    const search = commandSearch.trim().toLowerCase();
+    if (!search) return formatCommands;
     
-    // Split search into characters and check if any match
-    const chars = commandSearch.toLowerCase().split('');
-    const filtered = formatCommands.filter(cmd => {
-      const idLower = cmd.id.toLowerCase();
-      const labelLower = cmd.label.toLowerCase();
-      return chars.some(char => idLower.includes(char) || labelLower.includes(char));
-    });
+    const filtered = formatCommands.filter(cmd => 
+      cmd.id.toLowerCase().includes(search) || 
+      cmd.label.toLowerCase().includes(search)
+    );
     
+    // Always show all commands if no matches found
     return filtered.length ? filtered : formatCommands;
   }, [commandSearch]);
 
