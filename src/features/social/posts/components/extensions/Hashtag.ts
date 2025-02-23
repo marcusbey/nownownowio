@@ -20,7 +20,7 @@ export const Hashtag = Extension.create({
           class: {
             default: 'hashtag',
             renderHTML: () => ({
-              class: 'text-blue-500 hover:underline cursor-pointer',
+              class: 'text-primary hover:underline cursor-pointer transition-colors duration-200',
             }),
           },
         },
