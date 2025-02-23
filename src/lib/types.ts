@@ -36,7 +36,7 @@ export function getUserDataSelect(loggedInUserId: string) {
             name: true,
           },
         },
-        role: true,
+        roles: true,
       },
     },
     _count: {

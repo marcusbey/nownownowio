@@ -7,7 +7,7 @@ import { Typography } from "@/components/data-display/typography";
 import type { ReactNode } from "react";
 import { ThemeToggle } from "@/features/core/theme/theme-toggle";
 
-export async function NavigationWrapper({
+export function NavigationWrapper({
   children,
   logoChildren,
   navigationChildren,

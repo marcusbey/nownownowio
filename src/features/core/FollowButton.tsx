@@ -24,23 +24,24 @@ export default function FollowButton({
   const queryKey: QueryKey = ["follower-info", userId];
 
   const { mutate } = useMutation({
-    mutationFn: async () =>
-      data.isFollowedByUser
-        ? kyInstance.delete(`/api/v1/users/${userId}/followers`)
-        : kyInstance.post(`/api/v1/users/${userId}/followers`),
+    mutationFn: async () => {
+      if (data.isFollowedByUser) {
+        return kyInstance.delete(`/api/users/${userId}/followers`);
+      } else {
+        return kyInstance.post(`/api/users/${userId}/followers`);
+      }
+    },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey });
-
-      const previousState = queryClient.getQueryData<FollowerInfo>(queryKey);
-
-      queryClient.setQueryData<FollowerInfo>(queryKey, () => ({
-        followers:
-          (previousState?.followers || 0) +
-          (previousState?.isFollowedByUser ? -1 : 1),
-        isFollowedByUser: !previousState?.isFollowedByUser,
-      }));
-
-      return { previousState };
+      return queryClient.cancelQueries({ queryKey }).then(() => {
+        const previousState = queryClient.getQueryData<FollowerInfo>(queryKey);
+        queryClient.setQueryData<FollowerInfo>(queryKey, () => ({
+          followers:
+            (previousState?.followers ?? 0) +
+            (previousState?.isFollowedByUser ? -1 : 1),
+          isFollowedByUser: !previousState?.isFollowedByUser,
+        }));
+        return { previousState };
+      });
     },
     onError(error, variables, context) {
       queryClient.setQueryData(queryKey, context?.previousState);

@@ -3,7 +3,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/layout/sidebar";
-import { RightSidebar } from "@/features/core/right-sidebar";
+import { TrendsSidebar } from "@/features/core/right-sidebar";
 import { Layout } from "@/features/page/layout";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
@@ -16,13 +16,17 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
 
   return (
     <SidebarProvider>
-      <div className="flex mx-auto w-full max-w-[1440px]">
+      <div className="mx-auto flex w-full max-w-[1440px]">
         {/* Left Sidebar */}
-        <OrgSidebar slug={org.slug} roles={roles} userOrgs={userOrganizations} />
-        
+        <OrgSidebar
+          slug={org.slug}
+          roles={roles}
+          userOrgs={userOrganizations}
+        />
+
         {/* Main Content */}
         <div className="flex flex-1 justify-center">
-          <SidebarInset className="w-[600px] min-h-screen border-x border-accent">
+          <SidebarInset className="min-h-screen w-[600px] border-x border-accent">
             <header className="flex h-16 shrink-0 items-center gap-2 border-b border-accent px-4">
               <Layout>
                 <SidebarTrigger className="-ml-1" />
@@ -33,7 +37,7 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
         </div>
 
         {/* Right Sidebar */}
-        <RightSidebar />
+        <TrendsSidebar />
       </div>
     </SidebarProvider>
   );

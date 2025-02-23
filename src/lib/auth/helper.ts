@@ -1,6 +1,8 @@
 import type { User } from "@prisma/client";
-import { unauthorized } from "next/navigation";
+import { redirect } from "next/navigation";
 import { baseAuth } from "./auth";
+
+const isServer = typeof window === "undefined";
 
 export class AuthError extends Error {}
 
@@ -19,7 +21,7 @@ export const requiredAuth = async () => {
   const user = await auth();
 
   if (!user) {
-    unauthorized();
+    redirect("/auth/signin");
   }
 
   return user;

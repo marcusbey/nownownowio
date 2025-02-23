@@ -11,14 +11,19 @@ import type { PropsWithChildren } from "react";
 import { OrgsSelect } from "../../../app/orgs/[orgSlug]/(navigation)/_navigation/orgs-select";
 import { NavigationWrapper } from "./navigation-wrapper";
 
-export default async function AuthNavigationWrapper(props: PropsWithChildren) {
+async function getAuthData() {
   const user = await auth();
+  if (!user) return { user: null, userOrgs: [] };
+  const userOrgs = await getUsersOrgs();
+  return { user, userOrgs };
+}
+
+export default async function AuthNavigationWrapper(props: PropsWithChildren) {
+  const { user, userOrgs } = await getAuthData();
 
   if (!user) {
     return <NavigationWrapper>{props.children}</NavigationWrapper>;
   }
-
-  const userOrgs = await getUsersOrgs();
 
   return (
     <NavigationWrapper

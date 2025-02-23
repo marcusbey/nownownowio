@@ -3,7 +3,8 @@ import { addDays } from "date-fns";
 import { nanoid } from "nanoid";
 import type { NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { cookies } from "next/headers";
+// Import cookies from next/headers in server components only
+import type { Cookies } from "next/dist/compiled/@edge-runtime/cookies";
 import type { NextRequest } from "next/server";
 import { env } from "../env";
 import { prisma } from "../prisma";
@@ -71,23 +72,7 @@ type JwtOverride = NonNullable<NextAuthConfig["jwt"]>;
 export const credentialsSignInCallback =
   (request: NextRequest | undefined): SignInCallback =>
   async ({ user }) => {
-    if (!request) {
-      return;
-    }
-
-    if (request.method !== "POST") {
-      return;
-    }
-
-    const currentUrl = request.url;
-
-    if (!currentUrl.includes("credentials")) {
-      return;
-    }
-
-    if (!currentUrl.includes("callback")) {
-      return;
-    }
+    if (!user) return false;
 
     const uuid = nanoid();
     const expireAt = addDays(new Date(), 14);
@@ -99,17 +84,8 @@ export const credentialsSignInCallback =
       },
     });
 
-    const cookieList = await cookies();
-
-    cookieList.set(AUTH_COOKIE_NAME, uuid, {
-      expires: expireAt,
-      path: "/",
-      sameSite: "lax",
-      httpOnly: true,
-      secure: env.NODE_ENV === "production",
-    });
-
-    return;
+    // Cookie handling will be done in the server component
+    return true;
   };
 
 // This override cancel JWT strategy for password. (it's the default one)
