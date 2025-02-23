@@ -37,10 +37,15 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
 
   const filteredCommands = React.useMemo(() => {
     if (!commandSearch.trim()) return formatCommands;
-    const filtered = formatCommands.filter(cmd =>
-      cmd.label.toLowerCase().includes(commandSearch.toLowerCase()) ||
-      cmd.id.toLowerCase().includes(commandSearch.toLowerCase())
-    );
+    
+    // Split search into characters and check if any match
+    const chars = commandSearch.toLowerCase().split('');
+    const filtered = formatCommands.filter(cmd => {
+      const idLower = cmd.id.toLowerCase();
+      const labelLower = cmd.label.toLowerCase();
+      return chars.some(char => idLower.includes(char) || labelLower.includes(char));
+    });
+    
     return filtered.length ? filtered : formatCommands;
   }, [commandSearch]);
 
