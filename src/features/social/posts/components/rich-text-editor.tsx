@@ -115,7 +115,7 @@ const RichTextEditor = React.forwardRef<
           }
           return ''
         },
-        className: 'text-muted-foreground/50 select-none',
+        className: 'text-muted-foreground/50 select-none text-base',
         placeholder: ({ node, editor }) => {
           const doc = editor.state.doc;
           const isFirstChild = doc.firstChild && doc.firstChild.eq(node);
@@ -159,7 +159,7 @@ const RichTextEditor = React.forwardRef<
     },
     editorProps: {
       attributes: {
-        class: "prose-sm focus:outline-none text-foreground leading-relaxed",
+        class: "prose-base focus:outline-none text-foreground leading-relaxed [&_p]:text-base [&_ul]:italic [&_ol]:italic [&_blockquote]:italic",
       },
       handleKeyDown: (view, event) => {
         // Restore slash-command menu navigation:
