@@ -1,10 +1,12 @@
+import { getFollowerInfo } from "@/lib/api/followerInfo";
+import type { FollowerInfo } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { getFollowerInfo } from "@/lib/social/followerInfo";
 
-export function useFollowerInfo(userId: string) {
+export function useFollowerInfo(userId: string, initialData: FollowerInfo) {
   const { data: followerInfo, isLoading } = useQuery({
-    queryKey: ["followerInfo", userId],
+    queryKey: ["follower-info", userId],
     queryFn: () => getFollowerInfo(userId),
+    initialData,
   });
 
   return {

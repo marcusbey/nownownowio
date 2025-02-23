@@ -1,24 +1,25 @@
 "use client";
 
 import { useFollowerInfo } from "@/hooks/use-follower-info";
-import { FollowerInfo } from "@/lib/types";
 import { formatNumber } from "@/lib/utils";
 
-interface FollowerCountProps {
+type FollowerCountProps = {
   userId: string;
-  initialState: FollowerInfo;
-}
+  initialState: {
+    followers: number;
+    isFollowedByUser: boolean;
+  };
+};
 
-export default function FollowerCount({
-  userId,
-  initialState,
-}: FollowerCountProps) {
-  const { data } = useFollowerInfo(userId, initialState);
+export function FollowerCount({ userId, initialState }: FollowerCountProps) {
+  const { followerInfo } = useFollowerInfo(userId, initialState);
 
   return (
     <span>
       Followers:{" "}
-      <span className="font-semibold">{formatNumber(data.followers)}</span>
+      <span className="font-semibold">
+        {formatNumber(followerInfo?.followers ?? initialState.followers)}
+      </span>
     </span>
   );
 }

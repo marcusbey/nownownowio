@@ -19,13 +19,13 @@ export default function FollowButton({
 
   const queryClient = useQueryClient();
 
-  const { data } = useFollowerInfo(userId, initialState);
+  const { followerInfo } = useFollowerInfo(userId, initialState);
 
   const queryKey: QueryKey = ["follower-info", userId];
 
   const { mutate } = useMutation({
     mutationFn: async () => {
-      if (data.isFollowedByUser) {
+      if (followerInfo.isFollowedByUser) {
         return kyInstance.delete(`/api/users/${userId}/followers`);
       } else {
         return kyInstance.post(`/api/users/${userId}/followers`);
@@ -55,10 +55,10 @@ export default function FollowButton({
 
   return (
     <Button
-      variant={data.isFollowedByUser ? "secondary" : "default"}
+      variant={followerInfo?.isFollowedByUser ? "secondary" : "default"}
       onClick={() => mutate()}
     >
-      {data.isFollowedByUser ? "Unfollow" : "Follow"}
+      {followerInfo?.isFollowedByUser ? "Unfollow" : "Follow"}
     </Button>
   );
 }
