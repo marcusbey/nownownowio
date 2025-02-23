@@ -109,6 +109,13 @@ const RichTextEditor = React.forwardRef<
         },
       }),
       Placeholder.configure({
+        placeholder: ({ node }) => {
+          if (node.type.name === 'paragraph') {
+            return 'Press "/" for commands...'
+          }
+          return ''
+        },
+        className: 'text-muted-foreground/50 select-none',
         placeholder: ({ node, editor }) => {
           const doc = editor.state.doc;
           const isFirstChild = doc.firstChild && doc.firstChild.eq(node);
@@ -152,7 +159,7 @@ const RichTextEditor = React.forwardRef<
     },
     editorProps: {
       attributes: {
-        class: "prose-sm focus:outline-none",
+        class: "prose-sm focus:outline-none text-foreground leading-relaxed",
       },
       handleKeyDown: (view, event) => {
         // Restore slash-command menu navigation:
