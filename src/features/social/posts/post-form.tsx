@@ -246,7 +246,7 @@ export function PostForm({
               disabled={isSubmitting || isUploading}
               className={cn(
                 "px-5 h-9 rounded-full",
-                (isSubmitting || isUploading) && "cursor-not-allowed",
+                (isSubmitting || isUploading) && "cursor-not-allowed"
               )}
             >
               {isSubmitting || isUploading ? (
@@ -254,7 +254,7 @@ export function PostForm({
               ) : (
                 "Post"
               )}
-            </Button>
+            </ActionButton>
           </div>
         </div>
       </div>
