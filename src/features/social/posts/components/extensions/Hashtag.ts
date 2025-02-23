@@ -1,30 +1,29 @@
-import { Extension } from '@tiptap/core';
+import { Mark, markInputRule, mergeAttributes } from "@tiptap/core";
 
-export const Hashtag = Extension.create({
-  name: 'hashtag',
+export const Hashtag = Mark.create({
+    name: "hashtag",
 
-  addRegularExpressions() {
-    return [
-      {
-        find: /#[\w\u0590-\u05ff]+/g,
-        replace: (match: string) => `<span class="hashtag">${match}</span>`,
-      },
-    ];
-  },
+    parseHTML() {
+        return [{ tag: 'span[data-hashtag]' }];
+    },
 
-  addGlobalAttributes() {
-    return [
-      {
-        types: ['hashtag'],
-        attributes: {
-          class: {
-            default: 'hashtag',
-            renderHTML: () => ({
-              class: 'text-primary hover:underline cursor-pointer transition-colors duration-200',
+    renderHTML({ HTMLAttributes }) {
+        return [
+            "span",
+            mergeAttributes(HTMLAttributes, {
+                "data-hashtag": "",
+                class: "text-blue-500",
             }),
-          },
-        },
-      },
-    ];
-  },
-});
+            0,
+        ];
+    },
+
+    addInputRules() {
+        return [
+            markInputRule({
+                find: /(#\w+)/g, // capture #hashtags
+                type: this.type,
+            }),
+        ];
+    },
+}); 
