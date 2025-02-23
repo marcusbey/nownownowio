@@ -2,7 +2,9 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/composite/command";
 import { cn } from "@/lib/utils";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -11,13 +13,15 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { GripVertical } from "lucide-react";
 import React from "react";
-import { Hashtag } from "./extensions/Hashtag";
 
 type RichTextEditorProps = {
   onChange?: (content: string) => void;
 };
 
-const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEditorProps>(({ onChange }, ref) => {
+const RichTextEditor = React.forwardRef<
+  { clearEditor: () => void },
+  RichTextEditorProps
+>(({ onChange }, ref) => {
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [commandSearch, setCommandSearch] = React.useState("");
@@ -35,18 +39,37 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
 
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
 
+  /**
+   * Filters commands based on the input search string.
+   * Handles multi-word searches by skipping non-matching words and filtering based on matching words.
+   */
   const filteredCommands = React.useMemo(() => {
-    const search = commandSearch.trim().toLowerCase();
-    if (!search) return formatCommands;
-    
-    // Check if any character in the search matches
-    const filtered = formatCommands.filter(cmd => {
-      const cmdText = (cmd.id + cmd.label).toLowerCase();
-      return search.split('').some(char => cmdText.includes(char));
+    const searchWords = commandSearch.trim().toLowerCase().split(/\s+/);
+    if (searchWords.length === 0 || !commandSearch.trim()) return formatCommands;
+
+    // Find the first word that matches any command
+    let startIndex = -1;
+    for (let i = 0; i < searchWords.length; i++) {
+      const word = searchWords[i];
+      const matches = formatCommands.some(cmd => {
+        const cmdText = (cmd.id + " " + cmd.label).toLowerCase();
+        return cmdText.includes(word);
+      });
+      if (matches) {
+        startIndex = i;
+        break;
+      }
+    }
+
+    // If no word matches, return empty array
+    if (startIndex === -1) return [];
+
+    // Filter commands based on all words from the first matching word
+    const relevantWords = searchWords.slice(startIndex);
+    return formatCommands.filter(cmd => {
+      const cmdText = (cmd.id + " " + cmd.label).toLowerCase();
+      return relevantWords.every(word => cmdText.includes(word));
     });
-    
-    // Always show all commands if no matches found
-    return filtered.length ? filtered : formatCommands;
   }, [commandSearch]);
 
   React.useEffect(() => {
@@ -122,7 +145,6 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
         showOnlyWhenEditable: true,
         showCursor: true,
       }),
-      Hashtag,
     ],
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
@@ -143,14 +165,14 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
           if (event.key === "ArrowUp") {
             event.preventDefault();
             setSelectedIndex((prev) =>
-              prev > 0 ? prev - 1 : formatCommands.length - 1,
+              prev > 0 ? prev - 1 : filteredCommands.length - 1,
             );
             return true;
           }
           if (event.key === "ArrowDown") {
             event.preventDefault();
             setSelectedIndex((prev) =>
-              prev < formatCommands.length - 1 ? prev + 1 : 0,
+              prev < filteredCommands.length - 1 ? prev + 1 : 0,
             );
             return true;
           }
@@ -231,8 +253,8 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
     },
   });
 
-  const applyFormat = (command?: { id: string; label: string }) => {
-    if (!editor || !command) return;
+  const applyFormat = (command: { id: string; label: string }) => {
+    if (!editor) return;
 
     switch (command.id) {
       case "text":
@@ -275,7 +297,7 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
       if (editor) {
         editor.commands.clearContent(true);
       }
-    }
+    },
   }));
 
   return (
@@ -296,7 +318,7 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
               "bg-white dark:bg-gray-900",
               "border border-gray-200 dark:border-gray-700",
               "[&_.ProseMirror]:min-h-[120px]",
-              "[&_p]:leading-3",
+              "[&_p]:leading-4",
               "[&_h1]:leading-7",
               "[&_h2]:leading-6",
               "[&_h3]:leading-5",
@@ -343,41 +365,51 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
             }}
           >
             <Command className="rounded-lg border bg-white shadow-md dark:border-gray-700 dark:bg-gray-900">
-              <CommandGroup>
-                {filteredCommands.map((command, index) => (
-                  <CommandItem
-                    key={command.id}
-                    onMouseEnter={() => setSelectedIndex(index)}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      applyFormat(command);
-                      setShowCommandMenu(false);
-                    }}
-                    className={cn(
-                      "flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer text-gray-900 dark:text-gray-100",
-                      selectedIndex === index
-                        ? "bg-gray-100 dark:bg-gray-800"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
-                    )}
-                  >
-                    <span className="w-6 flex-none text-center">
-                      {command.icon}
-                    </span>
-                    <span>{command.label}</span>
-                    <kbd className="ml-auto text-xs text-gray-500 dark:text-gray-400">
-                      {command.id}
-                    </kbd>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-
+              <CommandInput
+                value={commandSearch}
+                onValueChange={setCommandSearch}
+                placeholder="/Filter..."
+              />
+              <CommandList>
+                <CommandEmpty className="p-2 text-sm text-gray-500 dark:text-gray-400">
+                  No results found.
+                </CommandEmpty>
+                <CommandGroup>
+                  {filteredCommands.map((command, index) => (
+                    <CommandItem
+                      key={command.id}
+                      onMouseEnter={() => setSelectedIndex(index)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        applyFormat(command);
+                        setShowCommandMenu(false);
+                      }}
+                      className={cn(
+                        "flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer text-gray-900 dark:text-gray-100",
+                        selectedIndex === index
+                          ? "bg-gray-100 dark:bg-gray-800"
+                          : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
+                      )}
+                    >
+                      <span className="w-6 flex-none text-center">
+                        {command.icon}
+                      </span>
+                      <span>{command.label}</span>
+                      <kbd className="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                        {command.id}
+                      </kbd>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
             </Command>
           </div>
         )}
       </div>
-
     </div>
   );
 });
+
+RichTextEditor.displayName = "RichTextEditor";
 
 export default RichTextEditor;

@@ -89,14 +89,37 @@ interface CommandMenuProps {
 }
 
 export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuProps): JSX.Element | null {
-  // Filter commands based on input
+  /**
+   * Filters commands based on the input search string.
+   * Handles multi-word searches by skipping non-matching words and filtering based on matching words.
+   */
   const filteredCommands = React.useMemo(() => {
-    if (!filter.trim()) return formatCommands;
-    const filtered = formatCommands.filter(cmd =>
-      cmd.command.toLowerCase().includes(filter.toLowerCase()) ||
-      cmd.label.toLowerCase().includes(filter.toLowerCase())
-    );
-    return filtered.length ? filtered : formatCommands;
+    const searchWords = filter.trim().toLowerCase().split(/\s+/);
+    if (searchWords.length === 0 || !filter.trim()) return formatCommands;
+
+    // Find the first word that matches any command
+    let startIndex = -1;
+    for (let i = 0; i < searchWords.length; i++) {
+      const word = searchWords[i];
+      const matches = formatCommands.some(cmd => {
+        const cmdText = (cmd.command + " " + cmd.label).toLowerCase();
+        return cmdText.includes(word);
+      });
+      if (matches) {
+        startIndex = i;
+        break;
+      }
+    }
+
+    // If no word matches, return empty array
+    if (startIndex === -1) return [];
+
+    // Filter commands based on all words from the first matching word
+    const relevantWords = searchWords.slice(startIndex);
+    return formatCommands.filter(cmd => {
+      const cmdText = (cmd.command + " " + cmd.label).toLowerCase();
+      return relevantWords.every(word => cmdText.includes(word));
+    });
   }, [filter]);
 
   const handleSelect = useCallback((cmd: FormatCommand) => {
@@ -117,8 +140,18 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
   return (
     <div className="absolute bottom-full left-0 mb-1 w-64">
       <Command className="border border-border shadow-md">
+        <CommandInput
+          value={filter}
+          onValueChange={(newFilter) => {
+            // Update filter in parent component if needed
+            // For now, filter is controlled externally
+          }}
+          placeholder="/Filter..."
+        />
         <CommandList className="max-h-[120px] overflow-y-auto">
-
+          <CommandEmpty className="p-2 text-sm text-gray-500 dark:text-gray-400">
+            No results found.
+          </CommandEmpty>
           <CommandGroup>
             {filteredCommands.map((cmd) => (
               <CommandItem
