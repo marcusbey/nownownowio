@@ -148,7 +148,10 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
           }
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            applyFormat(filteredCommands[selectedIndex]);
+            const selectedCommand = filteredCommands[selectedIndex];
+            if (selectedCommand) {
+              applyFormat(selectedCommand);
+            }
             setShowCommandMenu(false);
             return true;
           }
@@ -220,8 +223,8 @@ const RichTextEditor = React.forwardRef<{ clearEditor: () => void }, RichTextEdi
     },
   });
 
-  const applyFormat = (command: { id: string }) => {
-    if (!editor) return;
+  const applyFormat = (command?: { id: string; label: string }) => {
+    if (!editor || !command) return;
 
     switch (command.id) {
       case "text":
