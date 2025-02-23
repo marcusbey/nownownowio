@@ -1,68 +1,59 @@
-import { prisma } from "@/lib/prisma";
+"use client";
+
+import Skeleton from "@/components/core/skeleton";
 import { formatNumber } from "@/lib/utils";
-import { unstable_cache } from "next/cache";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
-const getTrendingTopics = unstable_cache(
-  async () => {
-    const result = await prisma.$queryRaw<{ hashtag: string; count: bigint }[]>`
-            SELECT LOWER(unnest(regexp_matches(content, '#[[:alnum:]_]+', 'g'))) AS hashtag, COUNT(*) AS count
-            FROM posts
-            GROUP BY (hashtag)
-            ORDER BY count DESC, hashtag ASC
-            LIMIT 5
-        `;
+type Topic = {
+  id: string;
+  label: string;
+  count: number;
+};
 
-    return result.map((row) => ({
-      hashtag: row.hashtag,
-      count: Number(row.count),
-    }));
-  },
-  ["trending_topics"],
-  {
-    revalidate: 3 * 60 * 60,
-  },
-);
-
-export async function TrendingTopicsSection() {
-  const trendingTopics = await getTrendingTopics();
+export function TrendingTopicsSection() {
+  const { data = [], isLoading } = useQuery<Topic[]>({
+    queryKey: ["trendingTopics"],
+    queryFn: async () => {
+      const response = await fetch("/api/posts/for-you/trending-topics");
+      if (!response.ok) throw new Error("Failed to fetch trending topics");
+      return response.json();
+    },
+  });
 
   return (
-    <div
-      className="space-y-5 rounded-xl bg-card/30 p-5 
-      shadow-sm ring-1 ring-primary/5 backdrop-blur supports-[backdrop-filter]:bg-card/20"
-    >
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Trending topics</h2>
-        <Link
-          href="/explore/topics"
-          className="text-sm text-primary/70 transition-colors hover:text-primary"
-        >
-          View all
-        </Link>
-      </div>
-      <div className="divide-y divide-border/50">
-        {trendingTopics.map(({ hashtag, count }) => {
-          const title = hashtag.split("#")[1];
-
-          return (
+    <div className="rounded-xl px-4 py-3">
+      <h2 className="mb-3 px-2 text-xl font-bold">Trending Topics</h2>
+      <div className="flex flex-col gap-4">
+        {isLoading ? (
+          // Loading skeletons
+          <>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex flex-col gap-2 px-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </>
+        ) : data.length === 0 ? (
+          <p className="px-2 text-muted-foreground">No trending topics yet</p>
+        ) : (
+          data.map((topic) => (
             <Link
-              key={title}
-              href={`/hashtag/${title}`}
-              className="block py-3 first:pt-0 last:pb-0"
+              key={topic.id}
+              href={`/search?q=${encodeURIComponent(topic.label)}`}
+              className="px-2 transition-colors hover:bg-secondary"
             >
-              <p
-                className="line-clamp-1 break-all font-semibold hover:underline"
-                title={hashtag}
-              >
-                {hashtag}
+              <p className="line-clamp-1 break-all font-semibold hover:underline">
+                {topic.label}
               </p>
               <p className="text-sm text-muted-foreground">
-                {formatNumber(count)} {count === 1 ? "post" : "posts"}
+                {formatNumber(topic.count)}{" "}
+                {topic.count === 1 ? "post" : "posts"}
               </p>
             </Link>
-          );
-        })}
+          ))
+        )}
       </div>
     </div>
   );

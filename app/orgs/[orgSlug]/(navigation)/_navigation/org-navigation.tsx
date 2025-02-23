@@ -16,17 +16,20 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
 
   return (
     <SidebarProvider>
-      <div className="mx-auto flex w-full max-w-[1440px]">
-        {/* Left Sidebar */}
-        <OrgSidebar
-          slug={org.slug}
-          roles={roles}
-          userOrgs={userOrganizations}
-        />
+      {/* Main container with max-width for very large screens */}
+      <div className="flex h-[100dvh] w-full max-w-screen-2xl mx-auto">
+        {/* Left Sidebar - 1/4 of space */}
+        <div className="w-1/4 min-w-[250px] h-full overflow-y-auto">
+          <OrgSidebar
+            slug={org.slug}
+            roles={roles}
+            userOrgs={userOrganizations}
+          />
+        </div>
 
-        {/* Main Content */}
-        <div className="flex flex-1 justify-center">
-          <SidebarInset className="min-h-screen w-[600px] border-x border-accent">
+        {/* Main Content - 1/2 of space */}
+        <div className="flex w-1/2 min-w-[600px] h-full">
+          <SidebarInset className="h-full w-full border-x border-accent overflow-y-auto">
             <header className="flex h-16 shrink-0 items-center gap-2 border-b border-accent px-4">
               <Layout>
                 <SidebarTrigger className="-ml-1" />
@@ -36,8 +39,10 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
           </SidebarInset>
         </div>
 
-        {/* Right Sidebar */}
-        <TrendsSidebar />
+        {/* Right Sidebar - 1/4 of space */}
+        <div className="w-1/4 min-w-[250px] h-full overflow-y-auto">
+          <TrendsSidebar />
+        </div>
       </div>
     </SidebarProvider>
   );

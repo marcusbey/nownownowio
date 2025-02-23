@@ -8,11 +8,11 @@ import { TrendingTopicsSection } from "./trending-topics";
 
 export function TrendsSidebar() {
   return (
-    <div className="sticky top-[5.25rem] h-fit w-full space-y-6">
+    <div className="sticky top-0 h-full w-full px-4 py-6 overflow-y-auto">
       {/* Search and Filters Section */}
       <div
-        className="space-y-4 rounded-xl bg-card/30 p-4 
-        shadow-sm ring-1 ring-primary/5 backdrop-blur supports-[backdrop-filter]:bg-card/20"
+        className="space-y-4 rounded-xl p-4
+        shadow-sm ring-1 ring-primary/5 backdrop-blur"
       >
         <SearchField />
       </div>
@@ -25,8 +25,8 @@ export function TrendsSidebar() {
           </div>
         }
       >
-        <WhoToFollowSection />
         <TrendingTopicsSection />
+        <WhoToFollowSection />
       </Suspense>
     </div>
   );

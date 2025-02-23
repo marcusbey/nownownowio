@@ -1,11 +1,8 @@
 "use client";
 
-import { FollowerInfo, UserData } from "@/lib/types";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { PropsWithChildren, useMemo, lazy, Suspense } from "react";
 import FollowButton from "@/components/composite/FollowButton";
-import FollowerCount from "@/components/data-display/FollowerCount";
+import UserAvatar from "@/components/composite/UserAvatar";
+import { FollowerCount } from "@/components/data-display/FollowerCount";
 import Linkify from "@/components/data-display/Linkify";
 import {
   Tooltip,
@@ -13,24 +10,31 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/data-display/tooltip";
-import UserAvatar from "@/components/composite/UserAvatar";
+import type { UserData } from "@/lib/types";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import type { PropsWithChildren } from "react";
+import { useMemo } from "react";
 
-interface UserTooltipProps extends PropsWithChildren {
-  user: UserData;
-}
+type UserTooltipProps = {
+  user: UserData | null | undefined;
+} & PropsWithChildren;
 
 export default function UserTooltip({ children, user }: UserTooltipProps) {
   const { data: session } = useSession();
   const loggedInUser = session?.user;
 
+  // If user is null/undefined, bail early
+  if (!user) return <>{children}</>;
+
   const followerState = useMemo(
     () => ({
       followers: user._count?.followers ?? 0,
       isFollowedByUser: user.followers?.some(
-        ({ followerId }) => followerId === loggedInUser?.id,
-      ) ?? false,
+        ({ followerId }) => followerId === loggedInUser?.id
+      ) ?? false
     }),
-    [user._count?.followers, user.followers, loggedInUser?.id]
+    [user._count?.followers, user.followers, loggedInUser?.id],
   );
 
   const tooltipContent = useMemo(
@@ -47,7 +51,7 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
         <div>
           <Link href={`/users/${user.name}`}>
             <div className="text-lg font-semibold hover:underline">
-              {user.displayName || user.name}
+              {user.displayName ?? user.name}
             </div>
             <div className="text-sm text-muted-foreground">@{user.name}</div>
           </Link>
@@ -57,16 +61,16 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
             <div className="text-sm">{user.bio}</div>
           </Linkify>
         )}
-        <FollowerCount 
-          userId={user.id} 
-          initialState={{ 
+        <FollowerCount
+          userId={user.id}
+          initialState={{
             followers: followerState.followers,
-            isFollowedByUser: followerState.isFollowedByUser 
-          }} 
+            isFollowedByUser: followerState.isFollowedByUser,
+          }}
         />
       </div>
     ),
-    [user, loggedInUser, followerState]
+    [user, loggedInUser, followerState],
   );
 
   if (!user) return <>{children}</>;

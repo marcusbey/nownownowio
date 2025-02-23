@@ -8,7 +8,7 @@ type LayoutProps = {
 
 export function Layout({ children, className }: LayoutProps) {
   return (
-    <div className={cn("container mx-auto max-w-7xl px-4 py-8", className)}>
+    <div className={cn("flex-1 px-4 py-8", className)}>
       {children}
     </div>
   );

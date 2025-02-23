@@ -1,80 +1,87 @@
-import { validateRequest } from "@/lib/auth/helper";
-import { prisma } from "@/lib/prisma";
-import { getUserDataSelect } from "@/lib/types";
+"use client";
+
+import UserAvatar from "@/components/composite/UserAvatar";
+import Skeleton from "@/components/core/skeleton";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import FollowButton from "./FollowButton";
-import UserAvatar from "./UserAvatar";
 import UserTooltip from "./UserTooltip";
 
-async function getWhoToFollow() {
-  const { user } = await validateRequest();
+type User = {
+  id: string;
+  username: string;
+  displayName: string;
+  image: string | null;
+  _count: {
+    followers: number;
+  };
+  followers: unknown[];
+};
 
-  if (!user) return [];
-
-  return prisma.user.findMany({
-    where: {
-      NOT: {
-        id: user.id,
-      },
-      followers: {
-        none: {
-          followerId: user.id,
-        },
-      },
+export function WhoToFollowSection() {
+  const { data = [], isLoading } = useQuery<User[]>({
+    queryKey: ["whoToFollow"],
+    queryFn: async () => {
+      const response = await fetch("/api/posts/for-you/who-to-follow");
+      if (!response.ok) throw new Error("Failed to fetch who to follow");
+      return response.json();
     },
-    select: getUserDataSelect(user.id),
-    take: 5,
   });
-}
-
-export async function WhoToFollowSection() {
-  const usersToFollow = await getWhoToFollow();
 
   return (
-    <div
-      className="space-y-5 rounded-xl bg-card/30 p-5 
-      shadow-sm ring-1 ring-primary/5 backdrop-blur supports-[backdrop-filter]:bg-card/20"
-    >
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Who to follow</h2>
-        <Link
-          href="/explore/people"
-          className="text-sm text-primary/70 transition-colors hover:text-primary"
-        >
-          View all
-        </Link>
-      </div>
-      <div className="divide-y divide-border/50">
-        {usersToFollow.map((user) => (
-          <div
-            key={user.id}
-            className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-          >
-            <div className="flex items-center gap-3">
-              <UserTooltip user={user}>
-                <UserAvatar avatarUrl={user.image} className="size-10" />
-              </UserTooltip>
-              <div className="flex flex-col">
-                <Link
-                  href={`/users/${user.name}`}
-                  className="line-clamp-1 font-medium transition-colors hover:text-primary"
-                >
-                  {user.name}
-                </Link>
-                <span className="text-sm text-muted-foreground">
-                  {user.displayName}
-                </span>
+    <div className="rounded-xl px-4 py-3">
+      <h2 className="mb-3 px-2 text-xl font-bold">Who to Follow</h2>
+      <div className="flex flex-col gap-4">
+        {isLoading ? (
+          // Loading skeletons
+          <>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="size-10 rounded-full" />
+                  <div className="flex flex-col gap-1">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </div>
+                <Skeleton className="h-9 w-[74px] rounded-md" />
               </div>
+            ))}
+          </>
+        ) : data.length === 0 ? (
+          <p className="px-2 text-muted-foreground">No suggestions available</p>
+        ) : (
+          data.map((user) => (
+            <div
+              key={user.id}
+              className="flex items-center justify-between px-2"
+            >
+              <div className="flex items-center gap-3">
+                <UserTooltip user={user}>
+                  <UserAvatar avatarUrl={user.image} className="size-10" />
+                </UserTooltip>
+                <div className="flex flex-col">
+                  <Link
+                    href={`/@${user.username}`}
+                    className="line-clamp-1 font-semibold hover:underline"
+                  >
+                    {user.displayName}
+                  </Link>
+                  <p className="text-sm text-muted-foreground">
+                    @{user.username}
+                  </p>
+                </div>
+              </div>
+              <FollowButton
+                userId={user.id}
+                initialState={{
+                  followers: user._count.followers,
+                  isFollowedByUser: user.followers.length > 0,
+                }}
+              />
             </div>
-            <FollowButton
-              userId={user.id}
-              initialState={{
-                followers: user._count.followers,
-                isFollowedByUser: user.followers.length > 0,
-              }}
-            />
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
