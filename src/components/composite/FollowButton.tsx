@@ -1,4 +1,4 @@
-import { Button } from "@/components/core/button";
+import { ActionButton } from "@/components/core/action-button";
 import { useToast } from "@/components/feedback/use-toast";
 import { useFollowerInfo } from "@/hooks/use-follower-info";
 import kyInstance from "@/lib/ky";
@@ -53,11 +53,11 @@ export default function FollowButton({
   });
 
   return (
-    <Button
-      variant={data.isFollowedByUser ? "secondary" : "default"}
+    <ActionButton
+      variant={data.isFollowedByUser ? "secondary" : "primary"}
       onClick={() => mutate()}
     >
-      {data.isFollowedByUser ? "Unfollow" : "Follow"}
-    </Button>
+      {data.isFollowedByUser ? "Following" : "Follow"}
+    </ActionButton>
   );
 }

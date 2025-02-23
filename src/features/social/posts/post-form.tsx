@@ -2,6 +2,7 @@
 
 import UserAvatar from "@/components/composite/UserAvatar";
 import { Button } from "@/components/core/button";
+import { ActionButton } from "@/components/core/action-button";
 import { Card, CardContent } from "@/components/data-display/card";
 import { useToast } from "@/components/feedback/use-toast";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
@@ -238,13 +239,13 @@ export function PostForm({
               <ImagePlus className="size-5" />
             </Button>
 
-            <Button
+            <ActionButton
               type="submit"
-              variant="default"
+              variant="primary"
               size="sm"
               disabled={isSubmitting || isUploading}
               className={cn(
-                "px-5 h-9 rounded-full font-medium",
+                "px-5 h-9 rounded-full",
                 (isSubmitting || isUploading) && "cursor-not-allowed",
               )}
             >
