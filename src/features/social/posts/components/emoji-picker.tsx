@@ -7,10 +7,10 @@ import {
 import { Smile } from "lucide-react";
 import dynamic from "next/dynamic";
 
-const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
+const EmojiPicker = dynamic(() => import("emoji-picker-react").then(mod => mod.default), {
   ssr: false,
   loading: () => (
-    <div className="min-h-[450px] w-full animate-pulse bg-muted"></div>
+    <div className="min-h-[350px] w-full animate-pulse bg-muted rounded-md"></div>
   ),
 });
 
@@ -25,7 +25,7 @@ export function EmojiPickerButton({ onEmojiSelect }: EmojiPickerButtonProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="size-9 hover:bg-muted"
+          className="h-9 px-2 text-muted-foreground hover:text-foreground"
           aria-label="Add emoji"
         >
           <Smile className="size-5" />
@@ -34,7 +34,7 @@ export function EmojiPickerButton({ onEmojiSelect }: EmojiPickerButtonProps) {
       <PopoverContent
         side="top"
         align="start"
-        className="w-80 border-none bg-transparent p-0 shadow-none"
+        className="w-[352px] border-none bg-transparent p-0 shadow-none"
       >
         <EmojiPicker
           onEmojiClick={(emojiData) => onEmojiSelect(emojiData.emoji)}
