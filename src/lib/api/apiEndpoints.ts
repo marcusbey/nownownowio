@@ -48,6 +48,8 @@ export const ENDPOINTS = {
   
   // Upload
   UPLOAD_THING: `${API_BASE_URL}/uploadthing`,
+  WHO_TO_FOLLOW: `${API_BASE_URL}/posts/for-you/who-to-follow`,
+  TRENDING_TOPICS: `${API_BASE_URL}/posts/for-you/trending-topics`,
   
   // Widget
   WIDGET_GENERATE: `${API_BASE_URL}/widget/generate-script`,

@@ -1,12 +1,33 @@
-import { Suspense } from "react";
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Suspense } from "react";
 import SearchField from "./SearchField";
-import { WhoToFollowSection } from "./who-to-follow";
 import { TrendingTopicsSection } from "./trending-topics";
+import { WhoToFollowSection } from "./who-to-follow";
 
 export function TrendsSidebar() {
+  const { data: session } = useSession();
+
+  const { data: suggestions } = useQuery({
+    queryKey: ["who-to-follow"],
+    queryFn: async () => {
+      const res = await fetch("/api/v1/posts/for-you/who-to-follow");
+      if (!res.ok) {
+        throw new Error("Failed to fetch who-to-follow");
+      }
+      return res.json();
+    },
+    select: (users: { id: string; name: string }[]) => {
+      // Filter out current user
+      return users.filter((u) => u.id !== session?.user?.id);
+    },
+  });
+
   return (
-    <div className="sticky top-0 h-full w-full px-4 py-6 overflow-y-auto">
+    <div className="sticky top-0 size-full overflow-y-auto px-4 py-6">
       {/* Search and Filters Section */}
       <div
         className="space-y-4 rounded-xl p-4
@@ -24,8 +45,8 @@ export function TrendsSidebar() {
         }
       >
         <TrendingTopicsSection />
-        <div className="border-b border-accent mt-6 mb-4"></div>
-        <WhoToFollowSection />
+        <div className="mb-4 mt-6 border-b border-accent"></div>
+        <WhoToFollowSection suggestions={suggestions} />
       </Suspense>
     </div>
   );

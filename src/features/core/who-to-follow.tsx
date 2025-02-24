@@ -1,5 +1,6 @@
 "use client";
 
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import UserAvatar from "@/components/composite/UserAvatar";
 import Skeleton from "@/components/core/skeleton";
 import { useQuery } from "@tanstack/react-query";
@@ -22,7 +23,7 @@ export function WhoToFollowSection() {
   const { data = [], isLoading } = useQuery<User[]>({
     queryKey: ["whoToFollow"],
     queryFn: async () => {
-      const response = await fetch("/api/posts/for-you/who-to-follow");
+      const response = await fetch(ENDPOINTS.WHO_TO_FOLLOW);
       if (!response.ok) throw new Error("Failed to fetch who to follow");
       return response.json();
     },

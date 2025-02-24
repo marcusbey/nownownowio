@@ -7,6 +7,7 @@ import Linkify from "@/components/data-display/Linkify";
 import { usePostViews } from "@/hooks/use-post-views";
 import type { PostData } from "@/lib/types";
 import { cn, formatRelativeDate } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Eye, MessageSquare, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -60,7 +61,10 @@ export default function Post({ post }: PostProps) {
 
   const userProfileLink = useMemo(() => {
     if (user && post.user.id === user.id) {
-      const orgSlug = post.user.organizations?.[0]?.organization?.slug;
+      const userOrgs = post.user.organizations ?? [];
+      const orgSlug =
+        userOrgs.length > 0 ? userOrgs[0].organization?.slug : undefined;
+
       return `/orgs/${orgSlug || ""}/profile`;
     }
     return `/users/${post.user.name || ""}`;
@@ -74,7 +78,8 @@ export default function Post({ post }: PostProps) {
     () => post.user.displayName || post.user.name,
     [post.user],
   );
-  const hasAttachments = post.attachments?.length > 0;
+  const attachments = post.attachments ?? [];
+  const hasAttachments = attachments.length > 0;
 
   return (
     <motion.article
@@ -150,7 +155,7 @@ export default function Post({ post }: PostProps) {
               <div className="h-48 animate-pulse rounded-lg bg-muted" />
             }
           >
-            <LazyMediaPreviews attachments={post.attachments} />
+            <LazyMediaPreviews attachments={attachments} />
           </Suspense>
         </div>
       )}
@@ -241,5 +246,24 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       <MessageSquare className="size-4" />
       <span className="text-xs">{post._count.comments}</span>
     </Button>
+  );
+}
+
+export function PostFeed() {
+  const {
+    data: feedData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["post-feed"],
+    queryFn: async () => {
+      return fetch("/api/posts").then(async (res) => res.json());
+    },
+  });
+
+  if (isLoading) return <div>Loading feed...</div>;
+
+  return (
+    <div>{feedData?.map((post) => <p key={post.id}>{post.content}</p>)}</div>
   );
 }

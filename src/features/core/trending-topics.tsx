@@ -1,5 +1,6 @@
 "use client";
 
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import Skeleton from "@/components/core/skeleton";
 import { formatNumber } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +16,7 @@ export function TrendingTopicsSection() {
   const { data = [], isLoading } = useQuery<Topic[]>({
     queryKey: ["trendingTopics"],
     queryFn: async () => {
-      const response = await fetch("/api/posts/for-you/trending-topics");
+      const response = await fetch(ENDPOINTS.TRENDING_TOPICS);
       if (!response.ok) throw new Error("Failed to fetch trending topics");
       return response.json();
     },
