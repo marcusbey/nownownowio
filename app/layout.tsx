@@ -9,7 +9,7 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
-import "./globals.css";
+import "./globals.scss";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
