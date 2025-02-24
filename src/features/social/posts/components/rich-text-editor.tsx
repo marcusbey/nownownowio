@@ -7,11 +7,11 @@ import {
   CommandList,
 } from "@/components/composite/command";
 import { cn } from "@/lib/utils";
+import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import type { Editor } from "@tiptap/react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { GripVertical } from "lucide-react";
 import React from "react";
 
 type RichTextEditorProps = {
@@ -36,9 +36,12 @@ const RichTextEditor = React.forwardRef<
     { id: "numbered", label: "Numbered List", icon: "1." },
     { id: "quote", label: "Quote", icon: '"' },
     { id: "code", label: "Code Block", icon: "<>" },
+    { id: "link", label: "Link", icon: "🔗" },
   ];
 
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
+  const [showLinkPrompt, setShowLinkPrompt] = React.useState(false);
+  const [linkUrl, setLinkUrl] = React.useState("");
 
   /**
    * Filters commands based on the input search string.
@@ -111,12 +114,13 @@ const RichTextEditor = React.forwardRef<
       }),
       Placeholder.configure({
         placeholder: ({ node }) => {
-          if (node.type.name === 'paragraph') {
-            return 'Press "/" for commands...'
+          if (node.type.name === "paragraph") {
+            return 'Press "/" for commands...';
           }
-          return ''
+          return "";
         },
-        className: 'text-muted-foreground/30 select-none text-sm font-light italic',
+        className:
+          "text-muted-foreground/30 select-none text-sm font-light italic",
         placeholder: ({ node, editor }) => {
           const doc = editor.state.doc;
           const isFirstChild = doc.firstChild && doc.firstChild.eq(node);
@@ -154,6 +158,9 @@ const RichTextEditor = React.forwardRef<
         showOnlyWhenEditable: true,
         showCursor: true,
       }),
+      Link.configure({
+        openOnClick: false,
+      }),
     ],
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML());
@@ -166,7 +173,8 @@ const RichTextEditor = React.forwardRef<
     },
     editorProps: {
       attributes: {
-        class: "prose-base focus:outline-none leading-relaxed [&_p]:text-base [&_blockquote]:italic [&_*]:!text-foreground [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1,&_h2,&_h3]:font-medium",
+        class:
+          "prose-base focus:outline-none leading-relaxed [&_p]:text-base [&_blockquote]:italic [&_*]:!text-foreground [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1,&_h2,&_h3]:font-medium",
       },
       handleKeyDown: (view, event) => {
         // Restore slash-command menu navigation:
@@ -287,13 +295,40 @@ const RichTextEditor = React.forwardRef<
       case "code":
         editor.chain().focus().clearNodes().setCodeBlock().run();
         break;
+      case "link":
+        setLinkUrl("");
+        setShowLinkPrompt(true);
+        return;
     }
 
     // Move cursor to start if current node is empty or if switching to a new block type
-    if (isEmpty || node.type.name !== editor.state.selection.$head.parent.type.name) {
+    if (
+      isEmpty ||
+      node.type.name !== editor.state.selection.$head.parent.type.name
+    ) {
       const pos = editor.state.selection.$head.before();
       editor.commands.setTextSelection(pos);
     }
+  };
+
+  const confirmLink = () => {
+    if (!editor || !linkUrl.trim()) {
+      setShowLinkPrompt(false);
+      return;
+    }
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: linkUrl.trim() })
+      .run();
+    setShowLinkPrompt(false);
+    setLinkUrl("");
+  };
+
+  const cancelLink = () => {
+    setShowLinkPrompt(false);
+    setLinkUrl("");
   };
 
   React.useImperativeHandle(ref, () => ({
@@ -313,73 +348,73 @@ const RichTextEditor = React.forwardRef<
     <div className="w-full">
       <div className="relative">
         <div className="relative grow">
-        <EditorContent
-          editor={editor}
-          className={cn(
-            "w-full min-h-[150px]",
-            "focus-within:outline-none",
-            "rounded-lg",
-            "prose prose-sm dark:prose-invert max-w-none",
-            // Unified text color
-            "[--tw-prose-body:var(--foreground)]",
-            "[--tw-prose-headings:var(--foreground)]",
-            "[--tw-prose-lead:var(--foreground)]",
-            "[--tw-prose-links:var(--foreground)]",
-            "[--tw-prose-bold:var(--foreground)]",
-            "[--tw-prose-counters:var(--foreground)]",
-            "[--tw-prose-bullets:var(--foreground)]",
-            "[--tw-prose-quotes:var(--foreground)]",
-            "[--tw-prose-quote-borders:var(--border)]",
-            "[--tw-prose-captions:var(--foreground)]",
-            "[--tw-prose-code:var(--foreground)]",
-            "[--tw-prose-pre-code:var(--foreground)]",
-            "[--tw-prose-pre-bg:var(--background)]",
-            "[--tw-prose-th-borders:var(--border)]",
-            "[--tw-prose-td-borders:var(--border)]",
-            // Compact spacing
-            "[&_p]:mt-[0.5em] [&_p]:mb-[0.5em]",
-            "[&_h1]:mt-[0.5em] [&_h1]:mb-[0.5em]",
-            "[&_h2]:mt-[0.5em] [&_h2]:mb-[0.5em]",
-            "[&_h3]:mt-[0.5em] [&_h3]:mb-[0.5em]",
-            "[&_ul]:mt-[0.5em] [&_ul]:mb-[0.5em]",
-            "[&_ol]:mt-[0.5em] [&_ol]:mb-[0.5em]",
-            "[&_blockquote]:mt-[0.5em] [&_blockquote]:mb-[0.5em]",
-            "[&_pre]:mt-[0.5em] [&_pre]:mb-[0.5em]",
-            // Existing styles
-            "[&_*]:!text-foreground [&_*]:!opacity-100", // Optional fallback
-            "[&_p]:text-base [&_ul]:text-base [&_ol]:text-base",
-            "p-4",
-            "bg-white dark:bg-gray-900",
-            "border border-gray-200 dark:border-gray-700",
-            "[&_.ProseMirror]:min-h-[120px]",
-            "[&_p]:leading-6",
-            "[&_h1]:leading-8",
-            "[&_h2]:leading-7",
-            "[&_h3]:leading-6",
-            // Placeholder styles (kept distinct)
-            "[&_.ProseMirror_p.is-empty::before]:content-[attr(data-placeholder)]",
-            "[&_.ProseMirror_p.is-empty::before]:text-gray-500",
-            "[&_.ProseMirror_p.is-empty::before]:dark:text-gray-400",
-            "[&_.ProseMirror_p.is-empty::before]:float-left",
-            "[&_.ProseMirror_p.is-empty::before]:pointer-events-none",
-            "[&_.ProseMirror_p.is-empty::before]:h-0",
-            "[&_.ProseMirror_h1.is-empty::before]:content-[attr(data-placeholder)]",
-            "[&_.ProseMirror_h1.is-empty::before]:text-gray-500",
-            "[&_.ProseMirror_h1.is-empty::before]:dark:text-gray-400",
-            "[&_.ProseMirror_h1.is-empty::before]:float-left",
-            "[&_.ProseMirror_h1.is-empty::before]:pointer-events-none",
-            "[&_.ProseMirror_h2.is-empty::before]:content-[attr(data-placeholder)]",
-            "[&_.ProseMirror_h2.is-empty::before]:text-gray-500",
-            "[&_.ProseMirror_h2.is-empty::before]:dark:text-gray-400",
-            "[&_.ProseMirror_h2.is-empty::before]:float-left",
-            "[&_.ProseMirror_h2.is-empty::before]:pointer-events-none",
-            "[&_.ProseMirror_h3.is-empty::before]:content-[attr(data-placeholder)]",
-            "[&_.ProseMirror_h3.is-empty::before]:text-gray-500",
-            "[&_.ProseMirror_h3.is-empty::before]:dark:text-gray-400",
-            "[&_.ProseMirror_h3.is-empty::before]:float-left",
-            "[&_.ProseMirror_h3.is-empty::before]:pointer-events-none"
-          )}
-        />
+          <EditorContent
+            editor={editor}
+            className={cn(
+              "w-full min-h-[150px]",
+              "focus-within:outline-none",
+              "rounded-lg",
+              "prose prose-sm dark:prose-invert max-w-none",
+              // Unified text color
+              "[--tw-prose-body:var(--foreground)]",
+              "[--tw-prose-headings:var(--foreground)]",
+              "[--tw-prose-lead:var(--foreground)]",
+              "[--tw-prose-links:var(--foreground)]",
+              "[--tw-prose-bold:var(--foreground)]",
+              "[--tw-prose-counters:var(--foreground)]",
+              "[--tw-prose-bullets:var(--foreground)]",
+              "[--tw-prose-quotes:var(--foreground)]",
+              "[--tw-prose-quote-borders:var(--border)]",
+              "[--tw-prose-captions:var(--foreground)]",
+              "[--tw-prose-code:var(--foreground)]",
+              "[--tw-prose-pre-code:var(--foreground)]",
+              "[--tw-prose-pre-bg:var(--background)]",
+              "[--tw-prose-th-borders:var(--border)]",
+              "[--tw-prose-td-borders:var(--border)]",
+              // Compact spacing
+              "[&_p]:mt-[0.5em] [&_p]:mb-[0.5em]",
+              "[&_h1]:mt-[0.5em] [&_h1]:mb-[0.5em]",
+              "[&_h2]:mt-[0.5em] [&_h2]:mb-[0.5em]",
+              "[&_h3]:mt-[0.5em] [&_h3]:mb-[0.5em]",
+              "[&_ul]:mt-[0.5em] [&_ul]:mb-[0.5em]",
+              "[&_ol]:mt-[0.5em] [&_ol]:mb-[0.5em]",
+              "[&_blockquote]:mt-[0.5em] [&_blockquote]:mb-[0.5em]",
+              "[&_pre]:mt-[0.5em] [&_pre]:mb-[0.5em]",
+              // Existing styles
+              "[&_*]:!text-foreground [&_*]:!opacity-100", // Optional fallback
+              "[&_p]:text-base [&_ul]:text-base [&_ol]:text-base",
+              "p-4",
+              "bg-white dark:bg-gray-900",
+              "border border-gray-200 dark:border-gray-700",
+              "[&_.ProseMirror]:min-h-[120px]",
+              "[&_p]:leading-6",
+              "[&_h1]:leading-8",
+              "[&_h2]:leading-7",
+              "[&_h3]:leading-6",
+              // Placeholder styles (kept distinct)
+              "[&_.ProseMirror_p.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_p.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_p.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_p.is-empty::before]:float-left",
+              "[&_.ProseMirror_p.is-empty::before]:pointer-events-none",
+              "[&_.ProseMirror_p.is-empty::before]:h-0",
+              "[&_.ProseMirror_h1.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_h1.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_h1.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_h1.is-empty::before]:float-left",
+              "[&_.ProseMirror_h1.is-empty::before]:pointer-events-none",
+              "[&_.ProseMirror_h2.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_h2.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_h2.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_h2.is-empty::before]:float-left",
+              "[&_.ProseMirror_h2.is-empty::before]:pointer-events-none",
+              "[&_.ProseMirror_h3.is-empty::before]:content-[attr(data-placeholder)]",
+              "[&_.ProseMirror_h3.is-empty::before]:text-gray-500",
+              "[&_.ProseMirror_h3.is-empty::before]:dark:text-gray-400",
+              "[&_.ProseMirror_h3.is-empty::before]:float-left",
+              "[&_.ProseMirror_h3.is-empty::before]:pointer-events-none",
+            )}
+          />
         </div>
 
         {showCommandMenu && (
@@ -430,6 +465,32 @@ const RichTextEditor = React.forwardRef<
                 </CommandGroup>
               </CommandList>
             </Command>
+          </div>
+        )}
+
+        {showLinkPrompt && (
+          <div className="absolute left-1/2 top-1/2 z-50 flex w-[220px] -translate-x-1/2 -translate-y-1/2 flex-col gap-2 rounded-md border bg-white p-3 shadow dark:border-gray-700 dark:bg-gray-900">
+            <input
+              type="url"
+              className="w-full rounded border p-1 text-sm dark:border-gray-700 dark:bg-gray-800"
+              placeholder="Enter URL"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-2 py-1 text-sm text-gray-600 hover:text-red-500"
+                onClick={cancelLink}
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-500"
+                onClick={confirmLink}
+              >
+                OK
+              </button>
+            </div>
           </div>
         )}
       </div>
