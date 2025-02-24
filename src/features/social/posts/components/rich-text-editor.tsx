@@ -16,12 +16,13 @@ import React from "react";
 
 type RichTextEditorProps = {
   onChange?: (content: string) => void;
+  onEmojiSelect?: (emoji: string) => void;
 };
 
 const RichTextEditor = React.forwardRef<
   { clearEditor: () => void },
   RichTextEditorProps
->(({ onChange }, ref) => {
+>(({ onChange, onEmojiSelect }, ref) => {
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [commandSearch, setCommandSearch] = React.useState("");
@@ -283,6 +284,11 @@ const RichTextEditor = React.forwardRef<
     clearEditor: () => {
       if (editor) {
         editor.commands.clearContent(true);
+      }
+    },
+    insertEmoji: (emoji: string) => {
+      if (editor) {
+        editor.commands.insertContent(emoji);
       }
     },
   }));

@@ -9,13 +9,14 @@ import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { useUploadThing } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { ImagePlus, Loader2, Smile } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
 import { CommandMenu } from "@/features/social/posts/components/command-menu";
+import { EmojiPickerButton } from "@/features/social/posts/components/emoji-picker";
 
 type PostFormProps = {
   onSubmit?: () => void;
@@ -40,7 +41,7 @@ export function PostForm({
   const { startUpload, isUploading } = useUploadThing("postMedia");
   const { orgSlug } = useParams();
   const [content, setContent] = useState("");
-  const editorRef = React.useRef<{ clearEditor: () => void }>(null);
+  const editorRef = React.useRef<{ clearEditor: () => void; insertEmoji: (emoji: string) => void }>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -228,16 +229,23 @@ export function PostForm({
           )}
 
           <div className="flex items-center justify-between pt-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-9 px-2 text-muted-foreground hover:text-foreground"
-              onClick={() => document.getElementById("image-upload")?.click()}
-              disabled={isSubmitting || isUploading}
-            >
-              <ImagePlus className="size-5" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <EmojiPickerButton
+                onEmojiSelect={(emoji) => {
+                  editorRef.current?.insertEmoji(emoji);
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2 text-muted-foreground hover:text-foreground"
+                onClick={() => document.getElementById("image-upload")?.click()}
+                disabled={isSubmitting || isUploading}
+              >
+                <ImagePlus className="size-5" />
+              </Button>
+            </div>
 
             <ActionButton
               type="submit"
