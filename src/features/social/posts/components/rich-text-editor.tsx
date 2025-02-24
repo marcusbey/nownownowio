@@ -116,7 +116,7 @@ const RichTextEditor = React.forwardRef<
           }
           return ''
         },
-        className: 'text-muted-foreground/50 select-none text-base',
+        className: 'text-muted-foreground/30 select-none text-sm font-light italic',
         placeholder: ({ node, editor }) => {
           const doc = editor.state.doc;
           const isFirstChild = doc.firstChild && doc.firstChild.eq(node);
@@ -129,20 +129,20 @@ const RichTextEditor = React.forwardRef<
             case "heading":
               switch (node.attrs.level) {
                 case 1:
-                  return "Heading 1";
+                  return "Type heading 1...";
                 case 2:
-                  return "Heading 2";
+                  return "Type heading 2...";
                 case 3:
-                  return "Heading 3";
+                  return "Type heading 3...";
                 default:
                   return "Heading";
               }
             case "bulletList":
-              return "• List item";
+              return "List item";
             case "orderedList":
               return "1. List item";
             case "blockquote":
-              return "Quote";
+              return "Type a quote...";
             case "codeBlock":
               return "Code";
             case "paragraph":
@@ -158,9 +158,15 @@ const RichTextEditor = React.forwardRef<
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML());
     },
+    onFocus: ({ editor }) => {
+      // If content is empty, move cursor to start
+      if (editor.isEmpty) {
+        editor.commands.setTextSelection(0);
+      }
+    },
     editorProps: {
       attributes: {
-        class: "prose-base focus:outline-none leading-relaxed [&_p]:text-base [&_blockquote]:italic [&_*]:!text-foreground",
+        class: "prose-base focus:outline-none leading-relaxed [&_p]:text-base [&_blockquote]:italic [&_*]:!text-foreground [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1,&_h2,&_h3]:font-medium",
       },
       handleKeyDown: (view, event) => {
         // Restore slash-command menu navigation:
@@ -244,6 +250,10 @@ const RichTextEditor = React.forwardRef<
   const applyFormat = (command: { id: string; label: string }) => {
     if (!editor) return;
 
+    // Get the current node
+    const node = editor.state.selection.$head.parent;
+    const isEmpty = node.content.size === 0;
+
     switch (command.id) {
       case "text":
         editor.chain().focus().clearNodes().setParagraph().run();
@@ -277,6 +287,12 @@ const RichTextEditor = React.forwardRef<
       case "code":
         editor.chain().focus().clearNodes().setCodeBlock().run();
         break;
+    }
+
+    // Move cursor to start if current node is empty or if switching to a new block type
+    if (isEmpty || node.type.name !== editor.state.selection.$head.parent.type.name) {
+      const pos = editor.state.selection.$head.before();
+      editor.commands.setTextSelection(pos);
     }
   };
 

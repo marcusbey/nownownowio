@@ -6,6 +6,7 @@ import {
 } from "@/components/core/popover";
 import { Smile } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useTheme } from "next-themes";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react").then(mod => mod.default), {
   ssr: false,
@@ -19,6 +20,7 @@ interface EmojiPickerButtonProps {
 }
 
 export function EmojiPickerButton({ onEmojiSelect }: EmojiPickerButtonProps) {
+  const { theme } = useTheme();
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -40,6 +42,7 @@ export function EmojiPickerButton({ onEmojiSelect }: EmojiPickerButtonProps) {
           onEmojiClick={(emojiData) => onEmojiSelect(emojiData.emoji)}
           width="100%"
           height={400}
+          theme={theme === "dark" ? "dark" : "light"}
         />
       </PopoverContent>
     </Popover>
