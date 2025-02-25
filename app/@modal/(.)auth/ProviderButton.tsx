@@ -1,5 +1,5 @@
-import { Button } from "@/components/core/button";
-import { Loader } from "@/components/feedback/loader";
+import { Button } from "@/components/ui/button";
+import { Loader } from "@/components/ui/loader";
 import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";
 import { clsx } from "clsx";
@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 // ℹ️ Update this object with the providers you want to support
-const ProviderData: Record<string, { icon: ReactNode; name: string }> = {
+const ProviderData: Record<string, { icon: ReactNode; name: string; }> = {
   github: {
     icon: (
       <svg
@@ -83,23 +83,30 @@ const ProviderData: Record<string, { icon: ReactNode; name: string }> = {
 
 type ProviderButtonProps = {
   providerId: string;
-  action: "signin" | "signup";
+  action:  "signin" | "signup";
 };
 
-export const ProviderButton = (props: ProviderButtonProps) => {
+export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
   const searchParams = useSearchParams();
 
   const providerAuthMutation = useMutation({
-    mutationFn: async () =>
-      signIn(props.providerId, {
-        callbackUrl: searchParams.get("callbackUrl") ?? `${getServerUrl()}/`,
-        action: props.action,
+    mutationFn: () =>
+      signIn(providerId, {
+        callbackUrl: searchParams.get("callbackUrl") ?? `${getServerUrl()}/?isNewUser=true`,
+        action: action,
       }),
   });
-  const data = ProviderData[props.providerId];
-  const buttonText =
-    props.action === "signin" ? "Sign in with" : "Sign up with";
 
+  const data = ProviderData[providerId];
+
+  if (!data) {
+    console.error(
+      `Provider data not found for providerId: ${providerId}`
+    );
+    return null; // or return a fallback UI
+  }
+  const buttonText = action === "signin" ? "Sign in with" : "Sign up with";
+  
   return (
     <Button
       className={clsx({
@@ -116,9 +123,7 @@ export const ProviderButton = (props: ProviderButtonProps) => {
       }}
     >
       {providerAuthMutation.isPending ? <Loader size={16} /> : data.icon}
-      <span className="ml-2 text-base">
-        {buttonText} {data.name}
-      </span>
+      <span className="ml-2 text-base">{buttonText} {data.name}</span>
     </Button>
   );
 };

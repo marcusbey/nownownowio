@@ -3,6 +3,9 @@ import { auth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";
 import { NextResponse } from "next/server";
 
+// Prisma doesn't work in Edge runtime, so we need to use NodeJS runtime
+export const runtime = "nodejs";
+
 export async function GET() {
   const session = await auth();
   if (!session) {

@@ -1,11 +1,15 @@
 "use client";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/feedback/alert";
-import { Divider } from "@/components/layout/divider";
-import { Skeleton } from "@/components/feedback/skeleton";
 import { Typography } from "@/components/data-display/typography";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/feedback/alert";
+import { Skeleton } from "@/components/feedback/skeleton";
+import { Divider } from "@/components/layout/divider";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
+import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { MagicLinkForm } from "./magic-link-form";
@@ -14,7 +18,8 @@ import { SignInCredentialsAndMagicLinkForm } from "./sign-in-credentials-and-mag
 
 export const SignInProviders = () => {
   const { data: providers, isPending } = useQuery({
-    queryFn: async () => fetch(ENDPOINTS.AUTH_PROVIDERS).then(async (res) => res.json()),
+    queryFn: async () =>
+      fetch(ENDPOINTS.AUTH_PROVIDERS).then(async (res) => res.json()),
     queryKey: ["providers"],
   });
 
@@ -67,8 +72,15 @@ export const SignInProviders = () => {
 
       <div className="flex flex-col gap-2 lg:gap-4">
         {/* ℹ️ Add provider you want to support here */}
-        {providers.github ? <ProviderButton providerId="github" /> : null}
-        {providers.google ? <ProviderButton providerId="google" /> : null}
+        {providers.github ? (
+          <ProviderButton providerId="github" action="signin" />
+        ) : null}
+        {providers.google ? (
+          <ProviderButton providerId="google" action="signin" />
+        ) : null}
+        {providers.twitter ? (
+          <ProviderButton providerId="twitter" action="signin" />
+        ) : null}
       </div>
 
       {providers.credentials ? (

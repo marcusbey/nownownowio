@@ -2,12 +2,13 @@
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import type React from "react";
 import { Resend } from "resend";
 
 type EmailPayload = Parameters<Resend["emails"]["send"]>[0];
 type EmailOptions = Parameters<Resend["emails"]["send"]>[1];
 
-interface EmailParams {
+type EmailParams = {
   to: string | string[];
   subject: string;
   html?: string;
@@ -17,6 +18,7 @@ interface EmailParams {
   bcc?: string | string[];
   replyTo?: string;
   attachments?: EmailPayload["attachments"];
+  react?: React.ReactNode;
 }
 
 const getResendClient = () => {
@@ -38,13 +40,17 @@ const getResendClient = () => {
  * @returns A promise of the email sent
  */
 export async function sendEmail(params: EmailParams, options?: EmailOptions) {
+  const { react, ...restParams } = params;
+
   const payload = {
     from: params.from ?? env.RESEND_EMAIL_FROM,
-    ...params,
+    ...restParams,
     subject: env.NODE_ENV === "development" ? `[DEV] ${params.subject}` : params.subject,
+    ...(react && { react }),
   };
 
   try {
+    // @ts-expect-error - The Resend type definitions don't include the react property
     const result = await getResendClient().emails.send(payload, options);
 
     if ("error" in result) {

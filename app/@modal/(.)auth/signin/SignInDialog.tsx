@@ -1,6 +1,5 @@
 "use client";
 
-import { LogoSvg } from "@/components/icons/logo-svg";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/composite/dialog";
+import { LogoSvg } from "@/components/icons/logo-svg";
 import { usePathname, useRouter } from "next/navigation";
 import { SignInProviders } from "../../../auth/signin/sign-in-providers";
 
@@ -23,13 +23,17 @@ export function SignInDialog() {
           router.back();
         }
       }}
+      modal={true}
     >
-      <DialogContent className="bg-card">
+      <DialogContent
+        className="bg-card"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader className="flex flex-col items-center justify-center gap-2">
           <LogoSvg />
           <DialogTitle>Sign in to your account</DialogTitle>
-          <DialogDescription className="sr-only">
-            Please sign in to your account to continue.
+          <DialogDescription>
+            Enter your credentials to access your account
           </DialogDescription>
         </DialogHeader>
         <SignInProviders />
