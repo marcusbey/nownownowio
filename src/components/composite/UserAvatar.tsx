@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { useState } from "react";
 
 type UserAvatarProps = {
   avatarUrl: string | null | undefined;
@@ -12,16 +13,24 @@ export default function UserAvatar({
   size = 48,
   className,
 }: UserAvatarProps) {
+  const [error, setError] = useState(false);
+
   return (
-    <Image
-      src={avatarUrl ?? "/images/avatar-placeholder.png"}
-      alt="User avatar"
-      width={size}
-      height={size}
+    <div
       className={cn(
-        "aspect-square h-fit flex-none rounded-full bg-secondary object-cover",
+        "relative aspect-square overflow-hidden rounded-full bg-secondary",
         className
       )}
-    />
+      style={{ width: size, height: size }}
+    >
+      <Image
+        src={error || !avatarUrl ? "/images/avatar-placeholder.png" : avatarUrl}
+        alt="User avatar"
+        fill
+        sizes={`${size}px`}
+        className="object-cover"
+        onError={() => setError(true)}
+      />
+    </div>
   );
 }

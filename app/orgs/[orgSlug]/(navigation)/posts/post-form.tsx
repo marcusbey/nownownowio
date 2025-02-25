@@ -60,7 +60,7 @@ const SLASH_COMMANDS = [
 ];
 
 export default function PostForm() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { organization } = useOrganization();
 
   const [text, setText] = useState("");
@@ -127,8 +127,26 @@ export default function PostForm() {
     [filteredCommands, handleSelectCommand, showSlashMenu],
   );
 
+  if (status === "loading") {
+    return (
+      <div className="sticky top-0 z-10 bg-background/80 p-4 backdrop-blur-sm">
+        <div className="flex items-center justify-center p-4">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!session?.user?.id || !organization) {
-    return null;
+    return (
+      <div className="sticky top-0 z-10 bg-background/80 p-4 backdrop-blur-sm">
+        <div className="text-center">
+          {!session?.user?.id
+            ? "Please log in to create posts."
+            : "Organization not found."}
+        </div>
+      </div>
+    );
   }
 
   return (

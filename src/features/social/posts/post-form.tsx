@@ -1,22 +1,21 @@
 "use client";
 
 import UserAvatar from "@/components/composite/UserAvatar";
-import { Button } from "@/components/core/button";
 import { ActionButton } from "@/components/core/action-button";
+import { Button } from "@/components/core/button";
 import { Card, CardContent } from "@/components/data-display/card";
 import { useToast } from "@/components/feedback/use-toast";
+import { EmojiPickerButton } from "@/features/social/posts/components/emoji-picker";
+import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { useUploadThing } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2, Smile } from "lucide-react";
+import { ImagePlus, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
-import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
-import { CommandMenu } from "@/features/social/posts/components/command-menu";
-import { EmojiPickerButton } from "@/features/social/posts/components/emoji-picker";
 
 type PostFormProps = {
   onSubmit?: () => void;
@@ -25,6 +24,7 @@ type PostFormProps = {
     name: string;
   };
   userId?: string;
+  userImage?: string | null;
   className?: string;
 };
 
@@ -32,6 +32,7 @@ export function PostForm({
   onSubmit,
   organization,
   userId,
+  userImage,
   className,
 }: PostFormProps) {
   // All hooks at the top
@@ -41,14 +42,17 @@ export function PostForm({
   const { startUpload, isUploading } = useUploadThing("postMedia");
   const { orgSlug } = useParams();
   const [content, setContent] = useState("");
-  const editorRef = React.useRef<{ clearEditor: () => void; insertEmoji: (emoji: string) => void }>(null);
+  const editorRef = React.useRef<{
+    clearEditor: () => void;
+    insertEmoji: (emoji: string) => void;
+  }>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   // Early returns after all hooks
-  if (status === "loading") {
+  if (status === "loading" && !userId) {
     return (
       <Card>
         <CardContent className="p-4">
@@ -60,7 +64,10 @@ export function PostForm({
     );
   }
 
-  if (!session?.user) {
+  // If userId was passed directly as a prop, use that instead of session
+  const currentUser = userId ?? session?.user?.id;
+
+  if (!currentUser) {
     return (
       <Card>
         <CardContent className="p-4">
@@ -73,7 +80,7 @@ export function PostForm({
   }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files ?? []);
     if (files.length + selectedImages.length > 4) {
       toast({
         title: "Too many images",
@@ -173,7 +180,7 @@ export function PostForm({
         return [];
       });
 
-      queryClient.invalidateQueries({ queryKey: ["post-feed"] });
+      void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
       toast({ title: "Post created successfully" });
       onSubmit?.();
     } catch (error) {
@@ -188,16 +195,20 @@ export function PostForm({
     }
   };
 
-  if (!session.user) return null;
+  // Use userImage prop if provided, otherwise fallback to session
+  const avatarImage = userImage ?? session?.user?.image ?? null;
+  const userName = session?.user?.name ?? "Anonymous";
 
   return (
     <form onSubmit={handleSubmit} className={cn("w-full", className)}>
       <div className="flex gap-4">
-        <UserAvatar
-          avatarUrl={session.user.image}
-          size={44}
-          className="shrink-0"
-        />
+        <div className="shrink-0">
+          <UserAvatar 
+            avatarUrl={avatarImage} 
+            size={44} 
+            className="ring-2 ring-background" 
+          />
+        </div>
         <div className="relative flex-1 space-y-3">
           <RichTextEditor onChange={setContent} ref={editorRef} />
 
@@ -254,7 +265,7 @@ export function PostForm({
               disabled={isSubmitting || isUploading}
               className={cn(
                 "px-5 h-9",
-                (isSubmitting || isUploading) && "cursor-not-allowed"
+                (isSubmitting || isUploading) && "cursor-not-allowed",
               )}
             >
               {isSubmitting || isUploading ? (
