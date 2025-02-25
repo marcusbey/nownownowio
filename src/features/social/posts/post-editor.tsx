@@ -15,7 +15,7 @@ import type { ClipboardEvent } from "react";
 import { useRef } from "react";
 import useMediaUpload, { type Attachment } from "../hooks/use-media-upload";
 import { useSubmitPostMutation } from "../services/mutations";
-import "../styles.css";
+import "../styles.scss";
 
 export default function PostEditor() {
   const { data: session, status } = useSession();
