@@ -15,9 +15,9 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 
 // Local Components
+import { PostForm } from "@/features/social/posts/post-form";
 import FollowingFeed from "./FollowingFeed";
 import ForYouFeed from "./ForYouFeed";
-import { PostForm } from "@/features/social/posts/post-form";
 
 export default async function RoutePage(
   props: PageParams<{
@@ -30,7 +30,7 @@ export default async function RoutePage(
   if (!session?.user?.id) {
     return null; // Handle unauthorized access
   }
-
+  console.log(user);
   return (
     <Layout>
       <LayoutContent>
@@ -40,6 +40,7 @@ export default async function RoutePage(
               <PostForm
                 organization={{ id: organization.id, name: organization.name }}
                 userId={user.id}
+                userImage={user.image}
               />
             </div>
             <div className="mt-4 h-px bg-border/40" />

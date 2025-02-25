@@ -4,9 +4,27 @@ const nextConfig = {
     authInterrupts: true,
   },
   images: {
-    domains: [
-      'lh3.googleusercontent.com', // Google user profile images
-      'avatars.githubusercontent.com', // GitHub avatars
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'secure.gravatar.com',
+        pathname: '/**',
+      },
     ],
   },
 };

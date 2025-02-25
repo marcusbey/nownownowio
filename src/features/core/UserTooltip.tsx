@@ -1,5 +1,6 @@
 "use client";
 
+import UserAvatar from "@/components/composite/UserAvatar";
 import Linkify from "@/components/data-display/Linkify";
 import {
   Tooltip,
@@ -14,7 +15,6 @@ import type { PropsWithChildren } from "react";
 import { useMemo } from "react";
 import FollowButton from "./FollowButton";
 import FollowerCount from "./FollowerCount";
-import UserAvatar from "./UserAvatar";
 
 type UserTooltipProps = {
   user: UserData;
