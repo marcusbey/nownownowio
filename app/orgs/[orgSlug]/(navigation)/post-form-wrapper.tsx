@@ -9,10 +9,6 @@ export function PostFormWrapper() {
   const { data: session, status } = useSession();
   const { organization } = useOrganization();
 
-  console.log("PostFormWrapper - Session status:", status);
-  console.log("PostFormWrapper - Session data:", session?.user?.id);
-  console.log("PostFormWrapper - Organization:", organization?.id);
-
   return (
     <div className="w-full space-y-4 rounded-md border border-border bg-card p-4">
       <h2 className="text-lg font-medium">Create Post</h2>

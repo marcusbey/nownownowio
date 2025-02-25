@@ -195,18 +195,14 @@ export function PostForm({
     }
   };
 
-  // Use userImage prop if provided, otherwise fallback to session
-  const avatarImage = userImage ?? session?.user?.image ?? null;
-  const userName = session?.user?.name ?? "Anonymous";
-
   return (
     <form onSubmit={handleSubmit} className={cn("w-full", className)}>
       <div className="flex gap-4">
         <div className="shrink-0">
-          <UserAvatar 
-            avatarUrl={avatarImage} 
-            size={44} 
-            className="ring-2 ring-background" 
+          <UserAvatar
+            avatarUrl={userImage}
+            size={44}
+            className="ring-2 ring-background"
           />
         </div>
         <div className="relative flex-1 space-y-3">

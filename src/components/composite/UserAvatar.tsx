@@ -19,7 +19,7 @@ export default function UserAvatar({
 
   // Normalize the avatar URL
   const normalizedAvatarUrl = avatarUrl?.startsWith("http") ? avatarUrl : avatarUrl?.startsWith("/") ? avatarUrl : `/${avatarUrl}`;
-
+console.log(normalizedAvatarUrl)
   // Use placeholder if no URL or error
   const imageUrl = error || !normalizedAvatarUrl ? PLACEHOLDER_IMAGE : normalizedAvatarUrl;
 
