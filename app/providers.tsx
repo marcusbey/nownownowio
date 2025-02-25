@@ -9,12 +9,29 @@ import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import type { PropsWithChildren } from "react";
 
-const queryClient = new QueryClient();
+// Create a new QueryClient with optimized error handling
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Don't retry on error by default
+      retry: 0,
+      // Don't refetch on window focus by default
+      refetchOnWindowFocus: false,
+      // Shorter stale time to reduce potential staleness
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 export const Providers = ({ children }: PropsWithChildren) => {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <SessionProvider basePath="/api/v1/auth">
+      <SessionProvider
+        basePath="/api/v1/auth"
+        refetchInterval={0} // Don't auto-refetch the session
+        refetchOnWindowFocus={false} // Don't refetch on window focus
+        // Only include properties that are supported by SessionProvider
+      >
         <QueryClientProvider client={queryClient}>
           <Toaster />
           <AlertDialogRenderer />

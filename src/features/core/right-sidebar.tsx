@@ -1,32 +1,32 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import SearchField from "./SearchField";
 import { TrendingTopicsSection } from "./trending-topics";
 import { WhoToFollowSection } from "./who-to-follow";
 
 export function TrendsSidebar() {
-  const { data: session } = useSession();
-
-  const { data: suggestions } = useQuery({
-    queryKey: ["who-to-follow"],
-    queryFn: async () => {
-      const res = await fetch("/api/v1/posts/for-you/who-to-follow", {
-        credentials: "include",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch who-to-follow");
-      }
-      return res.json();
-    },
-    select: (users: { id: string; name: string }[]) => {
-      // Filter out current user
-      return users.filter((u) => u.id !== session?.user?.id);
+  // Configure useSession to not throw errors on unauthenticated
+  const { status } = useSession({
+    required: false,
+    onUnauthenticated() {
+      // Do nothing, let the component render normally
+      console.log("User is not authenticated");
     },
   });
+
+  // Use a separate state to track if we've mounted to avoid hydration mismatch
+  const [mounted, setMounted] = useState(false);
+
+  // Only set mounted to true after the component has mounted on the client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Only consider authenticated on the client to avoid hydration mismatch
+  const isAuthenticated = mounted && status === "authenticated";
 
   return (
     <div className="sticky top-0 size-full overflow-y-auto px-4 py-6">
@@ -47,8 +47,12 @@ export function TrendsSidebar() {
         }
       >
         <TrendingTopicsSection />
-        <div className="mb-4 mt-6 border-b border-accent"></div>
-        <WhoToFollowSection suggestions={suggestions} />
+        {isAuthenticated && (
+          <>
+            <div className="mb-4 mt-6 border-b border-accent"></div>
+            <WhoToFollowSection />
+          </>
+        )}
       </Suspense>
     </div>
   );

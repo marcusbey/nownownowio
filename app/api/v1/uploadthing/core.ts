@@ -1,7 +1,7 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { UploadThingError, UTApi } from "uploadthing/server";
+import { UTApi } from "uploadthing/server";
 
 const f = createUploadthing();
 
@@ -11,7 +11,7 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
-      if (!user) throw new UploadThingError("Unauthorized");
+      // validateRequest will throw if no user
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -23,7 +23,6 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
-      if (!user) throw new UploadThingError("Unauthorized");
       return { user };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -54,10 +53,7 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
-
-      if (!user) throw new UploadThingError("Unauthorized");
-
-      return {};
+      return { userId: user.id };
     })
     .onUploadComplete(async ({ file }) => {
       const media = await prisma.media.create({

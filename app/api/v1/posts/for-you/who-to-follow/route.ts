@@ -5,19 +5,22 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
-        const session = await auth();
-        if (!session?.user) {
-            return NextResponse.json([], { status: 401 });
+        const user = await auth();
+        if (!user) {
+            return NextResponse.json(
+                { error: "Authentication required to view user suggestions" },
+                { status: 401 }
+            );
         }
 
         // Fetch users excluding the current user
         const suggestions = await prisma.user.findMany({
             where: {
                 NOT: {
-                    id: session.user.id
+                    id: user.id
                 }
             },
-            select: getUserDataSelect(session.user.id),
+            select: getUserDataSelect(user.id),
             take: 5,
             orderBy: {
                 createdAt: 'desc'

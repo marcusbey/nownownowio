@@ -1,9 +1,9 @@
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { AUTH_COOKIE_NAME } from "@/lib/auth/auth.const";
 import { SiteConfig } from "@/site-config";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 
 export const config = {
   matcher: [
@@ -15,15 +15,57 @@ export const config = {
      * - favicon.ico (favicon file)
      * - admin (admin path)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|admin).*)",
+    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|admin).*)",
   ],
 };
 
 export async function middleware(req: NextRequest) {
+  // Debug logging
+  console.log(`Middleware running for: ${req.nextUrl.pathname}`);
+
   // Inject the current URL inside the request headers
   // Useful to get the parameters of the current request
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
+
+  const { pathname } = req.nextUrl;
+  const cookieList = await cookies();
+  const authCookie = cookieList.get(AUTH_COOKIE_NAME);
+
+  console.log(`Auth cookie present: ${!!authCookie}`);
+
+  // Check if user is authenticated for protected routes
+  // Protected routes include:
+  // - /orgs/* - Organization pages
+  // - /settings/* - User settings
+  // - /posts/* - Post detail pages
+  // - /messages/* - User messages
+  // - /profile/* - User profile pages
+  // - /notifications/* - User notifications
+  // - /@* - User profile pages
+  const protectedRoutes = [
+    '/orgs',
+    '/settings',
+    '/posts',
+    '/messages',
+    '/profile',
+    '/notifications',
+    '/@'
+  ];
+
+  // Fix: Remove the trailing slashes for more accurate matching
+  const isProtectedRoute = protectedRoutes.some(route =>
+    pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  console.log(`Is protected route: ${isProtectedRoute}`);
+
+  if (isProtectedRoute && !authCookie) {
+    console.log(`Redirecting unauthenticated user to landing page from ${pathname}`);
+    // Redirect unauthenticated users to the landing page (root URL)
+    const url = new URL('/', req.url);
+    return NextResponse.redirect(url.toString());
+  }
 
   // This settings is used to redirect the user to the organization page if he is logged in
   // The landing page is still accessible with the /home route
@@ -31,31 +73,37 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname === "/" &&
     SiteConfig.features.enableLandingRedirection
   ) {
-    const cookieList = await cookies();
-    const authCookie = cookieList.get(AUTH_COOKIE_NAME);
-
     if (authCookie) {
+      console.log('Authenticated user on landing page, trying to redirect to org');
       // Get user's first organization from the database
-      const response = await fetch(`${req.nextUrl.origin}${ENDPOINTS.ORGANIZATION_FIRST}`, {
-        headers: {
-          Cookie: `${AUTH_COOKIE_NAME}=${authCookie.value}`,
-        },
-      });
-      
-      if (response.ok) {
-        const { slug } = await response.json();
-        const url = new URL(req.url);
-        url.pathname = `/orgs/${slug}`;
-        return NextResponse.redirect(url.toString());
-      }
+      try {
+        const response = await fetch(`${req.nextUrl.origin}${ENDPOINTS.ORGANIZATION_FIRST}`, {
+          headers: {
+            Cookie: `${AUTH_COOKIE_NAME}=${authCookie.value}`,
+          },
+        });
 
-      // Fallback to orgs page if no organization found
-      const url = new URL(req.url);
-      url.pathname = "/orgs";
-      return NextResponse.redirect(url.toString());
+        if (response.ok) {
+          const { slug } = await response.json();
+          const url = new URL(req.url);
+          url.pathname = `/orgs/${slug}`;
+          console.log(`Redirecting to org: ${url.pathname}`);
+          return NextResponse.redirect(url.toString());
+        }
+
+        // Fallback to orgs page if no organization found
+        const url = new URL(req.url);
+        url.pathname = "/orgs";
+        console.log(`No org found, redirecting to: ${url.pathname}`);
+        return NextResponse.redirect(url.toString());
+      } catch (error) {
+        console.error("Error redirecting authenticated user:", error);
+        // Continue to the page if there's an error fetching the organization
+      }
     }
   }
 
+  console.log('Middleware complete, continuing to page');
   return NextResponse.next({
     request: {
       headers: requestHeaders,
