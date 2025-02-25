@@ -14,7 +14,9 @@ export function TrendsSidebar() {
   const { data: suggestions } = useQuery({
     queryKey: ["who-to-follow"],
     queryFn: async () => {
-      const res = await fetch("/api/v1/posts/for-you/who-to-follow");
+      const res = await fetch("/api/v1/posts/for-you/who-to-follow", {
+        credentials: "include",
+      });
       if (!res.ok) {
         throw new Error("Failed to fetch who-to-follow");
       }
