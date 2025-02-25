@@ -8,12 +8,20 @@ type UserAvatarProps = {
   className?: string;
 };
 
+const PLACEHOLDER_IMAGE = "/images/avatar-placeholder.png";
+
 export default function UserAvatar({
   avatarUrl,
   size = 48,
   className,
 }: UserAvatarProps) {
   const [error, setError] = useState(false);
+
+  // Normalize the avatar URL
+  const normalizedAvatarUrl = avatarUrl?.startsWith("http") ? avatarUrl : avatarUrl?.startsWith("/") ? avatarUrl : `/${avatarUrl}`;
+
+  // Use placeholder if no URL or error
+  const imageUrl = error || !normalizedAvatarUrl ? PLACEHOLDER_IMAGE : normalizedAvatarUrl;
 
   return (
     <div
@@ -24,12 +32,13 @@ export default function UserAvatar({
       style={{ width: size, height: size }}
     >
       <Image
-        src={error || !avatarUrl ? "/images/avatar-placeholder.png" : avatarUrl}
+        src={imageUrl}
         alt="User avatar"
         fill
         sizes={`${size}px`}
         className="object-cover"
         onError={() => setError(true)}
+        priority={size > 64} // Prioritize loading for larger avatars
       />
     </div>
   );

@@ -29,10 +29,17 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   },
   secret: env.AUTH_SECRET,
   callbacks: {
-    session: (params) => {
-      // @ts-expect-error - NextAuth doesn't know about this property
-      params.session.user.passwordHash = null;
-      return params.session;
+    session: async ({ session, user }) => {
+      if (session?.user) {
+        session.user.id = user.id;
+        session.user.email = user.email;
+        session.user.name = user.name;
+        session.user.image = user.image;
+        // Remove sensitive data
+        // @ts-expect-error - NextAuth doesn't know about this property
+        session.user.passwordHash = null;
+      }
+      return session;
     },
   },
   events: {
