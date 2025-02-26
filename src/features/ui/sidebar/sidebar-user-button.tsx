@@ -6,26 +6,38 @@ import { Skeleton } from "@/components/feedback/skeleton";
 import { useEffect, useState } from "react";
 
 export const SidebarUserButton = () => {
-  const { data: session, status } = useSession();
+  const { data: sessionData, status } = useSession();
   const [offlineMode, setOfflineMode] = useState(false);
   
   // Debug logging for session structure
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('SidebarUserButton - Session Data:', session);
+      console.log('SidebarUserButton - Session Data:', sessionData);
       console.log('SidebarUserButton - Session Status:', status);
     }
     
-    // If no session after 3 seconds and status is loading, assume offline mode
+    // If no session after 2 seconds and status is loading, assume offline mode
     const timer = setTimeout(() => {
       if (status === "loading") {
         console.warn("Session loading timeout - switching to offline mode");
         setOfflineMode(true);
       }
-    }, 3000);
+    }, 2000);
     
     return () => clearTimeout(timer);
-  }, [session, status]);
+  }, [sessionData, status]);
+  
+  // Forced refresh of session if initial load failed
+  useEffect(() => {
+    if (status === "unauthenticated" && !sessionData && !offlineMode) {
+      const forceRefreshTimer = setTimeout(() => {
+        // Force client-side refresh of the session
+        window.location.reload();
+      }, 5000);
+      
+      return () => clearTimeout(forceRefreshTimer);
+    }
+  }, [status, sessionData, offlineMode]);
   
   // If session is loading and not in offline mode, show a skeleton
   if (status === "loading" && !offlineMode) {
@@ -38,7 +50,7 @@ export const SidebarUserButton = () => {
   }
   
   // Get user data if available
-  const user = session?.user;
+  const user = sessionData?.user;
   const isAuthenticated = status === "authenticated" && !!user;
   
   return (
@@ -48,11 +60,11 @@ export const SidebarUserButton = () => {
           {isAuthenticated && user?.image ? (
             <AvatarImage src={user.image} alt={user.name || "User"} />
           ) : (
-            <AvatarFallback>{isAuthenticated && user?.name?.[0] ? user.name[0] : "U"}</AvatarFallback>
+            <AvatarFallback>{isAuthenticated && user?.name?.[0] || "U"}</AvatarFallback>
           )}
         </Avatar>
         <span className="ml-2 truncate">
-          {isAuthenticated ? (user.name || user.email) : "Guest User"}
+          {isAuthenticated ? (user?.name || user?.email) : "Guest User"}
         </span>
       </Button>
     </UserDropdown>
