@@ -9,7 +9,7 @@ import {
 import { ContactSupportDialog } from "@/features/communication/contact/support/contact-support-dialog";
 import { requiredAuth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";
-import { resendEmail as resend } from "@/lib/mail/resend";
+import * as resend from "@/lib/mail/resend";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { ToggleEmailCheckbox } from "./toggle-email-checkbox";
 
