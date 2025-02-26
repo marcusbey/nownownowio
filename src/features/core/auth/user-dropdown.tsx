@@ -34,11 +34,12 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   const logout = useMutation({
     mutationFn: async () => signOut({ callbackUrl: '/' }),
   });
-  const session = useSession();
+  const { data: session, status } = useSession();
   const theme = useTheme();
 
   // Determine if this is a guest user (no session or in loading state)
-  const isGuestUser = !session.data?.user;
+  const isAuthenticated = status === "authenticated" && !!session?.user;
+  const isGuestUser = !isAuthenticated;
 
   return (
     <DropdownMenu>
@@ -47,9 +48,9 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
         {!isGuestUser ? (
           <DropdownMenuLabel>
             <Typography variant="small">
-              {session.data.user.name ?? session.data.user.email}
+              {session?.user?.name ?? session?.user?.email}
             </Typography>
-            <Typography variant="muted">{session.data.user.email}</Typography>
+            <Typography variant="muted">{session?.user?.email}</Typography>
           </DropdownMenuLabel>
         ) : (
           <DropdownMenuLabel>
