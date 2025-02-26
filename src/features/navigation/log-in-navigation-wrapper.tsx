@@ -9,7 +9,7 @@ import { auth } from "@/lib/auth/helper";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";
 import type { PropsWithChildren } from "react";
 import { OrgsSelect } from "../../../app/orgs/[orgSlug]/(navigation)/_navigation/orgs-select";
-import { NavigationWrapper } from "./navigation-wrapper";
+import { NavigationWrapper } from "../navigation/navigation-wrapper";
 
 async function getAuthData() {
   const user = await auth();

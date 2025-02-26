@@ -1,5 +1,5 @@
 import type { OrganizationMembershipRole } from "@prisma/client";
-import type { NavigationGroup } from "../../../../../src/features/core/navigation.type";
+import type { NavigationGroup } from "../../../../../src/features/navigation/navigation.type";
 import { isInRoles } from "../../../../../src/lib/organizations/is-in-roles";
 
 const replaceSlug = (href: string, slug: string) => {

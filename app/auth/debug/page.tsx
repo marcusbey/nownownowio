@@ -1,0 +1,37 @@
+"use client";
+
+import { SessionDebug } from "@/features/core/auth/session-debug";
+import { Typography } from "@/components/data-display/typography";
+import Link from "next/link";
+import { Button } from "@/components/core/button";
+
+export default function SessionDebugPage() {
+  return (
+    <div className="container mx-auto py-8">
+      <Typography variant="h1" className="mb-6">Session Debug Page</Typography>
+      
+      <div className="mb-8">
+        <Typography variant="h3" className="mb-4">Navigation</Typography>
+        <div className="flex space-x-4">
+          <Button asChild variant="outline">
+            <Link href="/">Home</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/orgs">Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+      
+      <div className="p-4 bg-white dark:bg-gray-900 border rounded-md shadow-md">
+        <Typography variant="h3" className="mb-4">Instructions</Typography>
+        <Typography>
+          This page includes the SessionDebug component which helps troubleshoot session-related issues.
+          The component is fixed at the bottom-right corner of the screen. Click "Expand" to view the
+          full session structure.
+        </Typography>
+      </div>
+      
+      <SessionDebug />
+    </div>
+  );
+}

@@ -14,7 +14,7 @@ export const UpgradeCard = () => {
 
   if (!org) return null;
 
-  if (org.plan.id !== "FREE") return null;
+  if (!org.plan || org.plan.id !== "FREE") return null;
 
   return (
     <Card x-chunk="dashboard-02-chunk-0">

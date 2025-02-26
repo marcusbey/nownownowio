@@ -3,7 +3,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/layout/sidebar";
-import { TrendsSidebar } from "@/features/core/right-sidebar";
+import { TrendsSidebar } from "@/features/layout/right-sidebar";
 import { Layout } from "@/features/page/layout";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getUsersOrgs } from "@/query/org/get-users-orgs.query";

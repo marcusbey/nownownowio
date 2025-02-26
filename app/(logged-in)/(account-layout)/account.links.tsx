@@ -1,4 +1,4 @@
-import type { NavigationGroup } from "@/features/core/navigation.type";
+import type { NavigationGroup } from "@/features/navigation/navigation.type";
 import { SiteConfig } from "@/site-config";
 import {
   AlertCircle,

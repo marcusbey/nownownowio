@@ -13,9 +13,10 @@ import {
   SidebarRail,
 } from "@/components/layout/sidebar";
 import { SidebarMenuButtonLink } from "@/components/layout/sidebar-utils";
-import type { NavigationGroup } from "@/features/core/navigation.type";
+import type { NavigationGroup } from "@/features/navigation/navigation.type";
 import { SidebarUserButton } from "@/features/ui/sidebar/sidebar-user-button";
 import { ChevronDown } from "lucide-react";
+import * as Icons from "lucide-react";
 import { OrgsSelect } from "../../orgs/[orgSlug]/(navigation)/_navigation/orgs-select";
 import { getAccountNavigation } from "./account.links";
 
@@ -48,7 +49,16 @@ export function AccountSidebar({
                 {link.links.map((item) => (
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButtonLink href={item.href}>
-                      {typeof item.icon === 'string' ? item.icon : item.icon && <item.icon />}
+                      {(() => {
+                        if (typeof item.Icon === 'function') {
+                          const IconComponent = item.Icon;
+                          return <IconComponent className="size-4" />;
+                        } else if (typeof item.icon === 'string') {
+                          const Icon = Icons[item.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+                          return Icon ? <Icon className="size-4" /> : null;
+                        }
+                        return null;
+                      })()}
                       <span>{item.label}</span>
                     </SidebarMenuButtonLink>
                   </SidebarMenuItem>

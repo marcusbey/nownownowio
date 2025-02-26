@@ -19,20 +19,20 @@ import {
 } from "@/components/layout/sidebar";
 import { SidebarMenuButtonLink } from "@/components/layout/sidebar-utils";
 import { SidebarUserButton } from "@/features/ui/sidebar/sidebar-user-button";
+import type {
+  NavigationGroup,
+  NavigationLink,
+} from "../../../../../src/features/navigation/navigation.type";
 import type { OrganizationMembershipRole } from "@prisma/client";
-import * as Icons from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { PropsWithChildren } from "react";
 import { useEffect, useState } from "react";
-import type {
-  NavigationGroup,
-  NavigationLink,
-} from "../../../../../src/features/core/navigation.type";
 import { OrgCommand } from "./org-command";
 import { getOrganizationNavigation } from "./org-navigation.links";
 import { OrgsSelect } from "./orgs-select";
 import { UpgradeCard } from "./upgrade-org-card";
+import * as Icons from "lucide-react";
 
 export function OrgSidebar({
   slug,
@@ -76,11 +76,8 @@ export function OrgSidebar({
                       <SidebarMenuItem key={item.label}>
                         <SidebarMenuButtonLink href={item.href}>
                           {(() => {
-                            if (typeof item.icon === 'string') {
-                              const Icon = Icons[item.icon as keyof typeof Icons] || Icons.Circle;
-                              return Icon ? <Icon className="size-4" /> : null;
-                            }
-                            return item.icon ? <item.icon className="size-4" /> : null;
+                            const Icon = Icons[item.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+                            return Icon ? <Icon className="size-4" /> : null;
                           })()}
                           <span>{item.label}</span>
                         </SidebarMenuButtonLink>

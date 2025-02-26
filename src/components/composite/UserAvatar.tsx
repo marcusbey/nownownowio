@@ -18,16 +18,19 @@ export default function UserAvatar({
   const [error, setError] = useState(false);
 
   // Normalize the avatar URL
-  const normalizedAvatarUrl = avatarUrl?.startsWith("http") ? avatarUrl : avatarUrl?.startsWith("/") ? avatarUrl : `/${avatarUrl}`;
-console.log(normalizedAvatarUrl)
-  // Use placeholder if no URL or error
-  const imageUrl = error || !normalizedAvatarUrl ? PLACEHOLDER_IMAGE : normalizedAvatarUrl;
+  const normalizedAvatarUrl = avatarUrl?.startsWith("http")
+    ? avatarUrl
+    : avatarUrl?.startsWith("/")
+      ? avatarUrl
+      : `/${avatarUrl}`; // Use placeholder if no URL or error
+  const imageUrl =
+    error || !normalizedAvatarUrl ? PLACEHOLDER_IMAGE : normalizedAvatarUrl;
 
   return (
     <div
       className={cn(
         "relative aspect-square overflow-hidden rounded-full bg-secondary",
-        className
+        className,
       )}
       style={{ width: size, height: size }}
     >

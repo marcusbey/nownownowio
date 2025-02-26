@@ -1,4 +1,4 @@
-import { HeaderBase } from "@/features/core/header-base";
+import { HeaderBase } from "@/features/layout/header-base";
 
 export default function NotFound() {
   return (

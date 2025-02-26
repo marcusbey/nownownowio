@@ -1,7 +1,7 @@
 import { LogoSvg } from "@/components/icons/logo-svg";
 import { Alert, AlertDescription, AlertTitle } from "@/components/feedback/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/data-display/card";
-import { HeaderBase } from "@/features/core/header-base";
+import { HeaderBase } from "@/features/layout/header-base";
 import { auth } from "@/lib/auth/helper";
 import type { PageParams } from "@/types/next";
 import { AlertTriangle } from "lucide-react";

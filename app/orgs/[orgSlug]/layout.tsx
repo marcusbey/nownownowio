@@ -20,14 +20,14 @@ export default async function Layout({
 }) {
   const { orgSlug } = await params;
 
-  const org = await getCurrentOrgCache();
-  const orgData = org?.org
+  const org = await getCurrentOrgCache(orgSlug);
+  const orgData = org
     ? {
-        id: org.org.id,
-        slug: org.org.slug,
-        name: org.org.name,
-        image: org.org.image,
-        plan: org.org.plan,
+        id: org.id,
+        slug: org.slug,
+        name: org.name,
+        image: org.image,
+        plan: org.plan,
       }
     : undefined;
 

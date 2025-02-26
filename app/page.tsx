@@ -1,6 +1,6 @@
 import { Pricing } from "@/features/billing/plans/pricing-section";
 import { EmailFormSection } from "@/features/communication/email/email-form-section";
-import { Footer } from "@/features/core/footer";
+import { Footer } from "@/features/layout/footer";
 import { BentoGridSection } from "@/features/marketing/bento-section";
 import { CTASectionCard } from "@/features/marketing/cta/cta-card-section";
 import { CTAImageSection } from "@/features/marketing/cta/cta-image-section";

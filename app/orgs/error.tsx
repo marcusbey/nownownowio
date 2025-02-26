@@ -1,6 +1,6 @@
 "use client";
 
-import { NavigationWrapper } from "@/features/core/navigation-wrapper";
+import { NavigationWrapper } from "@/features/navigation/navigation-wrapper";
 import {
   Layout,
   LayoutContent,

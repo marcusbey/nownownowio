@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/data-display/card";
 import { ContactSupportDialog } from "@/features/communication/contact/support/contact-support-dialog";
-import { HeaderBase } from "@/features/core/header-base";
+import { HeaderBase } from "@/features/layout/header-base";
 import {
   Layout,
   LayoutContent,

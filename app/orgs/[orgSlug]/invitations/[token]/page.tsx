@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/data-display/card";
-import LogInNavigationWrapper from "@/features/core/log-in-navigation-wrapper";
-import { NavigationWrapper } from "@/features/core/navigation-wrapper";
+import LogInNavigationWrapper from "@/features/navigation/log-in-navigation-wrapper";
+import { NavigationWrapper } from "@/features/navigation/navigation-wrapper";
 import { Page400 } from "@/features/core/page/page-400";
 import {
   Layout,

@@ -30,7 +30,6 @@ export default async function RoutePage(
   if (!session?.user?.id) {
     return null; // Handle unauthorized access
   }
-  console.log(user);
   return (
     <Layout>
       <LayoutContent>

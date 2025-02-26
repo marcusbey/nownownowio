@@ -1,5 +1,5 @@
 import { buttonVariants } from "@/components/core/button";
-import { Header } from "@/features/core/header";
+import { Header } from "@/features/layout/header";
 import {
   Layout,
   LayoutContent,
