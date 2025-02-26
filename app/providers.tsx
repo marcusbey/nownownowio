@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import type { PropsWithChildren } from "react";
+import { useState } from "react";
 
 // Create a new QueryClient with optimized error handling
 const queryClient = new QueryClient({
@@ -24,6 +25,13 @@ const queryClient = new QueryClient({
 });
 
 export const Providers = ({ children }: PropsWithChildren) => {
+  // Use client-side state to track if we're in development mode
+  const [isDev] = useState(() => 
+    process.env.NODE_ENV === 'development' || 
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  );
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <SessionProvider

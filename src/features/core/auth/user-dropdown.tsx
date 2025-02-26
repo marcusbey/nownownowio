@@ -37,20 +37,27 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   const session = useSession();
   const theme = useTheme();
 
-  if (!session.data?.user) {
-    return null;
-  }
+  // Determine if this is a guest user (no session or in loading state)
+  const isGuestUser = !session.data?.user;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>
-          <Typography variant="small">
-            {session.data.user.name ?? session.data.user.email}
-          </Typography>
-          <Typography variant="muted">{session.data.user.email}</Typography>
-        </DropdownMenuLabel>
+        {!isGuestUser ? (
+          <DropdownMenuLabel>
+            <Typography variant="small">
+              {session.data.user.name ?? session.data.user.email}
+            </Typography>
+            <Typography variant="muted">{session.data.user.email}</Typography>
+          </DropdownMenuLabel>
+        ) : (
+          <DropdownMenuLabel>
+            <Typography variant="small">Guest User</Typography>
+            <Typography variant="muted" className="text-yellow-500">Limited functionality</Typography>
+          </DropdownMenuLabel>
+        )}
+        
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/orgs">
@@ -73,11 +80,11 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
               <DropdownMenuItem onClick={() => theme.setTheme("dark")}>
-                <SunMedium className="mr-2 size-4" />
+                <Moon className="mr-2 size-4" />
                 <span>Dark</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => theme.setTheme("light")}>
-                <Moon className="mr-2 size-4" />
+                <SunMedium className="mr-2 size-4" />
                 <span>Light</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -91,22 +98,35 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              logout.mutate();
-            }}
-          >
-            {logout.isPending ? (
-              <Loader className="mr-2 size-4" />
-            ) : (
-              <LogOut className="mr-2 size-4" />
-            )}
-            <span>Logout</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+        {!isGuestUser && (
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                logout.mutate();
+              }}
+            >
+              {logout.isPending ? (
+                <Loader className="mr-2 size-4" />
+              ) : (
+                <LogOut className="mr-2 size-4" />
+              )}
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        )}
+        
+        {isGuestUser && (
+          <DropdownMenuGroup>
+            <DropdownMenuItem asChild>
+              <Link href="/auth/signin">
+                <LogOut className="mr-2 size-4" />
+                <span>Sign In</span>
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
