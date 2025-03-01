@@ -75,8 +75,8 @@ export default async function AccountPage(props: PageParams) {
           <h3 className="text-xl font-medium">Organization Members</h3>
         </div>
         
-        <Card>
-          <CardHeader>
+        <Card className="bg-background border-border">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg">Members</CardTitle>
@@ -88,7 +88,7 @@ export default async function AccountPage(props: PageParams) {
                 <span className="text-sm font-medium">{members.length}/{org.plan.maximumMembers}</span>
                 <Progress 
                   value={(members.length / org.plan.maximumMembers) * 100} 
-                  className="w-20 h-2" 
+                  className="w-20 h-2 bg-primary/20" 
                 />
               </div>
             </div>
@@ -99,7 +99,7 @@ export default async function AccountPage(props: PageParams) {
               {/* Member List Preview - Show first 3 members */}
               <div className="space-y-3">
                 {members.slice(0, 3).map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-3 rounded-md bg-muted/50">
+                  <div key={member.id} className="flex items-center justify-between p-3 rounded-md bg-muted/30">
                     <div className="flex items-center gap-3">
                       <Avatar>
                         {member.user.image ? (
@@ -115,7 +115,7 @@ export default async function AccountPage(props: PageParams) {
                         <p className="text-xs text-muted-foreground">{member.user.email}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs uppercase">
                       {member.roles[0]}
                     </Badge>
                   </div>
@@ -144,13 +144,15 @@ export default async function AccountPage(props: PageParams) {
                 </div>
               )}
               
-              <div className="mt-4">
-                <Link 
-                  href={`/orgs/${org.slug}/settings/members`} 
-                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              <div className="flex justify-end mt-4">
+                <Button 
+                  asChild
+                  className="bg-primary hover:bg-primary/90"
                 >
-                  Manage All Members
-                </Link>
+                  <Link href={`/orgs/${org.slug}/settings/members`}>
+                    Manage All Members
+                  </Link>
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -164,8 +166,8 @@ export default async function AccountPage(props: PageParams) {
           <h3 className="text-xl font-medium text-destructive">Danger Zone</h3>
         </div>
         
-        <Card className="border-destructive/20">
-          <CardHeader>
+        <Card className="border-destructive/20 bg-background">
+          <CardHeader className="pb-4">
             <CardTitle className="text-lg text-destructive">Organization Slug</CardTitle>
             <CardDescription>
               Changing your organization's slug will break all existing links
@@ -183,8 +185,8 @@ export default async function AccountPage(props: PageParams) {
           <Separator />
         </div>
         
-        <Card className="border-destructive/20">
-          <CardHeader>
+        <Card className="border-destructive/20 bg-background">
+          <CardHeader className="pb-4">
             <CardTitle className="text-lg text-destructive">Delete Organization</CardTitle>
             <CardDescription>
               Permanently delete this organization and all its data
@@ -198,12 +200,16 @@ export default async function AccountPage(props: PageParams) {
                 "By deleting your organization, you will lose all your data and your subscription will be cancelled. No refund will be provided."}
             </p>
             
-            <Link 
-              href={`/orgs/${org.slug}/settings/danger`} 
-              className="inline-flex h-10 items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground ring-offset-background transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-            >
-              Go to Danger Zone
-            </Link>
+            <div className="flex justify-end">
+              <Button 
+                variant="destructive"
+                asChild
+              >
+                <Link href={`/orgs/${org.slug}/settings/danger`}>
+                  Go to Danger Zone
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

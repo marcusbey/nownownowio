@@ -68,8 +68,8 @@ export function PersonalAccountForm({ user }: PersonalAccountFormProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="bg-background border-border">
+      <CardHeader className="pb-4">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16">
             {user.image ? (
@@ -119,7 +119,7 @@ export function PersonalAccountForm({ user }: PersonalAccountFormProps) {
               />
             </div>
             {!user.emailVerified && (
-              <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-yellow-500/10 text-yellow-600 text-sm">
+              <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-amber-500/20 text-amber-600 text-sm">
                 <AlertTriangle className="h-4 w-4" />
                 <span>Email not verified. Please verify your email.</span>
                 <Link 
@@ -132,11 +132,11 @@ export function PersonalAccountForm({ user }: PersonalAccountFormProps) {
             )}
           </div>
           
-          <div className="pt-2 flex justify-end">
+          <div className="flex justify-end pt-2">
             <Button 
               type="submit" 
               disabled={!isChanged || isSubmitting}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90"
             >
               <Save className="h-4 w-4" />
               Save Changes
