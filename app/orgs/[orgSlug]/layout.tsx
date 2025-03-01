@@ -18,7 +18,7 @@ export default async function Layout({
   children: React.ReactNode;
   params: { orgSlug: string };
 }) {
-  const { orgSlug } = await params;
+  const orgSlug = params.orgSlug;
 
   const org = await getCurrentOrgCache(orgSlug);
   const orgData = org
