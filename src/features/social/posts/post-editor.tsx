@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingButton from "@/components/composite/LoadingButton";
+import LoadingButton from "@/components/composite/loading-button";
 import UserAvatar from "@/components/composite/UserAvatar";
 import { Button } from "@/components/core/button";
 import { cn } from "@/lib/utils";
