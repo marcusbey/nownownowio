@@ -1,40 +1,51 @@
-"use client";
-
+import { combineWithParentMetadata } from "@/lib/metadata";
+import { prisma } from "@/lib/prisma";
+import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
+import { getOrgsMembers } from "@/query/org/get-orgs-members";
+import type { PageParams } from "@/types/next";
+import { OrganizationMembershipRole } from "@prisma/client";
+import { Separator } from "@/components/data-display/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
-import { Button } from "@/components/core/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/data-display/tabs";
-import { User, Users, AlertTriangle } from "lucide-react";
+import { User, Users, AlertTriangle, Mail } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import React from "react";
-import type { Organization, OrganizationMembershipRole, User as UserType } from "@prisma/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/avatar";
+import { Progress } from "@/components/feedback/progress";
+import { Badge } from "@/components/data-display/badge";
 
-type OrganizationWithPlan = {
-  id: string;
-  name: string;
-  email: string | null;
-  image: string | null;
-  bio: string | null;
-  websiteUrl: string | null;
-  slug: string;
-  stripeCustomerId: string | null;
-  plan: {
-    id: string;
-    createdAt: Date;
-    name: string;
-    updatedAt: Date;
-    maximumMembers: number;
-  };
-  members: Array<{
-    roles: OrganizationMembershipRole[];
-    user: UserType;
-  }>;
-};
+export const generateMetadata = combineWithParentMetadata({
+  title: "Account Settings",
+  description: "Manage your account, organization members, and danger zone settings.",
+});
 
-export default function AccountPage() {
-  const params = useParams();
-  const orgSlug = params.orgSlug as string;
-  
+export default async function AccountPage(props: PageParams) {
+  const { org, user } = await getRequiredCurrentOrgCache();
+
+  const members = await getOrgsMembers(org.id);
+
+  const invitations = await prisma.verificationToken.findMany({
+    where: {
+      identifier: {
+        endsWith: `-invite-${org.id}`,
+      },
+      expires: {
+        gt: new Date(),
+      },
+    },
+    select: {
+      data: true,
+    },
+  });
+
+  const invitedEmail = invitations
+    .map((i) => (i?.data as { email?: string })?.email)
+    .filter(Boolean) as string[];
+
+  const usersOrganizationsCount = await prisma.organizationMembership.count({
+    where: {
+      userId: user.id,
+    },
+  });
+
   return (
     <div className="container max-w-4xl py-6">
       <div className="mb-6">
@@ -44,94 +55,190 @@ export default function AccountPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="personal" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="personal" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Personal Account
-          </TabsTrigger>
-          <TabsTrigger value="members" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Organization Members
-          </TabsTrigger>
-          <TabsTrigger value="danger" className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            Danger Zone
-          </TabsTrigger>
-        </TabsList>
+      {/* Personal Account Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-4">
+          <User className="h-5 w-5 text-primary" />
+          <h3 className="text-xl font-medium">Personal Account</h3>
+        </div>
         
-        <TabsContent value="personal" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Account Information</CardTitle>
-              <CardDescription>
-                Update your account details and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Manage your personal account settings, including name, email, and profile information.
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Account Information</CardTitle>
+            <CardDescription>
+              Update your account details and preferences
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-4">
+              <Avatar className="h-16 w-16">
+                {user.image ? (
+                  <AvatarImage src={user.image} alt={user.name || "User"} />
+                ) : (
+                  <AvatarFallback>{user.name?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                )}
+              </Avatar>
+              
+              <div className="space-y-1">
+                <p className="font-medium">{user.name}</p>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Manage your personal account settings, including name, email, and profile information.
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <Link 
+                href="/account" 
+                className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              >
+                Go to Account Settings
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Organization Members Section */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="h-5 w-5 text-primary" />
+          <h3 className="text-xl font-medium">Organization Members</h3>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Members</CardTitle>
+                <CardDescription>
+                  Manage members of your organization
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{members.length}/{org.plan.maximumMembers}</span>
+                <Progress 
+                  value={(members.length / org.plan.maximumMembers) * 100} 
+                  className="w-20 h-2" 
+                />
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="space-y-4">
+              {/* Member List Preview - Show first 3 members */}
+              <div className="space-y-3">
+                {members.slice(0, 3).map((member) => (
+                  <div key={member.id} className="flex items-center justify-between p-3 rounded-md bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        {member.user.image ? (
+                          <AvatarImage src={member.user.image} alt={member.user.name || "Member"} />
+                        ) : (
+                          <AvatarFallback>
+                            {(member.user.name || member.user.email || "").charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{member.user.name}</p>
+                        <p className="text-xs text-muted-foreground">{member.user.email}</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {member.roles[0]}
+                    </Badge>
+                  </div>
+                ))}
+                
+                {members.length > 3 && (
+                  <div className="text-sm text-muted-foreground text-center py-2">
+                    + {members.length - 3} more members
+                  </div>
+                )}
+              </div>
+              
+              {/* Invited Members */}
+              {invitedEmail.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-2">Pending Invitations</h4>
+                  <div className="space-y-2">
+                    {invitedEmail.map((email, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        <span>{email}</span>
+                        <Badge variant="secondary" className="ml-auto text-xs">Pending</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="mt-4">
                 <Link 
-                  href="/account" 
+                  href={`/orgs/${org.slug}/settings/members`} 
                   className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
                 >
-                  Go to Account Settings
+                  Manage All Members
                 </Link>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Danger Zone Section */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          <h3 className="text-xl font-medium text-destructive">Danger Zone</h3>
+        </div>
         
-        <TabsContent value="members" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Organization Members</CardTitle>
-              <CardDescription>
-                Manage members of your organization
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Add, remove, or update roles for members of your organization.
-              </p>
-              <div className="mt-4">
-                <Link 
-                  href={`/orgs/${orgSlug}/settings/members`} 
-                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-                >
-                  Manage Members
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle className="text-lg text-destructive">Organization Slug</CardTitle>
+            <CardDescription>
+              Changing your organization's slug will break all existing links
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Your current organization slug is <code className="px-1 py-0.5 bg-muted rounded text-sm">{org.slug}</code>
+            </p>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="danger" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-destructive">Danger Zone</CardTitle>
-              <CardDescription>
-                Delete your organization or perform dangerous actions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Warning: Actions in this section can result in permanent data loss and cannot be undone.
-              </p>
-              <div className="mt-4">
-                <Link 
-                  href={`/orgs/${orgSlug}/settings/danger`} 
-                  className="inline-flex h-10 items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground ring-offset-background transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-                >
-                  Go to Danger Zone
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        <div className="my-4">
+          <Separator />
+        </div>
+        
+        <Card className="border-destructive/20">
+          <CardHeader>
+            <CardTitle className="text-lg text-destructive">Delete Organization</CardTitle>
+            <CardDescription>
+              Permanently delete this organization and all its data
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              {usersOrganizationsCount <= 1 ? 
+                "You can't delete this organization because you are the only member. If you want to delete your organization, you need to delete your account." :
+                "By deleting your organization, you will lose all your data and your subscription will be cancelled. No refund will be provided."}
+            </p>
+            
+            <Link 
+              href={`/orgs/${org.slug}/settings/danger`} 
+              className="inline-flex h-10 items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground ring-offset-background transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+            >
+              Go to Danger Zone
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
