@@ -20,7 +20,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { BookmarkButton, LikeButton, PostMoreButton } from "./post-actions";
+import { BookmarkButton, PostMoreButton } from "./post-actions";
+import LikeButton from "./like-button";
 
 const LazyMediaPreviews = lazy(async () =>
   import("../components/media-preview").then((mod) => ({
@@ -165,9 +166,8 @@ export default function Post({ post }: PostProps) {
           <LikeButton
             postId={post.id}
             initialState={{
-              likes: post._count.likes,
-              isLikedByUser:
-                (post.likes ? post.likes.some((like) => like.userId === user?.id) : false),
+              likes: post._count?.likes || 0,
+              isLikedByUser: post.likes && post.likes.length > 0 ? post.likes.some((like) => like.userId === user?.id) : false
             }}
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -200,9 +200,8 @@ export default function Post({ post }: PostProps) {
             postId={post.id}
             initialState={{
               isBookmarkedByUser:
-                post.bookmarks.some(
-                  (bookmark) => bookmark.userId === user?.id,
-                ) || false,
+                post.bookmarks && post.bookmarks.length > 0 ?
+                  post.bookmarks.some((bookmark) => bookmark.userId === user?.id) : false,
             }}
             className="text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -244,7 +243,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       className="-ml-2 flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
     >
       <MessageSquare className="size-4" />
-      <span className="text-xs">{post._count.comments}</span>
+      <span className="text-xs">{post._count?.comments || 0}</span>
     </Button>
   );
 }

@@ -8,8 +8,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
-import { useToast } from "../ui/use-toast";
-import { Button } from "../ui/button";
+import { useToast } from "@/components/feedback/use-toast";
+import { Button } from "@/components/core/button";
 
 interface LikeButtonProps {
   postId: string;
