@@ -13,9 +13,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function MembersPage(props: PageParams) {
-  const { org } = await getRequiredCurrentOrgCache(undefined, [
-    OrganizationMembershipRole.ADMIN,
-  ]);
+  const orgSlug = await props.params.orgSlug;
+  // Don't restrict by role here - we'll handle permissions in the UI
+  const { org, user, roles } = await getRequiredCurrentOrgCache(orgSlug);
 
   const members = await getOrgsMembers(org.id);
 

@@ -61,6 +61,20 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
       </div>
 
       <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">Widget Integration</CardTitle>
+            <CardDescription>
+              Generate and customize your NowNowNow widget integration
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <WidgetScriptGenerator orgSlug={orgSlug} />
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg">Organization Details</CardTitle>
           <CardDescription>
@@ -69,18 +83,6 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
         </CardHeader>
         <CardContent>
           <OrgDetailsForm defaultValues={formDefaultValues} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Widget Integration</CardTitle>
-          <CardDescription>
-            Generate and customize your NowNowNow widget integration
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WidgetScriptGenerator orgSlug={orgSlug} />
         </CardContent>
       </Card>
     </div>

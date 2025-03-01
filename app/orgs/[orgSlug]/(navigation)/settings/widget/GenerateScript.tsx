@@ -66,18 +66,23 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-medium">Widget Settings</h3>
+        <Button
+          size="sm"
+          onClick={generateScript}
+          disabled={loading}
+          className="h-8 w-40"
+        >
+          {loading ? "Generating..." : "Generate Script"}
+        </Button>
+      </div>
+      
       <WidgetSettingsForm settings={settings} onChange={setSettings} />
       
       <div className="mt-8 p-4 bg-muted/50 rounded-lg space-y-3">
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={generateScript}
-            disabled={loading}
-            className="h-8"
-          >
-            {loading ? "Generating..." : "Generate Script"}
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-sm font-medium">Widget Script</h4>
           
           {script && (
             <Button
@@ -86,7 +91,8 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
               onClick={copyToClipboard}
               className="h-8"
             >
-              {copied ? <Check className="h-3 w-3" /> : "Copy"}
+              {copied ? <Check className="h-3 w-3 mr-1" /> : null}
+              {copied ? "Copied!" : "Copy"}
             </Button>
           )}
         </div>
