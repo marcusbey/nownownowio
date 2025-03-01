@@ -136,7 +136,7 @@ export function PersonalAccountForm({ user }: PersonalAccountFormProps) {
             <Button 
               type="submit" 
               disabled={!isChanged || isSubmitting}
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 w-40"
             >
               <Save className="h-4 w-4" />
               Save Changes

@@ -22,7 +22,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   const generateScript = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/widget/generate-script", {
+      const response = await fetch("/api/v1/widget/generate-script", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
