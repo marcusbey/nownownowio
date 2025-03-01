@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/prisma/prisma";
 import { baseAuth } from "@/lib/auth/auth";
+import { prisma } from "@/lib/prisma/prisma";
+import { detectTopicFromContent } from "@/lib/topic-detection";
 import type { PostsPage } from "@/lib/types";
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { detectTopicFromContent, getAvailableTopics } from "@/lib/topic-detection";
 
 // Schema for explore posts query parameters
 const explorePostsSchema = z.object({
@@ -12,6 +12,7 @@ const explorePostsSchema = z.object({
   topic: z.string().optional(),
   cursor: z.string().optional(),
   limit: z.number().min(1).max(100).default(20),
+  q: z.string().optional(), // Search query parameter
 });
 
 export async function GET(request: Request) {
@@ -32,15 +33,42 @@ export async function GET(request: Request) {
       topic: searchParams.get("topic") ?? undefined,
       cursor: searchParams.get("cursor") ?? undefined,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit") ?? "20") : 20,
+      q: searchParams.get("q") ?? undefined, // Get search query
     };
 
     console.log("[EXPLORE_PARAMS]", params);
 
     const validatedParams = explorePostsSchema.parse(params);
-    
-    // Build the base query conditions - we'll filter by topic after fetching
+
+    // Build the base query conditions
     const whereConditions: Prisma.PostWhereInput = {};
-    
+
+    // Add search query conditions if provided
+    if (validatedParams.q) {
+      const searchQuery = validatedParams.q.trim();
+
+      // Search in post content, user names, and organization names
+      whereConditions.OR = [
+        // Search in post content
+        { content: { contains: searchQuery, mode: 'insensitive' } },
+
+        // Search in user names
+        {
+          user: {
+            OR: [
+              { name: { contains: searchQuery, mode: 'insensitive' } },
+              { displayName: { contains: searchQuery, mode: 'insensitive' } },
+              { email: { contains: searchQuery, mode: 'insensitive' } },
+              { bio: { contains: searchQuery, mode: 'insensitive' } },
+            ]
+          }
+        },
+
+        // Search in URLs within content
+        { content: { contains: `http`, mode: 'insensitive' } }, // Basic URL detection
+      ];
+    }
+
     console.log("[EXPLORE_WHERE]", whereConditions);
 
     // Get posts with filters applied
@@ -132,13 +160,23 @@ export async function GET(request: Request) {
       });
     }
 
+    // Additional URL filtering for search queries
+    if (validatedParams.q?.includes('.')) {
+      const urlQuery = validatedParams.q.toLowerCase();
+      // Further filter posts that might contain URLs
+      filteredPosts = filteredPosts.filter(post => {
+        // Check if content contains the URL pattern
+        return post.content.toLowerCase().includes(urlQuery);
+      });
+    }
+
     console.log(`[EXPLORE_FILTERED_POSTS] Original: ${posts.length}, Filtered: ${filteredPosts.length}`);
 
     // Format response as PostsPage
     const response: PostsPage = {
-      posts: filteredPosts,
-      nextCursor: filteredPosts.length > 0 && filteredPosts.length === validatedParams.limit 
-        ? filteredPosts[filteredPosts.length - 1].id 
+      posts: filteredPosts as any, // Use type assertion to avoid compatibility issues
+      nextCursor: filteredPosts.length > 0 && filteredPosts.length === validatedParams.limit
+        ? filteredPosts[filteredPosts.length - 1].id
         : null,
     };
 

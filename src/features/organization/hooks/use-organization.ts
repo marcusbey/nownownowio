@@ -1,5 +1,5 @@
-import kyInstance from "@/lib/ky";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
+import kyInstance from "@/lib/ky";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 

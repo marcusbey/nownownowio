@@ -10,9 +10,9 @@ import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { getServerUrl } from "@/lib/server-url";
 import { SiteConfig } from "@/site-config";
 import type { LayoutParams } from "@/types/next";
+import type { OrganizationMembershipRole } from "@prisma/client";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { OrganizationMembershipRole } from "@prisma/client";
 import { SettingsTabs } from "./_components/SettingsTabs";
 
 // Update the generateMetadata function
@@ -23,10 +23,12 @@ export const generateMetadata = async (): Promise<Metadata> => {
   };
 };
 
-export default async function RouteLayout(props: LayoutParams) {
-  // Fix the params type issue by asserting the type
+export default async function RouteLayout(
+  props: LayoutParams<{ orgSlug: string }>,
+) {
+  // Properly await the params Promise
   const params = await props.params;
-  const orgSlug = params.orgSlug as string;
+  const orgSlug = params.orgSlug;
 
   try {
     const { org } = await getRequiredCurrentOrgCache(orgSlug);
@@ -58,8 +60,8 @@ export default async function RouteLayout(props: LayoutParams) {
           </LayoutDescription>
         </LayoutHeader>
         <LayoutContent className="mt-4 w-full">
-          <SettingsTabs 
-            orgSlug={orgSlug} 
+          <SettingsTabs
+            orgSlug={orgSlug}
             tabs={[
               {
                 id: "general",
@@ -78,7 +80,7 @@ export default async function RouteLayout(props: LayoutParams) {
               },
             ]}
           />
-          <div className="mt-6 mb-8 w-full">{props.children}</div>
+          <div className="mb-8 mt-6 w-full">{props.children}</div>
         </LayoutContent>
       </Layout>
     );
