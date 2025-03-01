@@ -7,8 +7,8 @@ import { InjectCurrentOrgStore } from "./use-current-org";
 export async function generateMetadata(
   props: PageParams<{ orgSlug: string }>,
 ): Promise<Metadata> {
-  const params = props.params;
-  return orgMetadata(await params.orgSlug);
+  const orgSlug = props.params.orgSlug;
+  return orgMetadata(orgSlug);
 }
 
 export default async function Layout({
@@ -18,7 +18,7 @@ export default async function Layout({
   children: React.ReactNode;
   params: { orgSlug: string };
 }) {
-  const orgSlug = await params.orgSlug;
+  const orgSlug = params.orgSlug;
 
   const org = await getCurrentOrgCache(orgSlug);
   const orgData = org

@@ -16,7 +16,7 @@ export async function GET(
       );
     }
 
-    const userId = await params.userId;
+    const userId = params.userId;
     const searchParams = request.nextUrl.searchParams;
     const cursor = searchParams.get("cursor");
     const limit = 10;
