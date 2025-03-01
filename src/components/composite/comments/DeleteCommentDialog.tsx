@@ -1,5 +1,5 @@
 import { CommentData } from "@/lib/types";
-import LoadingButton from "../LoadingButton";
+import LoadingButton from "../loading-button";
 import { Button } from "../ui/button";
 import {
   Dialog,

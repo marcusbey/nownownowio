@@ -1,4 +1,4 @@
-import LoadingButton from "@/components/composite/LoadingButton";
+import LoadingButton from "@/components/composite/loading-button";
 import { buttonVariants } from "@/components/core/button";
 import {
   Card,

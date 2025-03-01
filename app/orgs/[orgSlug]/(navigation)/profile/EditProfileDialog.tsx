@@ -1,6 +1,6 @@
 import avatarPlaceholder from "@/assets/avatar-placeholder.png";
 import CropImageDialog from "@/components/CropImageDialog";
-import LoadingButton from "@/components/composite/LoadingButton";
+import LoadingButton from "@/components/composite/loading-button";
 import {
   Dialog,
   DialogContent,

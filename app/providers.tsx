@@ -36,8 +36,9 @@ export const Providers = ({ children }: PropsWithChildren) => {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <SessionProvider
         basePath="/api/v1/auth"
-        refetchInterval={30} // Check session every 30 seconds
-        refetchOnWindowFocus={true} // Refetch on window focus to ensure up-to-date session
+        refetchInterval={0} // Don't auto-refetch the session
+        refetchOnWindowFocus={false} // Don't refetch on window focus
+        // Only include properties that are supported by SessionProvider
       >
         <QueryClientProvider client={queryClient}>
           <Toaster />

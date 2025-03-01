@@ -1,6 +1,6 @@
 "use client";
 
-import FollowButton from "@/components/composite/FollowButton";
+import FollowButton from "@/components/composite/follow-button";
 import UserAvatar from "@/components/composite/UserAvatar";
 import { FollowerCount } from "@/components/data-display/FollowerCount";
 import Linkify from "@/components/data-display/Linkify";
