@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/composite/popover";
 import { Textarea } from "@/components/core/textarea";
-import { InlineTooltip } from "@/components/ui/tooltip";
+import { InlineTooltip } from "@/components/data-display/tooltip";
 import { cn } from "@/lib/utils";
 import { Angry, Frown, Meh, SmilePlus } from "lucide-react";
 import { useSession } from "next-auth/react";

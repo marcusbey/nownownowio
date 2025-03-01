@@ -2,69 +2,76 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/a
 import { Button } from "@/components/core/button";
 import { useSession } from "next-auth/react";
 import { UserDropdown } from "@/features/core/auth/user-dropdown";
-import { Skeleton } from "@/components/feedback/skeleton";
 import { useEffect, useState } from "react";
 
+interface CachedUserData {
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  timestamp: number;
+}
+
 export const SidebarUserButton = () => {
-  const { data: sessionData, status } = useSession();
-  const [offlineMode, setOfflineMode] = useState(false);
+  const session = useSession();
+  const [cachedUserData, setCachedUserData] = useState<CachedUserData | null>(null);
   
-  // Debug logging for session structure
+  // Load cached user data
+  useEffect(() => {
+    try {
+      const cachedData = localStorage.getItem('cachedUserData');
+      if (cachedData) {
+        setCachedUserData(JSON.parse(cachedData));
+      }
+    } catch (error) {
+      console.error('Error loading cached user data:', error);
+    }
+    
+    // Update cache if we have session data
+    if (session.status === 'authenticated' && session.data) {
+      // Access user data directly from session.data
+      if (session.data.id && session.data.name) {
+        const userData: CachedUserData = {
+          name: session.data.name,
+          email: session.data.email,
+          image: session.data.image,
+          timestamp: Date.now()
+        };
+        
+        setCachedUserData(userData);
+        
+        try {
+          localStorage.setItem('cachedUserData', JSON.stringify(userData));
+        } catch (error) {
+          console.error('Error caching user data:', error);
+        }
+      }
+    }
+  }, [session.status, session.data]);
+  
+  // Debug logging
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('SidebarUserButton - Session Data:', sessionData);
-      console.log('SidebarUserButton - Session Status:', status);
+      console.log('SidebarUserButton - Session Data:', session);
+      console.log('SidebarUserButton - Session data:', session.data);
+      console.log('SidebarUserButton - Cached data:', cachedUserData);
     }
-    
-    // If no session after 2 seconds and status is loading, assume offline mode
-    const timer = setTimeout(() => {
-      if (status === "loading") {
-        console.warn("Session loading timeout - switching to offline mode");
-        setOfflineMode(true);
-      }
-    }, 2000);
-    
-    return () => clearTimeout(timer);
-  }, [sessionData, status]);
+  }, [session, cachedUserData]);
   
-  // Forced refresh of session if initial load failed
-  useEffect(() => {
-    if (status === "unauthenticated" && !sessionData && !offlineMode) {
-      const forceRefreshTimer = setTimeout(() => {
-        // Force client-side refresh of the session
-        window.location.reload();
-      }, 5000);
-      
-      return () => clearTimeout(forceRefreshTimer);
-    }
-  }, [status, sessionData, offlineMode]);
-  
-  // If session is loading and not in offline mode, show a skeleton
-  if (status === "loading" && !offlineMode) {
-    return (
-      <Button variant="outline" className="w-full justify-start">
-        <Skeleton className="size-6 rounded-full" />
-        <Skeleton className="ml-2 h-4 w-24" />
-      </Button>
-    );
-  }
-  
-  // Get user data if available
-  const user = sessionData?.user;
-  const isAuthenticated = status === "authenticated" && !!user;
+  // Use session data if available, otherwise fall back to cached data
+  const userData = (session.status === 'authenticated' && session.data) ? session.data : cachedUserData;
   
   return (
     <UserDropdown>
       <Button variant="outline" className="w-full justify-start">
         <Avatar className="size-6">
-          {isAuthenticated && user?.image ? (
-            <AvatarImage src={user.image} alt={user.name || "User"} />
+          {userData?.image ? (
+            <AvatarImage src={userData.image} alt={userData.name || "User"} />
           ) : (
-            <AvatarFallback>{isAuthenticated && user?.name?.[0] || "U"}</AvatarFallback>
+            <AvatarFallback>{userData?.name?.[0] ?? "U"}</AvatarFallback>
           )}
         </Avatar>
         <span className="ml-2 truncate">
-          {isAuthenticated ? (user?.name || user?.email) : "Guest User"}
+          {userData ? (userData.name || userData.email) : "Guest User"}
         </span>
       </Button>
     </UserDropdown>

@@ -13,8 +13,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/composite/dropdown-menu";
-import { Loader } from "@/components/feedback/loader";
 import { Typography } from "@/components/data-display/typography";
+import { Loader } from "@/components/feedback/loader";
 import { useMutation } from "@tanstack/react-query";
 import {
   LayoutDashboard,
@@ -25,49 +25,32 @@ import {
   SunMedium,
   SunMoon,
 } from "lucide-react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import type { PropsWithChildren } from "react";
-import { useEffect } from "react";
 
 export const UserDropdown = ({ children }: PropsWithChildren) => {
   const logout = useMutation({
-    mutationFn: async () => signOut({ callbackUrl: '/' }),
+    mutationFn: async () => signOut({ callbackUrl: "/" }),
   });
-  const { data: sessionData, status } = useSession();
+  const session = useSession();
   const theme = useTheme();
   
-  // Debug the session in development mode
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('UserDropdown - Session:', sessionData);
-      console.log('UserDropdown - Status:', status);
-    }
-  }, [sessionData, status]);
-
-  // Determine if this is a guest user (no session or loading failed)
-  const isAuthenticated = status === "authenticated" && !!sessionData?.user;
-  const user = sessionData?.user;
+  // Get user data if available
+  const user = session.data?.user;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        {isAuthenticated ? (
-          <DropdownMenuLabel>
-            <Typography variant="small">
-              {user.name ?? user.email}
-            </Typography>
-            <Typography variant="muted">{user.email}</Typography>
-          </DropdownMenuLabel>
-        ) : (
-          <DropdownMenuLabel>
-            <Typography variant="small">Guest User</Typography>
-            <Typography variant="muted" className="text-yellow-500">Limited functionality</Typography>
-          </DropdownMenuLabel>
-        )}
-        
+        <DropdownMenuLabel>
+          <Typography variant="small">
+            {user?.name ?? user?.email ?? "Guest User"}
+          </Typography>
+          {user?.email && <Typography variant="muted">{user.email}</Typography>}
+        </DropdownMenuLabel>
+
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/orgs">
@@ -108,8 +91,8 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
 
         <DropdownMenuSeparator />
 
-        {isAuthenticated ? (
-          <DropdownMenuGroup>
+        <DropdownMenuGroup>
+          {user ? (
             <DropdownMenuItem
               onClick={(e) => {
                 e.stopPropagation();
@@ -124,21 +107,15 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
               )}
               <span>Logout</span>
             </DropdownMenuItem>
-          </DropdownMenuGroup>
-        ) : (
-          <DropdownMenuGroup>
-            <DropdownMenuItem 
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                signIn(undefined, { callbackUrl: '/orgs' });
-              }}
-            >
-              <LogOut className="mr-2 size-4" />
-              <span>Sign In</span>
+          ) : (
+            <DropdownMenuItem asChild>
+              <Link href="/auth/signin">
+                <LogOut className="mr-2 size-4" />
+                <span>Sign In</span>
+              </Link>
             </DropdownMenuItem>
-          </DropdownMenuGroup>
-        )}
+          )}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
