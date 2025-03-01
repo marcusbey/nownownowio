@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, CreditCard, User } from "lucide-react";
+import { Settings, CreditCard, User, LayoutDashboard } from "lucide-react";
 
 interface SettingsTab {
   id: string;
@@ -25,6 +25,8 @@ export function SettingsTabs({ orgSlug, tabs }: SettingsTabsProps) {
       return 'plan';
     } else if (pathname.includes('/settings/account') || pathname.includes('/settings/members') || pathname.includes('/settings/danger')) {
       return 'account';
+    } else if (pathname.includes('/settings/dashboard')) {
+      return 'dashboard';
     } else {
       return 'general';
     }
@@ -41,6 +43,8 @@ export function SettingsTabs({ orgSlug, tabs }: SettingsTabsProps) {
         return CreditCard;
       case 'account':
         return User;
+      case 'dashboard':
+        return LayoutDashboard;
       default:
         return Settings;
     }
