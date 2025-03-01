@@ -62,11 +62,6 @@ export default async function RouteLayout(props: LayoutParams) {
             orgSlug={orgSlug} 
             tabs={[
               {
-                id: "dashboard",
-                label: "Dashboard",
-                href: `${orgPath}/settings/dashboard`,
-              },
-              {
                 id: "general",
                 label: "General",
                 href: `${orgPath}/settings`,

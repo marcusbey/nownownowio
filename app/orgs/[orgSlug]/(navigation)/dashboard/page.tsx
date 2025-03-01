@@ -1,4 +1,4 @@
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/core/button";
 import {
   Layout,
   LayoutActions,
@@ -6,7 +6,7 @@ import {
   LayoutHeader,
   LayoutTitle,
 } from "@/features/page/layout";
-import { isInRoles } from "@/lib/organizations/isInRoles";
+import { isInRoles } from "@/lib/organizations/is-in-roles";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import Link from "next/link";

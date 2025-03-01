@@ -78,7 +78,7 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
         roles: ["OWNER", "ADMIN"],
       },
       {
-        href: prependOrgPath("/settings/dashboard"),
+        href: prependOrgPath("/dashboard"),
         icon: "layout-dashboard",
         label: "Dashboard",
         roles: ["OWNER", "ADMIN"],
