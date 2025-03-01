@@ -27,13 +27,14 @@ export const SidebarUserButton = () => {
     }
     
     // Update cache if we have session data
-    if (session.status === 'authenticated' && session.data) {
-      // Access user data directly from session.data
-      if (session.data.id && session.data.name) {
+    if (session.status === 'authenticated' && session.data?.user) {
+      // Access user data from session.data.user
+      const user = session.data.user;
+      if (user) {
         const userData: CachedUserData = {
-          name: session.data.name,
-          email: session.data.email,
-          image: session.data.image,
+          name: user.name,
+          email: user.email,
+          image: user.image,
           timestamp: Date.now()
         };
         
@@ -58,7 +59,7 @@ export const SidebarUserButton = () => {
   }, [session, cachedUserData]);
   
   // Use session data if available, otherwise fall back to cached data
-  const userData = (session.status === 'authenticated' && session.data) ? session.data : cachedUserData;
+  const userData = (session.status === 'authenticated' && session.data?.user) ? session.data.user : cachedUserData;
   
   return (
     <UserDropdown>
