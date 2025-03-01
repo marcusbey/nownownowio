@@ -167,7 +167,7 @@ export default function Post({ post }: PostProps) {
             initialState={{
               likes: post._count.likes,
               isLikedByUser:
-                post.likes.some((like) => like.userId === user?.id) || false,
+                post.likes && post.likes.some((like) => like.userId === user?.id) || false,
             }}
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           />

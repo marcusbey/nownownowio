@@ -53,7 +53,10 @@ export function WhoToFollowSection() {
           return [];
         }
 
-        if (!response.ok) throw new Error("Failed to fetch who to follow");
+        if (!response.ok) {
+          console.error("Failed to fetch who to follow");
+          return [];
+        }
         return response.json();
       } catch (err) {
         console.error("Error fetching who to follow:", err);
