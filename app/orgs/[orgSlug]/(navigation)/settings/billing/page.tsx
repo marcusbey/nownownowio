@@ -7,6 +7,7 @@ export const generateMetadata = combineWithParentMetadata({
   description: "Manage your subscription plan and billing information.",
 });
 
-export default function BillingPage({ params }: PageParams<{ orgSlug: string }>) {
-  return <PlanContent orgSlug={params.orgSlug} />;
+export default async function BillingPage({ params }: PageParams<{ orgSlug: string }>) {
+  const { orgSlug } = params;
+  return <PlanContent orgSlug={orgSlug} />;
 }

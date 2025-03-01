@@ -17,8 +17,8 @@ export const generateMetadata = combineWithParentMetadata({
   description: "Manage your account, organization members, and danger zone settings.",
 });
 
-export default async function AccountPage(props: PageParams) {
-  const orgSlug = await props.params.orgSlug;
+export default async function AccountPage({ params }: PageParams<{ orgSlug: string }>) {
+  const { orgSlug } = params;
   const { org, user } = await getRequiredCurrentOrgCache(orgSlug);
 
   const members = await getOrgsMembers(org.id);
