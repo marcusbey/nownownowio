@@ -1,44 +1,56 @@
-export type Plan = {
+import { z } from "zod";
+
+export const PlanId = z.enum(["FREEBIRD_RECURRING", "FREEBIRD_LIFETIME"]);
+export type PlanId = z.infer<typeof PlanId>;
+
+export interface Plan {
   id: string;
   name: string;
-  subtitle: string;
-  price: number;
-  barredPrice?: number;
-  currency: string;
+  description: string;
+  subtitle?: string;
   features: string[];
+  price?: number;
+  yearlyPrice?: number;
+  priceId?: string;
+  yearlyPriceId?: string;
+  type: "recurring" | "lifetime";
   isPopular?: boolean;
-  type?: "monthly" | "yearly" | "one-time";
   className?: string;
-  priceId: string;
-  cta: string;
-  ctaSubtitle: string;
-};
+  currency?: string;
+}
 
-export const PLANS = [
+export const PLANS: Plan[] = [
   {
-    id: "FREE",
-    name: "Free",
-    subtitle: "Perfect for tiny creator",
-    price: 0,
-    currency: "USD",
-    features: ["1 user"],
-    isPopular: false,
-    priceId: "",
-    cta: "Start for free",
-    ctaSubtitle: "No credit card required",
+    id: "FREEBIRD_RECURRING",
+    name: "Free Bird",
+    description: "For solopreneurs who want flexibility",
+    features: [
+      "1 organization member",
+      "Advanced analytics",
+      "Priority support",
+      "All features included",
+      "Monthly or yearly billing",
+    ],
+    type: "recurring",
+    price: 14, // Monthly price
+    yearlyPrice: 129, // Yearly price
+    priceId: "price_1QjQJS00GvYcfU0MA4GzNyp6", // Monthly price ID
+    yearlyPriceId: "price_1Qji9P00GvYcfU0MR1g0gItW", // Yearly price ID
   },
   {
-    id: "PRO",
-    name: "Pro",
-    subtitle: "Perfect for content creator",
-    price: 49,
-    currency: "USD",
-    features: ["5 users"],
-    isPopular: true,
-    type: "monthly",
-    // TODO : Change this to the actual price id
-    priceId: "price_id_demo",
-    cta: "Start now",
-    ctaSubtitle: "Then $49/month",
+    id: "FREEBIRD_LIFETIME",
+    name: "Free Bird Lifetime",
+    description: "For solopreneurs who want lifetime access",
+    features: [
+      "1 organization member",
+      "Advanced analytics",
+      "Priority support",
+      "All features included",
+      "One-time payment",
+      "Lifetime access",
+    ],
+    type: "lifetime",
+    price: 199,
+    priceId: "price_1QjQJb00GvYcfU0MoBCU9kiy", // Live one-time price
   },
-] satisfies Plan[];
+];

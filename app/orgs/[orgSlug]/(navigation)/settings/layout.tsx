@@ -12,7 +12,8 @@ import { SiteConfig } from "@/site-config";
 import type { LayoutParams } from "@/types/next";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SettingsNavigation } from "./_components/SettingsNavigation";
+import { OrganizationMembershipRole } from "@prisma/client";
+import { SettingsTabs } from "./_components/SettingsTabs";
 
 // Update the generateMetadata function
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -56,43 +57,28 @@ export default async function RouteLayout(props: LayoutParams) {
             The organization is the hub for your billing, members, and more.
           </LayoutDescription>
         </LayoutHeader>
-        <LayoutContent className="mt-4 flex items-start gap-2 max-lg:flex-col">
-          <SettingsNavigation
-            orgSlug={orgSlug}
-            links={[
+        <LayoutContent className="mt-4 w-full">
+          <SettingsTabs 
+            orgSlug={orgSlug} 
+            tabs={[
               {
-                href: `${orgPath}/settings`,
+                id: "general",
                 label: "General",
-                roles: ["ADMIN"],
+                href: `${orgPath}/settings`,
               },
               {
-                href: `${orgPath}/settings/widget`,
-                label: "Widget",
-                roles: ["ADMIN"],
-              },
-              {
-                href: `${orgPath}/settings/members`,
-                label: "Members",
-                roles: ["ADMIN"],
-              },
-              {
-                href: `${orgPath}/settings/subscription`,
-                label: "Subscription",
-                roles: ["ADMIN"],
-              },
-              {
+                id: "plan",
+                label: "Plan and Billing",
                 href: `${orgPath}/settings/billing`,
-                label: "Billing",
-                roles: ["ADMIN"],
               },
               {
-                href: `${orgPath}/settings/danger`,
-                label: "Danger Zone",
-                roles: ["OWNER"],
+                id: "account",
+                label: "Account",
+                href: `${orgPath}/settings/account`,
               },
             ]}
           />
-          <div className="mb-8 w-full flex-1">{props.children}</div>
+          <div className="mt-6 mb-8 w-full">{props.children}</div>
         </LayoutContent>
       </Layout>
     );

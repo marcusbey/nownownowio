@@ -2,7 +2,7 @@ import { requiredAuth } from "@/lib/auth/helper";
 import { OrgSelectQuery } from "@/lib/organizations/get-org";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { OrganizationBilling } from "../../../../orgs/[orgSlug]/(navigation)/settings/billing/page";
+import BillingPage from "../../../../orgs/[orgSlug]/(navigation)/settings/billing/page";
 
 export default async function RoutePage() {
   const user = await requiredAuth();
@@ -21,5 +21,5 @@ export default async function RoutePage() {
     notFound();
   }
 
-  return <OrganizationBilling org={org} />;
+  return <BillingPage params={{ orgSlug: org.slug }} />;
 }
