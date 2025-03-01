@@ -46,6 +46,17 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
       console.log('UserDropdown - Session data:', session.data);
       console.log('UserDropdown - Session data.user:', session.data?.user);
       console.log('UserDropdown - Session data keys:', session.data ? Object.keys(session.data) : 'No data');
+      
+      // Deep inspection of session.data structure
+      if (session.data) {
+        console.log('UserDropdown - DEEP INSPECTION:');
+        for (const key in session.data) {
+          console.log(`Key: ${key}, Type: ${typeof session.data[key]}`);
+          if (typeof session.data[key] === 'object' && session.data[key] !== null) {
+            console.log(`Contents of ${key}:`, session.data[key]);
+          }
+        }
+      }
     }
   }, [session]);
   

@@ -58,6 +58,17 @@ export const SidebarUserButton = () => {
       console.log('SidebarUserButton - Session data.user:', session.data?.user);
       console.log('SidebarUserButton - Session data keys:', session.data ? Object.keys(session.data) : 'No data');
       console.log('SidebarUserButton - Cached data:', cachedUserData);
+      
+      // Deep inspection of session.data structure
+      if (session.data) {
+        console.log('SidebarUserButton - DEEP INSPECTION:');
+        for (const key in session.data) {
+          console.log(`Key: ${key}, Type: ${typeof session.data[key]}`);
+          if (typeof session.data[key] === 'object' && session.data[key] !== null) {
+            console.log(`Contents of ${key}:`, session.data[key]);
+          }
+        }
+      }
     }
   }, [session, cachedUserData]);
   
