@@ -6,11 +6,13 @@ import type { PageParams } from "@/types/next";
 import { OrganizationMembershipRole } from "@prisma/client";
 import { Separator } from "@/components/layout/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
-import { User, Users, AlertTriangle, Mail } from "lucide-react";
+import { User, Users, AlertTriangle, Mail, Save } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/avatar";
 import { Progress } from "@/components/feedback/progress";
 import { Badge } from "@/components/data-display/badge";
+import { Button } from "@/components/core/button";
+import { PersonalAccountForm } from "./PersonalAccountForm";
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Account Settings",
@@ -62,73 +64,8 @@ export default async function AccountPage(props: PageParams) {
           <h3 className="text-xl font-medium">Personal Account</h3>
         </div>
         
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                {user.image ? (
-                  <AvatarImage src={user.image} alt={user.name || "User"} />
-                ) : (
-                  <AvatarFallback>{user.name?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-                )}
-              </Avatar>
-              <div>
-                <CardTitle className="text-lg">{user.name}</CardTitle>
-                <CardDescription>
-                  Update your account details and preferences
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Name</h4>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue={user.name || ""}
-                    disabled
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium mb-2">Email</h4>
-                <div className="relative">
-                  <input 
-                    type="email" 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    defaultValue={user.email || ""}
-                    disabled
-                  />
-                </div>
-                {!user.emailVerified && (
-                  <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-yellow-500/10 text-yellow-600 text-sm">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span>Email not verified. Please verify your email.</span>
-                    <Link 
-                      href="/account/verify-email" 
-                      className="ml-auto text-xs font-medium underline"
-                    >
-                      Verify Email
-                    </Link>
-                  </div>
-                )}
-              </div>
-              
-              <div className="pt-2">
-                <Link 
-                  href="/account" 
-                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-                >
-                  Manage Account Settings
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Using the client component for editable form */}
+        <PersonalAccountForm user={user} />
       </div>
 
       {/* Organization Members Section */}
