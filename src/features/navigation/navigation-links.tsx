@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import type { NavigationGroup, NavigationLink } from "./navigation.type";
 import * as Icons from "lucide-react";
 import { useMemo } from "react";
+import NotificationBadge from "@/features/core/notification-badge";
 
 const useCurrentPath = (links: NavigationLink[]) => {
   const currentPath = usePathname().split("/").filter(Boolean);
@@ -81,10 +82,13 @@ export const NavigationLinks = ({
                       ></motion.div>
                     )}
                     <div className="relative flex w-full items-center gap-x-1.5 text-left">
-                      {(() => {
-                        const Icon = Icons[link.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
-                        return Icon ? <Icon className="size-4" /> : null;
-                      })()}
+                      <div className="relative">
+                        {(() => {
+                          const Icon = Icons[link.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
+                          return Icon ? <Icon className="size-4" /> : null;
+                        })()}
+                        {link.label === "Notifications" && <NotificationBadge />}
+                      </div>
                       {link.label}
                     </div>
                   </MotionLink>
