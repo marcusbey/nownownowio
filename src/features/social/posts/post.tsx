@@ -83,9 +83,9 @@ export default function Post({ post }: PostProps) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/post mb-6 space-y-3 rounded-lg border border-border/40 bg-background p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:border-border/60 dark:bg-card"
+      className="group/post space-y-3 p-4 hover:bg-muted/20 transition-colors duration-200"
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
@@ -160,7 +160,7 @@ export default function Post({ post }: PostProps) {
         </div>
       )}
 
-      <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-4 dark:border-border/60">
+      <div className="mt-4 flex items-center justify-between pt-2">
         <div className="flex items-center gap-6">
           <LikeButton
             postId={post.id}
