@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/feedback/skeleton";
 import Post from "@/features/social/posts/post";
 import PostEditor from "@/features/social/posts/post-editor";
 import kyInstance from "@/lib/ky";
+import { getTopicDisplayInfo } from "@/lib/topic-detection";
 import type { Post as PostType, PostsPage } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -13,18 +14,17 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
-const topics = [
-  { id: "all", label: "All" },
-  { id: "tech", label: "Tech" },
-  { id: "design", label: "Design" },
-  { id: "marketing", label: "Marketing" },
-  { id: "business", label: "Business" },
-];
+// Default topics from the topic detection utility
+const defaultTopics = getTopicDisplayInfo();
 
 export default function ExplorePage() {
+  const { data: session, status: sessionStatus } = useSession({ required: true });
   const searchParams = useSearchParams();
   const topic = searchParams.get("topic") ?? "all";
+  const [topics, setTopics] = useState(defaultTopics);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false);
   const {
     data,
     fetchNextPage,
@@ -33,9 +33,16 @@ export default function ExplorePage() {
     status,
     error,
   } = useInfiniteQuery({
-    queryKey: ["post-feed", "explore", topic],
+    queryKey: ["post-feed", "explore", topic, sessionStatus],
     queryFn: async ({ pageParam }) => {
       try {
+        // Only fetch if authenticated
+        if (sessionStatus !== "authenticated" || !session) {
+          console.log("Not fetching posts - no authenticated session", { sessionStatus });
+          return { posts: [], nextCursor: null } as PostsPage;
+        }
+        
+        console.log("Fetching posts with topic:", topic);
         return await kyInstance
           .get(
             "/api/v1/posts/explore",
@@ -59,6 +66,44 @@ export default function ExplorePage() {
 
   const posts = data?.pages.flatMap((page) => page.posts) ?? [];
   const [loading, setLoading] = useState(false);
+
+  // Fetch trending topics when the component mounts
+  useEffect(() => {
+    const fetchTrendingTopics = async () => {
+      if (sessionStatus === "authenticated" && session) {
+        try {
+          setIsLoadingTopics(true);
+          console.log("Fetching trending topics with authenticated session");
+          const response = await kyInstance.get("/api/v1/topics/trending").json<{ topics: Array<{id: string, label: string, trendingScore?: number}> }>();
+          
+          // Combine trending topics with default topics
+          // Always keep 'All' as the first option
+          const allOption = defaultTopics.find(t => t.id === "all");
+          const trendingTopics = response.topics.slice(0, 5); // Limit to top 5 trending topics
+          
+          if (allOption && trendingTopics.length > 0) {
+            setTopics([allOption, ...trendingTopics]);
+            console.log("Set trending topics:", trendingTopics);
+          } else {
+            console.log("No trending topics found, using defaults");
+            setTopics(defaultTopics);
+          }
+        } catch (error) {
+          console.error("Failed to fetch trending topics", error);
+          // Fall back to default topics on error
+          setTopics(defaultTopics);
+        } finally {
+          setIsLoadingTopics(false);
+        }
+      } else if (sessionStatus === "loading") {
+        console.log("Session is still loading");
+      } else {
+        console.log("No authenticated session found", { sessionStatus });
+      }
+    };
+    
+    void fetchTrendingTopics();
+  }, [sessionStatus, session]);
 
   useEffect(() => {
     setLoading(true);
@@ -115,23 +160,44 @@ export default function ExplorePage() {
         <PostEditor />
 
         <nav className="sticky top-0 bg-background/80 backdrop-blur-sm">
-          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-2">
-            {topics.map((t) => (
-              <Button
-                key={t.id}
-                variant={topic === t.id ? "default" : "ghost"}
-                className="whitespace-nowrap rounded-full"
-                asChild
-              >
-                <Link
-                  href={{
-                    query: t.id === "all" ? {} : { topic: t.id },
-                  }}
+          <div className="flex justify-between items-center px-4 py-1">
+            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-2">
+            {isLoadingTopics ? (
+              // Show skeleton loaders while loading topics
+              <>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-9 w-20 rounded-full" />
+                ))}
+              </>
+            ) : (
+              // Show topics with trending indicators
+              topics.map((t) => (
+                <Button
+                  key={t.id}
+                  variant={topic === t.id ? "default" : "ghost"}
+                  className="whitespace-nowrap rounded-full"
+                  asChild
                 >
-                  {t.label}
-                </Link>
-              </Button>
-            ))}
+                  <Link
+                    href={{
+                      query: t.id === "all" ? {} : { topic: t.id },
+                    }}
+                  >
+                    {t.id !== "all" && (t as any).trendingScore && (
+                      <span className="mr-1 text-xs">🔥</span>
+                    )}
+                    {t.label}
+                  </Link>
+                </Button>
+              ))
+            )}
+            </div>
+            <Link 
+              href="./explore/debug" 
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              Debug Topics
+            </Link>
           </div>
         </nav>
 

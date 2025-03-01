@@ -54,6 +54,7 @@ model Post {
   createdAt      DateTime       @default(now())
   isPinned       Boolean        @default(false)
   scheduledAt    DateTime?
+  topic          String?    
   views          PostView[]
   bookmarks      Bookmark[]
   comments       Comment[]
