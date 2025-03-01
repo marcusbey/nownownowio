@@ -61,7 +61,7 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   }, [session]);
   
   // Get user data if available
-  const user = session.data?.user;
+  const user = session.data;
 
   return (
     <DropdownMenu>

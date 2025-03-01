@@ -27,24 +27,21 @@ export const SidebarUserButton = () => {
     }
     
     // Update cache if we have session data
-    if (session.status === 'authenticated' && session.data?.user) {
-      // Access user data from session.data.user
-      const user = session.data.user;
-      if (user) {
-        const userData: CachedUserData = {
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          timestamp: Date.now()
-        };
-        
-        setCachedUserData(userData);
-        
-        try {
-          localStorage.setItem('cachedUserData', JSON.stringify(userData));
-        } catch (error) {
-          console.error('Error caching user data:', error);
-        }
+    if (session.status === 'authenticated' && session.data) {
+      // Access user data directly from session.data
+      const userData: CachedUserData = {
+        name: session.data.name,
+        email: session.data.email,
+        image: session.data.image,
+        timestamp: Date.now()
+      };
+      
+      setCachedUserData(userData);
+      
+      try {
+        localStorage.setItem('cachedUserData', JSON.stringify(userData));
+      } catch (error) {
+        console.error('Error caching user data:', error);
       }
     }
   }, [session.status, session.data]);
@@ -73,7 +70,7 @@ export const SidebarUserButton = () => {
   }, [session, cachedUserData]);
   
   // Use session data if available, otherwise fall back to cached data
-  const userData = (session.status === 'authenticated' && session.data?.user) ? session.data.user : cachedUserData;
+  const userData = (session.status === 'authenticated' && session.data) ? session.data : cachedUserData;
   
   return (
     <UserDropdown>

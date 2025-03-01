@@ -6,8 +6,8 @@ import { LoggedInButton, SignInButton } from "./sign-in-button";
 export const AuthButtonClient = () => {
   const session = useSession();
 
-  if (session.data?.user) {
-    const user = session.data.user;
+  if (session.data) {
+    const user = session.data;
     return <LoggedInButton user={user} />;
   }
 
