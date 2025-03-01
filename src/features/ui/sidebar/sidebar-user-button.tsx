@@ -52,8 +52,11 @@ export const SidebarUserButton = () => {
   // Debug logging
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('SidebarUserButton - Session Data:', session);
+      console.log('SidebarUserButton - Session:', session);
+      console.log('SidebarUserButton - Session status:', session.status);
       console.log('SidebarUserButton - Session data:', session.data);
+      console.log('SidebarUserButton - Session data.user:', session.data?.user);
+      console.log('SidebarUserButton - Session data keys:', session.data ? Object.keys(session.data) : 'No data');
       console.log('SidebarUserButton - Cached data:', cachedUserData);
     }
   }, [session, cachedUserData]);

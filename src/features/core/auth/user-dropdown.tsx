@@ -28,6 +28,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useEffect } from "react";
 import type { PropsWithChildren } from "react";
 
 export const UserDropdown = ({ children }: PropsWithChildren) => {
@@ -36,6 +37,17 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   });
   const session = useSession();
   const theme = useTheme();
+  
+  // Debug logging
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('UserDropdown - Session:', session);
+      console.log('UserDropdown - Session status:', session.status);
+      console.log('UserDropdown - Session data:', session.data);
+      console.log('UserDropdown - Session data.user:', session.data?.user);
+      console.log('UserDropdown - Session data keys:', session.data ? Object.keys(session.data) : 'No data');
+    }
+  }, [session]);
   
   // Get user data if available
   const user = session.data?.user;
