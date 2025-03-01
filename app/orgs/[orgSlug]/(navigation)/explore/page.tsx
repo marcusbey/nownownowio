@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/core/button";
 import { Input } from "@/components/core/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/core/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/data-display/tabs";
 import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollContainer";
 import { Skeleton } from "@/components/feedback/skeleton";
 import Post from "@/features/social/posts/post";
@@ -214,7 +214,7 @@ export default function ExplorePage() {
   return (
     <main className="mx-auto flex w-full min-w-0 max-w-xl flex-col p-0">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="relative w-full max-w-md">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <form onSubmit={handleSearch}>
             <Input
@@ -226,12 +226,13 @@ export default function ExplorePage() {
             />
           </form>
         </div>
-        <Link href="./explore/debug" className="ml-2">
+        {/* Filter button hidden for now */}
+        {/* <Link href="./explore/debug" className="ml-2 hidden">
           <Button variant="ghost" size="icon" className="rounded-full">
             <Cog className="size-5" />
             <span className="sr-only">Settings</span>
           </Button>
-        </Link>
+        </Link> */}
       </div>
       
       <Tabs defaultValue="for-you" className="w-full">
@@ -403,6 +404,16 @@ export default function ExplorePage() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      {/* Small debug link at the bottom */}
+      <div className="border-t border-border p-2 text-center">
+        <Link 
+          href="./explore/debug" 
+          className="text-xs text-muted-foreground hover:text-primary transition-colors"
+        >
+          Debug Topics
+        </Link>
+      </div>
     </main>
   );
 }
