@@ -5,18 +5,26 @@ import { UserDropdown } from "@/features/core/auth/user-dropdown";
 import { useEffect, useState } from "react";
 
 interface CachedUserData {
-  name: string | null;
-  email: string | null;
-  image: string | null;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
   timestamp: number;
+}
+
+interface SessionUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  [key: string]: any; // Allow for other session properties
 }
 
 export const SidebarUserButton = () => {
   const session = useSession();
   const [cachedUserData, setCachedUserData] = useState<CachedUserData | null>(null);
   
-  // Load cached user data
+  // Load cached user data and update cache if we have session data
   useEffect(() => {
+    // Load cached user data
     try {
       const cachedData = localStorage.getItem('cachedUserData');
       if (cachedData) {
@@ -28,11 +36,12 @@ export const SidebarUserButton = () => {
     
     // Update cache if we have session data
     if (session.status === 'authenticated' && session.data) {
-      // Access user data directly from session.data
+      const sessionData = session.data as SessionUser;
+      
       const userData: CachedUserData = {
-        name: session.data.name,
-        email: session.data.email,
-        image: session.data.image,
+        name: sessionData.name,
+        email: sessionData.email,
+        image: sessionData.image,
         timestamp: Date.now()
       };
       
@@ -46,31 +55,10 @@ export const SidebarUserButton = () => {
     }
   }, [session.status, session.data]);
   
-  // Debug logging
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('SidebarUserButton - Session:', session);
-      console.log('SidebarUserButton - Session status:', session.status);
-      console.log('SidebarUserButton - Session data:', session.data);
-      console.log('SidebarUserButton - Session data.user:', session.data?.user);
-      console.log('SidebarUserButton - Session data keys:', session.data ? Object.keys(session.data) : 'No data');
-      console.log('SidebarUserButton - Cached data:', cachedUserData);
-      
-      // Deep inspection of session.data structure
-      if (session.data) {
-        console.log('SidebarUserButton - DEEP INSPECTION:');
-        for (const key in session.data) {
-          console.log(`Key: ${key}, Type: ${typeof session.data[key]}`);
-          if (typeof session.data[key] === 'object' && session.data[key] !== null) {
-            console.log(`Contents of ${key}:`, session.data[key]);
-          }
-        }
-      }
-    }
-  }, [session, cachedUserData]);
-  
   // Use session data if available, otherwise fall back to cached data
-  const userData = (session.status === 'authenticated' && session.data) ? session.data : cachedUserData;
+  const userData = (session.status === 'authenticated' && session.data) 
+    ? (session.data as SessionUser) 
+    : cachedUserData;
   
   return (
     <UserDropdown>

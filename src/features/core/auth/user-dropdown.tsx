@@ -38,30 +38,17 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   const session = useSession();
   const theme = useTheme();
   
-  // Debug logging
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('UserDropdown - Session:', session);
-      console.log('UserDropdown - Session status:', session.status);
-      console.log('UserDropdown - Session data:', session.data);
-      console.log('UserDropdown - Session data.user:', session.data?.user);
-      console.log('UserDropdown - Session data keys:', session.data ? Object.keys(session.data) : 'No data');
-      
-      // Deep inspection of session.data structure
-      if (session.data) {
-        console.log('UserDropdown - DEEP INSPECTION:');
-        for (const key in session.data) {
-          console.log(`Key: ${key}, Type: ${typeof session.data[key]}`);
-          if (typeof session.data[key] === 'object' && session.data[key] !== null) {
-            console.log(`Contents of ${key}:`, session.data[key]);
-          }
-        }
-      }
-    }
-  }, [session]);
+
   
   // Get user data if available
-  const user = session.data;
+  const user = session.data as SessionUser | undefined;
+  
+  interface SessionUser {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    [key: string]: any; // Allow for other session properties
+  }
 
   return (
     <DropdownMenu>
