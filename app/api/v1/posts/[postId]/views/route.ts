@@ -105,7 +105,8 @@ export async function POST(
         message: error.message,
         stack: error.stack,
       } : error,
-      postId: context.params.postId,
+      // Safely access postId from the already awaited params
+      postId: params.postId,
     });
 
     // Return a more specific error message if possible
