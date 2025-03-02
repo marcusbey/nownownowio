@@ -173,7 +173,7 @@ export default function Post({ post }: PostProps) {
           <LikeButton
             postId={post.id}
             initialState={{
-              likes: post._count.likes || 0,
+              likes: post._count?.likes || 0,
               isLikedByUser:
                 post.likes && post.likes.length > 0
                   ? post.likes.some((like) => like.userId === user?.id)
@@ -270,7 +270,7 @@ export function PostFeed() {
   } = useQuery({
     queryKey: ["post-feed"],
     queryFn: async () => {
-      return fetch("/api/posts").then(async (res) => res.json());
+      return fetch("/api/v1/posts").then(async (res) => res.json());
     },
   });
 
