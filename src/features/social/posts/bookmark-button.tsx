@@ -33,7 +33,7 @@ export default function BookmarkButton({
     queryFn: () =>
       kyInstance.get(`/api/v1/posts/${postId}/bookmark`).json<BookmarkInfo>(),
     initialData: initialState,
-    staleTime: Infinity,
+    staleTime: 0, // Set to 0 to always refetch on component mount
   });
 
   const { mutate } = useMutation({
@@ -55,6 +55,10 @@ export default function BookmarkButton({
       }));
 
       return { previousState };
+    },
+    onSuccess: () => {
+      // Invalidate related queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["post-feed", "bookmarks"] });
     },
     onError(error, variables, context) {
       queryClient.setQueryData(queryKey, context?.previousState);

@@ -199,9 +199,7 @@ export default function Post({ post }: PostProps) {
           <BookmarkButton
             postId={post.id}
             initialState={{
-              isBookmarkedByUser:
-                post.bookmarks && post.bookmarks.length > 0 ?
-                  post.bookmarks.some((bookmark) => bookmark.userId === user?.id) : false,
+              isBookmarkedByUser: post.bookmarks?.some((bookmark) => bookmark.userId === user?.id) ?? false
             }}
             className="text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
