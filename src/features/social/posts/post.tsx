@@ -253,7 +253,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       className="-ml-2 flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
     >
       <MessageSquare className="size-4" />
-      <span className="text-xs">{post._count.comments || 0}</span>
+      <span className="text-xs">{post._count?.comments || 0}</span>
     </Button>
   );
 }
