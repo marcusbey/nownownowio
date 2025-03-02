@@ -6,6 +6,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  // Await params before using its properties
+  const awaitedParams = await params;
+  const bookmarkId = awaitedParams.id;
+
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,7 +25,7 @@ export async function DELETE(
     }
 
     const bookmark = await prisma.bookmark.findUnique({
-      where: { id: params.id },
+      where: { id: bookmarkId },
     });
 
     if (!bookmark) {
@@ -33,7 +37,7 @@ export async function DELETE(
     }
 
     await prisma.bookmark.delete({
-      where: { id: params.id },
+      where: { id: bookmarkId },
     });
 
     return NextResponse.json({ success: true });
