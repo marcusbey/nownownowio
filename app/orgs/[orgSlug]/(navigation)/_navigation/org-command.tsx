@@ -9,12 +9,12 @@ import {
   CommandList,
 } from "@/components/composite/command";
 import { DialogTitle } from "@/components/composite/dialog";
-import { VisuallyHidden } from "@/components/core/visually-hidden";
-import { Input } from "@/components/core/input";
 import {
   CmdOrOption,
   KeyboardShortcut,
 } from "@/components/composite/keyboard-shortcut";
+import { Input } from "@/components/core/input";
+import { VisuallyHidden } from "@/components/core/visually-hidden";
 import { Search } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";

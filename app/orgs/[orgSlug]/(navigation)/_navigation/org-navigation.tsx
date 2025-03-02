@@ -42,7 +42,9 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
                 <SidebarTrigger className="-ml-1" />
               </Layout>
             </header>
-            <div className="flex w-full flex-1 flex-col gap-4 p-4 md:p-6">{children}</div>
+            <div className="flex w-full flex-1 flex-col gap-4 p-4 md:p-6">
+              {children}
+            </div>
           </SidebarInset>
         </div>
 
