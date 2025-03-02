@@ -27,21 +27,16 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
         />
 
         {/* Main Content */}
-        <div
-          id="main-content"
-          className="h-full flex-1 transition-all duration-300 ease-in-out"
-        >
-          <SidebarInset className="size-full overflow-y-auto border-x border-accent">
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b border-accent px-4">
-              <Layout>
-                <SidebarTrigger className="-ml-1" />
-              </Layout>
-            </header>
-            <div className="flex w-full flex-1 flex-col gap-4 p-4 md:p-6">
-              {children}
-            </div>
-          </SidebarInset>
-        </div>
+        <SidebarInset className="size-full overflow-y-auto border-x border-accent">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-accent px-4">
+            <Layout>
+              <SidebarTrigger className="-ml-1" />
+            </Layout>
+          </header>
+          <div className="flex w-full flex-1 flex-col gap-4 p-4 md:p-6">
+            {children}
+          </div>
+        </SidebarInset>
 
         {/* Right Sidebar */}
         <div className="h-full w-1/4 min-w-[250px] overflow-y-auto">
