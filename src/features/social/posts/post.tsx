@@ -20,8 +20,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { BookmarkButton, PostMoreButton } from "./post-actions";
 import LikeButton from "./like-button";
+import { BookmarkButton, PostMoreButton } from "./post-actions";
 
 const LazyMediaPreviews = lazy(async () =>
   import("../components/media-preview").then((mod) => ({
@@ -30,7 +30,7 @@ const LazyMediaPreviews = lazy(async () =>
 );
 const Comments = lazy(async () =>
   import("@/components/composite/comments/Comments").then((mod) => ({
-    default: mod.Comments,
+    default: mod.default,
   })),
 );
 
@@ -44,7 +44,7 @@ export default function Post({ post }: PostProps) {
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const { viewCount } = usePostViews(post.id);
+  const { views, isLoading } = usePostViews(post.id);
 
   useEffect(() => {
     setIsClient(true);
@@ -62,9 +62,11 @@ export default function Post({ post }: PostProps) {
 
   const userProfileLink = useMemo(() => {
     if (user && post.user.id === user.id) {
-      const userOrgs = post.user.organizations ?? [];
+      const userMemberships = post.user.memberships ?? [];
       const orgSlug =
-        userOrgs.length > 0 ? userOrgs[0].organization?.slug : undefined;
+        userMemberships.length > 0
+          ? userMemberships[0].organization.slug
+          : undefined;
 
       return `/orgs/${orgSlug || ""}/profile`;
     }
@@ -79,14 +81,14 @@ export default function Post({ post }: PostProps) {
     () => post.user.displayName || post.user.name,
     [post.user],
   );
-  const attachments = post.attachments ?? [];
-  const hasAttachments = attachments.length > 0;
+  const mediaItems = post.media ?? [];
+  const hasAttachments = mediaItems.length > 0;
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/post space-y-3 p-4 hover:bg-muted/20 transition-colors duration-200"
+      className="group/post space-y-3 p-4 transition-colors duration-200 hover:bg-muted/20"
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
@@ -122,14 +124,19 @@ export default function Post({ post }: PostProps) {
               <span>•</span>
               <span className="flex items-center gap-0.5 transition-colors duration-200 hover:text-primary">
                 <Eye className="size-3" />
-                {(viewCount || 0) + 1}
+                {(views || 0) + 1}
               </span>
             </div>
           </div>
         </div>
         {isOwnPost && (
           <PostMoreButton
-            post={post}
+            postId={post.id}
+            onDelete={(postId) => {
+              console.log("Delete post:", postId);
+              // You'd typically handle post deletion here
+              // For example, redirect or remove from the UI
+            }}
             className={cn(
               "transition-opacity duration-200",
               isHovered ? "opacity-100" : "opacity-0",
@@ -156,7 +163,7 @@ export default function Post({ post }: PostProps) {
               <div className="h-48 animate-pulse rounded-lg bg-muted" />
             }
           >
-            <LazyMediaPreviews attachments={attachments} />
+            <LazyMediaPreviews attachments={mediaItems} />
           </Suspense>
         </div>
       )}
@@ -166,8 +173,11 @@ export default function Post({ post }: PostProps) {
           <LikeButton
             postId={post.id}
             initialState={{
-              likes: post._count?.likes || 0,
-              isLikedByUser: post.likes && post.likes.length > 0 ? post.likes.some((like) => like.userId === user?.id) : false
+              likes: post._count.likes || 0,
+              isLikedByUser:
+                post.likes && post.likes.length > 0
+                  ? post.likes.some((like) => like.userId === user?.id)
+                  : false,
             }}
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -194,12 +204,18 @@ export default function Post({ post }: PostProps) {
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Eye className="size-3.5" />
-            {(viewCount || 0) + 1}
+            {(views || 0) + 1}
           </span>
           <BookmarkButton
             postId={post.id}
-            initialState={{
-              isBookmarkedByUser: post.bookmarks?.some((bookmark) => bookmark.userId === user?.id) ?? false
+            initialBookmarked={
+              post.bookmarks.some((bookmark) => bookmark.userId === user?.id) ??
+              false
+            }
+            onBookmark={(postId) => {
+              console.log("Bookmark toggled for post:", postId);
+              // The state is handled inside the component, so this can be empty
+              // or you could add analytics tracking here
             }}
             className="text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -241,7 +257,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       className="-ml-2 flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
     >
       <MessageSquare className="size-4" />
-      <span className="text-xs">{post._count?.comments || 0}</span>
+      <span className="text-xs">{post._count.comments || 0}</span>
     </Button>
   );
 }
@@ -261,6 +277,10 @@ export function PostFeed() {
   if (isLoading) return <div>Loading feed...</div>;
 
   return (
-    <div>{feedData?.map((post) => <p key={post.id}>{post.content}</p>)}</div>
+    <div>
+      {feedData?.map((post: { id: string; content: string }) => (
+        <p key={post.id}>{post.content}</p>
+      ))}
+    </div>
   );
 }
