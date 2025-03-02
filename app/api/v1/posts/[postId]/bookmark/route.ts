@@ -4,8 +4,11 @@ import { BookmarkInfo } from "@/lib/types";
 
 export async function GET(
   req: Request,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: { postId: string } },
 ) {
+  // Await params before using its properties
+  const awaitedParams = await params;
+  const postId = awaitedParams.postId;
   try {
     const { user: loggedInUser } = await validateRequest();
 
@@ -35,8 +38,11 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: { postId: string } },
 ) {
+  // Await params before using its properties
+  const awaitedParams = await params;
+  const postId = awaitedParams.postId;
   try {
     const { user: loggedInUser } = await validateRequest();
 
@@ -67,8 +73,11 @@ export async function POST(
 
 export async function DELETE(
   req: Request,
-  { params: { postId } }: { params: { postId: string } },
+  { params }: { params: { postId: string } },
 ) {
+  // Await params before using its properties
+  const awaitedParams = await params;
+  const postId = awaitedParams.postId;
   try {
     const { user: loggedInUser } = await validateRequest();
 

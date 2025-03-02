@@ -31,7 +31,7 @@ export default function BookmarkButton({
   const { data } = useQuery({
     queryKey,
     queryFn: () =>
-      kyInstance.get(`/api/posts/${postId}/bookmark`).json<BookmarkInfo>(),
+      kyInstance.get(`/api/v1/posts/${postId}/bookmark`).json<BookmarkInfo>(),
     initialData: initialState,
     staleTime: Infinity,
   });
@@ -39,8 +39,8 @@ export default function BookmarkButton({
   const { mutate } = useMutation({
     mutationFn: () =>
       data.isBookmarkedByUser
-        ? kyInstance.delete(`/api/posts/${postId}/bookmark`)
-        : kyInstance.post(`/api/posts/${postId}/bookmark`),
+        ? kyInstance.delete(`/api/v1/posts/${postId}/bookmark`)
+        : kyInstance.post(`/api/v1/posts/${postId}/bookmark`),
     onMutate: async () => {
       toast({
         description: `Post ${data.isBookmarkedByUser ? "un" : ""}bookmarked`,
