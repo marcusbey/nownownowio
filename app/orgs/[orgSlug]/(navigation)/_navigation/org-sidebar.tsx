@@ -58,7 +58,7 @@ export function OrgSidebar({
         <OrgsSelect orgs={userOrgs} currentOrgSlug={slug} />
         <OrgCommand />
       </SidebarHeader>
-      <SidebarContent className="px-2">
+      <SidebarContent className="w-full px-0">
         {links.map((link) => (
           <ItemCollapsing
             defaultOpenStartPath={link.defaultOpenStartPath}
@@ -66,7 +66,7 @@ export function OrgSidebar({
           >
             <SidebarGroup key={link.title} className="mb-3">
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">
+                <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground">
                   {link.title}
                   <ChevronDown className="size-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                 </CollapsibleTrigger>
@@ -83,7 +83,7 @@ export function OrgSidebar({
                       ] as React.ComponentType<{ className?: string }>;
 
                       return (
-                        <SidebarMenuItem key={item.label} className="py-1">
+                        <SidebarMenuItem key={item.label}>
                           <SidebarMenuButtonLink href={item.href}>
                             <Icon
                               className={cn(
