@@ -20,16 +20,11 @@ export async function OrgNavigation({ children }: PropsWithChildren) {
       {/* Main container with max-width for very large screens */}
       <SidebarToggleWrapper>
         {/* Left Sidebar */}
-        <div
-          id="left-sidebar"
-          className="h-full w-1/4 min-w-[250px] overflow-y-auto transition-all duration-300 ease-in-out"
-        >
-          <OrgSidebar
-            slug={org.slug}
-            roles={roles}
-            userOrgs={userOrganizations}
-          />
-        </div>
+        <OrgSidebar
+          slug={org.slug}
+          roles={roles}
+          userOrgs={userOrganizations}
+        />
 
         {/* Main Content */}
         <div
