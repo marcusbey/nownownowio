@@ -8,8 +8,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
-import { useToast } from "../ui/use-toast";
-import { Button } from "../ui/button";
+import { useToast } from "@/components/feedback/use-toast";
+import { Button } from "@/components/core/button";
 
 interface BookmarkButtonProps {
   postId: string;
@@ -33,14 +33,21 @@ export default function BookmarkButton({
     queryFn: () =>
       kyInstance.get(`/api/v1/posts/${postId}/bookmark`).json<BookmarkInfo>(),
     initialData: initialState,
-    staleTime: 0, // Set to 0 to always refetch on component mount
+    staleTime: 0, // Set to 0 to refetch on mount
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const { mutate } = useMutation({
-    mutationFn: () =>
-      data.isBookmarkedByUser
-        ? kyInstance.delete(`/api/v1/posts/${postId}/bookmark`)
-        : kyInstance.post(`/api/v1/posts/${postId}/bookmark`),
+    mutationFn: async () => {
+      if (data.isBookmarkedByUser) {
+        await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`);
+        return { isBookmarkedByUser: false };
+      } else {
+        const response = await kyInstance.post(`/api/v1/posts/${postId}/bookmark`).json<BookmarkInfo>();
+        return { isBookmarkedByUser: true };
+      }
+    },
     onMutate: async () => {
       toast({
         description: `Post ${data.isBookmarkedByUser ? "un" : ""}bookmarked`,
@@ -56,8 +63,11 @@ export default function BookmarkButton({
 
       return { previousState };
     },
-    onSuccess: () => {
-      // Invalidate related queries to ensure fresh data
+    onSuccess: (result) => {
+      // Update the bookmark info cache with the result
+      queryClient.setQueryData<BookmarkInfo>(queryKey, result);
+      
+      // Invalidate related queries to ensure bookmarks page is updated
       queryClient.invalidateQueries({ queryKey: ["post-feed", "bookmarks"] });
     },
     onError(error, variables, context) {
