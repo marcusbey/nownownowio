@@ -16,7 +16,9 @@ export async function GET(
       );
     }
 
-    const userId = params.userId;
+    // Await params before using its properties
+    const awaitedParams = await params;
+    const userId = awaitedParams.userId;
     const searchParams = request.nextUrl.searchParams;
     const cursor = searchParams.get("cursor");
     const limit = 10;

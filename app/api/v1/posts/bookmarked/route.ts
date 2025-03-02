@@ -42,7 +42,8 @@ export async function GET(req: NextRequest) {
 
     return Response.json(data);
   } catch (error) {
-    console.error(error);
+    // Safely log the error
+    console.error("Error in bookmarked posts:", error instanceof Error ? error.message : String(error));
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

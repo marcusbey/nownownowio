@@ -10,9 +10,11 @@ export const POST = orgRoute
   )
   .body(z.object({ name: z.string() }))
   .handler(async (req, { params, body }) => {
+    // Await params before using its properties
+    const awaitedParams = await params;
     await prisma.organization.update({
       where: {
-        id: params.orgId,
+        id: awaitedParams.orgId,
       },
       data: {
         name: body.name,

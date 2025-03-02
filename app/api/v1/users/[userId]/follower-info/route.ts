@@ -11,7 +11,9 @@ export async function GET(
         // Optional: const { user } = await validateRequest();
         // Optional check: if (!user) return NextResponse.json([], { status: 401 });
 
-        const userId = params.userId;
+        // Await params before using its properties
+        const awaitedParams = await params;
+        const userId = awaitedParams.userId;
 
         // Example: fetch follower info
         const user = await prisma.user.findUnique({
