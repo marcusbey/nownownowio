@@ -34,6 +34,12 @@ const Comments = lazy(async () =>
   })),
 );
 
+const CommentInput = lazy(async () =>
+  import("@/components/composite/comments/CommentInput").then((mod) => ({
+    default: mod.default,
+  })),
+);
+
 type PostProps = {
   post: PostData;
 };
@@ -218,23 +224,27 @@ export default function Post({ post }: PostProps) {
         </div>
       </div>
 
-      {showComments && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.2 }}
-          layout
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.2 }}
+        layout
+      >
+        <Suspense
+          fallback={
+            <div className="h-24 animate-pulse rounded-lg bg-muted" />
+          }
         >
-          <Suspense
-            fallback={
-              <div className="h-24 animate-pulse rounded-lg bg-muted" />
-            }
-          >
+          {showComments ? (
             <Comments post={post} />
-          </Suspense>
-        </motion.div>
-      )}
+          ) : (
+            <div className="mt-2 border-t pt-4">
+              <CommentInput post={post} />
+            </div>
+          )}
+        </Suspense>
+      </motion.div>
     </motion.article>
   );
 }
