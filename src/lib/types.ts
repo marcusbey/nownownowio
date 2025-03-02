@@ -65,7 +65,7 @@ export function getPostDataInclude(loggedInUserId: string) {
         // Instead, we already have memberships which contains organization info
       },
     },
-    attachments: true,
+    media: true, // Using 'media' instead of 'attachments' as per the Prisma schema
     likes: {
       where: {
         userId: loggedInUserId,
@@ -83,7 +83,7 @@ export function getPostDataInclude(loggedInUserId: string) {
       },
     },
     comments: true,
-    linkedNotifications: true,
+    notifications: true, // Added notifications as per the Prisma schema
     _count: {
       select: {
         likes: true,
@@ -215,10 +215,11 @@ export type User = Prisma.UserGetPayload<{
 export type Post = Prisma.PostGetPayload<{
   include: {
     user: true,
-    attachments: true,
+    media: true, // Using 'media' instead of 'attachments' as per the Prisma schema
     likes: true,
     bookmarks: true,
     comments: true,
+    notifications: true, // Added notifications as per the Prisma schema
     _count: {
       select: {
         likes: true,
