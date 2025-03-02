@@ -27,7 +27,7 @@ export default async function RouteLayout(
   props: LayoutParams<{ orgSlug: string }>,
 ) {
   // Properly await the params Promise
-  const params = await props.params;
+  const params = props.params;
   const orgSlug = params.orgSlug;
 
   try {

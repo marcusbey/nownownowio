@@ -51,7 +51,7 @@ async function getCurrentOrg(slug: string) {
 
 export default async function RoutePage(props: SettingsPageParams) {
   // Get the params safely
-  const params = await props.params;
+  const params = props.params;
   const orgSlug = params.orgSlug;
 
   // Use getCurrentOrg without passing roles (it should use orgSlug only)

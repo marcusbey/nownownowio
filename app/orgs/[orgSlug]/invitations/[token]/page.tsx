@@ -38,7 +38,7 @@ export const generateMetadata = combineWithParentMetadata({
 export default async function RoutePage(
   props: PageParams<{ orgSlug: string; token: string }>,
 ) {
-  const params = await props.params;
+  const params = props.params;
   const organization = await prisma.organization.findFirst({
     where: {
       slug: params.orgSlug,
@@ -86,7 +86,7 @@ export default async function RoutePage(
               <CardContent>
                 <Link
                   className={buttonVariants({ size: "lg" })}
-                  href={`/auth/signin?callbackUrl=${getServerUrl()}/orgs/${organization.slug}/invitations/${(await props.params).token}&email=${tokenData.email}`}
+                  href={`/auth/signin?callbackUrl=${getServerUrl()}/orgs/${organization.slug}/invitations/${props.params.token}&email=${tokenData.email}`}
                 >
                   Sign in
                 </Link>
