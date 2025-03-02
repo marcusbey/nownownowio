@@ -1,6 +1,6 @@
-import type { OrganizationMembershipRole } from "@prisma/client";
-import type { NavigationGroup } from "@/features/navigation/navigation.type";
+import type { NavigationGroup, NavigationLink } from "@/features/navigation/navigation.type";
 import { isInRoles } from "@/lib/organizations/is-in-roles";
+import type { OrganizationMembershipRole } from "@prisma/client";
 
 const replaceSlug = (href: string, slug: string) => {
   return href.replace(":organizationSlug", slug);
@@ -43,7 +43,7 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
     links: [
       {
         href: ORGANIZATION_PATH,
-        icon: "home",
+        icon: "Home",
         label: "Home",
       },
       {
@@ -63,7 +63,7 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
       },
       {
         href: prependOrgPath("/bookmarks"),
-        icon: "bookmark",
+        icon: "Bookmark",
         label: "Bookmarks",
       },
     ],
@@ -73,19 +73,19 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
     links: [
       {
         href: prependOrgPath("/panel"),
-        icon: "panel-left",
+        icon: "PanelLeft",
         label: "Panel",
         roles: ["OWNER", "ADMIN"],
       },
       {
         href: prependOrgPath("/dashboard"),
-        icon: "layout-dashboard",
+        icon: "LayoutDashboard",
         label: "Dashboard",
         roles: ["OWNER", "ADMIN"],
       },
       {
         href: prependOrgPath("/settings"),
-        icon: "settings",
+        icon: "Settings",
         label: "Settings",
         roles: ["OWNER", "ADMIN"],
       },
@@ -98,26 +98,26 @@ export const navigationLinks: NavigationLink[] = [
   {
     href: "/",
     label: "Home",
-    icon: "home",
+    icon: "Home",
   },
   {
     href: "/members",
     label: "Members",
-    icon: "users",
+    icon: "Users",
   },
   {
     href: "/messages",
     label: "Messages",
-    icon: "message-square",
+    icon: "MessageSquare",
   },
   {
     href: "/analytics",
     label: "Analytics",
-    icon: "bar-chart-3",
+    icon: "BarChart3",
   },
   {
     href: "/settings",
     label: "Settings",
-    icon: "settings",
+    icon: "Settings",
   },
 ];
