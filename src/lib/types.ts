@@ -61,16 +61,8 @@ export function getPostDataInclude(loggedInUserId: string) {
     user: {
       select: {
         ...getUserDataSelect(loggedInUserId),
-        organizations: {
-          select: {
-            organization: {
-              select: {
-                slug: true,
-                name: true,
-              },
-            },
-          },
-        },
+        // Note: 'organizations' field was removed as it doesn't exist in the User model
+        // Instead, we already have memberships which contains organization info
       },
     },
     attachments: true,
