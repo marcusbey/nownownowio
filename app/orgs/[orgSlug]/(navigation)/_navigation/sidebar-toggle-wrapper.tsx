@@ -43,11 +43,8 @@ export function SidebarToggleWrapper({ children }: SidebarToggleWrapperProps) {
         {children[0]}
       </div>
 
-      {/* Main Content - Expand to fill space when sidebar is closed */}
-      <div
-        id="main-content"
-        className="h-full flex-1 transition-all duration-300 ease-in-out"
-      >
+      {/* Main Content Area */}
+      <div className="flex-1 h-full">
         {children[1]}
       </div>
 
