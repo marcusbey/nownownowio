@@ -208,14 +208,10 @@ export default function Post({ post }: PostProps) {
           </span>
           <BookmarkButton
             postId={post.id}
-            initialBookmarked={
-              post.bookmarks.some((bookmark) => bookmark.userId === user?.id) ??
-              false
-            }
-            onBookmark={(postId) => {
-              console.log("Bookmark toggled for post:", postId);
-              // The state is handled inside the component, so this can be empty
-              // or you could add analytics tracking here
+            initialState={{
+              isBookmarkedByUser: post.bookmarks && post.bookmarks.length > 0
+                ? post.bookmarks.some((bookmark) => bookmark.userId === user?.id)
+                : false
             }}
             className="text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
