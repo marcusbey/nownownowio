@@ -17,8 +17,9 @@ export function SidebarToggleWrapper({ children }: SidebarToggleWrapperProps) {
 
     // Get the toggle button
     const toggleButton = document.querySelector('[data-sidebar="trigger"]');
+    const railButton = document.querySelector('[data-sidebar="rail"]');
 
-    // Add event listener
+    // Add event listeners
     if (toggleButton) {
       toggleButton.addEventListener("click", handleSidebarToggle);
     }
@@ -35,16 +36,15 @@ export function SidebarToggleWrapper({ children }: SidebarToggleWrapperProps) {
     <div className="mx-auto flex h-dvh w-full max-w-screen-2xl">
       {/* Left Sidebar - Apply classes based on state */}
       <div
-        id="left-sidebar"
-        className={`h-full overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`relative h-full overflow-y-auto transition-all duration-300 ease-in-out ${
           sidebarOpen ? "w-1/4 min-w-[250px]" : "w-0 min-w-0 opacity-0"
         }`}
       >
         {children[0]}
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 h-full">
+      {/* Main Content Area - Fills the space between sidebars */}
+      <div className="flex-1 h-full overflow-hidden">
         {children[1]}
       </div>
 
