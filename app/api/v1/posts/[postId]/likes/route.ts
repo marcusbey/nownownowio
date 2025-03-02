@@ -100,7 +100,36 @@ export async function POST(
         : []),
     ]);
 
-    return new Response();
+    // Get updated like count and status
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      select: {
+        likes: {
+          where: {
+            userId: loggedInUser.id,
+          },
+          select: {
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    });
+
+    if (!updatedPost) {
+      return Response.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    const data: LikeInfo = {
+      likes: updatedPost._count.likes,
+      isLikedByUser: !!updatedPost.likes.length,
+    };
+
+    return Response.json(data);
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Internal server error" }, { status: 500 });
@@ -147,7 +176,36 @@ export async function DELETE(
       }),
     ]);
 
-    return new Response();
+    // Get updated like count and status
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: postId },
+      select: {
+        likes: {
+          where: {
+            userId: loggedInUser.id,
+          },
+          select: {
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    });
+
+    if (!updatedPost) {
+      return Response.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    const data: LikeInfo = {
+      likes: updatedPost._count.likes,
+      isLikedByUser: !!updatedPost.likes.length,
+    };
+
+    return Response.json(data);
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Internal server error" }, { status: 500 });

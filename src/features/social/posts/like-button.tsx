@@ -36,14 +36,21 @@ export default function LikeButton({
     queryFn: () =>
       kyInstance.get(`/api/v1/posts/${postId}/likes`).json<typeof initialState>(),
     initialData: initialState,
-    staleTime: Infinity,
+    staleTime: 0, // Set to 0 to refetch on mount
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const { mutate } = useMutation({
-    mutationFn: () =>
-      data.isLikedByUser
-        ? kyInstance.delete(`/api/v1/posts/${postId}/likes`)
-        : kyInstance.post(`/api/v1/posts/${postId}/likes`),
+    mutationFn: async () => {
+      if (data.isLikedByUser) {
+        await kyInstance.delete(`/api/v1/posts/${postId}/likes`);
+        return { likes: data.likes - 1, isLikedByUser: false };
+      } else {
+        await kyInstance.post(`/api/v1/posts/${postId}/likes`);
+        return { likes: data.likes + 1, isLikedByUser: true };
+      }
+    },
     onMutate: async () => {
       toast({
         description: `Post ${data.isLikedByUser ? "un" : ""}liked`,
@@ -59,6 +66,13 @@ export default function LikeButton({
       }));
 
       return { previousState };
+    },
+    onSuccess: (result) => {
+      // Update the like info cache with the result
+      queryClient.setQueryData<typeof initialState>(queryKey, result);
+      
+      // Invalidate related queries to ensure feed is updated
+      queryClient.invalidateQueries({ queryKey: ["post-feed"] });
     },
     onError(error, variables, context) {
       queryClient.setQueryData(queryKey, context?.previousState);
