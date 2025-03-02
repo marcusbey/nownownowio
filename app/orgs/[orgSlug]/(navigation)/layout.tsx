@@ -48,8 +48,9 @@ export default async function RouteLayout({
   children: ReactNode;
   params: { orgSlug: string };
 }) {
-  // Access orgSlug directly from params
-  const orgSlug = params.orgSlug;
+  // Await params before using its properties
+  const awaitedParams = await params;
+  const orgSlug = awaitedParams.orgSlug;
 
   const { org, user, error } = await loadData(orgSlug);
 

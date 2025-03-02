@@ -5,10 +5,12 @@ import type { Metadata } from "next";
 import { InjectCurrentOrgStore } from "./use-current-org";
 
 export async function generateMetadata(
-  props: PageParams<{ orgSlug: string }>,
+  { params }: PageParams<{ orgSlug: string }>,
 ): Promise<Metadata> {
-  const { orgSlug } = props.params;
-  return orgMetadata(orgSlug);
+  // Await params before using its properties
+  const awaitedParams = await params;
+  const slug = awaitedParams.orgSlug;
+  return orgMetadata(slug);
 }
 
 export default async function Layout({
@@ -18,9 +20,11 @@ export default async function Layout({
   children: React.ReactNode;
   params: { orgSlug: string };
 }) {
-  const { orgSlug } = params;
+  // Await params before using its properties
+  const awaitedParams = await params;
+  const slug = awaitedParams.orgSlug;
 
-  const org = await getCurrentOrgCache(orgSlug);
+  const org = await getCurrentOrgCache(slug);
   const orgData = org
     ? {
         id: org.id,
