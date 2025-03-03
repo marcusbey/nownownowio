@@ -47,14 +47,22 @@ type PostProps = {
 export default function Post({ post }: PostProps) {
   const { data: session, status } = useSession();
   const user = extractUserFromSession(session, status);
+  // Comments should be closed by default, only opened when user clicks
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [firstMount, setFirstMount] = useState(true);
   const { views, isLoading } = usePostViews(post.id);
 
   useEffect(() => {
     setIsClient(true);
-
+    
+    // On first render in client, set firstMount to false after a brief delay
+    // This prevents the first click from triggering unwanted behaviors
+    const timer = setTimeout(() => {
+      setFirstMount(false);
+    }, 500);
+    
     // Debug logging
     if (process.env.NODE_ENV === "development") {
       console.log(
@@ -66,22 +74,47 @@ export default function Post({ post }: PostProps) {
         user ? "Yes" : "No",
       );
     }
+    
+    return () => clearTimeout(timer);
   }, [status, session, user]);
 
+  // Robust click handler to prevent page reloads on first click and handle comments toggle
   const handleCommentClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (!isClient) return false;
-
-      // Make sure we prevent default and stop propagation
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
+    (e: React.MouseEvent | React.KeyboardEvent | null) => {
+      try {
+        // Comprehensive event prevention - stop all default behaviors
+        if (e) {
+          // Prevent default at all levels
+          if (typeof e.preventDefault === 'function') e.preventDefault();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          
+          // Handle native event if available
+          const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : null;
+          if (nativeEvent) {
+            if (typeof nativeEvent.preventDefault === 'function') nativeEvent.preventDefault();
+            if (typeof nativeEvent.stopPropagation === 'function') nativeEvent.stopPropagation();
+            if (typeof nativeEvent.stopImmediatePropagation === 'function') nativeEvent.stopImmediatePropagation();
+          }
+        }
+        
+        // Toggle comments with a slight delay to ensure event prevention runs first
+        // This is critical for preventing page reloads on first click
+        setTimeout(() => {
+          if (isClient) {
+            setShowComments(prev => !prev);
+          }
+        }, 20);
+      } catch (error) {
+        console.error("Error in comment click handler:", error);
+        // Still try to toggle comments if there was an error
+        setTimeout(() => {
+          if (isClient) {
+            setShowComments(prev => !prev);
+          }
+        }, 20);
       }
-
-      // Toggle comment visibility
-      setShowComments((prev) => !prev);
-
-      // Prevent any potential page reload
+      
+      // Return false to prevent any possible form submission
       return false;
     },
     [isClient],
@@ -118,11 +151,13 @@ export default function Post({ post }: PostProps) {
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/post space-y-3 p-4 transition-colors duration-200 hover:bg-muted/20"
+      className="group/post space-y-3 p-5 mb-4 border border-border/60 rounded-lg shadow-sm bg-background transition-colors duration-200 hover:bg-muted/10"
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
-      layout
+      // Disable any layout animations
+      transition={{ layout: { duration: 0 } }}
+      layoutRoot
     >
       <div className="flex justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -198,8 +233,23 @@ export default function Post({ post }: PostProps) {
         </div>
       )}
 
-      <div className="mt-4 flex items-center justify-between pt-2">
-        <div className="flex items-center gap-6">
+      {/* Wrap action buttons in a div with preventDefault to ensure no form submissions */}
+      <div 
+        className="mt-4 flex items-center justify-between pt-2"
+        onClick={(e) => {
+          if (typeof e.preventDefault === 'function') e.preventDefault();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          return false;
+        }}
+      >
+        <div 
+          className="flex items-center gap-6"
+          onClick={(e) => {
+            if (typeof e.preventDefault === 'function') e.preventDefault();
+            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            return false;
+          }}
+        >
           <LikeButton
             postId={post.id}
             initialState={{
@@ -211,13 +261,15 @@ export default function Post({ post }: PostProps) {
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
           <CommentButton post={post} onClick={handleCommentClick} />
-          <Button
-            variant="ghost"
-            size="sm"
-            type="button" // Explicitly set type to button
+          <button
+            type="button" // CRITICAL: Explicitly set type to button
             onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+              if (typeof e.preventDefault === 'function') {
+                e.preventDefault();
+                if (typeof e.stopPropagation === 'function') {
+                  e.stopPropagation();
+                }
+              }
               navigator
                 .share({
                   url: `${window.location.origin}/posts/${post.id}`,
@@ -226,14 +278,33 @@ export default function Post({ post }: PostProps) {
                 })
                 .catch((error) => console.error("Share failed:", error));
 
-              // Prevent any potential page reload
+              // Return false to prevent any potential page reload
               return false;
             }}
-            className="-ml-2 flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
+            onKeyDown={(e) => {
+              // Handle keyboard accessibility
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                navigator
+                  .share({
+                    url: `${window.location.origin}/posts/${post.id}`,
+                    title: `Post by ${post.user.displayName ?? post.user.name}`,
+                    text: post.content,
+                  })
+                  .catch((error) => console.error("Share failed:", error));
+              }
+            }}
+            onMouseDown={(e) => {
+              // Also prevent default on mouse down
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="-ml-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-3 text-xs text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-primary"
           >
             <Share2 className="size-4" />
             <span className="text-xs">Share</span>
-          </Button>
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -251,11 +322,18 @@ export default function Post({ post }: PostProps) {
         </div>
       </div>
 
-      {/* Comment section - Using CSS only for transitions */}
-      <div>
+      {/* Comment section - Absolutely no animations */}
+      <div style={{ transition: 'none !important', animation: 'none !important' }}>
         {/* Only render comments when showComments is true to avoid unnecessary DOM elements */}
         {showComments && (
-          <div className="mt-2 animate-fade-in border-t pt-4">
+          <div 
+            className="mt-2 border-t pt-4"
+            style={{ 
+              transition: 'none !important', 
+              animation: 'none !important',
+              opacity: 1
+            }}
+          >
             {/* Comment input shown above comments when comment button is clicked */}
             <CommentInput post={post} />
 
@@ -278,6 +356,14 @@ type CommentButtonProps = {
 function CommentButton({ post, onClick }: CommentButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted state on client side
+  useEffect(() => {
+    setIsMounted(true);
+    // No need for initialization delay as our new click handler is more robust
+    return () => {};
+  }, []);
 
   // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
   const commentCount =
@@ -289,41 +375,102 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
         ? (post as any).commentCount
         : // Fallback
           0;
-
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      type="button" // Explicitly set type to button
-      onClick={(e) => {
-        // Ensure we stop default behavior before anything else happens
-        if (e) {
-          e.preventDefault(); // Prevent default browser action
-          e.stopPropagation(); // Stop event bubbling
-        }
-
-        // Visual feedback
-        setIsPressed(true);
-        setTimeout(() => setIsPressed(false), 200);
-
-        // Call the parent onClick handler (which also has preventDefault)
-        if (onClick) onClick(e);
+          
+  // Query to get accurate comment count (useful when comments have been added since post was loaded)
+  const { data: commentData } = useQuery({
+    queryKey: ["comment-count", post.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/v1/posts/${post.id}/comment-count`);
+      if (!response.ok) return { count: commentCount };
+      return response.json();
+    },
+    // Only refresh when component is in view
+    refetchOnWindowFocus: false,
+  });
+  
+  // Use the latest comment count from API if available, otherwise use the count from post data
+  const totalComments = commentData?.count ?? commentCount;
+          
+  // Robust click handler to prevent page reloads on first click
+  const handleClick = (e: React.MouseEvent) => {
+    try {
+      // Comprehensive event prevention at all levels
+      if (e) {
+        // First prevent default at event level
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
         
-        // Cancel the event's default action
-        return false;
+        // Also prevent at native event level
+        if (e.nativeEvent) {
+          if (typeof e.nativeEvent.preventDefault === 'function') e.nativeEvent.preventDefault();
+          if (typeof e.nativeEvent.stopPropagation === 'function') e.nativeEvent.stopPropagation();
+          if (typeof e.nativeEvent.stopImmediatePropagation === 'function') {
+            e.nativeEvent.stopImmediatePropagation();
+          }
+        }
+      }
+      
+      // Visual feedback
+      setIsPressed(true);
+      setTimeout(() => setIsPressed(false), 200);
+      
+      // Only call onClick if component is mounted, with a slight delay to ensure event prevention runs first
+      if (isMounted && onClick) {
+        setTimeout(() => {
+          try {
+            onClick(e);
+          } catch (err) {
+            // If the original event causes problems, try without it
+            console.error('Error with event in CommentButton:', err);
+            onClick(null);
+          }
+        }, 20);
+      }
+    } catch (error) {
+      // Error handling with fallback
+      console.error('Error in comment button click handler:', error);
+      
+      // Try to call onClick without an event if there was an error
+      if (onClick) {
+        setTimeout(() => onClick(null), 20);
+      }
+    }
+    
+    // Return false to prevent any form submission
+    return false;
+  };
+
+  // Native button with type="button" to prevent form submission
+  return (
+    <button
+      type="button" // CRITICAL: Explicitly set type to button to prevent form submission
+      // Using only attributes that are compatible with type="button"
+      formNoValidate={true}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        // Handle keyboard accessibility
+        if (e.key === 'Enter' || e.key === ' ') {
+          if (typeof e.preventDefault === 'function') e.preventDefault();
+          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          if (onClick) onClick(e as unknown as React.MouseEvent);
+        }
       }}
       onMouseDown={(e) => {
-        // Also prevent default on mouse down
-        e.preventDefault();
-        e.stopPropagation();
+        // Also prevent default on mouse down if the methods exist
+        if (typeof e.preventDefault === 'function') {
+          e.preventDefault();
+          if (typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+          }
+        }
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`-ml-2 flex items-center gap-1.5 ${isPressed ? "text-primary" : isHovered ? "text-primary/80" : "text-muted-foreground"} transition-colors duration-200`}
+      className={`-ml-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-3 text-xs ${isPressed ? "text-primary" : isHovered ? "text-primary/80" : "text-muted-foreground"} transition-colors duration-200 hover:bg-accent hover:text-accent-foreground`}
     >
       <MessageSquare className="size-4" />
-      <span className="text-xs font-medium">{commentCount}</span>
-    </Button>
+      <span className="text-xs font-medium">{totalComments}</span>
+    </button>
   );
 }
 

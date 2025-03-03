@@ -86,7 +86,7 @@ export default function FollowingFeed() {
 
   return (
     <InfiniteScrollContainer
-      className="no-scrollbar h-full space-y-4 overflow-y-auto"
+      className="no-scrollbar h-full space-y-6 p-4 overflow-y-auto"
       onBottomReached={async () =>
         hasNextPage && !isFetching && fetchNextPage()
       }

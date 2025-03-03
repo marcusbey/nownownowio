@@ -11,7 +11,7 @@ export async function GET(
   try {
     const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
 
-    const pageSize = 5;
+    const pageSize = 10; // Increased from 5 to show more comments initially
 
     const { user } = await validateRequest();
 

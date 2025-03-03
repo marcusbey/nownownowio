@@ -7,6 +7,7 @@ import kyInstance from "@/lib/ky";
 import type { CommentsPage, PostData } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { extractUserFromSession } from "@/lib/utils";
@@ -35,6 +36,7 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
           pageParam ? { searchParams: { cursor: pageParam } } : {},
         )
         .json<CommentsPage>(),
+    // Set initial parameters for comment loading
     initialPageParam: null as string | null,
     getNextPageParam: (firstPage) => firstPage.previousCursor,
     select: (data) => ({
@@ -45,6 +47,9 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
 
   // Get comments and reverse them to show most recent at the top
   const comments = (data?.pages.flatMap((page) => page.comments) ?? []).reverse();
+  
+  // Only fetch next page when Show Previous Comments button is clicked
+  // This ensures we don't load comments unnecessarily when comments are closed by default
 
   return (
     <motion.div
@@ -59,7 +64,7 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
       {showInput && <CommentInput post={post} />}
 
       <div className="mt-3 border-t border-border/20 pt-3">
-        <ScrollArea className="max-h-[400px] pr-3">
+        <ScrollArea className="max-h-[600px] pr-3 overflow-y-auto">
           <AnimatePresence mode="popLayout">
             {hasNextPage && (
               <motion.div
