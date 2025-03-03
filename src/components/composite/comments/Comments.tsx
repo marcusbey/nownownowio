@@ -1,119 +1,189 @@
-import kyInstance from "@/lib/ky";
-import { ENDPOINTS } from "@/lib/api/apiEndpoints";
-import { CommentsPage, PostData } from "@/lib/types";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { ChevronDown, Loader2 } from "lucide-react";
+"use client";
+
 import { Button } from "@/components/core/button";
+import { ScrollArea } from "@/components/layout/scroll-area";
+import { ENDPOINTS } from "@/lib/api/apiEndpoints";
+import kyInstance from "@/lib/ky";
+import type { CommentsPage, PostData } from "@/lib/types";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { extractUserFromSession } from "@/lib/utils";
 import Comment from "./Comment";
 import CommentInput from "./CommentInput";
-import { motion, AnimatePresence } from "framer-motion";
-import { ScrollArea } from "@/components/layout/scroll-area";
 
-interface CommentsProps {
+type CommentsProps = {
   post: PostData;
-}
+  showInput?: boolean;
+};
 
-export default function Comments({ post }: CommentsProps) {
-  const { data, fetchNextPage, hasNextPage, isFetching, status } =
-    useInfiniteQuery({
-      queryKey: ["comments", post.id],
-      queryFn: ({ pageParam }) =>
-        kyInstance
-          .get(
-            ENDPOINTS.POST_COMMENTS(post.id),
-            pageParam ? { searchParams: { cursor: pageParam } } : {},
-          )
-          .json<CommentsPage>(),
-      initialPageParam: null as string | null,
-      getNextPageParam: (firstPage) => firstPage.previousCursor,
-      select: (data) => ({
-        pages: [...data.pages].reverse(),
-        pageParams: [...data.pageParams].reverse(),
-      }),
-    });
+export default function Comments({ post, showInput = true }: CommentsProps) {
+  const { data: session, status } = useSession();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    status: queryStatus,
+  } = useInfiniteQuery({
+    queryKey: ["comments", post.id],
+    queryFn: async ({ pageParam }) =>
+      kyInstance
+        .get(
+          ENDPOINTS.POST_COMMENTS(post.id),
+          pageParam ? { searchParams: { cursor: pageParam } } : {},
+        )
+        .json<CommentsPage>(),
+    initialPageParam: null as string | null,
+    getNextPageParam: (firstPage) => firstPage.previousCursor,
+    select: (data) => ({
+      pages: [...data.pages].reverse(),
+      pageParams: [...data.pageParams].reverse(),
+    }),
+  });
 
-  const comments = data?.pages.flatMap((page) => page.comments) || [];
+  // Get comments and reverse them to show most recent at the top
+  const comments = (data?.pages.flatMap((page) => page.comments) ?? []).reverse();
 
   return (
     <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.2 }}
-      className="mt-2 border-t pt-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="mt-2 border-t border-border/30 pt-4"
     >
-      <CommentInput post={post} />
-      
-      <ScrollArea className="max-h-[400px] pr-4">
-        <AnimatePresence mode="popLayout">
-          {hasNextPage && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mt-4"
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mx-auto flex w-full items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-                disabled={isFetching}
-                onClick={() => fetchNextPage()}
-              >
-                <ChevronDown className="h-4 w-4" />
-                <span>Show previous comments</span>
-              </Button>
-            </motion.div>
-          )}
-
-          {status === "pending" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="py-8"
-            >
-              <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-            </motion.div>
-          )}
-
-          {status === "success" && !comments.length && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="py-4 text-center text-sm text-muted-foreground"
-            >
-              Be the first to comment
-            </motion.p>
-          )}
-
-          {status === "error" && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="py-4 text-center text-sm text-destructive"
-            >
-              Failed to load comments
-            </motion.p>
-          )}
-
-          <div className="mt-4 space-y-4">
-            {comments.map((comment, index) => (
-              <motion.div
-                key={comment.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Comment comment={comment} />
-              </motion.div>
-            ))}
+      {/* Debug info - keep in development mode */}
+      {process.env.NODE_ENV === "development" && (() => {
+        // Use the utility function to extract user data
+        const userInfo = extractUserFromSession(session, status);
+        
+        return (
+          <div className="mb-4 rounded bg-muted p-2 text-xs">
+            <p>Session status: {status}</p>
+            <p>User: {userInfo ? `${userInfo.email} (${userInfo.id})` : "Not logged in"}</p>
+            <p>Session valid: {!!session && !!userInfo ? "Yes" : "No"}</p>
+            <p>Session parse attempt: {!!userInfo && !session?.user ? "Fixed" : "Original"}</p>
+            <p>Session object: {JSON.stringify(session).substring(0, 100)}...</p>
           </div>
-        </AnimatePresence>
-      </ScrollArea>
+        );
+      })()
+      }
+
+      {showInput && <CommentInput post={post} />}
+
+      <div className="mt-3 border-t border-border/20 pt-3">
+        <ScrollArea className="max-h-[400px] pr-3">
+          <AnimatePresence mode="popLayout">
+            {hasNextPage && (
+              <motion.div
+                key="load-more-button"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mb-4 flex justify-center"
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 rounded-full border-dashed border-primary/30 bg-background/80 text-sm font-medium text-muted-foreground/80 backdrop-blur-sm shadow-sm hover:bg-primary/10 hover:text-primary hover:shadow-md transition-all duration-200"
+                  onClick={async () => fetchNextPage()}
+                  disabled={isFetching}
+                >
+                  {isFetching ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <ChevronDown className="size-4" />
+                  )}
+                  {isFetching
+                    ? "Loading previous comments..."
+                    : "Show previous comments"}
+                </Button>
+              </motion.div>
+            )}
+
+            {isFetching && comments.length === 0 && (
+              <motion.div
+                key="loading-spinner"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex justify-center py-6"
+              >
+                <Loader2 className="size-6 animate-spin text-primary/60" />
+              </motion.div>
+            )}
+
+            {comments.length > 0 ? (
+              <div key="comments-list" className="space-y-1.5">
+                {comments.map((comment) => (
+                  <Comment key={comment.id} comment={comment} />
+                ))}
+              </div>
+            ) : queryStatus === "success" && !isFetching ? (
+              <motion.div
+                key="empty-comments"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center gap-1 py-4 text-center"
+              >
+                <div className="rounded-full bg-muted/30 p-3 backdrop-blur-sm shadow-sm">
+                  <svg
+                    className="size-6 text-muted-foreground"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  No comments yet. Be the first to comment!
+                </p>
+              </motion.div>
+            ) : null}
+
+            {queryStatus === "error" && (
+              <motion.div
+                key="error-message"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center gap-2 py-6 text-center"
+              >
+                <div className="rounded-full bg-destructive/10 p-3">
+                  <svg
+                    className="size-6 text-destructive"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-destructive">
+                  Failed to load comments. Please try again.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </ScrollArea>
+      </div>
     </motion.div>
   );
 }

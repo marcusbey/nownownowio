@@ -105,6 +105,14 @@ module.exports = {
             height: "0",
           },
         },
+        "fade-in": {
+          "0%": {
+            opacity: "0",
+          },
+          "100%": {
+            opacity: "1",
+          },
+        },
         "spin-around": {
           "0%": {
             transform: "translateZ(0) rotate(0)",
@@ -128,6 +136,7 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.2s ease-out",
         "shimmer-slide":
           "shimmer-slide var(--speed) ease-in-out infinite alternate",
         "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",

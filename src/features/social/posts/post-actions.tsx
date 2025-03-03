@@ -38,15 +38,23 @@ export function LikeButton({
 }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLiked);
 
-  const handleLike = async () => {
+  const handleLike = async (e: React.MouseEvent) => {
+    // Prevent default to avoid page reload
+    e.preventDefault();
+    e.stopPropagation();
+    
     setLiked(!liked);
     await onLike(postId);
+    
+    // Prevent any potential page reload
+    return false;
   };
 
   return (
     <Button
       variant="ghost"
       size="sm"
+      type="button" // Explicitly set type to button
       className={cn(
         "flex items-center gap-2 hover:text-primary",
         liked && "text-primary",

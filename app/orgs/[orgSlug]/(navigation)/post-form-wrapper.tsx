@@ -16,7 +16,7 @@ export function PostFormWrapper() {
       {session?.user?.id && organization && (
         <PostForm
           userId={session.user.id}
-          userImage={session.user.image}
+          userImage={session.user.image ?? null}
           organization={{
             id: organization.id,
             name: organization.name,

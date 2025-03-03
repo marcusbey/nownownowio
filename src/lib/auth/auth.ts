@@ -30,7 +30,18 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   secret: env.AUTH_SECRET,
   callbacks: {
     session: async ({ session, user }) => {
-      if (session?.user) {
+      try {
+        if (!session || !session.user) {
+          console.error("Session callback - Invalid session or missing user in session");
+          return session;
+        }
+
+        if (!user) {
+          console.error("Session callback - Missing user data");
+          return session;
+        }
+
+        // Add user data to session
         session.user.id = user.id;
         session.user.email = user.email;
         session.user.name = user.name;
@@ -38,8 +49,21 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         // Remove sensitive data
         // @ts-expect-error - NextAuth doesn't know about this property
         session.user.passwordHash = null;
+
+        // Add debug logging
+        console.log("Session callback - user data:", {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          hasImage: !!user.image,
+          sessionValid: !!session && !!session.user
+        });
+
+        return session;
+      } catch (error) {
+        console.error("Session callback - Error:", error);
+        return session;
       }
-      return session;
     },
   },
   events: {

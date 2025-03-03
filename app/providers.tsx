@@ -26,19 +26,19 @@ const queryClient = new QueryClient({
 
 export const Providers = ({ children }: PropsWithChildren) => {
   // Use client-side state to track if we're in development mode
-  const [isDev] = useState(() => 
-    process.env.NODE_ENV === 'development' || 
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1'
+  const [isDev] = useState(
+    () =>
+      process.env.NODE_ENV === "development" ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1",
   );
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <SessionProvider
         basePath="/api/v1/auth"
-        refetchInterval={0} // Don't auto-refetch the session
-        refetchOnWindowFocus={false} // Don't refetch on window focus
-        // Only include properties that are supported by SessionProvider
+        refetchInterval={5 * 60} // Refetch session every 5 minutes
+        refetchOnWindowFocus={true} // Refetch on window focus
       >
         <QueryClientProvider client={queryClient}>
           <Toaster />

@@ -19,6 +19,65 @@ export function formatRelativeDate(from: Date) {
   }
 }
 
+/**
+ * Safely extracts user data from a session object, handling potential string representation issues
+ * @param session The session object from useSession() hook
+ * @param status The status from useSession() hook
+ * @returns The extracted user data or null if not available
+ */
+export function extractUserFromSession(session: any, status: string) {
+  // If we already have user data in the expected format, return it
+  if (status === "authenticated" && session?.user) {
+    return session.user;
+  }
+  
+  // No session or not authenticated
+  if (!session || status !== "authenticated") {
+    return null;
+  }
+  
+  try {
+    // Try to parse the session if it's a string or has unexpected structure
+    const sessionStr = JSON.stringify(session);
+    
+    // Check if this looks like a session object with user data
+    if (sessionStr.includes('"user"') || sessionStr.includes('"id"')) {
+      // Handle case where session might be a string representation
+      const parsedSession = sessionStr.startsWith('"') 
+        ? JSON.parse(JSON.parse(sessionStr)) 
+        : session;
+      
+      // If we have a user object after parsing, return it
+      if (parsedSession?.user) {
+        return parsedSession.user;
+      }
+      
+      // If the session itself might be the user object
+      if (parsedSession?.id && (parsedSession?.email || parsedSession?.name)) {
+        return parsedSession;
+      }
+    }
+    
+    // Special case: if session appears to be the direct user object
+    if (session.id && (session.email || session.name)) {
+      return session;
+    }
+    
+    // Log for debugging in development
+    if (process.env.NODE_ENV === "development") {
+      console.log("Session parsing attempted but failed:", {
+        sessionType: typeof session,
+        sessionKeys: Object.keys(session),
+        sessionPreview: sessionStr.substring(0, 100)
+      });
+    }
+  } catch (error) {
+    console.error("Error extracting user from session:", error);
+  }
+  
+  return null;
+}
+
 export function formatNumber(n: number): string {
   return Intl.NumberFormat("en-US", {
     notation: "compact",

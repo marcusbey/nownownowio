@@ -17,12 +17,16 @@ export default function UserAvatar({
 }: UserAvatarProps) {
   const [error, setError] = useState(false);
 
-  // Normalize the avatar URL
-  const normalizedAvatarUrl = avatarUrl?.startsWith("http")
-    ? avatarUrl
-    : avatarUrl?.startsWith("/")
-      ? avatarUrl
-      : `/${avatarUrl}`; // Use placeholder if no URL or error
+  // Normalize the avatar URL with better handling of edge cases
+  let normalizedAvatarUrl = null;
+  if (avatarUrl) {
+    if (avatarUrl.startsWith("http") || avatarUrl.startsWith("/")) {
+      normalizedAvatarUrl = avatarUrl;
+    } else {
+      normalizedAvatarUrl = `/${avatarUrl}`;
+    }
+  }
+
   const imageUrl =
     error || !normalizedAvatarUrl ? PLACEHOLDER_IMAGE : normalizedAvatarUrl;
 

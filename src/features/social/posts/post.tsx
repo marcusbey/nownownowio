@@ -6,7 +6,7 @@ import { Button } from "@/components/core/button";
 import Linkify from "@/components/data-display/Linkify";
 import { usePostViews } from "@/hooks/use-post-views";
 import type { PostData } from "@/lib/types";
-import { cn, formatRelativeDate } from "@/lib/utils";
+import { cn, extractUserFromSession, formatRelativeDate } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Eye, MessageSquare, Share2 } from "lucide-react";
@@ -45,8 +45,8 @@ type PostProps = {
 };
 
 export default function Post({ post }: PostProps) {
-  const { data: session } = useSession();
-  const user = session?.user;
+  const { data: session, status } = useSession();
+  const user = extractUserFromSession(session, status);
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -54,40 +54,64 @@ export default function Post({ post }: PostProps) {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+
+    // Debug logging
+    if (process.env.NODE_ENV === "development") {
+      console.log(
+        "Post component - Session status:",
+        status,
+        "| User info:",
+        user ? `${user.email} (${user.id})` : "No user",
+        "| Session valid:",
+        user ? "Yes" : "No",
+      );
+    }
+  }, [status, session, user]);
 
   const handleCommentClick = useCallback(
     (e: React.MouseEvent) => {
-      if (!isClient) return;
-      e.preventDefault();
-      e.stopPropagation();
+      if (!isClient) return false;
+
+      // Make sure we prevent default and stop propagation
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // Toggle comment visibility
       setShowComments((prev) => !prev);
+
+      // Prevent any potential page reload
+      return false;
     },
     [isClient],
   );
 
   const userProfileLink = useMemo(() => {
-    if (user && post.user.id === user.id) {
-      const userMemberships = post.user.memberships ?? [];
+    if (user?.email && post.user.id === user.id) {
+      const userMemberships = Array.isArray(post.user.memberships)
+        ? post.user.memberships
+        : [];
       const orgSlug =
         userMemberships.length > 0
           ? userMemberships[0].organization.slug
           : undefined;
 
-      return `/orgs/${orgSlug || ""}/profile`;
+      return `/orgs/${orgSlug ?? ""}/profile`;
     }
-    return `/users/${post.user.name || ""}`;
+    return `/users/${post.user.name ?? ""}`;
   }, [user, post.user]);
 
-  const isOwnPost = useMemo(
-    () => user && post.user.id === user.id,
-    [user, post.user.id],
-  );
-  const displayName = useMemo(
-    () => post.user.displayName || post.user.name,
-    [post.user],
-  );
-  const mediaItems = post.media ?? [];
+  const isOwnPost = useMemo(() => {
+    if (!user) return false;
+    return user.email === post.userId;
+  }, [user, post.userId]);
+
+  const displayName = useMemo(() => {
+    return post.user.name ?? "Unknown User";
+  }, [post.user.name]);
+
+  const mediaItems = Array.isArray(post.media) ? post.media : [];
   const hasAttachments = mediaItems.length > 0;
 
   return (
@@ -181,9 +205,8 @@ export default function Post({ post }: PostProps) {
             initialState={{
               likes: post._count?.likes || 0,
               isLikedByUser:
-                post.likes && post.likes.length > 0
-                  ? post.likes.some((like) => like.userId === user?.id)
-                  : false,
+                post.likes && Array.isArray(post.likes) &&
+                post.likes.some((like) => like?.userId === user?.id),
             }}
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -191,15 +214,20 @@ export default function Post({ post }: PostProps) {
           <Button
             variant="ghost"
             size="sm"
+            type="button" // Explicitly set type to button
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               navigator
                 .share({
                   url: `${window.location.origin}/posts/${post.id}`,
-                  title: `Post by ${post.user.displayName || post.user.name}`,
+                  title: `Post by ${post.user.displayName ?? post.user.name}`,
                   text: post.content,
                 })
-                .catch(() => {}); // Fallback silently if share is not supported
+                .catch((error) => console.error("Share failed:", error));
+
+              // Prevent any potential page reload
+              return false;
             }}
             className="-ml-2 flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           >
@@ -214,37 +242,30 @@ export default function Post({ post }: PostProps) {
           </span>
           <BookmarkButton
             postId={post.id}
-            initialState={{
-              isBookmarkedByUser: post.bookmarks && post.bookmarks.length > 0
-                ? post.bookmarks.some((bookmark) => bookmark.userId === user?.id)
-                : false
-            }}
+            initialBookmarked={
+              Array.isArray(post.bookmarks) &&
+              post.bookmarks.some((bookmark) => bookmark.userId === user?.id)
+            }
             className="text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: "auto" }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.2 }}
-        layout
-      >
-        <Suspense
-          fallback={
-            <div className="h-24 animate-pulse rounded-lg bg-muted" />
-          }
-        >
-          {showComments ? (
-            <Comments post={post} />
-          ) : (
-            <div className="mt-2 border-t pt-4">
-              <CommentInput post={post} />
-            </div>
-          )}
-        </Suspense>
-      </motion.div>
+      {/* Comment section - Using CSS only for transitions */}
+      <div>
+        {/* Only render comments when showComments is true to avoid unnecessary DOM elements */}
+        {showComments && (
+          <div className="mt-2 animate-fade-in border-t pt-4">
+            {/* Comment input shown above comments when comment button is clicked */}
+            <CommentInput post={post} />
+
+            {/* Comment list with showInput=false since we're handling it separately */}
+            <Comments post={post} showInput={false} />
+          </div>
+        )}
+
+        {/* Debug info removed */}
+      </div>
     </motion.article>
   );
 }
@@ -255,15 +276,47 @@ type CommentButtonProps = {
 };
 
 function CommentButton({ post, onClick }: CommentButtonProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
+
+  // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
+  const commentCount =
+    // Check standard API format with optional chaining
+    post._count?.comments !== undefined
+      ? post._count.comments
+      : // Check user posts API format
+        (post as any).commentCount !== undefined
+        ? (post as any).commentCount
+        : // Fallback
+          0;
+
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={onClick}
-      className="-ml-2 flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
+      type="button" // Explicitly set type to button
+      onClick={(e) => {
+        // Make sure we prevent default at the very beginning of the function
+        if (e) {
+          e.preventDefault(); // Prevent default browser action
+          e.stopPropagation(); // Stop event bubbling
+        }
+
+        setIsPressed(true);
+        setTimeout(() => setIsPressed(false), 200);
+
+        // Call the parent onClick handler (which also has preventDefault)
+        if (onClick) onClick(e);
+
+        // Explicitly return false to ensure no page reload
+        return false;
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`-ml-2 flex items-center gap-1.5 ${isPressed ? "text-primary" : isHovered ? "text-primary/80" : "text-muted-foreground"} transition-colors duration-200`}
     >
       <MessageSquare className="size-4" />
-      <span className="text-xs">{post._count?.comments || 0}</span>
+      <span className="text-xs font-medium">{commentCount}</span>
     </Button>
   );
 }

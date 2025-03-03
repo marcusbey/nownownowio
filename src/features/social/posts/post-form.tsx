@@ -66,6 +66,8 @@ export function PostForm({
 
   // If userId was passed directly as a prop, use that instead of session
   const currentUser = userId ?? session?.user?.id;
+  // Use userImage from props if available, otherwise from session
+  const avatarUrl = userImage ?? session?.user?.image;
 
   if (!currentUser) {
     return (
@@ -200,7 +202,7 @@ export function PostForm({
       <div className="flex gap-4">
         <div className="shrink-0">
           <UserAvatar
-            avatarUrl={userImage}
+            avatarUrl={avatarUrl}
             size={44}
             className="ring-2 ring-background"
           />
