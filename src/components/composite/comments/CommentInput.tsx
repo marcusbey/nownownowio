@@ -57,23 +57,6 @@ export default function CommentInput({ post }: CommentInputProps) {
   // Use the utility function to extract user data
   const userInfo = extractUserFromSession(session, status);
 
-  // Log debug info in development mode
-  if (process.env.NODE_ENV === "development") {
-    console.log("CommentInput - Session status:", status);
-    console.log("CommentInput - User info:", userInfo);
-  }
-
-  // Add debug info in development
-  if (process.env.NODE_ENV === "development") {
-    console.log("CommentInput - Session:", {
-      status,
-      hasSession: !!session,
-      hasUser: !!userInfo,
-      sessionType: typeof session,
-      userInfo: userInfo ? JSON.stringify(userInfo).substring(0, 100) : null,
-    });
-  }
-
   // Show sign-in prompt if not authenticated or if session has no user data
   if (status !== "authenticated" || !userInfo) {
     return (
