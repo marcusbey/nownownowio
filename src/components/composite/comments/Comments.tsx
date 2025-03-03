@@ -54,22 +54,7 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
       transition={{ duration: 0.3 }}
       className="mt-2 border-t border-border/30 pt-4"
     >
-      {/* Debug info - keep in development mode */}
-      {process.env.NODE_ENV === "development" && (() => {
-        // Use the utility function to extract user data
-        const userInfo = extractUserFromSession(session, status);
-        
-        return (
-          <div className="mb-4 rounded bg-muted p-2 text-xs">
-            <p>Session status: {status}</p>
-            <p>User: {userInfo ? `${userInfo.email} (${userInfo.id})` : "Not logged in"}</p>
-            <p>Session valid: {!!session && !!userInfo ? "Yes" : "No"}</p>
-            <p>Session parse attempt: {!!userInfo && !session?.user ? "Fixed" : "Original"}</p>
-            <p>Session object: {JSON.stringify(session).substring(0, 100)}...</p>
-          </div>
-        );
-      })()
-      }
+
 
       {showInput && <CommentInput post={post} />}
 
@@ -127,11 +112,11 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
                 key="empty-comments"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center gap-1 py-4 text-center"
+                className="flex flex-col items-center justify-center gap-1 py-2 text-center"
               >
-                <div className="rounded-full bg-muted/30 p-3 backdrop-blur-sm shadow-sm">
+                <div className="rounded-full bg-muted/30 p-2 backdrop-blur-sm shadow-sm">
                   <svg
-                    className="size-6 text-muted-foreground"
+                    className="size-4 text-muted-foreground"
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
                     height="24"

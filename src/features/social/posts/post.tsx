@@ -296,20 +296,26 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       size="sm"
       type="button" // Explicitly set type to button
       onClick={(e) => {
-        // Make sure we prevent default at the very beginning of the function
+        // Ensure we stop default behavior before anything else happens
         if (e) {
           e.preventDefault(); // Prevent default browser action
           e.stopPropagation(); // Stop event bubbling
         }
 
+        // Visual feedback
         setIsPressed(true);
         setTimeout(() => setIsPressed(false), 200);
 
         // Call the parent onClick handler (which also has preventDefault)
         if (onClick) onClick(e);
-
-        // Explicitly return false to ensure no page reload
+        
+        // Cancel the event's default action
         return false;
+      }}
+      onMouseDown={(e) => {
+        // Also prevent default on mouse down
+        e.preventDefault();
+        e.stopPropagation();
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
