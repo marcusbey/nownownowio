@@ -170,6 +170,7 @@ export default function CommentInput({ post }: CommentInputProps) {
           className={`max-h-[120px] min-h-[48px] resize-none border-none bg-transparent px-4 py-3 text-sm ${isFocused ? "ring-0" : "ring-0"} pr-12 transition-all duration-200 placeholder:text-muted-foreground/70 focus-visible:ring-0`}
         />
         <Button
+          type="button"
           size="icon"
           variant={content.trim() ? "default" : "ghost"}
           className={`absolute right-2 top-1/2 size-8 -translate-y-1/2 rounded-full ${content.trim() ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground/70 hover:text-muted-foreground"} transition-all duration-200 hover:bg-primary hover:text-primary-foreground disabled:pointer-events-none disabled:opacity-50`}
