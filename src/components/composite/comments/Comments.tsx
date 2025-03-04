@@ -7,10 +7,8 @@ import kyInstance from "@/lib/ky";
 import type { CommentsPage, PostData } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { extractUserFromSession } from "@/lib/utils";
 import Comment from "./Comment";
 import CommentInput from "./CommentInput";
 
@@ -46,8 +44,13 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
   });
 
   // Get comments and reverse them to show most recent at the top
-  const comments = (data?.pages.flatMap((page) => page.comments) ?? []).reverse();
-  
+  const comments = (
+    data?.pages.flatMap((page) => page.comments) ?? []
+  ).reverse();
+
+  // Get the post owner ID to pass to each Comment component
+  const postOwnerId = post.user.id || post.userId;
+
   // Only fetch next page when Show Previous Comments button is clicked
   // This ensures we don't load comments unnecessarily when comments are closed by default
 
@@ -59,12 +62,10 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
       transition={{ duration: 0.3 }}
       className="mt-2 border-t border-border/30 pt-4"
     >
-
-
       {showInput && <CommentInput post={post} />}
 
       <div className="mt-3 border-t border-border/20 pt-3">
-        <ScrollArea className="max-h-[600px] pr-3 overflow-y-auto">
+        <ScrollArea className="max-h-[600px] overflow-y-auto pr-3">
           <AnimatePresence mode="popLayout">
             {hasNextPage && (
               <motion.div
@@ -78,7 +79,7 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full gap-2 rounded-full border-dashed border-primary/30 bg-background/80 text-sm font-medium text-muted-foreground/80 backdrop-blur-sm shadow-sm hover:bg-primary/10 hover:text-primary hover:shadow-md transition-all duration-200"
+                  className="w-full gap-2 rounded-full border-dashed border-primary/30 bg-background/80 text-sm font-medium text-muted-foreground/80 shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:shadow-md"
                   onClick={async () => fetchNextPage()}
                   disabled={isFetching}
                 >
@@ -109,7 +110,11 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
             {comments.length > 0 ? (
               <div key="comments-list" className="space-y-1.5">
                 {comments.map((comment) => (
-                  <Comment key={comment.id} comment={comment} />
+                  <Comment
+                    key={comment.id}
+                    comment={comment}
+                    postOwnerId={postOwnerId}
+                  />
                 ))}
               </div>
             ) : queryStatus === "success" && !isFetching ? (
@@ -119,7 +124,7 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
                 animate={{ opacity: 1 }}
                 className="flex flex-col items-center justify-center gap-1 py-2 text-center"
               >
-                <div className="rounded-full bg-muted/30 p-2 backdrop-blur-sm shadow-sm">
+                <div className="rounded-full bg-muted/30 p-2 shadow-sm backdrop-blur-sm">
                   <svg
                     className="size-4 text-muted-foreground"
                     xmlns="http://www.w3.org/2000/svg"

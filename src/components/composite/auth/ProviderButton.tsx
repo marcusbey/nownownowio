@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import { cn } from "@/lib/utils";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
@@ -47,7 +47,7 @@ export function ProviderButton({
         "relative flex w-full items-center justify-start gap-3 px-4",
         "bg-white text-gray-700 transition-colors",
         "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-        className
+        className,
       )}
     >
       <Image
@@ -57,9 +57,7 @@ export function ProviderButton({
         height={16}
         className="h-4 w-4 flex-shrink-0"
       />
-      <span className="text-sm">
-        {providerNames[providerId]}
-      </span>
+      <span className="text-sm">{providerNames[providerId]}</span>
     </Button>
   );
 }

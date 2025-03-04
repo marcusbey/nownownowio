@@ -167,7 +167,7 @@ export default function CommentInput({ post }: CommentInputProps) {
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoFocus
-          className={`min-h-[48px] max-h-[120px] resize-none border-none bg-transparent px-4 py-3 text-sm ${isFocused ? "ring-0" : "ring-0"} pr-12 transition-all duration-200 placeholder:text-muted-foreground/70 focus-visible:ring-0`}
+          className={`max-h-[120px] min-h-[48px] resize-none border-none bg-transparent px-4 py-3 text-sm ${isFocused ? "ring-0" : "ring-0"} pr-12 transition-all duration-200 placeholder:text-muted-foreground/70 focus-visible:ring-0`}
         />
         <Button
           size="icon"

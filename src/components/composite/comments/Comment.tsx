@@ -1,59 +1,43 @@
 "use client";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/composite/dropdown-menu";
 import UserAvatar from "@/components/composite/UserAvatar";
 import UserTooltip from "@/components/composite/UserTooltip";
-import { Button } from "@/components/core/button";
 import Linkify from "@/components/data-display/Linkify";
-import { useToast } from "@/components/feedback/use-toast";
-import { deleteComment } from "@/lib/api/comments";
 import type { CommentData } from "@/lib/types";
-import { useQueryClient } from "@tanstack/react-query";
+import { extractUserFromSession } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
-import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
+import CommentMoreButton from "./CommentMoreButton";
 
 type CommentProps = {
   comment: CommentData;
+  postOwnerId?: string; // Add postOwnerId prop to check if user is post owner
 };
 
-export default function Comment({ comment }: CommentProps) {
-  const { data: session } = useSession();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+export default function Comment({ comment, postOwnerId }: CommentProps) {
+  const { data: session, status } = useSession();
   const [isHovered, setIsHovered] = useState(false);
 
+  // Extract user info using the utility function
+  const userInfo = extractUserFromSession(session, status);
+
   const userProfileLink =
-    session?.user && comment.user.id === session.user.id
+    userInfo && comment.user.id === userInfo.id
       ? `/orgs/${comment.user.memberships[0]?.organization?.slug ?? ""}/profile`
       : `/users/${comment.user.name ?? "unknown"}`;
 
-  const handleDelete = async () => {
-    try {
-      await deleteComment(comment.id);
-      await queryClient.invalidateQueries({
-        queryKey: ["comments", comment.postId],
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete comment",
-        variant: "destructive",
-      });
-    }
-  };
+  // Check if current user is either the comment author or the post owner
+  const canDeleteComment =
+    userInfo &&
+    (comment.user.id === userInfo.id || // Comment author
+      postOwnerId === userInfo.id); // Post owner
 
   return (
     <motion.div
-      className="group relative flex items-start gap-3 px-1 py-2.5 rounded-xl transition-all duration-200 hover:bg-muted/20"
+      className="group relative flex items-start gap-3 rounded-xl px-1 py-2.5 transition-all duration-200 hover:bg-muted/20"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       initial={{ opacity: 0 }}
@@ -61,11 +45,11 @@ export default function Comment({ comment }: CommentProps) {
       transition={{ duration: 0.25 }}
     >
       <UserTooltip user={comment.user}>
-        <Link href={userProfileLink} className="shrink-0 self-start mt-1">
+        <Link href={userProfileLink} className="mt-1 shrink-0 self-start">
           <UserAvatar
             avatarUrl={comment.user.image ?? null}
             size={32}
-            className="ring-1 ring-primary/20 ring-offset-1 shadow-sm transition-all duration-200 hover:ring-primary/40"
+            className="shadow-sm ring-1 ring-primary/20 ring-offset-1 transition-all duration-200 hover:ring-primary/40"
           />
         </Link>
       </UserTooltip>
@@ -93,33 +77,17 @@ export default function Comment({ comment }: CommentProps) {
             </span>
           </div>
 
-          {session?.user && comment.user.id === session.user.id && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`absolute right-2 top-2 size-7 rounded-full transition-all duration-200 ${
-                    isHovered ? "opacity-100" : "opacity-0"
-                  } hover:bg-background`}
-                >
-                  <MoreHorizontal className="size-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                  onClick={handleDelete}
-                >
-                  <Trash2 className="mr-2 size-4" />
-                  Delete comment
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {canDeleteComment && (
+            <CommentMoreButton
+              comment={comment}
+              className={`absolute right-2 top-2 size-7 rounded-full transition-all duration-200 ${
+                isHovered ? "opacity-100" : "opacity-0"
+              } hover:bg-background`}
+            />
           )}
         </div>
 
-        <div className="rounded-xl bg-muted/30 backdrop-blur-sm px-4 py-3 shadow-sm">
+        <div className="rounded-xl bg-muted/30 px-4 py-3 shadow-sm backdrop-blur-sm">
           <Linkify>
             <p className="text-sm leading-relaxed text-foreground/90">
               {comment.content}
