@@ -68,44 +68,12 @@ export default function Post({ post }: PostProps) {
     return () => clearTimeout(timer);
   }, [status, session, user]);
 
-  // Robust click handler to prevent page reloads on first click and handle comments toggle
+  // Simplified comment click handler without timeouts
   const handleCommentClick = useCallback(
-    (e: React.MouseEvent | React.KeyboardEvent | null) => {
-      try {
-        // Comprehensive event prevention - stop all default behaviors
-        if (e) {
-          // Prevent default at all levels
-          if (typeof e.preventDefault === 'function') e.preventDefault();
-          if (typeof e.stopPropagation === 'function') e.stopPropagation();
-          
-          // Handle native event if available
-          const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : null;
-          if (nativeEvent) {
-            if (typeof nativeEvent.preventDefault === 'function') nativeEvent.preventDefault();
-            if (typeof nativeEvent.stopPropagation === 'function') nativeEvent.stopPropagation();
-            if (typeof nativeEvent.stopImmediatePropagation === 'function') nativeEvent.stopImmediatePropagation();
-          }
-        }
-        
-        // Toggle comments with a slight delay to ensure event prevention runs first
-        // This is critical for preventing page reloads on first click
-        setTimeout(() => {
-          if (isClient) {
-            setShowComments(prev => !prev);
-          }
-        }, 20);
-      } catch (error) {
-        console.error("Error in comment click handler:", error);
-        // Still try to toggle comments if there was an error
-        setTimeout(() => {
-          if (isClient) {
-            setShowComments(prev => !prev);
-          }
-        }, 20);
+    () => {
+      if (isClient) {
+        setShowComments(prev => !prev);
       }
-      
-      // Return false to prevent any possible form submission
-      return false;
     },
     [isClient],
   );
@@ -379,52 +347,31 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
   // Use the latest comment count from API if available, otherwise use the count from post data
   const totalComments = commentData?.count ?? commentCount;
           
-  // Robust click handler to prevent page reloads on first click
+  // Enhanced click handler with immediate state updates
   const handleClick = (e: React.MouseEvent) => {
     try {
-      // Comprehensive event prevention at all levels
-      if (e) {
-        // First prevent default at event level
-        if (typeof e.preventDefault === 'function') e.preventDefault();
-        if (typeof e.stopPropagation === 'function') e.stopPropagation();
-        
-        // Also prevent at native event level
-        if (e.nativeEvent) {
-          if (typeof e.nativeEvent.preventDefault === 'function') e.nativeEvent.preventDefault();
-          if (typeof e.nativeEvent.stopPropagation === 'function') e.nativeEvent.stopPropagation();
-          if (typeof e.nativeEvent.stopImmediatePropagation === 'function') {
-            e.nativeEvent.stopImmediatePropagation();
-          }
-        }
-      }
+      // Comprehensive event prevention
+      e.preventDefault();
+      e.stopPropagation();
       
+      // Handle native event directly
+      const nativeEvent = e.nativeEvent;
+      nativeEvent?.stopImmediatePropagation();
+      nativeEvent?.preventDefault();
+
       // Visual feedback
       setIsPressed(true);
       setTimeout(() => setIsPressed(false), 200);
-      
-      // Only call onClick if component is mounted, with a slight delay to ensure event prevention runs first
-      if (isMounted && onClick) {
-        setTimeout(() => {
-          try {
-            onClick(e);
-          } catch (err) {
-            // If the original event causes problems, try without it
-            console.error('Error with event in CommentButton:', err);
-            onClick(null);
-          }
-        }, 20);
+
+      // Immediate state update without delay
+      if (isMounted) {
+        onClick(e);
       }
     } catch (error) {
-      // Error handling with fallback
-      console.error('Error in comment button click handler:', error);
-      
-      // Try to call onClick without an event if there was an error
-      if (onClick) {
-        setTimeout(() => onClick(null), 20);
-      }
+      console.error('CommentButton error:', error);
+      // Fallback to programmatic toggle
+      onClick(null);
     }
-    
-    // Return false to prevent any form submission
     return false;
   };
 
@@ -438,19 +385,19 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       onKeyDown={(e) => {
         // Handle keyboard accessibility
         if (e.key === 'Enter' || e.key === ' ') {
-          if (typeof e.preventDefault === 'function') e.preventDefault();
-          if (typeof e.stopPropagation === 'function') e.stopPropagation();
-          if (onClick) onClick(e as unknown as React.MouseEvent);
+          e.preventDefault();
+          e.stopPropagation();
+          // Direct call without event to avoid type issues
+          onClick(null);
         }
       }}
       onMouseDown={(e) => {
-        // Also prevent default on mouse down if the methods exist
-        if (typeof e.preventDefault === 'function') {
-          e.preventDefault();
-          if (typeof e.stopPropagation === 'function') {
-            e.stopPropagation();
-          }
-        }
+        // Prevent default on mouse down to stop any potential form submission
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Also handle native event
+        e.nativeEvent?.preventDefault();
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
