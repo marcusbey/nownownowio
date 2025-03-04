@@ -69,10 +69,35 @@ export default function Post({ post }: PostProps) {
     return () => clearTimeout(timer);
   }, [status, session, user]);
 
-  // Simplified comment click handler without timeouts
-  const handleCommentClick = useCallback(() => {
-    if (isClient) {
-      setShowComments((prev) => !prev);
+  // Robust comment click handler with error handling
+  const handleCommentClick = useCallback((e?: React.MouseEvent | null) => {
+    try {
+      // If an event was passed, ensure it's fully prevented
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Also handle native event safely
+        if (e.nativeEvent) {
+          try {
+            e.nativeEvent.preventDefault();
+            e.nativeEvent.stopPropagation();
+          } catch (nativeError) {
+            // Silent catch for native event errors
+          }
+        }
+      }
+      
+      // Only toggle state on client-side
+      if (isClient) {
+        setShowComments((prev) => !prev);
+      }
+    } catch (error) {
+      console.error("Error in handleCommentClick:", error);
+      // Still try to toggle comments if there was an error
+      if (isClient) {
+        setShowComments((prev) => !prev);
+      }
     }
   }, [isClient]);
 
@@ -353,10 +378,16 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       e.preventDefault();
       e.stopPropagation();
 
-      // Handle native event directly
-      const nativeEvent = e.nativeEvent;
-      nativeEvent.stopImmediatePropagation();
-      nativeEvent.preventDefault();
+      // Handle native event safely with optional chaining
+      if (e.nativeEvent) {
+        try {
+          e.nativeEvent.stopImmediatePropagation();
+          e.nativeEvent.preventDefault();
+        } catch (nativeError) {
+          console.error("Error handling native event:", nativeError);
+          // Continue execution even if native event handling fails
+        }
+      }
 
       // Visual feedback
       setIsPressed(true);
@@ -391,12 +422,19 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
         }
       }}
       onMouseDown={(e) => {
-        // Prevent default on mouse down to stop any potential form submission
-        e.preventDefault();
-        e.stopPropagation();
+        try {
+          // Prevent default on mouse down to stop any potential form submission
+          e.preventDefault();
+          e.stopPropagation();
 
-        // Also handle native event
-        e.nativeEvent.preventDefault();
+          // Also handle native event safely
+          if (e.nativeEvent) {
+            e.nativeEvent.preventDefault();
+          }
+        } catch (error) {
+          // Silent catch to ensure the app doesn't crash
+          console.error("Error in onMouseDown:", error);
+        }
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
