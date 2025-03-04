@@ -1,11 +1,11 @@
 "use client";
 
+import { ProviderButton } from "@/components/composite/auth/ProviderButton";
+import { Button } from "@/components/core/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Divider } from "@/components/ui/divider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
-import { ProviderButton } from "@/src/components/composite/auth/ProviderButton";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";

@@ -1,21 +1,22 @@
-import "cropperjs/dist/cropper.css";
-import { useRef } from "react";
-import { Cropper, ReactCropperElement } from "react-cropper";
-import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
+} from "@/components/composite/dialog";
+import { Button } from "@/components/core/button";
+import "cropperjs/dist/cropper.css";
+import { useRef } from "react";
+import type { ReactCropperElement } from "react-cropper";
+import { Cropper } from "react-cropper";
 
-interface CropImageDialogProps {
+type CropImageDialogProps = {
   src: string;
   cropAspectRatio: number;
   onCropped: (blob: Blob | null) => void;
   onClose: () => void;
-}
+};
 
 export default function CropImageDialog({
   src,

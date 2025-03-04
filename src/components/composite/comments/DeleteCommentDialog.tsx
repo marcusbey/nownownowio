@@ -1,6 +1,3 @@
-import { CommentData } from "@/lib/types";
-import LoadingButton from "../loading-button";
-import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,14 +5,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
+} from "@/components/composite/dialog";
+import { Button } from "@/components/core/button";
+import type { CommentData } from "@/lib/types";
+import LoadingButton from "../loading-button";
 import { useDeleteCommentMutation } from "./mutations";
 
-interface DeleteCommentDialogProps {
+type DeleteCommentDialogProps = {
   comment: CommentData;
   open: boolean;
   onClose: () => void;
-}
+};
 
 export default function DeleteCommentDialog({
   comment,

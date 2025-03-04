@@ -1,11 +1,13 @@
-import { CommentsPage } from "@/lib/types";
-import {
+import { useToast } from "@/components/feedback/use-toast";
+import type { CommentsPage } from "@/lib/types";
+import type {
   InfiniteData,
-  QueryKey,
+  QueryKey
+} from "@tanstack/react-query";
+import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useToast } from "../ui/use-toast";
 import { deleteComment, submitComment } from "./actions";
 
 export function useSubmitCommentMutation(postId: string) {
@@ -40,7 +42,7 @@ export function useSubmitCommentMutation(postId: string) {
         },
       );
 
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey,
         predicate(query) {
           return !query.state.data;

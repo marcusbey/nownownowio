@@ -1,19 +1,20 @@
-import { CommentData } from "@/lib/types";
+import { Button } from "@/components/core/button";
+import type { CommentData } from "@/lib/types";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../ui/button";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "@/components/composite/dropdown-menu";
 import DeleteCommentDialog from "./DeleteCommentDialog";
 
-interface CommentMoreButtonProps {
+type CommentMoreButtonProps = {
   comment: CommentData;
   className?: string;
-}
+};
 
 export default function CommentMoreButton({
   comment,

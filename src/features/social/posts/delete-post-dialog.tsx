@@ -1,6 +1,3 @@
-import { PostData } from "@/lib/types";
-import LoadingButton from "../LoadingButton";
-import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,14 +5,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
+} from "@/components/composite/dialog";
+import LoadingButton from "@/components/composite/loading-button";
+import { Button } from "@/components/core/button";
+import type { PostData } from "@/lib/types";
 import { useDeletePostMutation } from "./mutations";
 
-interface DeletePostDialogProps {
+type DeletePostDialogProps = {
   post: PostData;
   open: boolean;
   onClose: () => void;
-}
+};
 
 export default function DeletePostDialog({
   post,
