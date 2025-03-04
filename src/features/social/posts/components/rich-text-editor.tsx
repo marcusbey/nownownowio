@@ -101,6 +101,8 @@ const RichTextEditor = React.forwardRef<
   };
 
   const editor = useEditor({
+    // Explicitly set immediatelyRender to false to avoid SSR hydration mismatches
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {

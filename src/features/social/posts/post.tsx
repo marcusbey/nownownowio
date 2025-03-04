@@ -63,17 +63,7 @@ export default function Post({ post }: PostProps) {
       setFirstMount(false);
     }, 500);
     
-    // Debug logging
-    if (process.env.NODE_ENV === "development") {
-      console.log(
-        "Post component - Session status:",
-        status,
-        "| User info:",
-        user ? `${user.email} (${user.id})` : "No user",
-        "| Session valid:",
-        user ? "Yes" : "No",
-      );
-    }
+    // Development logging removed
     
     return () => clearTimeout(timer);
   }, [status, session, user]);
@@ -198,7 +188,7 @@ export default function Post({ post }: PostProps) {
           <PostMoreButton
             postId={post.id}
             onDelete={(postId) => {
-              console.log("Delete post:", postId);
+              // Delete post handling
               // You'd typically handle post deletion here
               // For example, redirect or remove from the UI
             }}
@@ -324,7 +314,7 @@ export default function Post({ post }: PostProps) {
 
       {/* Comment section - Absolutely no animations */}
       <div style={{ transition: 'none !important', animation: 'none !important' }}>
-        {/* Only render comments when showComments is true to avoid unnecessary DOM elements */}
+        {/* Only render comment input and comments when showComments is true */}
         {showComments && (
           <div 
             className="mt-2 border-t pt-4"
@@ -334,15 +324,13 @@ export default function Post({ post }: PostProps) {
               opacity: 1
             }}
           >
-            {/* Comment input shown above comments when comment button is clicked */}
+            {/* Comment input shown only when comments are expanded */}
             <CommentInput post={post} />
-
+            
             {/* Comment list with showInput=false since we're handling it separately */}
             <Comments post={post} showInput={false} />
           </div>
         )}
-
-        {/* Debug info removed */}
       </div>
     </motion.article>
   );
@@ -369,7 +357,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
   const commentCount =
     // Check standard API format with optional chaining
     post._count?.comments !== undefined
-      ? post._count.comments
+      ? post._count?.comments
       : // Check user posts API format
         (post as any).commentCount !== undefined
         ? (post as any).commentCount
