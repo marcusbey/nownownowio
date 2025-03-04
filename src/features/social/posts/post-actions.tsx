@@ -19,7 +19,7 @@ import { useToast } from "@/components/feedback/use-toast";
 import kyInstance from "@/lib/ky";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bookmark, Heart, MoreHorizontal } from "lucide-react";
+import { Bookmark, Heart, MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 type LikeButtonProps = {
@@ -42,10 +42,10 @@ export function LikeButton({
     // Prevent default to avoid page reload
     e.preventDefault();
     e.stopPropagation();
-    
+
     setLiked(!liked);
     await onLike(postId);
-    
+
     // Prevent any potential page reload
     return false;
   };
@@ -195,8 +195,12 @@ export function PostMoreButton({
 }: PostMoreButtonProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleDelete = async () => {
-    await onDelete(postId);
+  const handleClose = () => {
+    setShowDeleteDialog(false);
+  };
+
+  const handleDelete = () => {
+    onDelete(postId);
     setShowDeleteDialog(false);
   };
 
@@ -210,7 +214,10 @@ export function PostMoreButton({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setShowDeleteDialog(true)}>
-            Delete
+            <span className="flex items-center gap-3 text-destructive">
+              <Trash2 className="size-4" />
+              Delete
+            </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

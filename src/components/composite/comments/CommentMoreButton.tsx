@@ -22,6 +22,10 @@ export default function CommentMoreButton({
 }: CommentMoreButtonProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  const handleClose = () => {
+    setShowDeleteDialog(false);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -42,7 +46,7 @@ export default function CommentMoreButton({
       <DeleteCommentDialog
         comment={comment}
         open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
+        onClose={handleClose}
       />
     </>
   );

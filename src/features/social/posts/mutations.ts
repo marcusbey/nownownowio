@@ -1,12 +1,14 @@
-import { PostsPage } from "@/lib/types";
-import {
+import { useToast } from "@/components/feedback/use-toast";
+import type { PostsPage } from "@/lib/types";
+import type {
   InfiniteData,
-  QueryFilters,
+  QueryFilters
+} from "@tanstack/react-query";
+import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
-import { useToast } from "../ui/use-toast";
 import { deletePost } from "./actions";
 
 export function useDeletePostMutation() {

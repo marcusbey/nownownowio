@@ -1,5 +1,5 @@
 import { Button } from "@/components/core/button";
-import { Loader } from "@/components/ui/loader";
+import { Loader } from "@/components/feedback/loader";
 import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";
 import { clsx } from "clsx";
@@ -90,7 +90,7 @@ export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
   const searchParams = useSearchParams();
 
   const providerAuthMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: async () =>
       signIn(providerId, {
         callbackUrl:
           searchParams.get("callbackUrl") ??

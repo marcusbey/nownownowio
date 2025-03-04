@@ -2,7 +2,6 @@
 
 import UserAvatar from "@/components/composite/UserAvatar";
 import UserTooltip from "@/components/composite/UserTooltip";
-import { Button } from "@/components/core/button";
 import Linkify from "@/components/data-display/Linkify";
 import { usePostViews } from "@/hooks/use-post-views";
 import type { PostData } from "@/lib/types";
@@ -21,6 +20,7 @@ import {
   useState,
 } from "react";
 import LikeButton from "./like-button";
+import { useDeletePostMutation } from "./mutations";
 import { BookmarkButton, PostMoreButton } from "./post-actions";
 
 const LazyMediaPreviews = lazy(async () =>
@@ -53,30 +53,28 @@ export default function Post({ post }: PostProps) {
   const [isClient, setIsClient] = useState(false);
   const [firstMount, setFirstMount] = useState(true);
   const { views, isLoading } = usePostViews(post.id);
+  const deletePostMutation = useDeletePostMutation();
 
   useEffect(() => {
     setIsClient(true);
-    
+
     // On first render in client, set firstMount to false after a brief delay
     // This prevents the first click from triggering unwanted behaviors
     const timer = setTimeout(() => {
       setFirstMount(false);
     }, 500);
-    
+
     // Development logging removed
-    
+
     return () => clearTimeout(timer);
   }, [status, session, user]);
 
   // Simplified comment click handler without timeouts
-  const handleCommentClick = useCallback(
-    () => {
-      if (isClient) {
-        setShowComments(prev => !prev);
-      }
-    },
-    [isClient],
-  );
+  const handleCommentClick = useCallback(() => {
+    if (isClient) {
+      setShowComments((prev) => !prev);
+    }
+  }, [isClient]);
 
   const userProfileLink = useMemo(() => {
     if (user?.email && post.user.id === user.id) {
@@ -95,8 +93,8 @@ export default function Post({ post }: PostProps) {
 
   const isOwnPost = useMemo(() => {
     if (!user) return false;
-    return user.email === post.userId;
-  }, [user, post.userId]);
+    return user.id === post.user.id;
+  }, [user, post.user.id]);
 
   const displayName = useMemo(() => {
     return post.user.name ?? "Unknown User";
@@ -109,7 +107,7 @@ export default function Post({ post }: PostProps) {
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/post space-y-3 p-5 mb-4 border border-border/60 rounded-lg shadow-sm bg-background transition-colors duration-200 hover:bg-muted/10"
+      className="group/post mb-4 space-y-3 rounded-lg border border-border/60 bg-background p-5 shadow-sm transition-colors duration-200 hover:bg-muted/10"
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning
@@ -156,9 +154,7 @@ export default function Post({ post }: PostProps) {
           <PostMoreButton
             postId={post.id}
             onDelete={(postId) => {
-              // Delete post handling
-              // You'd typically handle post deletion here
-              // For example, redirect or remove from the UI
+              deletePostMutation.mutate(postId);
             }}
             className={cn(
               "transition-opacity duration-200",
@@ -192,29 +188,30 @@ export default function Post({ post }: PostProps) {
       )}
 
       {/* Wrap action buttons in a div with preventDefault to ensure no form submissions */}
-      <div 
+      <div
         className="mt-4 flex items-center justify-between pt-2"
         onClick={(e) => {
-          if (typeof e.preventDefault === 'function') e.preventDefault();
-          if (typeof e.stopPropagation === 'function') e.stopPropagation();
+          if (typeof e.preventDefault === "function") e.preventDefault();
+          if (typeof e.stopPropagation === "function") e.stopPropagation();
           return false;
         }}
       >
-        <div 
+        <div
           className="flex items-center gap-6"
           onClick={(e) => {
-            if (typeof e.preventDefault === 'function') e.preventDefault();
-            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            if (typeof e.preventDefault === "function") e.preventDefault();
+            if (typeof e.stopPropagation === "function") e.stopPropagation();
             return false;
           }}
         >
           <LikeButton
             postId={post.id}
             initialState={{
-              likes: post._count?.likes || 0,
+              likes: post._count.likes || 0,
               isLikedByUser:
-                post.likes && Array.isArray(post.likes) &&
-                post.likes.some((like) => like?.userId === user?.id),
+                post.likes &&
+                Array.isArray(post.likes) &&
+                post.likes.some((like) => like.userId === user?.id),
             }}
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -222,9 +219,9 @@ export default function Post({ post }: PostProps) {
           <button
             type="button" // CRITICAL: Explicitly set type to button
             onClick={(e) => {
-              if (typeof e.preventDefault === 'function') {
+              if (typeof e.preventDefault === "function") {
                 e.preventDefault();
-                if (typeof e.stopPropagation === 'function') {
+                if (typeof e.stopPropagation === "function") {
                   e.stopPropagation();
                 }
               }
@@ -241,7 +238,7 @@ export default function Post({ post }: PostProps) {
             }}
             onKeyDown={(e) => {
               // Handle keyboard accessibility
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 e.stopPropagation();
                 navigator
@@ -281,20 +278,22 @@ export default function Post({ post }: PostProps) {
       </div>
 
       {/* Comment section - Absolutely no animations */}
-      <div style={{ transition: 'none !important', animation: 'none !important' }}>
+      <div
+        style={{ transition: "none !important", animation: "none !important" }}
+      >
         {/* Only render comment input and comments when showComments is true */}
         {showComments && (
-          <div 
+          <div
             className="mt-2 border-t pt-4"
-            style={{ 
-              transition: 'none !important', 
-              animation: 'none !important',
-              opacity: 1
+            style={{
+              transition: "none !important",
+              animation: "none !important",
+              opacity: 1,
             }}
           >
             {/* Comment input shown only when comments are expanded */}
             <CommentInput post={post} />
-            
+
             {/* Comment list with showInput=false since we're handling it separately */}
             <Comments post={post} showInput={false} />
           </div>
@@ -324,14 +323,14 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
   // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
   const commentCount =
     // Check standard API format with optional chaining
-    post._count?.comments !== undefined
-      ? post._count?.comments
+    post._count.comments !== undefined
+      ? post._count.comments
       : // Check user posts API format
         (post as any).commentCount !== undefined
         ? (post as any).commentCount
         : // Fallback
           0;
-          
+
   // Query to get accurate comment count (useful when comments have been added since post was loaded)
   const { data: commentData } = useQuery({
     queryKey: ["comment-count", post.id],
@@ -343,21 +342,21 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
     // Only refresh when component is in view
     refetchOnWindowFocus: false,
   });
-  
+
   // Use the latest comment count from API if available, otherwise use the count from post data
   const totalComments = commentData?.count ?? commentCount;
-          
+
   // Enhanced click handler with immediate state updates
   const handleClick = (e: React.MouseEvent) => {
     try {
       // Comprehensive event prevention
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Handle native event directly
       const nativeEvent = e.nativeEvent;
-      nativeEvent?.stopImmediatePropagation();
-      nativeEvent?.preventDefault();
+      nativeEvent.stopImmediatePropagation();
+      nativeEvent.preventDefault();
 
       // Visual feedback
       setIsPressed(true);
@@ -368,7 +367,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
         onClick(e);
       }
     } catch (error) {
-      console.error('CommentButton error:', error);
+      console.error("CommentButton error:", error);
       // Fallback to programmatic toggle
       onClick(null);
     }
@@ -384,7 +383,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       onClick={handleClick}
       onKeyDown={(e) => {
         // Handle keyboard accessibility
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           e.stopPropagation();
           // Direct call without event to avoid type issues
@@ -395,9 +394,9 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
         // Prevent default on mouse down to stop any potential form submission
         e.preventDefault();
         e.stopPropagation();
-        
+
         // Also handle native event
-        e.nativeEvent?.preventDefault();
+        e.nativeEvent.preventDefault();
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
