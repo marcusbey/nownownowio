@@ -69,35 +69,35 @@ export default function Post({ post }: PostProps) {
     return () => clearTimeout(timer);
   }, [status, session, user]);
 
-  // Robust comment click handler with error handling
+  // Enhanced comment click handler with defensive programming
   const handleCommentClick = useCallback((e?: React.MouseEvent | null) => {
+    // Define the core toggle functionality separately
+    const performToggle = () => {
+      if (isClient) {
+        setShowComments(prev => !prev);
+      }
+    };
+
     try {
       // If an event was passed, ensure it's fully prevented
       if (e) {
         e.preventDefault();
         e.stopPropagation();
         
-        // Also handle native event safely
-        if (e.nativeEvent) {
-          try {
-            e.nativeEvent.preventDefault();
-            e.nativeEvent.stopPropagation();
-          } catch (nativeError) {
-            // Silent catch for native event errors
-          }
+        // Handle native event safely with optional chaining
+        try {
+          e.nativeEvent?.stopImmediatePropagation();
+          e.nativeEvent?.preventDefault();
+        } catch (nativeError) {
+          console.error("Native event handling error:", nativeError);
+          // Continue execution even if native event handling fails
         }
-      }
-      
-      // Only toggle state on client-side
-      if (isClient) {
-        setShowComments((prev) => !prev);
       }
     } catch (error) {
       console.error("Error in handleCommentClick:", error);
-      // Still try to toggle comments if there was an error
-      if (isClient) {
-        setShowComments((prev) => !prev);
-      }
+    } finally {
+      // Always perform the toggle, even if event handling failed
+      performToggle();
     }
   }, [isClient]);
 
@@ -242,7 +242,7 @@ export default function Post({ post }: PostProps) {
           />
           <CommentButton post={post} onClick={handleCommentClick} />
           <button
-            type="button" // CRITICAL: Explicitly set type to button
+            type="button"
             onClick={(e) => {
               if (typeof e.preventDefault === "function") {
                 e.preventDefault();
@@ -330,7 +330,7 @@ export default function Post({ post }: PostProps) {
 
 type CommentButtonProps = {
   post: PostData;
-  onClick: (e: React.MouseEvent) => void;
+  onClick: (e: React.MouseEvent | null) => void;
 };
 
 function CommentButton({ post, onClick }: CommentButtonProps) {
@@ -371,7 +371,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
   // Use the latest comment count from API if available, otherwise use the count from post data
   const totalComments = commentData?.count ?? commentCount;
 
-  // Enhanced click handler with immediate state updates
+  // Enhanced click handler with immediate state updates and better error handling
   const handleClick = (e: React.MouseEvent) => {
     try {
       // Comprehensive event prevention
@@ -379,14 +379,12 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       e.stopPropagation();
 
       // Handle native event safely with optional chaining
-      if (e.nativeEvent) {
-        try {
-          e.nativeEvent.stopImmediatePropagation();
-          e.nativeEvent.preventDefault();
-        } catch (nativeError) {
-          console.error("Error handling native event:", nativeError);
-          // Continue execution even if native event handling fails
-        }
+      try {
+        e.nativeEvent?.stopImmediatePropagation();
+        e.nativeEvent?.preventDefault();
+      } catch (nativeError) {
+        console.error("Error handling native event:", nativeError);
+        // Continue execution even if native event handling fails
       }
 
       // Visual feedback
@@ -414,9 +412,16 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       onClick={handleClick}
       onKeyDown={(e) => {
         // Handle keyboard accessibility
-        if (e.key === "Enter" || e.key === " ") {
+        if (["Enter", "Space"].includes(e.code) || e.key === " ") {
           e.preventDefault();
           e.stopPropagation();
+          try {
+            // Also prevent native event propagation
+            e.nativeEvent?.stopImmediatePropagation();
+            e.nativeEvent?.preventDefault();
+          } catch (error) {
+            // Silent catch
+          }
           // Direct call without event to avoid type issues
           onClick(null);
         }

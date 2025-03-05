@@ -25,15 +25,22 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
     hasNextPage,
     isFetching,
     status: queryStatus,
+    error,
   } = useInfiniteQuery({
     queryKey: ["comments", post.id],
-    queryFn: async ({ pageParam }) =>
-      kyInstance
-        .get(
-          ENDPOINTS.POST_COMMENTS(post.id),
-          pageParam ? { searchParams: { cursor: pageParam } } : {},
-        )
-        .json<CommentsPage>(),
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await kyInstance
+          .get(
+            ENDPOINTS.POST_COMMENTS(post.id),
+            pageParam ? { searchParams: { cursor: pageParam } } : {},
+          )
+          .json<CommentsPage>();
+      } catch (err) {
+        console.error(`Error fetching comments for post ${post.id}:`, err);
+        throw err;
+      }
+    },
     // Set initial parameters for comment loading
     initialPageParam: null as string | null,
     getNextPageParam: (firstPage) => firstPage.previousCursor,
@@ -41,6 +48,11 @@ export default function Comments({ post, showInput = true }: CommentsProps) {
       pages: [...data.pages].reverse(),
       pageParams: [...data.pageParams].reverse(),
     }),
+    // Add these options to prevent unnecessary refetching
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Get comments and reverse them to show most recent at the top
