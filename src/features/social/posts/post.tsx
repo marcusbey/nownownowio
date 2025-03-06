@@ -114,7 +114,7 @@ export default function Post({ post }: PostProps) {
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/post mb-4 space-y-3 rounded-lg border border-border/60 bg-background p-5 shadow-sm transition-colors duration-200 hover:bg-muted/10"
+      className="group/post mb-4 space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/80 p-5 shadow-sm backdrop-blur-sm transition-colors duration-200 hover:bg-zinc-800/90"
       onHoverStart={() => isClient && setIsHovered(true)}
       onHoverEnd={() => isClient && setIsHovered(false)}
       suppressHydrationWarning

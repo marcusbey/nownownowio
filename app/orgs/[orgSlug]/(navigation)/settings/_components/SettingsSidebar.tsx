@@ -101,10 +101,10 @@ export function SettingsSidebar({ orgSlug, className }: SettingsSidebarProps) {
   };
 
   return (
-    <div className={cn("w-64 shrink-0 border-r pr-6", className)}>
+    <div className={cn("w-64 shrink-0 border-r border-r-accent/10 pr-6", className)}>
       {navGroups.map((group, index) => (
         <div key={index} className="mb-6">
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground">
+          <h3 className="mb-2 text-sm font-medium text-muted-foreground/90 tracking-wide">
             {group.title}
           </h3>
           <nav className="space-y-1">
@@ -117,13 +117,13 @@ export function SettingsSidebar({ orgSlug, className }: SettingsSidebarProps) {
                   key={item.id}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all",
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200",
                     active 
-                      ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm" 
+                      : "text-muted-foreground hover:bg-accent/5 hover:text-foreground hover:translate-x-0.5"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={cn("h-4 w-4 transition-transform", active ? "text-primary" : "text-muted-foreground/70")} />
                   {item.label}
                 </Link>
               );

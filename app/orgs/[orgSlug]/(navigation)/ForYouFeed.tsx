@@ -94,7 +94,7 @@ export default function ForYouFeed() {
           void fetchNextPage();
         }
       }}
-      className="no-scrollbar h-full space-y-6 p-4 overflow-y-auto"
+      className="no-scrollbar h-full space-y-6 overflow-y-auto"
     >
       {posts.map((post) => (
         <Post key={post.id} post={post} />
