@@ -19,13 +19,23 @@ export function TrendingTopicsSection() {
 
   // Memoized fetch function
   const fetchTopics = useCallback(async () => {
-    // Abort previous request if it exists
-    controllerRef.current?.abort();
-    controllerRef.current = new AbortController();
+    // Create a new controller for this specific request
+    if (controllerRef.current) {
+      // Only abort if we have an existing controller
+      try {
+        controllerRef.current.abort();
+      } catch (e) {
+        // Ignore abort errors
+      }
+    }
+    
+    // Create a new controller
+    const controller = new AbortController();
+    controllerRef.current = controller;
     
     try {
       const response = await fetch(ENDPOINTS.TRENDING_TOPICS, {
-        signal: controllerRef.current.signal
+        signal: controller.signal
       });
       
       if (!response.ok) {
@@ -33,14 +43,19 @@ export function TrendingTopicsSection() {
       }
       
       const data = await response.json();
-      setTopics(data);
+      // Only update state if this controller is still the current one
+      if (controllerRef.current === controller) {
+        setTopics(data);
+      }
     } catch (err) {
-      // Only log errors if not aborted
-      if (controllerRef.current && !controllerRef.current.signal.aborted) {
+      // Only log errors if not aborted and this is the current controller
+      if (err instanceof Error && err.name !== 'AbortError' && controllerRef.current === controller) {
         console.error('Trending topics error:', err);
       }
     } finally {
-      setIsLoading(false);
+      if (controllerRef.current === controller) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -53,7 +68,16 @@ export function TrendingTopicsSection() {
     
     // Cleanup function to prevent memory leaks
     return () => {
-      controllerRef.current?.abort();
+      // Safely abort any in-flight requests
+      if (controllerRef.current) {
+        try {
+          controllerRef.current.abort('Component unmounted');
+        } catch (e) {
+          // Ignore any errors during cleanup
+        }
+        // Clear the reference
+        controllerRef.current = undefined;
+      }
       clearInterval(interval);
     };
   }, [fetchTopics]);
