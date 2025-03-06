@@ -7,28 +7,50 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ButtonProps } from "@/components/core/button";
 import { LoadingButton } from "@/features/ui/form/submit-button";
-import { buyButtonAction } from "./buy-button.action";
+import { buyButtonAction, checkoutPlanAction } from "./buy-button.action";
+import { BillingCycle, PlanType } from "@/features/billing/plans/plans";
+import { logger } from "@/lib/logger";
 
+// Props for direct price ID checkout
 type BuyButtonProps = {
-  priceId: string;
+  priceId?: string;
   orgSlug: string;
+  planType?: PlanType;
+  billingCycle?: BillingCycle;
 } & ButtonProps;
 
 /**
  * This is a button that will create a Stripe checkout session and redirect the user to the checkout page
- * To test the integration, you can use the component like this :
+ * It supports two modes of operation:
+ * 1. Direct price ID checkout (legacy mode)
+ * 2. Plan-based checkout using planType and billingCycle
  *
+ * @example
  * ```tsx
- * <BuyButton priceId={env.NODE_ENV === "production" ? "real-price-id" : "dev-price-id"}>Buy now !</BuyButton>
+ * // Legacy mode with direct price ID
+ * <BuyButton priceId="price_123" orgSlug="my-org">Buy now!</BuyButton>
+ * 
+ * // New mode with plan type and billing cycle
+ * <BuyButton planType="BASIC" billingCycle="MONTHLY" orgSlug="my-org">Subscribe</BuyButton>
  * ```
  *
- * @param props Button props and Stripe Price Id
- * @param props.priceId This is the Stripe price ID to use for the checkout session
- * @returns
+ * @param props Button props and checkout parameters
+ * @returns A button component that initiates the checkout process
  */
-export const BuyButton = ({ priceId, orgSlug, ...props }: BuyButtonProps) => {
+export const BuyButton = ({ 
+  priceId, 
+  orgSlug, 
+  planType, 
+  billingCycle, 
+  ...props 
+}: BuyButtonProps) => {
   const router = useRouter();
   const session = useSession();
+
+  // Validate that we have either priceId OR (planType AND billingCycle)
+  if (!priceId && (!planType || !billingCycle)) {
+    logger.error("BuyButton requires either priceId or both planType and billingCycle");
+  }
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -38,10 +60,25 @@ export const BuyButton = ({ priceId, orgSlug, ...props }: BuyButtonProps) => {
           throw new Error("You must be authenticated to buy a plan");
         }
 
-        const result = await buyButtonAction({
-          priceId: priceId,
-          orgSlug: orgSlug,
-        });
+        let result;
+        
+        // Determine which checkout method to use
+        if (priceId) {
+          // Legacy mode: direct price ID checkout
+          result = await buyButtonAction({
+            priceId,
+            orgSlug,
+          });
+        } else if (planType && billingCycle) {
+          // New mode: plan-based checkout
+          result = await checkoutPlanAction({
+            planType,
+            billingCycle,
+            orgSlug,
+          });
+        } else {
+          throw new Error("Invalid checkout parameters");
+        }
 
         if (!isActionSuccessful(result)) {
           throw new Error(result?.serverError ?? "Failed to create checkout session");
@@ -53,7 +90,7 @@ export const BuyButton = ({ priceId, orgSlug, ...props }: BuyButtonProps) => {
 
         return result.data.url;
       } catch (error) {
-        console.error("BuyButton error:", error);
+        logger.error("BuyButton error:", error);
         throw error;
       }
     },
@@ -71,6 +108,28 @@ export const BuyButton = ({ priceId, orgSlug, ...props }: BuyButtonProps) => {
       {...props}
       loading={mutation.isPending}
       disabled={session.status === "loading"}
+    />
+  );
+};
+
+/**
+ * A specialized buy button that uses plan type and billing cycle
+ */
+export const PlanBuyButton = ({ 
+  planType, 
+  billingCycle, 
+  orgSlug, 
+  ...props 
+}: Omit<BuyButtonProps, 'priceId'> & {
+  planType: PlanType;
+  billingCycle: BillingCycle;
+}) => {
+  return (
+    <BuyButton
+      planType={planType}
+      billingCycle={billingCycle}
+      orgSlug={orgSlug}
+      {...props}
     />
   );
 };

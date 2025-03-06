@@ -72,3 +72,56 @@ export async function constructWebhookEvent(payload: string, signature: string, 
   const stripe = await getStripe();
   return stripe.webhooks.constructEvent(payload, signature, webhookSecret || secret);
 }
+
+// Plan and subscription management
+export async function listAllProducts() {
+  const stripe = await getStripe();
+  return stripe.products.list({ limit: 100, active: true });
+}
+
+export async function listAllPrices() {
+  const stripe = await getStripe();
+  return stripe.prices.list({ limit: 100, active: true });
+}
+
+export async function createSubscription(params: Stripe.SubscriptionCreateParams) {
+  const stripe = await getStripe();
+  return stripe.subscriptions.create(params);
+}
+
+export async function updateSubscription(subscriptionId: string, params: Stripe.SubscriptionUpdateParams) {
+  const stripe = await getStripe();
+  return stripe.subscriptions.update(subscriptionId, params);
+}
+
+export async function cancelSubscription(subscriptionId: string) {
+  const stripe = await getStripe();
+  return stripe.subscriptions.cancel(subscriptionId);
+}
+
+export async function retrieveSubscription(subscriptionId: string) {
+  const stripe = await getStripe();
+  return stripe.subscriptions.retrieve(subscriptionId);
+}
+
+export async function listCustomerSubscriptions(customerId: string) {
+  const stripe = await getStripe();
+  return stripe.subscriptions.list({ customer: customerId });
+}
+
+export async function createBillingPortalSession(params: Stripe.BillingPortal.SessionCreateParams) {
+  const stripe = await getStripe();
+  return stripe.billingPortal.sessions.create(params);
+}
+
+// Helper function to get price ID by plan type and billing cycle
+export function getPriceIdByPlan(planType: string, billingCycle: string): string {
+  const key = `NEXT_PUBLIC_STRIPE_${planType}_${billingCycle}_PRICE_ID`;
+  const priceId = env[key as keyof typeof env];
+  
+  if (!priceId) {
+    throw new Error(`Price ID not found for plan ${planType}_${billingCycle}`);
+  }
+  
+  return priceId;
+}

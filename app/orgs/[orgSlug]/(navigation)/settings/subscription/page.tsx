@@ -4,7 +4,7 @@ import { CardDescription, CardHeader, CardTitle } from "@/components/data-displa
 import { Typography } from "@/components/data-display/typography";
 import { Badge } from "@/components/data-display/badge";
 import { PLANS } from "@/features/billing/plans/plans";
-import { ClientPricingSection } from "@/features/billing/plans/client-pricing-section";
+import { PricingCards } from "@/features/billing/plans/pricing-section";
 import { SettingsPage, SettingsCard, SettingsSection } from "@/components/layout/SettingsLayout";
 import { useOrganization } from "@/query/org/org.query";
 import { useParams } from "next/navigation";
@@ -62,7 +62,7 @@ export default function SubscriptionPage() {
 
       <SettingsSection>
         <Typography variant="h4" className="mb-6">Available Plans</Typography>
-        <ClientPricingSection variant="compact" />
+        <PricingCards compact />
       </SettingsSection>
     </SettingsPage>
   );
