@@ -1,24 +1,25 @@
 import { Suspense } from "react";
-import { combineWithParentMetadata } from "@/lib/metadata";
-import type { PageParams } from "@/types/next";
-import { BillingContent } from "./billing-content";
 import { Skeleton } from "@/components/feedback/skeleton";
+import type { PageParams } from "@/types/next";
+import { PlanContent } from "./plan-content";
+import { combineWithParentMetadata } from "@/lib/metadata";
 
 export const generateMetadata = combineWithParentMetadata({
-  title: "Billing",
-  description: "Manage your payment methods and billing information.",
+  title: "Plan Settings",
+  description: "Manage your organization's plan settings",
 });
 
-export default async function BillingPage({ params }: PageParams<{ orgSlug: string }>) {
+export default async function PlanPage({ params }: PageParams<{ orgSlug: string }>) {
   const { orgSlug } = params;
+  
   return (
-    <Suspense fallback={<BillingSkeleton />}>
-      <BillingContent orgSlug={orgSlug} />
+    <Suspense fallback={<PlanSkeleton />}>
+      <PlanContent orgSlug={orgSlug} />
     </Suspense>
   );
 }
 
-function BillingSkeleton() {
+function PlanSkeleton() {
   return (
     <div className="space-y-6">
       <div>
@@ -29,11 +30,15 @@ function BillingSkeleton() {
         <div className="space-y-4">
           <div className="space-y-2">
             <Skeleton className="h-5 w-[150px]" />
-            <Skeleton className="h-4 w-[200px]" />
+            <Skeleton className="h-4 w-[100px]" />
           </div>
           <div className="space-y-2">
             <Skeleton className="h-5 w-[150px]" />
-            <Skeleton className="h-4 w-[250px]" />
+            <div className="space-y-2 pl-5">
+              <Skeleton className="h-4 w-[200px]" />
+              <Skeleton className="h-4 w-[180px]" />
+              <Skeleton className="h-4 w-[220px]" />
+            </div>
           </div>
         </div>
       </div>
