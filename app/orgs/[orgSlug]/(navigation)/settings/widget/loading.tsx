@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/components/data-display/card";
+import { Skeleton } from "@/components/feedback/skeleton";
 
 export default function PageLoading() {
   return (

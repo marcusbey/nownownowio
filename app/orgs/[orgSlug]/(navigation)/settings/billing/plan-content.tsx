@@ -26,7 +26,7 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
   const currentPlan = PLANS.find(p => p.id === currentPlanId);
 
   return (
-    <div className="container max-w-4xl py-6">
+    <div className="py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">Plan and Billing</h2>
         <p className="text-sm text-muted-foreground">

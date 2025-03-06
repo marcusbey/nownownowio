@@ -214,7 +214,7 @@ export default function Post({ post }: PostProps) {
           <LikeButton
             postId={post.id}
             initialState={{
-              likes: post._count.likes || 0,
+              likes: (post._count && post._count.likes) || 0,
               isLikedByUser:
                 post.likes &&
                 Array.isArray(post.likes) &&
@@ -318,8 +318,8 @@ type CommentButtonProps = {
 function CommentButton({ post, onClick }: CommentButtonProps) {
   // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
   const commentCount =
-    // Check standard API format with optional chaining
-    post._count.comments !== undefined
+    // Check if post._count exists and has comments property
+    (post._count && post._count.comments !== undefined)
       ? post._count.comments
       : // Check user posts API format
       (post as any).commentCount !== undefined

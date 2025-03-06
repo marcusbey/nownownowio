@@ -13,7 +13,7 @@ import type { LayoutParams } from "@/types/next";
 import type { OrganizationMembershipRole } from "@prisma/client";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { SettingsTabs } from "./_components/SettingsTabs";
+import { SettingsSidebar } from "./_components/SettingsSidebar";
 
 // Update the generateMetadata function
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -60,27 +60,10 @@ export default async function RouteLayout(
           </LayoutDescription>
         </LayoutHeader>
         <LayoutContent className="mt-4 w-full">
-          <SettingsTabs
-            orgSlug={orgSlug}
-            tabs={[
-              {
-                id: "general",
-                label: "General",
-                href: `${orgPath}/settings`,
-              },
-              {
-                id: "plan",
-                label: "Plan and Billing",
-                href: `${orgPath}/settings/billing`,
-              },
-              {
-                id: "account",
-                label: "Account",
-                href: `${orgPath}/settings/account`,
-              },
-            ]}
-          />
-          <div className="mb-8 mt-6 w-full">{props.children}</div>
+          <div className="flex gap-8">
+            <SettingsSidebar orgSlug={orgSlug} />
+            <div className="flex-1">{props.children}</div>
+          </div>
         </LayoutContent>
       </Layout>
     );

@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { OrgDetailsForm } from "./(details)/OrgDetailsForm";
 import type { Organization, OrganizationMembershipRole, User } from "@prisma/client";
 import { OrgDetailsFormSchema, type OrgDetailsFormSchemaType } from "./org.schema";
-import { WidgetScriptGenerator } from "./widget/GenerateScript";
 
 type OrganizationWithPlan = {
   id: string;
@@ -52,27 +51,13 @@ export function SettingsContent({ organization, orgSlug }: SettingsContentProps)
   };
 
   return (
-    <div className="container max-w-4xl py-6">
+    <div className="py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">General Settings</h2>
         <p className="text-sm text-muted-foreground">
-          Manage your organization's general settings and integrations
+          Manage your organization's general settings
         </p>
       </div>
-
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-lg">Widget Integration</CardTitle>
-            <CardDescription>
-              Generate and customize your NowNowNow widget integration
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <WidgetScriptGenerator orgSlug={orgSlug} />
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>

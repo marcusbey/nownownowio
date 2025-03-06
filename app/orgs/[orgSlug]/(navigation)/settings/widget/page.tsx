@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { WidgetScriptGenerator } from "./GenerateScript";
 
 export default function WidgetPage({
@@ -9,7 +9,7 @@ export default function WidgetPage({
   params: { orgSlug: string };
 }) {
   return (
-    <div className="container max-w-4xl py-6">
+    <div className="py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">Widget Integration</h2>
         <p className="text-sm text-muted-foreground">
