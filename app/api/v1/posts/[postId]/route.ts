@@ -8,11 +8,11 @@ export const dynamicParams = true;
 
 export async function GET(
     request: Request,
-    context: { params: { postId: string } }
+    context: { params: Promise<{ postId: string }> }
 ) {
     try {
         const user = await auth();
-        const { postId } = context.params;
+        const { postId } = await context.params;
 
         if (!postId) {
             return NextResponse.json(
@@ -45,7 +45,7 @@ export async function GET(
 
 export async function DELETE(
     request: Request,
-    context: { params: { postId: string } }
+    context: { params: Promise<{ postId: string }> }
 ) {
     try {
         const user = await auth();
@@ -56,7 +56,7 @@ export async function DELETE(
             );
         }
 
-        const { postId } = context.params;
+        const { postId } = await context.params;
 
         // Check if post exists and belongs to the user
         const post = await prisma.post.findUnique({

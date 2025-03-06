@@ -386,8 +386,8 @@ const RichTextEditor = React.forwardRef<
               "[&_*]:!text-foreground [&_*]:!opacity-100", // Optional fallback
               "[&_p]:text-base [&_ul]:text-base [&_ol]:text-base",
               "p-4",
-              "bg-white dark:bg-gray-900",
-              "border border-gray-200 dark:border-gray-700",
+              "bg-zinc-800/70 dark:bg-zinc-800/70",
+              "border border-zinc-700/50 dark:border-zinc-700/50",
               "[&_.ProseMirror]:min-h-[120px]",
               "[&_p]:leading-6",
               "[&_h1]:leading-8",

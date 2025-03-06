@@ -2,6 +2,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/composite/dropdown-menu";
 import { Button } from "@/components/core/button";
@@ -19,7 +20,7 @@ import { useToast } from "@/components/feedback/use-toast";
 import kyInstance from "@/lib/ky";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bookmark, Heart, MoreHorizontal, Trash2 } from "lucide-react";
+import { Bookmark, Heart, MoreHorizontal, Pin, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 type LikeButtonProps = {
@@ -184,6 +185,9 @@ export function BookmarkButton({
 type PostMoreButtonProps = {
   postId: string;
   onDelete: (postId: string) => void;
+  onTogglePin?: (postId: string) => void;
+  isPinned?: boolean;
+  canPin?: boolean;
   className?: string;
 };
 
@@ -191,6 +195,9 @@ type PostMoreButtonProps = {
 export function PostMoreButton({
   postId,
   onDelete,
+  onTogglePin,
+  isPinned = false,
+  canPin = false,
   className,
 }: PostMoreButtonProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -204,6 +211,12 @@ export function PostMoreButton({
     setShowDeleteDialog(false);
   };
 
+  const handleTogglePin = () => {
+    if (onTogglePin) {
+      onTogglePin(postId);
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -213,6 +226,17 @@ export function PostMoreButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {canPin && (
+            <>
+              <DropdownMenuItem onClick={handleTogglePin}>
+                <span className="flex items-center gap-3">
+                  <Pin className="size-4" />
+                  {isPinned ? "Unpin" : "Pin"}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem onClick={() => setShowDeleteDialog(true)}>
             <span className="flex items-center gap-3 text-destructive">
               <Trash2 className="size-4" />

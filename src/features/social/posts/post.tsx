@@ -20,7 +20,7 @@ import {
   useState,
 } from "react";
 import LikeButton from "./like-button";
-import { useDeletePostMutation } from "./mutations";
+import { useDeletePostMutation, useTogglePinPostMutation } from "./mutations";
 import { BookmarkButton, PostMoreButton } from "./post-actions";
 
 const LazyMediaPreviews = lazy(async () =>
@@ -54,6 +54,10 @@ export default function Post({ post }: PostProps) {
   const [firstMount, setFirstMount] = useState(true);
   const { views, isLoading } = usePostViews(post.id);
   const deletePostMutation = useDeletePostMutation();
+  const togglePinPostMutation = useTogglePinPostMutation();
+  
+  // Check if user has a plan that allows pinning (basic or pro)
+  const hasEligiblePlan = user?.planId !== undefined && user?.planId !== null;
 
   useEffect(() => {
     setIsClient(true);
@@ -163,6 +167,11 @@ export default function Post({ post }: PostProps) {
             onDelete={(postId) => {
               deletePostMutation.mutate(postId);
             }}
+            onTogglePin={(postId) => {
+              togglePinPostMutation.mutate(postId);
+            }}
+            isPinned={post.isPinned}
+            canPin={hasEligiblePlan}
             className={cn(
               "transition-opacity duration-200",
               isHovered ? "opacity-100" : "opacity-0",
