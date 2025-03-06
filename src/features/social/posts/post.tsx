@@ -69,36 +69,18 @@ export default function Post({ post }: PostProps) {
     return () => clearTimeout(timer);
   }, [status, session, user]);
 
-  // Enhanced comment click handler with defensive programming
-  const handleCommentClick = useCallback((e?: React.MouseEvent | null) => {
-    // Define the core toggle functionality separately
-    const performToggle = () => {
-      if (isClient) {
-        setShowComments(prev => !prev);
-      }
-    };
-
-    try {
-      // If an event was passed, ensure it's fully prevented
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Handle native event safely with optional chaining
-        try {
-          e.nativeEvent?.stopImmediatePropagation();
-          e.nativeEvent?.preventDefault();
-        } catch (nativeError) {
-          console.error("Native event handling error:", nativeError);
-          // Continue execution even if native event handling fails
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleCommentClick:", error);
-    } finally {
-      // Always perform the toggle, even if event handling failed
-      performToggle();
+  // Simple comment click handler that prevents default and toggles comments
+  const handleCommentClick = useCallback((e: React.MouseEvent | null) => {
+    if (!isClient) return;
+    
+    // If event exists, prevent default behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
+    
+    // Toggle comments visibility
+    setShowComments(prev => !prev);
   }, [isClient]);
 
   const userProfileLink = useMemo(() => {
@@ -334,116 +316,32 @@ type CommentButtonProps = {
 };
 
 function CommentButton({ post, onClick }: CommentButtonProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isPressed, setIsPressed] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Set mounted state on client side
-  useEffect(() => {
-    setIsMounted(true);
-    // No need for initialization delay as our new click handler is more robust
-    return () => {};
-  }, []);
-
   // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
   const commentCount =
     // Check standard API format with optional chaining
     post._count.comments !== undefined
       ? post._count.comments
       : // Check user posts API format
-        (post as any).commentCount !== undefined
+      (post as any).commentCount !== undefined
         ? (post as any).commentCount
         : // Fallback
           0;
 
-  // Query to get accurate comment count (useful when comments have been added since post was loaded)
-  const { data: commentData } = useQuery({
-    queryKey: ["comment-count", post.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/v1/posts/${post.id}/comment-count`);
-      if (!response.ok) return { count: commentCount };
-      return response.json();
-    },
-    // Only refresh when component is in view
-    refetchOnWindowFocus: false,
-  });
+  // Use the count directly from post data for simplicity
+  const totalComments = commentCount;
 
-  // Use the latest comment count from API if available, otherwise use the count from post data
-  const totalComments = commentData?.count ?? commentCount;
-
-  // Enhanced click handler with immediate state updates and better error handling
+  // Simple click handler that just calls the onClick prop
   const handleClick = (e: React.MouseEvent) => {
-    try {
-      // Comprehensive event prevention
-      e.preventDefault();
-      e.stopPropagation();
-
-      // Handle native event safely with optional chaining
-      try {
-        e.nativeEvent?.stopImmediatePropagation();
-        e.nativeEvent?.preventDefault();
-      } catch (nativeError) {
-        console.error("Error handling native event:", nativeError);
-        // Continue execution even if native event handling fails
-      }
-
-      // Visual feedback
-      setIsPressed(true);
-      setTimeout(() => setIsPressed(false), 200);
-
-      // Immediate state update without delay
-      if (isMounted) {
-        onClick(e);
-      }
-    } catch (error) {
-      console.error("CommentButton error:", error);
-      // Fallback to programmatic toggle
-      onClick(null);
-    }
-    return false;
+    e.preventDefault();
+    e.stopPropagation();
+    onClick(e);
   };
 
-  // Native button with type="button" to prevent form submission
   return (
     <button
       type="button" // CRITICAL: Explicitly set type to button to prevent form submission
-      // Using only attributes that are compatible with type="button"
-      formNoValidate={true}
       onClick={handleClick}
-      onKeyDown={(e) => {
-        // Handle keyboard accessibility
-        if (["Enter", "Space"].includes(e.code) || e.key === " ") {
-          e.preventDefault();
-          e.stopPropagation();
-          try {
-            // Also prevent native event propagation
-            e.nativeEvent?.stopImmediatePropagation();
-            e.nativeEvent?.preventDefault();
-          } catch (error) {
-            // Silent catch
-          }
-          // Direct call without event to avoid type issues
-          onClick(null);
-        }
-      }}
-      onMouseDown={(e) => {
-        try {
-          // Prevent default on mouse down to stop any potential form submission
-          e.preventDefault();
-          e.stopPropagation();
-
-          // Also handle native event safely
-          if (e.nativeEvent) {
-            e.nativeEvent.preventDefault();
-          }
-        } catch (error) {
-          // Silent catch to ensure the app doesn't crash
-          console.error("Error in onMouseDown:", error);
-        }
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`-ml-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-3 text-xs ${isPressed ? "text-primary" : isHovered ? "text-primary/80" : "text-muted-foreground"} transition-colors duration-200 hover:bg-accent hover:text-accent-foreground`}
+      className="-ml-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-3 text-xs text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-primary"
     >
       <MessageSquare className="size-4" />
       <span className="text-xs font-medium">{totalComments}</span>
