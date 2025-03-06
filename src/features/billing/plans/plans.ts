@@ -1,13 +1,16 @@
 import { z } from "zod";
 
 // Define plan types and billing cycles
-export const PlanType = z.enum(["FREE", "BASIC", "PRO"]);
+export const PlanType = z.enum(["BASIC", "PRO"]);
 export type PlanType = z.infer<typeof PlanType>;
 
 export const BillingCycle = z.enum(["MONTHLY", "ANNUAL", "LIFETIME"]);
 export type BillingCycle = z.infer<typeof BillingCycle>;
 
-export const PlanId = z.enum(["FREE", "BASIC_MONTHLY", "BASIC_ANNUAL", "BASIC_LIFETIME", "PRO_MONTHLY", "PRO_ANNUAL", "PRO_LIFETIME"]);
+export const PlanId = z.enum([
+  "BASIC_MONTHLY", "BASIC_ANNUAL", "BASIC_LIFETIME", 
+  "PRO_MONTHLY", "PRO_ANNUAL", "PRO_LIFETIME"
+]);
 export type PlanId = z.infer<typeof PlanId>;
 
 export interface Plan {
@@ -28,186 +31,204 @@ export interface Plan {
   cta?: string;
   ctaSubtitle?: string;
   barredPrice?: number;
+  maxOrganizations: number;
   maxMembers: number;
   maxWidgets: number;
   monthlyViews: number;
+  hasBranding?: boolean;
+  hasTrial?: boolean;
+  trialDays?: number;
 }
+
 
 export const PLANS: Plan[] = [
   {
-    id: "FREE",
-    name: "Free",
-    description: "For individuals getting started",
-    planType: "FREE",
-    billingCycle: "MONTHLY",
-    features: [
-      "1 organization",
-      "1 member per organization",
-      "2 widgets",
-      "1,000 monthly views",
-      "Basic analytics",
-      "Community support"
-    ],
-    price: 0,
-    priceId: "price_free", // This is a placeholder, as free plans don't need a price ID
-    cta: "Get Started",
-    ctaSubtitle: "No credit card required",
-    maxMembers: 1,
-    maxWidgets: 2,
-    monthlyViews: 1000
-  },
-  {
     id: "BASIC_MONTHLY",
     name: "Basic",
-    description: "For growing creators",
+    description: "Perfect for individuals and personal websites",
     planType: "BASIC",
     billingCycle: "MONTHLY",
     features: [
-      "3 organizations",
-      "5 members per organization",
-      "10 widgets",
-      "10,000 monthly views",
-      "Advanced analytics",
-      "Priority support",
-      "Custom branding"
+      "1 organization/project",
+      "1 widget (can be embedded on multiple websites)",
+      "Same feed appears across all embeddings",
+      "\"Powered by NowNowNow\" branding",
+      "Unlimited posts",
+      "Unlimited widget views",
+      "Full post management (pin, edit, delete, archive)",
+      "1 team member",
+      "Email support"
     ],
-    price: 14,
+    price: 9,
     priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID,
-    cta: "Subscribe Monthly",
-    ctaSubtitle: "Billed monthly",
-    isPopular: true,
-    maxMembers: 5,
-    maxWidgets: 10,
-    monthlyViews: 10000
+    cta: "Get Started",
+    ctaSubtitle: "$9/month",
+    maxOrganizations: 1,
+    maxMembers: 1,
+    maxWidgets: 1,
+    monthlyViews: -1, // Unlimited
+    hasBranding: true
   },
   {
     id: "BASIC_ANNUAL",
     name: "Basic",
-    description: "For growing creators",
+    description: "Perfect for individuals and personal websites",
     planType: "BASIC",
     billingCycle: "ANNUAL",
     features: [
-      "3 organizations",
-      "5 members per organization",
-      "10 widgets",
-      "10,000 monthly views",
-      "Advanced analytics",
-      "Priority support",
-      "Custom branding",
-      "Save 15% annually"
+      "1 organization/project",
+      "1 widget (can be embedded on multiple websites)",
+      "Same feed appears across all embeddings",
+      "\"Powered by NowNowNow\" branding",
+      "Unlimited posts",
+      "Unlimited widget views",
+      "Full post management (pin, edit, delete, archive)",
+      "1 team member",
+      "Email support",
+      "Save 20% with annual billing"
     ],
-    price: 144,
-    barredPrice: 168, // 14 * 12 = 168 (monthly price * 12)
+    price: 7.2, // 20% discount
+    yearlyPrice: 86.4, // $9 * 12 * 0.8
+    barredPrice: 9,
     priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_ANNUAL_PRICE_ID,
-    cta: "Subscribe Annually",
-    ctaSubtitle: "Billed annually",
-    isPopular: true,
-    maxMembers: 5,
-    maxWidgets: 10,
-    monthlyViews: 10000
+    cta: "Get Started",
+    ctaSubtitle: "$7.20/month, billed annually",
+    maxOrganizations: 1,
+    maxMembers: 1,
+    maxWidgets: 1,
+    monthlyViews: -1, // Unlimited
+    hasBranding: true
   },
   {
     id: "BASIC_LIFETIME",
     name: "Basic Lifetime",
-    description: "For committed creators",
+    description: "Perfect for individuals and personal websites",
     planType: "BASIC",
     billingCycle: "LIFETIME",
     features: [
-      "3 organizations",
-      "5 members per organization",
-      "10 widgets",
-      "10,000 monthly views",
-      "Advanced analytics",
-      "Priority support",
-      "Custom branding",
+      "1 organization/project",
+      "1 widget (can be embedded on multiple websites)",
+      "Same feed appears across all embeddings",
+      "\"Powered by NowNowNow\" branding",
+      "Unlimited posts",
+      "Unlimited widget views",
+      "Full post management (pin, edit, delete, archive)",
+      "1 team member",
+      "Email support",
       "One-time payment",
-      "Lifetime access"
+      "Lifetime access",
+      "All future updates included"
     ],
-    price: 299,
+    price: 199,
     priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_LIFETIME_PRICE_ID,
-    cta: "Get Lifetime Access",
-    ctaSubtitle: "One-time payment",
-    maxMembers: 5,
-    maxWidgets: 10,
-    monthlyViews: 10000
+    cta: "Buy Lifetime Access",
+    ctaSubtitle: "One-time payment of $199",
+    maxOrganizations: 1,
+    maxMembers: 1,
+    maxWidgets: 1,
+    monthlyViews: -1, // Unlimited
+    hasBranding: true
   },
   {
     id: "PRO_MONTHLY",
     name: "Pro",
-    description: "For professional teams",
+    description: "For entrepreneurs with multiple projects",
     planType: "PRO",
     billingCycle: "MONTHLY",
     features: [
-      "Unlimited organizations",
-      "Unlimited members",
-      "Unlimited widgets",
-      "Unlimited monthly views",
-      "Advanced analytics",
-      "Premium support",
-      "Custom branding",
-      "API access",
-      "Advanced integrations"
+      "5 organizations/projects",
+      "5 widgets (1 per organization)",
+      "Each widget can be embedded on multiple websites",
+      "Optional \"Powered by NowNowNow\" branding",
+      "Unlimited posts for each organization",
+      "Unlimited widget views",
+      "Full post management",
+      "Up to 5 team members",
+      "Custom domain support",
+      "User chat functionality",
+      "Advanced analytics dashboard",
+      "Priority support",
+      "Priority access to new features"
     ],
-    price: 49,
+    price: 19,
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
-    cta: "Subscribe Monthly",
-    ctaSubtitle: "Billed monthly",
-    maxMembers: Infinity,
-    maxWidgets: Infinity,
-    monthlyViews: Infinity
+    cta: "Get Started",
+    ctaSubtitle: "$19/month",
+    isPopular: true,
+    maxOrganizations: 5,
+    maxMembers: 5,
+    maxWidgets: 5,
+    monthlyViews: -1, // Unlimited
+    hasBranding: false
   },
   {
     id: "PRO_ANNUAL",
     name: "Pro",
-    description: "For professional teams",
+    description: "For entrepreneurs with multiple projects",
     planType: "PRO",
     billingCycle: "ANNUAL",
     features: [
-      "Unlimited organizations",
-      "Unlimited members",
-      "Unlimited widgets",
-      "Unlimited monthly views",
-      "Advanced analytics",
-      "Premium support",
-      "Custom branding",
-      "API access",
-      "Advanced integrations",
-      "Save 15% annually"
+      "5 organizations/projects",
+      "5 widgets (1 per organization)",
+      "Each widget can be embedded on multiple websites",
+      "Optional \"Powered by NowNowNow\" branding",
+      "Unlimited posts for each organization",
+      "Unlimited widget views",
+      "Full post management",
+      "Up to 5 team members",
+      "Custom domain support",
+      "User chat functionality",
+      "Advanced analytics dashboard",
+      "Priority support",
+      "Priority access to new features",
+      "Save 20% with annual billing"
     ],
-    price: 499,
-    barredPrice: 588, // 49 * 12 = 588 (monthly price * 12)
+    price: 15.2, // 20% discount
+    yearlyPrice: 182.4, // $19 * 12 * 0.8
+    barredPrice: 19,
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID,
-    cta: "Subscribe Annually",
-    ctaSubtitle: "Billed annually",
-    maxMembers: Infinity,
-    maxWidgets: Infinity,
-    monthlyViews: Infinity
+    cta: "Get Started",
+    ctaSubtitle: "$15.20/month, billed annually",
+    isPopular: true,
+    maxOrganizations: 5,
+    maxMembers: 5,
+    maxWidgets: 5,
+    monthlyViews: -1, // Unlimited
+    hasBranding: false
   },
   {
     id: "PRO_LIFETIME",
     name: "Pro Lifetime",
-    description: "For committed professionals",
+    description: "For entrepreneurs with multiple projects",
     planType: "PRO",
     billingCycle: "LIFETIME",
     features: [
-      "Unlimited organizations",
-      "Unlimited members",
-      "Unlimited widgets",
-      "Unlimited monthly views",
-      "Advanced analytics",
-      "Premium support",
-      "Custom branding",
-      "API access",
-      "Advanced integrations",
+      "5 organizations/projects",
+      "5 widgets (1 per organization)",
+      "Each widget can be embedded on multiple websites",
+      "Optional \"Powered by NowNowNow\" branding",
+      "Unlimited posts for each organization",
+      "Unlimited widget views",
+      "Full post management",
+      "Up to 5 team members",
+      "Custom domain support",
+      "User chat functionality",
+      "Advanced analytics dashboard",
+      "Priority support",
+      "Priority access to new features",
       "One-time payment",
-      "Lifetime access"
+      "Lifetime access",
+      "All future updates included"
     ],
-    price: 999,
+    price: 399,
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_LIFETIME_PRICE_ID,
-    cta: "Get Lifetime Access",
-    ctaSubtitle: "One-time payment",
-    maxMembers: Infinity,
-    maxWidgets: Infinity,
-    monthlyViews: Infinity
+    cta: "Buy Lifetime Access",
+    ctaSubtitle: "One-time payment of $399",
+    isPopular: true,
+    maxOrganizations: 5,
+    maxMembers: 5,
+    maxWidgets: 5,
+    monthlyViews: -1, // Unlimited
+    hasBranding: false
   },
 ];

@@ -34,7 +34,7 @@ export const checkoutPlan = action(checkoutSchema, async (input: CheckoutInput) 
 
   try {
     // Get the price ID for the selected plan
-    const priceId = getPriceIdByPlan(input.planType, input.billingCycle);
+    const priceId = await getPriceIdByPlan(input.planType, input.billingCycle);
     
     // Get or create customer
     let customerId: string;

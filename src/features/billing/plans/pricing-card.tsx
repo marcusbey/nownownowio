@@ -160,5 +160,4 @@ const PricingItem = ({ included, children }: PricingItemProps) => {
       </span>
     </li>
   );
-  );
 };

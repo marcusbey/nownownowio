@@ -115,7 +115,20 @@ export async function createBillingPortalSession(params: Stripe.BillingPortal.Se
 }
 
 // Helper function to get price ID by plan type and billing cycle
-export function getPriceIdByPlan(planType: string, billingCycle: string): string {
+export async function getPriceIdByPlan(planType: string, billingCycle: string): Promise<string> {
+  // Handle FREE plan which doesn't have billing cycles
+  if (planType === 'FREE') {
+    const freeKey = 'NEXT_PUBLIC_STRIPE_FREE_PRICE_ID';
+    const freePriceId = env[freeKey as keyof typeof env];
+    
+    if (!freePriceId) {
+      throw new Error(`Price ID not found for FREE plan`);
+    }
+    
+    return freePriceId;
+  }
+  
+  // Handle regular plans with billing cycles (BASIC, PRO)
   const key = `NEXT_PUBLIC_STRIPE_${planType}_${billingCycle}_PRICE_ID`;
   const priceId = env[key as keyof typeof env];
   

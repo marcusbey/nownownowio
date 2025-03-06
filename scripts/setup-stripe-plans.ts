@@ -1,93 +1,104 @@
-import Stripe from 'stripe';
-import dotenv from 'dotenv';
+const Stripe = require('stripe');
+// Use Node's built-in module instead of dotenv
+const fs = require('fs');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from .env.stripe file manually
+const envContent = fs.readFileSync('.env.stripe', 'utf8');
+const envVars = envContent.split('\n').reduce((acc, line) => {
+  const match = line.match(/^([^#=]+)=(.*)$/);
+  if (match) {
+    acc[match[1].trim()] = match[2].trim().replace(/^"|"$/g, '');
+  }
+  return acc;
+}, {});
 
-// Use test key for development
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY_TEST;
+// Use live key for production
+const stripeSecretKey = envVars.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
-  console.error('Missing STRIPE_SECRET_KEY_TEST in environment variables');
+  console.error('Missing STRIPE_SECRET_KEY in environment variables');
   process.exit(1);
 }
 
 const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2023-10-16', // Use the latest API version
+  apiVersion: '2023-10-16', // Use a supported API version
 });
+
+// Plan structure definition (commented as we're using JS)
+/**
+ * @typedef {Object} StripePlan
+ * @property {string} id
+ * @property {string} name
+ * @property {string} description
+ * @property {number} amount
+ * @property {('month'|'year'|null)} interval
+ * @property {number} [trial_period_days]
+ * @property {string[]} features
+ */
 
 // Plan definitions matching our Prisma schema
 const plans = [
-  // Free Plan
-  {
-    id: 'FREE_MONTHLY',
-    name: 'Free',
-    description: 'Free plan with basic features',
-    amount: 0, // Free
-    interval: 'month' as const,
-    features: [
-      '1 organization',
-      '1 widget',
-      '100 monthly widget views',
-      '"Powered by NowNowNow" branding',
-      'Limited features',
-    ],
-  },
-  
   // Basic Plans
   {
     id: 'BASIC_MONTHLY',
     name: 'Basic Monthly',
-    description: 'Basic plan with essential features, billed monthly',
+    description: 'Perfect for individuals and personal websites',
     amount: 900, // $9.00
-    interval: 'month' as const,
+    interval: 'month',
+    trial_period_days: 7, // 7-day free trial
     features: [
-      '1 organization',
-      '1 widget',
-      '500 monthly widget views',
+      '1 organization/project',
+      '1 widget (can be embedded on multiple websites)',
+      'Same feed appears across all embeddings',
       '"Powered by NowNowNow" branding',
       'Unlimited posts',
-      'Post pinning',
-      'Post editing',
-      'Post archiving',
-      'Basic analytics',
+      'Unlimited widget views',
+      'Full post management (pin, edit, delete, archive)',
+      '1 team member',
+      'Email support',
+      '7-day free trial'
     ],
   },
   {
     id: 'BASIC_ANNUAL',
     name: 'Basic Annual',
-    description: 'Basic plan with essential features, billed annually (save ~$19)',
-    amount: 8900, // $89.00
-    interval: 'year' as const,
+    description: 'Perfect for individuals and personal websites, billed annually (save 20%)',
+    amount: 8640, // $86.40 ($7.20/mo * 12)
+    interval: 'year',
+    trial_period_days: 7, // 7-day free trial
     features: [
-      '1 organization',
-      '1 widget',
-      '500 monthly widget views',
+      '1 organization/project',
+      '1 widget (can be embedded on multiple websites)',
+      'Same feed appears across all embeddings',
       '"Powered by NowNowNow" branding',
       'Unlimited posts',
-      'Post pinning',
-      'Post editing',
-      'Post archiving',
-      'Basic analytics',
+      'Unlimited widget views',
+      'Full post management (pin, edit, delete, archive)',
+      '1 team member',
+      'Email support',
+      'Save 20% with annual billing',
+      '7-day free trial'
     ],
   },
   {
     id: 'BASIC_LIFETIME',
     name: 'Basic Lifetime',
-    description: 'Basic plan with essential features, one-time payment',
+    description: 'Perfect for individuals and personal websites, one-time payment',
     amount: 19900, // $199.00
     interval: null, // One-time payment
     features: [
-      '1 organization',
-      '1 widget',
-      '500 monthly widget views',
+      '1 organization/project',
+      '1 widget (can be embedded on multiple websites)',
+      'Same feed appears across all embeddings',
       '"Powered by NowNowNow" branding',
       'Unlimited posts',
-      'Post pinning',
-      'Post editing',
-      'Post archiving',
-      'Basic analytics',
+      'Unlimited widget views',
+      'Full post management (pin, edit, delete, archive)',
+      '1 team member',
+      'Email support',
+      'One-time payment',
       'Lifetime access',
+      'All future updates included'
     ],
   },
   
@@ -95,64 +106,85 @@ const plans = [
   {
     id: 'PRO_MONTHLY',
     name: 'Pro Monthly',
-    description: 'Pro plan with advanced features, billed monthly',
-    amount: 2900, // $29.00
-    interval: 'month' as const,
+    description: 'For entrepreneurs with multiple projects, billed monthly',
+    amount: 1900, // $19.00
+    interval: 'month',
+    trial_period_days: 7, // 7-day free trial
     features: [
-      '5 organizations',
+      '5 organizations/projects',
       '5 widgets (1 per organization)',
-      '100,000 monthly views',
-      'Optional branding',
-      'Unlimited posts',
+      'Each widget can be embedded on multiple websites',
+      'Optional "Powered by NowNowNow" branding',
+      'Unlimited posts for each organization',
+      'Unlimited widget views',
+      'Full post management',
       'Up to 5 team members',
       'Custom domain support',
+      'User chat functionality',
+      'Advanced analytics dashboard',
       'Priority support',
-      'Advanced analytics',
-      'Post pinning, editing, deleting, and archiving',
+      'Priority access to new features',
+      '7-day free trial'
     ],
   },
   {
     id: 'PRO_ANNUAL',
     name: 'Pro Annual',
-    description: 'Pro plan with advanced features, billed annually (save ~$49)',
-    amount: 29900, // $299.00
-    interval: 'year' as const,
+    description: 'For entrepreneurs with multiple projects, billed annually (save 20%)',
+    amount: 18240, // $182.40 ($15.20/mo * 12)
+    interval: 'year',
+    trial_period_days: 7, // 7-day free trial
     features: [
-      '5 organizations',
+      '5 organizations/projects',
       '5 widgets (1 per organization)',
-      '100,000 monthly views',
-      'Optional branding',
-      'Unlimited posts',
+      'Each widget can be embedded on multiple websites',
+      'Optional "Powered by NowNowNow" branding',
+      'Unlimited posts for each organization',
+      'Unlimited widget views',
+      'Full post management',
       'Up to 5 team members',
       'Custom domain support',
+      'User chat functionality',
+      'Advanced analytics dashboard',
       'Priority support',
-      'Advanced analytics',
-      'Post pinning, editing, deleting, and archiving',
+      'Priority access to new features',
+      'Save 20% with annual billing',
+      '7-day free trial'
     ],
   },
   {
     id: 'PRO_LIFETIME',
     name: 'Pro Lifetime',
-    description: 'Pro plan with advanced features, one-time payment',
-    amount: 59900, // $599.00
+    description: 'For entrepreneurs with multiple projects, one-time payment',
+    amount: 39900, // $399.00
     interval: null, // One-time payment
     features: [
-      '5 organizations',
+      '5 organizations/projects',
       '5 widgets (1 per organization)',
-      '100,000 monthly views',
-      'Optional branding',
-      'Unlimited posts',
+      'Each widget can be embedded on multiple websites',
+      'Optional "Powered by NowNowNow" branding',
+      'Unlimited posts for each organization',
+      'Unlimited widget views',
+      'Full post management',
       'Up to 5 team members',
       'Custom domain support',
+      'User chat functionality',
+      'Advanced analytics dashboard',
       'Priority support',
-      'Advanced analytics',
-      'Post pinning, editing, deleting, and archiving',
+      'Priority access to new features',
+      'One-time payment',
       'Lifetime access',
+      'All future updates included'
     ],
   },
 ];
 
-async function createProduct(plan: typeof plans[0]) {
+/**
+ * Creates a Stripe product and price for a plan
+ * @param {StripePlan} plan - The plan to create in Stripe
+ * @returns {Promise<{planId: string, productId: string, priceId: string}>}
+ */
+async function createProduct(plan) {
   try {
     // Create or update product
     const product = await stripe.products.create({
@@ -160,8 +192,8 @@ async function createProduct(plan: typeof plans[0]) {
       description: plan.description,
       metadata: {
         plan_id: plan.id,
-      },
-      features: plan.features.map(feature => ({ name: feature })),
+        features: JSON.stringify(plan.features)
+      }
     });
     
     console.log(`Created product: ${product.name} (${product.id})`);
@@ -170,7 +202,7 @@ async function createProduct(plan: typeof plans[0]) {
     let price;
     if (plan.interval) {
       // Recurring price
-      price = await stripe.prices.create({
+      const priceParams = {
         product: product.id,
         unit_amount: plan.amount,
         currency: 'usd',
@@ -179,8 +211,15 @@ async function createProduct(plan: typeof plans[0]) {
         },
         metadata: {
           plan_id: plan.id,
-        },
-      });
+        }
+      };
+      
+      // Add trial period if specified
+      if (plan.trial_period_days) {
+        priceParams.recurring.trial_period_days = plan.trial_period_days;
+      }
+      
+      price = await stripe.prices.create(priceParams);
     } else {
       // One-time price
       price = await stripe.prices.create({

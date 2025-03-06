@@ -151,7 +151,7 @@ export const checkoutPlanAction = action
       // Get price ID for the selected plan
       let priceId: string;
       try {
-        priceId = getPriceIdByPlan(planType, billingCycle);
+        priceId = await getPriceIdByPlan(planType, billingCycle);
       } catch (error) {
         throw new ActionError(`Price not found for ${planType} ${billingCycle} plan`);
       }
