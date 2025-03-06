@@ -50,8 +50,8 @@ async function getCurrentOrg(slug: string) {
 }
 
 export default async function RoutePage(props: SettingsPageParams) {
-  // Get the params safely
-  const params = props.params;
+  // In Next.js 15, params is a Promise that needs to be properly awaited
+  const params = await props.params;
   const orgSlug = params.orgSlug;
 
   // Use getCurrentOrg without passing roles (it should use orgSlug only)

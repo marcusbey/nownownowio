@@ -26,8 +26,8 @@ export const generateMetadata = async (): Promise<Metadata> => {
 export default async function RouteLayout(
   props: LayoutParams<{ orgSlug: string }>,
 ) {
-  // Properly await the params Promise
-  const params = props.params;
+  // In Next.js 15, params is a Promise that needs to be properly awaited
+  const params = await props.params;
   const orgSlug = params.orgSlug;
 
   try {

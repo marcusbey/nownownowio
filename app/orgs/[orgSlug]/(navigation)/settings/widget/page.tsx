@@ -2,12 +2,17 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { WidgetScriptGenerator } from "./GenerateScript";
+import { use } from "react";
 
 export default function WidgetPage({
   params,
 }: {
-  params: { orgSlug: string };
+  params: Promise<{ orgSlug: string }>;
 }) {
+  // Properly unwrap the params Promise using React.use()
+  const resolvedParams = use(params);
+  const orgSlug = resolvedParams.orgSlug;
+  
   return (
     <div className="py-6">
       <div className="mb-6">
@@ -26,7 +31,7 @@ export default function WidgetPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <WidgetScriptGenerator orgSlug={params.orgSlug} />
+          <WidgetScriptGenerator orgSlug={orgSlug} />
         </CardContent>
       </Card>
     </div>

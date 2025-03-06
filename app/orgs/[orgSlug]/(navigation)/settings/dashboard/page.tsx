@@ -18,7 +18,10 @@ export default async function RoutePage(
     orgSlug: string;
   }>,
 ) {
-  const org = await getRequiredCurrentOrgCache();
+  // In Next.js 15, params is a Promise that needs to be properly awaited
+  const params = await props.params;
+  const orgSlug = params.orgSlug;
+  const org = await getRequiredCurrentOrgCache(orgSlug);
   return (
     <Layout>
       <LayoutHeader>
@@ -27,7 +30,7 @@ export default async function RoutePage(
       <LayoutActions>
         {isInRoles(org.roles, ["ADMIN"]) ? (
           <Link
-            href={`/orgs/${props.params.orgSlug}/settings/members`}
+            href={`/orgs/${orgSlug}/settings/members`}
             className={buttonVariants({ variant: "outline" })}
           >
             Invite member

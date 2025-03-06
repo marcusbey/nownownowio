@@ -18,7 +18,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function AccountPage({ params }: PageParams<{ orgSlug: string }>) {
-  const { orgSlug } = params;
+  // In Next.js 15, params is a Promise that needs to be properly awaited
+  const resolvedParams = await params;
+  const { orgSlug } = resolvedParams;
   const { org, user } = await getRequiredCurrentOrgCache(orgSlug);
 
   const members = await getOrgsMembers(org.id);

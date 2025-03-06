@@ -13,7 +13,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function MembersPage(props: PageParams) {
-  const orgSlug = props.params.orgSlug;
+  // In Next.js 15, params is a Promise that needs to be properly awaited
+  const params = await props.params;
+  const orgSlug = params.orgSlug;
   // Don't restrict by role here - we'll handle permissions in the UI
   const { org, user, roles } = await getRequiredCurrentOrgCache(orgSlug);
 

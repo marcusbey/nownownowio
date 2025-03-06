@@ -11,7 +11,9 @@ import { useParams } from "next/navigation";
 
 export default function SubscriptionPage() {
   const params = useParams();
-  const { organization, isLoading } = useOrganization(params.orgSlug as string);
+  // Extract orgSlug from params and ensure it's a string
+  const orgSlug = Array.isArray(params.orgSlug) ? params.orgSlug[0] : params.orgSlug as string;
+  const { organization, isLoading } = useOrganization(orgSlug);
   
   if (isLoading) {
     return (

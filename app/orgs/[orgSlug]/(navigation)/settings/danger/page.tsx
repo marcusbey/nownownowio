@@ -21,7 +21,11 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function RoutePage(props: PageParams) {
-  const { org, user } = await getRequiredCurrentOrgCache(undefined, [
+  // In Next.js 15, params is a Promise that needs to be properly awaited
+  const params = await props.params;
+  const orgSlug = params.orgSlug;
+  
+  const { org, user } = await getRequiredCurrentOrgCache(orgSlug, [
     OrganizationMembershipRole.OWNER,
   ]);
 
