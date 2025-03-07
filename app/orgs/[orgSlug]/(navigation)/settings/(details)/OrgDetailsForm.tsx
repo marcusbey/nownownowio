@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/core/button";
 import {
   Form,
   FormControl,
@@ -12,9 +13,9 @@ import {
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
 import { Textarea } from "@/components/core/textarea";
-import { LoadingButton } from "@/features/ui/form/submit-button";
 import { ImageFormItem } from "@/features/ui/images/image-form-item";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -24,16 +25,17 @@ import {
   type OrgDetailsFormSchemaType,
 } from "../org.schema";
 
-type ProductFormProps = {
+type OrgDetailsFormProps = {
   defaultValues: OrgDetailsFormSchemaType;
 };
 
-export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
+export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
   const form = useZodForm({
     schema: OrgDetailsFormSchema,
     defaultValues,
   });
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isDirty = form.formState.isDirty;
   const isPending = form.formState.isSubmitting;
   const bioLength = form.watch("bio")?.length ?? 0;
@@ -46,6 +48,8 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
     onSuccess: (data) => {
       if (data?.data) {
         toast.success("Organization updated successfully");
+
+        // Update form with new values
         form.reset({
           name: data.data.name,
           email: data.data.email ?? undefined,
@@ -54,13 +58,16 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
           websiteUrl: data.data.websiteUrl ?? undefined,
         });
 
-        // Use a safer approach to refresh the page
-        try {
-          // Refresh without navigation
-          window.location.reload();
-        } catch (refreshError) {
-          console.error("Error refreshing page:", refreshError);
-        }
+        // Invalidate relevant queries to update UI without full page reload
+        queryClient
+          .invalidateQueries({ queryKey: ["organization"] })
+          .then(() => {
+            // Soft navigation update after cache invalidation
+            router.refresh();
+          })
+          .catch((error) => {
+            console.error("Error invalidating queries:", error);
+          });
       }
     },
     onError: (error) => {
@@ -101,7 +108,7 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
                 <ImageFormItem
                   className="size-24 rounded-lg"
                   onChange={(url) => field.onChange(url)}
-                  imageUrl={field.value || defaultValues.image || undefined}
+                  imageUrl={field.value ?? defaultValues.image ?? undefined}
                 />
               </FormControl>
               <FormDescription>
@@ -156,7 +163,7 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
               <FormControl>
                 <Textarea
                   {...field}
-                  value={field.value || ""}
+                  value={field.value ?? ""}
                   placeholder="Tell us about your organization..."
                   maxLength={500}
                 />
@@ -177,7 +184,7 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
                 <Input
                   {...field}
                   type="url"
-                  value={field.value || ""}
+                  value={field.value ?? ""}
                   placeholder="https://example.com"
                   pattern="https?://.*"
                 />
@@ -191,11 +198,16 @@ export const OrgDetailsForm = ({ defaultValues }: ProductFormProps) => {
         />
 
         <div className="flex justify-end">
-          <LoadingButton type="submit" loading={isPending} disabled={!isDirty}>
+          <Button
+            type="submit"
+            disabled={!isDirty || isPending}
+            className="relative"
+          >
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             Save Changes
-          </LoadingButton>
+          </Button>
         </div>
       </div>
     </Form>
   );
-};
+}
