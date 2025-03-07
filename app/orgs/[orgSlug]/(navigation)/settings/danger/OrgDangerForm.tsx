@@ -58,7 +58,7 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
       form={form}
       onSubmit={(v) => {
         alertDialog.add({
-          title: "Are you sure ?",
+          title: "Are you sure?",
           description:
             "You are about to change the unique identifier of your organization. All the previous URLs will be changed.",
           action: {
@@ -69,41 +69,30 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
           },
         });
       }}
-      className="flex w-full flex-col gap-6 lg:gap-8"
+      className="flex w-full flex-col gap-4"
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Organization's slug</CardTitle>
-          <CardDescription>
-            Slug is the unique identifier of your organization.
-          </CardDescription>
-          <CardDescription>
-            It's used in all the URLs, if you change it, all your URLs will be
-            broken.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FormField
-            control={form.control}
-            name="slug"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    placeholder=""
-                    {...field}
-                    onChange={(e) => {
-                      const slug = formatId(e.target.value);
-                      field.onChange(slug);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <FormField
+          control={form.control}
+          name="slug"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  placeholder="Enter new organization slug"
+                  className="max-w-md"
+                  {...field}
+                  onChange={(e) => {
+                    const slug = formatId(e.target.value);
+                    field.onChange(slug);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </FormUnsavedBar>
   );
 };
