@@ -4,6 +4,7 @@ import UserAvatar from "@/components/composite/UserAvatar";
 import { ActionButton } from "@/components/core/action-button";
 import { Button } from "@/components/core/button";
 import { Card, CardContent } from "@/components/data-display/card";
+import { Progress } from "@/components/feedback/progress";
 import { useToast } from "@/components/feedback/use-toast";
 import { EmojiPickerButton } from "@/features/social/posts/components/emoji-picker";
 import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
@@ -11,11 +12,12 @@ import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { useUploadThing } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
 
 type PostFormProps = {
   onSubmit?: () => void;
@@ -26,6 +28,16 @@ type PostFormProps = {
   userId?: string;
   userImage?: string | null;
   className?: string;
+};
+
+type MediaFile = {
+  file: File;
+  id?: string;
+  previewUrl: string;
+  type: "image" | "video";
+  uploading: boolean;
+  progress: number;
+  error?: string;
 };
 
 export function PostForm({
@@ -48,10 +60,99 @@ export function PostForm({
   }>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
 
-  // Early returns after all hooks
+  // Define onDrop callback outside of any conditional blocks
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      // Check if adding these files would exceed the limit
+      if (mediaFiles.length + acceptedFiles.length > 4) {
+        toast({
+          title: "Too many files",
+          description: "You can only upload up to 4 files per post",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Process each file
+      const newMediaFiles = acceptedFiles
+        .map((file) => {
+          const isImage = file.type.startsWith("image/");
+          const isVideo = file.type.startsWith("video/");
+
+          if (!isImage && !isVideo) {
+            toast({
+              title: "Unsupported file type",
+              description: "Only images and videos are supported",
+              variant: "destructive",
+            });
+            return null;
+          }
+
+          // Check file size
+          const maxSize = isImage ? 4 * 1024 * 1024 : 64 * 1024 * 1024; // 4MB for images, 64MB for videos
+          if (file.size > maxSize) {
+            toast({
+              title: "File too large",
+              description: `${isImage ? "Images" : "Videos"} must be under ${isImage ? "4MB" : "64MB"}`,
+              variant: "destructive",
+            });
+            return null;
+          }
+
+          return {
+            file,
+            previewUrl: URL.createObjectURL(file),
+            type: isImage ? "image" : "video",
+            uploading: false,
+            progress: 0,
+          } as MediaFile;
+        })
+        .filter(Boolean) as MediaFile[];
+
+      setMediaFiles((prev) => [...prev, ...newMediaFiles]);
+    },
+    [mediaFiles.length, toast],
+  );
+
+  // Define dropzone hook outside of any conditional blocks
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+      "video/*": [".mp4", ".webm", ".mov"],
+    },
+    maxFiles: 4,
+    multiple: true,
+  });
+
+  const removeMedia = (index: number) => {
+    setMediaFiles((prev) => {
+      const newFiles = [...prev];
+      URL.revokeObjectURL(newFiles[index].previewUrl);
+      newFiles.splice(index, 1);
+      return newFiles;
+    });
+  };
+
+  const validatePost = () => {
+    try {
+      if (!content.trim() && mediaFiles.length === 0) {
+        return "Please enter some content or add media to your post";
+      }
+
+      if (content.length > 1000) {
+        return "Post content is too long (maximum 1000 characters)";
+      }
+
+      return null;
+    } catch (error) {
+      return "Invalid post data";
+    }
+  };
+
+  // Early returns after all hooks and function definitions
   if (status === "loading" && !userId) {
     return (
       <Card>
@@ -81,47 +182,6 @@ export function PostForm({
     );
   }
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length + selectedImages.length > 4) {
-      toast({
-        title: "Too many images",
-        description: "You can only upload up to 4 images per post",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSelectedImages((prev) => [...prev, ...files]);
-    const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
-    setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
-  };
-
-  const removeImage = (index: number) => {
-    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
-    setPreviewUrls((prev) => {
-      const newUrls = prev.filter((_, i) => i !== index);
-      URL.revokeObjectURL(prev[index]);
-      return newUrls;
-    });
-  };
-
-  const validatePost = () => {
-    try {
-      if (!content.trim()) {
-        return "Please enter some content for your post";
-      }
-
-      if (content.length > 1000) {
-        return "Post content is too long (maximum 1000 characters)";
-      }
-
-      return null;
-    } catch (error) {
-      return "Invalid post data";
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -138,31 +198,43 @@ export function PostForm({
     setIsSubmitting(true);
     try {
       // Validate organization slug
-      console.log("[FORM_DEBUG] Using org slug:", orgSlug);
       if (!orgSlug) {
         throw new Error("No organization slug provided");
       }
 
+      // Upload all media files first
       let mediaUrls: string[] = [];
-      if (selectedImages.length > 0) {
-        const uploadResult = await startUpload(selectedImages);
+
+      if (mediaFiles.length > 0) {
+        // Mark all files as uploading
+        setMediaFiles((prev) =>
+          prev.map((file) => ({ ...file, uploading: true })),
+        );
+
+        // Upload files
+        const filesToUpload = mediaFiles.map((mf) => mf.file);
+        const uploadResult = await startUpload(filesToUpload, {
+          onUploadProgress: (progress: number) => {
+            // Update progress for all files
+            setMediaFiles((prev) =>
+              prev.map((file) => ({ ...file, progress })),
+            );
+          },
+        });
+
         if (uploadResult) {
           mediaUrls = uploadResult.map((file) => file.url);
         }
       }
 
-      // Ensure we have content
-      if (!content.trim()) {
-        throw new Error("Please enter some content for your post");
-      }
-
+      // Create post data
       const postData = {
         content: content.trim(),
         mediaUrls,
         orgSlug,
       };
 
-      console.log("[FORM_DEBUG] Creating post with data:", postData);
+      // Submit post
       const response = await fetch(ENDPOINTS.POSTS, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -174,14 +246,15 @@ export function PostForm({
         throw new Error(error.error || "Failed to create post");
       }
 
+      // Reset form
       setContent("");
       editorRef.current?.clearEditor();
-      setSelectedImages([]);
-      setPreviewUrls((prev) => {
-        prev.forEach((url) => URL.revokeObjectURL(url));
+      setMediaFiles((prev) => {
+        prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
         return [];
       });
 
+      // Refresh posts
       void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
       toast({ title: "Post created successfully" });
       onSubmit?.();
@@ -210,30 +283,92 @@ export function PostForm({
         <div className="relative flex-1 space-y-3">
           <RichTextEditor onChange={setContent} ref={editorRef} />
 
-          {previewUrls.length > 0 && (
-            <div className="grid grid-cols-2 gap-2">
-              {previewUrls.map((url, index) => (
+          {/* Media Preview Section */}
+          {mediaFiles.length > 0 && (
+            <div
+              className={cn(
+                "grid gap-2",
+                mediaFiles.length === 1 ? "grid-cols-1" : "grid-cols-2",
+              )}
+            >
+              {mediaFiles.map((media, index) => (
                 <div
-                  key={url}
-                  className="group relative aspect-video overflow-hidden rounded-md bg-muted/50"
+                  key={index}
+                  className="group relative overflow-hidden rounded-md bg-muted/50"
+                  style={{
+                    aspectRatio: media.type === "image" ? "16/9" : "16/9",
+                  }}
                 >
-                  <Image
-                    src={url}
-                    alt="Preview"
-                    fill
-                    className="object-cover"
-                  />
+                  {media.type === "image" ? (
+                    <Image
+                      src={media.previewUrl}
+                      alt="Media preview"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="relative size-full">
+                      <video
+                        src={media.previewUrl}
+                        className="size-full object-cover"
+                        controls={!media.uploading}
+                      />
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <FilmIcon className="size-8 text-white opacity-70" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Progress Indicator */}
+                  {media.uploading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50">
+                      <Loader2 className="mb-2 h-8 w-8 animate-spin text-primary" />
+                      <Progress value={media.progress} className="h-2 w-3/4" />
+                      <span className="mt-1 text-xs">
+                        {Math.round(media.progress)}%
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Remove Button */}
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={() => removeImage(index)}
+                    className="absolute right-2 top-2 size-7 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={() => removeMedia(index)}
                     type="button"
+                    disabled={isSubmitting || media.uploading}
                   >
-                    Remove
+                    <X className="size-4" />
                   </Button>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Dropzone Area */}
+          {mediaFiles.length < 4 && !isSubmitting && !isUploading && (
+            <div
+              {...getRootProps()}
+              className={cn(
+                "border-2 border-dashed rounded-md p-4 transition-colors cursor-pointer",
+                isDragActive
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/20 hover:border-muted-foreground/50",
+              )}
+            >
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center justify-center text-sm text-muted-foreground">
+                <ImagePlus className="mb-2 size-6" />
+                <p>
+                  {isDragActive
+                    ? "Drop files here"
+                    : "Drag & drop or click to add images/videos"}
+                </p>
+                <p className="mt-1 text-xs">
+                  Up to 4 files (4MB per image, 64MB per video)
+                </p>
+              </div>
             </div>
           )}
 
@@ -249,8 +384,8 @@ export function PostForm({
                 variant="ghost"
                 size="sm"
                 className="h-9 px-2 text-muted-foreground hover:text-foreground"
-                onClick={() => document.getElementById("image-upload")?.click()}
-                disabled={isSubmitting || isUploading}
+                onClick={() => document.getElementById("media-upload")?.click()}
+                disabled={isSubmitting || isUploading || mediaFiles.length >= 4}
               >
                 <ImagePlus className="size-5" />
               </Button>
@@ -260,7 +395,11 @@ export function PostForm({
               type="submit"
               variant="primary"
               size="sm"
-              disabled={isSubmitting || isUploading}
+              disabled={
+                isSubmitting ||
+                isUploading ||
+                mediaFiles.some((m) => m.uploading)
+              }
               className={cn(
                 "px-5 h-9",
                 (isSubmitting || isUploading) && "cursor-not-allowed",
@@ -278,12 +417,17 @@ export function PostForm({
 
       <input
         type="file"
-        id="image-upload"
+        id="media-upload"
         multiple
-        accept="image/*"
+        accept="image/*,video/*"
         className="hidden"
-        onChange={handleImageSelect}
-        disabled={isSubmitting || isUploading}
+        onChange={(e) => {
+          if (e.target.files) {
+            onDrop(Array.from(e.target.files));
+            e.target.value = ""; // Reset input
+          }
+        }}
+        disabled={isSubmitting || isUploading || mediaFiles.length >= 4}
       />
     </form>
   );

@@ -8,6 +8,7 @@ const f = createUploadthing();
 export const fileRouter = {
   postMedia: f({
     image: { maxFileSize: "4MB", maxFileCount: 4 },
+    video: { maxFileSize: "64MB", maxFileCount: 4 },
   })
     .middleware(async () => {
       const { user } = await validateRequest();
@@ -15,9 +16,22 @@ export const fileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      return { url: file.url };
+      // Create a media record in the database
+      const media = await prisma.media.create({
+        data: {
+          url: file.url,
+          type: file.type.startsWith("image") ? "IMAGE" : "VIDEO",
+          // Media will be associated with a post later
+        },
+      });
+
+      return {
+        url: file.url,
+        mediaId: media.id,
+        type: file.type.startsWith("image") ? "IMAGE" : "VIDEO"
+      };
     }),
-    
+
   bannerImage: f({
     image: { maxFileSize: "2MB" },
   })
