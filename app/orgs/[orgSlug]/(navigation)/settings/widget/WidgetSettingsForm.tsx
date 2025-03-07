@@ -47,13 +47,12 @@ interface WidgetSettingsFormProps {
 export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormProps) {
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <h3 className="text-base font-medium mb-4">Widget Settings</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-muted/20 p-4 rounded-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
         <div className="space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Theme</label>
             <Select value={settings.theme} onValueChange={(value) => onChange({ ...settings, theme: value as 'light' | 'dark' })}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-9 bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -66,12 +65,28 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Button Size</label>
             <Input
-              className="h-9"
+              className="h-9 bg-background"
               type="number"
               min="40"
               max="120"
               value={settings.buttonSize}
               onChange={(e) => {
+                // Allow any input during typing, even if invalid
+                const rawValue = e.target.value;
+                if (rawValue === '') {
+                  // Handle empty input
+                  onChange({ ...settings, buttonSize: 40 });
+                } else {
+                  // Try to parse as number but don't validate yet
+                  const parsedValue = parseInt(rawValue);
+                  if (!isNaN(parsedValue)) {
+                    onChange({ ...settings, buttonSize: parsedValue });
+                  }
+                  // If it's not a number, just keep the current value
+                }
+              }}
+              onBlur={(e) => {
+                // Validate and correct on blur
                 let value = parseInt(e.target.value);
                 // Ensure value is within allowed range
                 if (isNaN(value)) {
@@ -91,7 +106,7 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Position</label>
             <Select value={settings.position} onValueChange={(value) => onChange({ ...settings, position: value as 'left' | 'right' })}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-9 bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -105,29 +120,43 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
             <label className="text-xs font-medium text-muted-foreground">Button Color</label>
             <div className="flex gap-2 items-center">
               <Input
-                className="h-9"
+                className="h-9 bg-background"
                 value={settings.buttonColor}
                 onChange={(e) => {
+                  // Allow any input during typing
                   let value = e.target.value;
+                  
                   // Ensure it starts with # if user types without it
                   if (value && !value.startsWith('#')) {
                     value = '#' + value;
                   }
-                  // Validate hex color format when user is done typing
-                  if (value.length >= 7) {
-                    const isValidHex = /^#[0-9A-Fa-f]{6}$/.test(value);
-                    if (!isValidHex) {
-                      // Reset to default if invalid
-                      value = '#1a73e8';
-                    }
+                  
+                  // Update without validation during typing
+                  onChange({ ...settings, buttonColor: value });
+                }}
+                onBlur={(e) => {
+                  // Validate on blur
+                  let value = e.target.value;
+                  
+                  // Ensure it starts with #
+                  if (value && !value.startsWith('#')) {
+                    value = '#' + value;
                   }
+                  
+                  // Validate hex color format
+                  const isValidHex = /^#[0-9A-Fa-f]{6}$/.test(value);
+                  if (!isValidHex) {
+                    // Reset to default if invalid
+                    value = '#1a73e8';
+                  }
+                  
                   onChange({ ...settings, buttonColor: value });
                 }}
                 placeholder="#1a73e8"
               />
               <label 
                 htmlFor="colorPicker" 
-                className="h-9 w-9 rounded border cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
+                className="h-9 w-9 rounded border border-input cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
                 style={{ backgroundColor: settings.buttonColor }}
               >
                 <input

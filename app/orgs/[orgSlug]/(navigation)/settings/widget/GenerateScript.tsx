@@ -15,6 +15,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [websiteUrl, setWebsiteUrl] = useState("");
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [isLoadingOrgData, setIsLoadingOrgData] = useState(true);
   const [isSavingWebsiteUrl, setIsSavingWebsiteUrl] = useState(false);
   const [settings, setSettings] = useState<WidgetSettings>({
@@ -25,6 +26,10 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   });
   const { toast } = useToast();
   const { data: session } = useSession();
+  
+  // Get the base URL for API requests
+  // Use relative URLs to avoid cross-origin issues and port mismatches
+  // This ensures requests go to the same server the app is running on
   
   // Load organization data when component mounts
   useEffect(() => {
@@ -65,24 +70,42 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
     loadOrgData();
   }, [orgSlug, toast]);
 
-  // Save website URL to organization profile
-  const saveWebsiteUrl = async () => {
-    if (!websiteUrl) {
-      toast({
-        title: "Website URL Required",
-        description: "Please enter a valid website URL.",
-        variant: "destructive",
-      });
+  // Validate website URL with comprehensive checks
+  const validateUrl = (url: string): boolean => {
+    if (!url) {
+      setUrlError('Website URL is required');
       return false;
     }
     
-    // Basic URL validation
+    // Check if URL has protocol
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      setUrlError('URL must start with http:// or https://');
+      return false;
+    }
+    
     try {
-      new URL(websiteUrl);
+      // Try to construct a URL object to validate
+      const urlObj = new URL(url);
+      
+      // Check if hostname is valid (not empty and has at least one dot)
+      if (!urlObj.hostname || !urlObj.hostname.includes('.')) {
+        setUrlError('Please enter a valid domain name');
+        return false;
+      }
+      
+      return true;
     } catch (error) {
+      setUrlError('Please enter a valid URL');
+      return false;
+    }
+  };
+  
+  // Save website URL to organization profile
+  const saveWebsiteUrl = async () => {
+    if (!validateUrl(websiteUrl)) {
       toast({
-        title: "Invalid URL",
-        description: "Please enter a valid URL including http:// or https://",
+        title: "Invalid Website URL",
+        description: urlError || "Please enter a valid website URL before saving.",
         variant: "destructive",
       });
       return false;
@@ -90,7 +113,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
     
     setIsSavingWebsiteUrl(true);
     try {
-      const response = await fetch("/api/v1/widget/update-website-url", {
+      const response = await fetch(`/api/v1/widget/update-website-url`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,17 +125,21 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
         // Safely parse the error response
         const text = await response.text();
         let errorMessage = "Failed to save website URL";
+        let errorDetails = "";
         
         if (text) {
           try {
             const data = JSON.parse(text);
+            console.error("API Error Response:", data);
             errorMessage = data.message || data.error || errorMessage;
+            errorDetails = data.details ? `: ${data.details}` : '';
           } catch (parseError) {
             console.error("Error parsing error response:", parseError);
+            console.error("Raw response text:", text);
           }
         }
         
-        throw new Error(errorMessage);
+        throw new Error(`${errorMessage}${errorDetails}`);
       }
       
       toast({
@@ -122,9 +149,17 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
       return true;
     } catch (error) {
       console.error("Error saving website URL:", error);
+      
+      // Create a more user-friendly error message
+      let errorMessage = "Failed to save website URL";
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save website URL.",
+        title: "Error Saving URL",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
@@ -134,11 +169,11 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   };
 
   const generateScript = async () => {
-    // First ensure website URL is saved
-    if (!websiteUrl) {
+    // First validate the website URL
+    if (!validateUrl(websiteUrl)) {
       toast({
-        title: "Website URL Required",
-        description: "Please enter your website URL before generating the widget script.",
+        title: "Invalid Website URL",
+        description: urlError || "Please enter a valid website URL before generating the widget script.",
         variant: "destructive",
       });
       return;
@@ -150,7 +185,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
     
     setLoading(true);
     try {
-      const response = await fetch("/api/v1/widget/generate-script", {
+      const response = await fetch(`/api/v1/widget/generate-script`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -164,8 +199,19 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
         throw new Error('Empty response received from server');
       }
       
+      // Check if the response is HTML (error page) instead of JSON
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        throw new Error('Received HTML response instead of JSON. The server might be returning an error page.');
+      }
+      
       // Parse the JSON text
-      const data = JSON.parse(text);
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('Failed to parse server response:', text.substring(0, 200));
+        throw new Error('Invalid JSON response from server');
+      }
       
       if (!response.ok) {
         // Handle specific error cases
@@ -225,9 +271,9 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   };
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto">
+    <div className="space-y-8 max-w-3xl mx-auto pt-6">
       {/* Website URL Field */}
-      <div className="border rounded-lg p-4 bg-card">
+      <div className="rounded-lg p-6 bg-card border border-border shadow-sm">
         <h4 className="text-base font-medium mb-2 flex items-center gap-2">
           <Globe className="h-4 w-4" />
           Website URL
@@ -242,18 +288,39 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
               id="website-url"
               placeholder="https://yourdomain.com"
               value={websiteUrl}
-              onChange={(e) => setWebsiteUrl(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setWebsiteUrl(value);
+                
+                // Clear error when user starts typing
+                if (urlError) setUrlError(null);
+              }}
+              onBlur={() => {
+                // Only validate when the user leaves the field
+                if (websiteUrl) validateUrl(websiteUrl);
+              }}
               disabled={isLoadingOrgData || isSavingWebsiteUrl}
-              className="w-full"
+              className={`w-full bg-background ${urlError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
-            <p className="text-xs text-muted-foreground">
-              Include the full URL with http:// or https://
-            </p>
+            {urlError ? (
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-alert-circle">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {urlError}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Include the full URL with http:// or https://
+              </p>
+            )}
           </div>
         </div>
       </div>
       
-      <div className="border rounded-lg p-4 bg-card">
+      <div className="rounded-lg p-6 bg-card border border-border shadow-sm">
         <h4 className="text-base font-medium mb-2">Widget Settings</h4>
         <WidgetSettingsForm
           settings={settings}
@@ -261,36 +328,37 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
         />
       </div>
       
-      <div className="flex justify-end">
-        <Button
-          size="default"
-          onClick={generateScript}
-          disabled={loading || isLoadingOrgData || isSavingWebsiteUrl || !websiteUrl}
-          className="w-full sm:w-auto"
-        >
-          {loading ? "Generating..." : isSavingWebsiteUrl ? "Saving URL..." : "Generate Script"}
-        </Button>
-      </div>
-      
-      <div className="mt-8 p-6 bg-muted/20 rounded-lg space-y-4 border">
+      <div className="mt-8 p-6 bg-card rounded-lg space-y-4 border border-border shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <h4 className="text-sm font-medium">Widget Script</h4>
           
-          {script && (
+          <div className="flex items-center gap-2">
+            {script && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={copyToClipboard}
+                className="h-9 flex items-center gap-1"
+              >
+                {copied ? <Check className="h-4 w-4 mr-1" /> : null}
+                {copied ? "Copied!" : "Copy to Clipboard"}
+              </Button>
+            )}
+            
             <Button
               size="sm"
-              variant="outline"
-              onClick={copyToClipboard}
-              className="h-9 flex items-center gap-1"
+              onClick={generateScript}
+              disabled={loading || isLoadingOrgData || isSavingWebsiteUrl || !websiteUrl}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
             >
-              {copied ? <Check className="h-4 w-4 mr-1" /> : null}
-              {copied ? "Copied!" : "Copy to Clipboard"}
+              {loading ? "Generating..." : "Generate Script"}
             </Button>
-          )}
+          </div>
+
         </div>
 
         {script ? (
-          <pre className="p-4 bg-background rounded-md text-xs font-mono overflow-x-auto">
+          <pre className="p-3 bg-background border border-border rounded-md text-xs font-mono overflow-x-auto max-h-[200px] overflow-y-auto">
             {script}
           </pre>
         ) : (
