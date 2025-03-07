@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma/prisma";
+import { prisma } from "@/lib/prisma";
 import { baseAuth } from "@/lib/auth/auth";
 import { detectTopicFromContent, getAvailableTopics } from "@/lib/topic-detection";
 import { NextResponse } from "next/server";

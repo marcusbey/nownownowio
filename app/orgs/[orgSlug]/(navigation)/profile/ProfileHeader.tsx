@@ -8,39 +8,62 @@ import Link from "next/link";
 import { format } from "date-fns";
 
 interface ProfileHeaderProps {
-  user: UserData;
+  user: UserData & { bannerImage?: string | null };
   orgSlug: string;
 }
 
 export default function ProfileHeader({ user, orgSlug }: ProfileHeaderProps) {
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {/* Banner Image */}
-      <div className="relative h-48 w-full overflow-hidden rounded-t-xl bg-gradient-to-br from-orange-100 to-orange-50">
-        <div className="absolute inset-0">
-          <svg
-            className="h-full w-full"
-            viewBox="0 0 1000 200"
-            preserveAspectRatio="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M0,100 C150,150 350,0 500,100 C650,200 850,50 1000,100 L1000,200 L0,200 Z"
-              fill="currentColor"
-              className="text-orange-200/30"
+      <div className="relative h-64 w-full overflow-hidden">
+        {user.bannerImage ? (
+          <div className="absolute inset-0">
+            <img 
+              src={user.bannerImage} 
+              alt="Profile banner" 
+              className="w-full h-full object-cover"
             />
-            <path
-              d="M0,100 C200,150 300,50 500,100 C700,150 800,50 1000,100 L1000,200 L0,200 Z"
-              fill="currentColor"
-              className="text-orange-300/20"
-            />
-          </svg>
+            <div className="absolute inset-0 bg-black/10"></div>
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-100 to-orange-50">
+            <svg
+              className="h-full w-full"
+              viewBox="0 0 1000 200"
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0,100 C150,150 350,0 500,100 C650,200 850,50 1000,100 L1000,200 L0,200 Z"
+                fill="currentColor"
+                className="text-orange-200/30"
+              />
+              <path
+                d="M0,100 C200,150 300,50 500,100 C700,150 800,50 1000,100 L1000,200 L0,200 Z"
+                fill="currentColor"
+                className="text-orange-300/20"
+              />
+            </svg>
+          </div>
+        )}
+        
+        {/* Edit Banner Button */}
+        <div className="absolute right-4 top-4">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-sm">
+            <Link href={`/orgs/${orgSlug}/settings`}>
+              Edit Banner
+            </Link>
+          </Button>
         </div>
       </div>
 
       {/* Profile Content */}
-      <div className="relative mx-auto max-w-4xl px-4">
-        <div className="relative -mt-16 flex flex-col gap-4 pb-4">
+      <div className="relative flex justify-center w-full">
+        <div className="relative -mt-16 w-full max-w-2xl px-4 flex flex-col gap-4 pb-4">
           {/* Avatar and Actions */}
           <div className="flex items-end justify-between">
             <UserAvatar

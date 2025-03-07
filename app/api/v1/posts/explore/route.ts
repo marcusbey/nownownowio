@@ -1,5 +1,5 @@
 import { baseAuth } from "@/lib/auth/auth";
-import { prisma } from "@/lib/prisma/prisma";
+import { prisma } from "@/lib/prisma";
 import { detectTopicFromContent } from "@/lib/topic-detection";
 import type { PostsPage } from "@/lib/types";
 import { Prisma } from "@prisma/client";

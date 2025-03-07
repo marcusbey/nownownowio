@@ -2,12 +2,32 @@ import { PrismaClient } from "@prisma/client";
 import { onOrganizationUpdate } from "./prisma/prisma.org.extends";
 import { onUserUpdate } from "./prisma/prisma.user.extends";
 
-// This flag determines if we're in a Node.js or Edge environment
-const isEdgeRuntime = process.env.NEXT_RUNTIME === 'edge';
+/**
+ * This is a type-only import/export to ensure that the Prisma client type
+ * is available for client components, but the actual client is never imported
+ * on the client side.
+ */
+export type { PrismaClient } from "@prisma/client";
 
-// Create a regular Prisma client for Node.js environments
-const prismaClientSingleton = () => {
-  // Check for Edge runtime first and throw a helpful error
+// Determine if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+// Type for our singleton instance
+type ExtendedPrismaClient = ReturnType<typeof createPrismaClient>;
+
+// Create a function to initialize the Prisma client with extensions
+function createPrismaClient() {
+  // Only create the client on the server side
+  if (isBrowser) {
+    throw new Error(
+      "PrismaClient cannot be used in browser environments. You're seeing this error because " +
+      "you're trying to use Prisma Client in a client-side component. " +
+      "Please use API routes or server components to access your database."
+    );
+  }
+
+  // Check for Edge runtime
+  const isEdgeRuntime = process.env.NEXT_RUNTIME === 'edge';
   if (isEdgeRuntime) {
     throw new Error(
       "Prisma Client cannot be used in Edge Runtime. You're seeing this error because you're trying " +
@@ -26,34 +46,17 @@ const prismaClientSingleton = () => {
       },
     },
   });
-};
+}
 
-type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
-
+// For singleton pattern in development to prevent multiple instances
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClientSingleton | undefined;
+  prisma: ExtendedPrismaClient | undefined;
 };
 
-// Export the regular Prisma client for Node.js environments
-export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+// Export the Prisma client singleton
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
-
-// For Edge Runtime, export a dummy prisma client that can be safely imported
-// but will throw a clear error if actually used
-export const createEdgePrismaClient = () => {
-  return new Proxy({} as PrismaClientSingleton, {
-    get(target, prop) {
-      if (prop === 'then') {
-        return undefined; // For await expressions to work
-      }
-
-      // If someone tries to use this client, throw a helpful error
-      throw new Error(
-        "Prisma Client cannot be used in Edge Runtime. You're seeing this error because you're trying " +
-        "to use Prisma Client in a middleware or API route that's configured to use Edge Runtime. " +
-        "Please use a traditional Node.js API route by adding 'export const runtime = \"nodejs\";' to your route file."
-      );
-    },
-  });
-};
+// In development, attach to global to prevent multiple instances
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}

@@ -17,6 +17,36 @@ export const fileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       return { url: file.url };
     }),
+    
+  bannerImage: f({
+    image: { maxFileSize: "2MB" },
+  })
+    .middleware(async () => {
+      const { user } = await validateRequest();
+      return { user };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      const oldBannerImage = metadata.user.bannerImage;
+
+      if (oldBannerImage) {
+        const key = oldBannerImage.split(
+          `/a/${process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID}/`,
+        )[1];
+        await new UTApi().deleteFiles(key);
+      }
+
+      const newBannerImage = file.url.replace(
+        "/f/",
+        `/a/${process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID}/`,
+      );
+
+      await prisma.user.update({
+        where: { id: metadata.user.id },
+        data: { bannerImage: newBannerImage },
+      });
+
+      return { bannerImageUrl: newBannerImage };
+    }),
 
   avatar: f({
     image: { maxFileSize: "512KB" },

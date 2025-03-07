@@ -9,5 +9,6 @@
   ],
   "cSpell.words": ["zustand"],
   "WillLuke.nextjs.addTypesOnSave": true,
-  "WillLuke.nextjs.hasPrompted": true
+  "WillLuke.nextjs.hasPrompted": true,
+  "todo-tree.tree.showBadges": false
 }

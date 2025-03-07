@@ -2,7 +2,7 @@ import { buttonVariants } from "@/components/core/button";
 import { Typography } from "@/components/data-display/typography";
 import { Alert } from "@/components/feedback/alert";
 import { auth } from "@/lib/auth/helper";
-import { prisma } from "@/lib/prisma/prisma";
+import { prisma } from "@/lib/prisma";
 import { Rabbit } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";

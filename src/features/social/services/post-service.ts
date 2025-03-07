@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma/prisma";
+import { prisma } from "@/lib/prisma";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import { z } from "zod";
 

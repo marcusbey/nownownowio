@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/core/button";
 import { PersonalAccountForm } from "./PersonalAccountForm";
 import { MembersManagement } from "./MembersManagement";
+import { BannerImageForm } from "./BannerImageForm";
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Account Settings",
@@ -65,8 +66,13 @@ export default async function AccountPage({ params }: PageParams<{ orgSlug: stri
           <h3 className="text-xl font-medium">Personal Account</h3>
         </div>
         
-        {/* Using the client component for editable form */}
-        <PersonalAccountForm user={user} />
+        <div className="space-y-6">
+          {/* Using the client component for editable form */}
+          <PersonalAccountForm user={user} />
+          
+          {/* Banner Image Form */}
+          <BannerImageForm user={user} />
+        </div>
       </section>
 
       {/* Organization Members Section */}
