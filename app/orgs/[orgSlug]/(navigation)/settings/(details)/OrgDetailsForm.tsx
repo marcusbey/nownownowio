@@ -49,21 +49,26 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
       if (data?.data) {
         toast.success("Organization updated successfully");
 
-        // Update form with new values
-        form.reset({
+        // Create new values object from the server response
+        const newValues = {
           name: data.data.name,
-          email: data.data.email ?? undefined,
+          email: data.data.email ?? "",
           image: data.data.image,
-          bio: data.data.bio ?? undefined,
-          websiteUrl: data.data.websiteUrl ?? undefined,
-        });
+          bio: data.data.bio ?? "",
+          websiteUrl: data.data.websiteUrl ?? "",
+        };
+
+        // Log the values for debugging
+        console.log("Server returned values:", newValues);
+
+        // Update the form with new values
+        form.reset(newValues);
 
         // Invalidate relevant queries to update UI without full page reload
         queryClient
           .invalidateQueries({ queryKey: ["organization"] })
           .then(() => {
-            // Soft navigation update after cache invalidation
-            router.refresh();
+            // No need to refresh the router as we've already updated the form
           })
           .catch((error) => {
             console.error("Error invalidating queries:", error);
@@ -80,6 +85,11 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
   useEffect(() => {
     form.reset(defaultValues);
   }, [form, defaultValues]);
+
+  // Debug the form values
+  useEffect(() => {
+    console.log("Current form values:", form.getValues());
+  }, [form]);
 
   return (
     <Form
@@ -163,7 +173,6 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
               <FormControl>
                 <Textarea
                   {...field}
-                  value={field.value ?? ""}
                   placeholder="Tell us about your organization..."
                   maxLength={500}
                 />
@@ -184,14 +193,15 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
                 <Input
                   {...field}
                   type="url"
-                  value={field.value ?? ""}
                   placeholder="https://example.com"
                   pattern="https?://.*"
                 />
               </FormControl>
-              <FormDescription>
-                Must start with http:// or https://
-              </FormDescription>
+              {!field.value && (
+                <FormDescription>
+                  Must start with http:// or https://
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}
