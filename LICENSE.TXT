@@ -1,6 +1,6 @@
-Licence Agreement for Now.ts, Version 1.1
+Licence Agreement for Nownownow, Version 1.1
 
-This Licence Agreement ("Agreement") is made between Codelynx, LLC, the copyright holder ("Licensor") and the user ("Licensee") of the Now.ts software ("Software"), version 1.1.
+This Licence Agreement ("Agreement") is made between Base32.tech, the copyright holder ("Licensor") and the user ("Licensee") of the Nownownow software ("Software"), version 1.1.
 
 Grant of Licence: Licensor hereby grants Licensee a non-exclusive, non-transferable, perpetual licence to use the Software for the purpose of developing commercial applications. Licensee is permitted to use the Software in the creation of applications that the Licensee may commercialize.
 
@@ -16,5 +16,5 @@ Jurisdiction: This Agreement shall be governed by and construed in accordance wi
 
 By using the Software, Licensee agrees to be bound by the terms of this Agreement. If Licensee does not agree to the terms of this Agreement, they must not use the Software.
 
-Melvyn Malherbe, Codelynx LLC
-3 February 2024
+Base32.tech
+7 March 2025
