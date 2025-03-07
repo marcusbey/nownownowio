@@ -46,13 +46,14 @@ interface WidgetSettingsFormProps {
 
 export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormProps) {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+    <div className="space-y-6 max-w-2xl mx-auto">
+      <h3 className="text-base font-medium mb-4">Widget Settings</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 bg-muted/20 p-4 rounded-lg">
         <div className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium">Theme</label>
+            <label className="text-xs font-medium text-muted-foreground">Theme</label>
             <Select value={settings.theme} onValueChange={(value) => onChange({ ...settings, theme: value as 'light' | 'dark' })}>
-              <SelectTrigger className="h-8">
+              <SelectTrigger className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -63,9 +64,9 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium">Button Size</label>
+            <label className="text-xs font-medium text-muted-foreground">Button Size</label>
             <Input
-              className="h-8"
+              className="h-9"
               type="number"
               min="40"
               max="120"
@@ -77,9 +78,9 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
 
         <div className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-medium">Position</label>
+            <label className="text-xs font-medium text-muted-foreground">Position</label>
             <Select value={settings.position} onValueChange={(value) => onChange({ ...settings, position: value as 'left' | 'right' })}>
-              <SelectTrigger className="h-8">
+              <SelectTrigger className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -90,17 +91,17 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium">Button Color</label>
+            <label className="text-xs font-medium text-muted-foreground">Button Color</label>
             <div className="flex gap-2 items-center">
               <Input
-                className="h-8"
+                className="h-9"
                 value={settings.buttonColor}
                 onChange={(e) => onChange({ ...settings, buttonColor: e.target.value })}
                 placeholder="#1a73e8"
               />
               <label 
                 htmlFor="colorPicker" 
-                className="h-8 w-8 rounded border cursor-pointer hover:opacity-90 transition-opacity"
+                className="h-9 w-9 rounded border cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
                 style={{ backgroundColor: settings.buttonColor }}
               >
                 <input

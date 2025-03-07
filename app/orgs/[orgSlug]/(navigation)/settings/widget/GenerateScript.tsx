@@ -65,14 +65,14 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-base font-medium">Widget Settings</h3>
+    <div className="space-y-8 max-w-3xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <h3 className="text-lg font-medium">Widget Integration</h3>
         <Button
-          size="sm"
+          size="default"
           onClick={generateScript}
           disabled={loading}
-          className="h-8 w-40"
+          className="w-full sm:w-auto"
         >
           {loading ? "Generating..." : "Generate Script"}
         </Button>
@@ -80,7 +80,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
       
       <WidgetSettingsForm settings={settings} onChange={setSettings} />
       
-      <div className="mt-8 p-4 bg-muted/50 rounded-lg space-y-3">
+      <div className="mt-8 p-6 bg-muted/20 rounded-lg space-y-4 border">
         <div className="flex items-center justify-between gap-2">
           <h4 className="text-sm font-medium">Widget Script</h4>
           
@@ -89,20 +89,22 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
               size="sm"
               variant="outline"
               onClick={copyToClipboard}
-              className="h-8"
+              className="h-9 flex items-center gap-1"
             >
-              {copied ? <Check className="h-3 w-3 mr-1" /> : null}
-              {copied ? "Copied!" : "Copy"}
+              {copied ? <Check className="h-4 w-4 mr-1" /> : null}
+              {copied ? "Copied!" : "Copy to Clipboard"}
             </Button>
           )}
         </div>
 
-        {script && (
-          <Input
-            value={script}
-            readOnly
-            className="h-8 text-xs font-mono bg-background"
-          />
+        {script ? (
+          <pre className="p-4 bg-background rounded-md text-xs font-mono overflow-x-auto">
+            {script}
+          </pre>
+        ) : (
+          <div className="text-sm text-muted-foreground text-center py-6">
+            Click "Generate Script" to create your widget integration code
+          </div>
         )}
       </div>
     </div>
