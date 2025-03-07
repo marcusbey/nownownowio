@@ -29,14 +29,14 @@ export function WidgetTutorial() {
             <TabsContent value="header" className="mt-4">
               <div className="relative rounded-lg bg-muted p-4">
                 <pre className="overflow-x-auto text-sm">
-                  <code className="text-primary">
+                  <code className="text-slate-700 dark:text-slate-300">
 {`<!DOCTYPE html>
 <html>
 <head>
     <title>Your Website</title>
     
     <!-- Add the Now Widget script in the head -->
-    <script 
+    `}<span className="bg-amber-100/30 dark:bg-amber-900/30 px-1 py-0.5 rounded text-amber-700 dark:text-amber-300 font-medium">{`<script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
       data-user-id="DEMO_USER_ID" 
@@ -45,7 +45,7 @@ export function WidgetTutorial() {
       data-position="left" 
       data-button-color="#1a73e8" 
       data-button-size="90">
-    </script>
+    </script>`}</span>{`
 </head>
 <body>
     <!-- Your website content -->
@@ -59,7 +59,7 @@ export function WidgetTutorial() {
             <TabsContent value="body" className="mt-4">
               <div className="relative rounded-lg bg-muted p-4">
                 <pre className="overflow-x-auto text-sm">
-                  <code className="text-primary">
+                  <code className="text-slate-700 dark:text-slate-300">
 {`<!DOCTYPE html>
 <html>
 <head>
@@ -69,13 +69,16 @@ export function WidgetTutorial() {
     <!-- Your website content -->
 
     <!-- Add the Now Widget script before closing body tag -->
-    <script 
+    `}<span className="bg-amber-100/30 dark:bg-amber-900/30 px-1 py-0.5 rounded text-amber-700 dark:text-amber-300 font-medium">{`<script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
       data-user-id="DEMO_USER_ID" 
-      data-token="DEMO_TOKEN"
-      data-theme="dark">
-    </script>
+      data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
+      data-theme="dark" 
+      data-position="left" 
+      data-button-color="#1a73e8" 
+      data-button-size="90">
+    </script>`}</span>{`
 </body>
 </html>`}
                   </code>

@@ -24,18 +24,10 @@ export default function WidgetPage({
       </div>
 
       <Card className="border shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Widget Script Generator</CardTitle>
-          <CardDescription>
-            Generate a script to embed the NowNowNow widget on your website. 
-            Follow the instructions below to integrate the widget into your site.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
           <WidgetScriptGenerator orgSlug={orgSlug} />
         </CardContent>
       </Card>
-      
       <WidgetTutorial />
     </div>
   );

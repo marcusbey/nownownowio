@@ -71,7 +71,18 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
               min="40"
               max="120"
               value={settings.buttonSize}
-              onChange={(e) => onChange({ ...settings, buttonSize: parseInt(e.target.value) })}
+              onChange={(e) => {
+                let value = parseInt(e.target.value);
+                // Ensure value is within allowed range
+                if (isNaN(value)) {
+                  value = 90; // Default value if not a number
+                } else if (value > 120) {
+                  value = 120; // Cap at maximum
+                } else if (value < 40) {
+                  value = 40; // Set to minimum
+                }
+                onChange({ ...settings, buttonSize: value });
+              }}
             />
           </div>
         </div>
@@ -96,7 +107,22 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
               <Input
                 className="h-9"
                 value={settings.buttonColor}
-                onChange={(e) => onChange({ ...settings, buttonColor: e.target.value })}
+                onChange={(e) => {
+                  let value = e.target.value;
+                  // Ensure it starts with # if user types without it
+                  if (value && !value.startsWith('#')) {
+                    value = '#' + value;
+                  }
+                  // Validate hex color format when user is done typing
+                  if (value.length >= 7) {
+                    const isValidHex = /^#[0-9A-Fa-f]{6}$/.test(value);
+                    if (!isValidHex) {
+                      // Reset to default if invalid
+                      value = '#1a73e8';
+                    }
+                  }
+                  onChange({ ...settings, buttonColor: value });
+                }}
                 placeholder="#1a73e8"
               />
               <label 

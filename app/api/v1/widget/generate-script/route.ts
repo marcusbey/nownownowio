@@ -2,8 +2,18 @@ import { generateWidgetToken } from '@/lib/now-widget';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
+type WidgetSettings = {
+  theme: string;
+  position: string;
+  buttonColor: string;
+  buttonSize: number;
+};
+
 export async function POST(request: Request) {
-    const { orgSlug, settings } = await request.json();
+    const { orgSlug, settings } = await request.json() as { 
+        orgSlug: string; 
+        settings: WidgetSettings;
+    };
 
     if (!orgSlug || typeof orgSlug !== 'string') {
         return NextResponse.json({ error: 'Invalid organization slug' }, { status: 400 });
@@ -18,7 +28,37 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Organization or owner not found' }, { status: 404 });
     }
 
+    // Check if organization has a website URL
+    if (!org.websiteUrl) {
+        return NextResponse.json({ 
+            error: 'Missing website URL', 
+            message: 'Please add a website URL in your organization settings before generating a widget script.'
+        }, { status: 400 });
+    }
+
+    // Extract domain from website URL
+    let domain: string;
+    try {
+        domain = new URL(org.websiteUrl).hostname;
+    } catch (error) {
+        return NextResponse.json({ 
+            error: 'Invalid website URL', 
+            message: 'The website URL in your organization settings is invalid.'
+        }, { status: 400 });
+    }
+
     const userId = org.members[0].userId;
+    
+    // Store the allowed domain for this user
+    await prisma.user.update({
+        where: { id: userId },
+        data: {
+            widgetDomains: {
+                set: [domain]
+            }
+        }
+    });
+
     const token = generateWidgetToken(userId);
 
     if (!process.env.NEXT_PUBLIC_WIDGET_URL) {
@@ -38,6 +78,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
         script,
-        token
+        token,
+        allowedDomain: domain
     });
 }

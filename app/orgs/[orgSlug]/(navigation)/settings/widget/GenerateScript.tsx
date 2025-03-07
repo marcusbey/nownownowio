@@ -3,14 +3,20 @@
 import { Button } from "@/components/core/button";
 import { Input } from "@/components/core/input";
 import { useToast } from "@/components/feedback/use-toast";
-import { Check } from "lucide-react";
-import { useState } from "react";
+import { Check, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
 import { WidgetSettings, WidgetSettingsForm } from "./WidgetSettingsForm";
+import { Label } from "@/components/core/label";
+import { FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/core/form";
+import { useSession } from "next-auth/react";
 
 export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   const [script, setScript] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [isLoadingOrgData, setIsLoadingOrgData] = useState(true);
+  const [isSavingWebsiteUrl, setIsSavingWebsiteUrl] = useState(false);
   const [settings, setSettings] = useState<WidgetSettings>({
     theme: "dark",
     position: "left",
@@ -18,8 +24,130 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
     buttonSize: 90,
   });
   const { toast } = useToast();
+  const { data: session } = useSession();
+  
+  // Load organization data when component mounts
+  useEffect(() => {
+    async function loadOrgData() {
+      setIsLoadingOrgData(true);
+      try {
+        // Use relative URL for API requests to work in all environments
+        const response = await fetch(`/api/v1/widget/org-data?slug=${orgSlug}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        
+        // Check if response has content before parsing JSON
+        const text = await response.text();
+        if (!text) {
+          throw new Error('Empty response received from server');
+        }
+        
+        // Parse the JSON text
+        const data = JSON.parse(text);
+        
+        if (data.organization) {
+          setWebsiteUrl(data.organization.websiteUrl || "");
+        }
+      } catch (error) {
+        console.error("Error loading organization data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load organization data.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingOrgData(false);
+      }
+    }
+    
+    loadOrgData();
+  }, [orgSlug, toast]);
+
+  // Save website URL to organization profile
+  const saveWebsiteUrl = async () => {
+    if (!websiteUrl) {
+      toast({
+        title: "Website URL Required",
+        description: "Please enter a valid website URL.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // Basic URL validation
+    try {
+      new URL(websiteUrl);
+    } catch (error) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid URL including http:// or https://",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    setIsSavingWebsiteUrl(true);
+    try {
+      const response = await fetch("/api/v1/widget/update-website-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orgSlug, websiteUrl }),
+      });
+      
+      if (!response.ok) {
+        // Safely parse the error response
+        const text = await response.text();
+        let errorMessage = "Failed to save website URL";
+        
+        if (text) {
+          try {
+            const data = JSON.parse(text);
+            errorMessage = data.message || data.error || errorMessage;
+          } catch (parseError) {
+            console.error("Error parsing error response:", parseError);
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      toast({
+        title: "Website URL Saved",
+        description: "Your website URL has been updated successfully.",
+      });
+      return true;
+    } catch (error) {
+      console.error("Error saving website URL:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save website URL.",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsSavingWebsiteUrl(false);
+    }
+  };
 
   const generateScript = async () => {
+    // First ensure website URL is saved
+    if (!websiteUrl) {
+      toast({
+        title: "Website URL Required",
+        description: "Please enter your website URL before generating the widget script.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Save the URL first if it has been modified
+    const urlSaved = await saveWebsiteUrl();
+    if (!urlSaved) return;
+    
     setLoading(true);
     try {
       const response = await fetch("/api/v1/widget/generate-script", {
@@ -29,10 +157,42 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
         },
         body: JSON.stringify({ orgSlug, settings }),
       });
-      const data = await response.json();
+      
+      // Safely parse the response
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response received from server');
+      }
+      
+      // Parse the JSON text
+      const data = JSON.parse(text);
+      
+      if (!response.ok) {
+        // Handle specific error cases
+        if (data.error === 'Missing website URL' || data.error === 'Invalid website URL') {
+          toast({
+            title: "Website URL Issue",
+            description: data.message || "There's an issue with your website URL. Please check and try again.",
+            variant: "destructive",
+          });
+          return;
+        } else {
+          throw new Error(data.message || "An error occurred");
+        }
+      }
+      
       if (data.script) {
         setScript(data.script);
         setCopied(false);
+        
+        // Show success message with domain information
+        if (data.allowedDomain) {
+          toast({
+            title: "Widget Script Generated",
+            description: `Your widget will only work on ${data.allowedDomain}. If you need to use it on another domain, update your website URL above.`,
+            variant: "default",
+          });
+        }
       } else {
         throw new Error("Invalid response from server");
       }
@@ -40,7 +200,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
       console.error("Error generating widget script:", error);
       toast({
         title: "Error",
-        description: "Failed to generate widget script. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate widget script. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -66,19 +226,51 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-        <h3 className="text-lg font-medium">Widget Integration</h3>
+      {/* Website URL Field */}
+      <div className="border rounded-lg p-4 bg-card">
+        <h4 className="text-base font-medium mb-2 flex items-center gap-2">
+          <Globe className="h-4 w-4" />
+          Website URL
+        </h4>
+        <p className="text-sm text-muted-foreground mb-4">
+          Enter the website URL where you'll install the widget. The widget will only work on this domain.
+        </p>
+        
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Input
+              id="website-url"
+              placeholder="https://yourdomain.com"
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              disabled={isLoadingOrgData || isSavingWebsiteUrl}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              Include the full URL with http:// or https://
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="border rounded-lg p-4 bg-card">
+        <h4 className="text-base font-medium mb-2">Widget Settings</h4>
+        <WidgetSettingsForm
+          settings={settings}
+          onChange={handleSettingsChange}
+        />
+      </div>
+      
+      <div className="flex justify-end">
         <Button
           size="default"
           onClick={generateScript}
-          disabled={loading}
+          disabled={loading || isLoadingOrgData || isSavingWebsiteUrl || !websiteUrl}
           className="w-full sm:w-auto"
         >
-          {loading ? "Generating..." : "Generate Script"}
+          {loading ? "Generating..." : isSavingWebsiteUrl ? "Saving URL..." : "Generate Script"}
         </Button>
       </div>
-      
-      <WidgetSettingsForm settings={settings} onChange={setSettings} />
       
       <div className="mt-8 p-6 bg-muted/20 rounded-lg space-y-4 border">
         <div className="flex items-center justify-between gap-2">
