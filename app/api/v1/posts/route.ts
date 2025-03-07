@@ -102,11 +102,17 @@ export async function POST(request: Request) {
       // Create media records for each URL
       const mediaRecords = await Promise.all(
         mediaUrls.map(async (url) => {
-          const type = url.includes('.mp4') || url.includes('.mov') ? 'VIDEO' : 'IMAGE';
+          // Determine media type based on URL or file extension
+          const isVideo = url.includes('.mp4') ||
+            url.includes('.mov') ||
+            url.includes('.avi') ||
+            url.includes('.webm');
+
           return prisma.media.create({
             data: {
               url,
-              type,
+              type: isVideo ? 'VIDEO' : 'IMAGE',
+              // Media will be associated with the post later
             },
           });
         })

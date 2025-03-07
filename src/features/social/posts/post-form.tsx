@@ -237,10 +237,14 @@ export function PostForm({
           // Log the entire upload result to see its structure
           console.log("Complete upload result:", uploadResult);
 
-          // Extract both URLs and any available IDs
-          const mediaUrls = uploadResult.map((file) => file.url);
+          // Extract URLs from the upload result
+          // Note: UploadThing is deprecating 'url' in favor of 'ufsUrl'
+          const mediaUrls = uploadResult.map((file) => {
+            // Use ufsUrl if available, fall back to url
+            return file.ufsUrl || file.url;
+          });
 
-          // Create post data with both URLs and IDs
+          // Create post data with URLs
           const postData = {
             content: content.trim(),
             mediaUrls,
