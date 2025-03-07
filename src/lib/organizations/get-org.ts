@@ -42,6 +42,7 @@ export const OrgSelectQuery = (userId: string) =>
     plan: true,
     email: true,
     image: true,
+    websiteUrl: true,
     stripeCustomerId: true,
     members: {
       where: {
@@ -63,57 +64,58 @@ export type CurrentOrgPayload = Prisma.OrganizationGetPayload<{
  * @param roles Optional roles to filter by
  */
 export async function getCurrentOrgBySlug(orgSlug: string, roles?: OrganizationMembershipRole[]) {
-    const session = await auth();
-    const userId = session?.user?.id;
+  const session = await auth();
+  const userId = session?.user?.id;
 
-    if (!userId || !orgSlug) {
-        return null;
-    }
+  if (!userId || !orgSlug) {
+    return null;
+  }
 
-    // If roles is provided, use it for the hasSome query
-    // Otherwise, don't filter by roles
-    const org = await prisma.organization.findFirst({
-        where: {
-            slug: orgSlug,
-            members: {
-                some: {
-                    userId: userId,
-                    // Only add the roles filter if roles array is provided
-                    ...(roles && roles.length > 0 ? {
-                        roles: {
-                            hasSome: roles
-                        }
-                    } : {})
-                }
+  // If roles is provided, use it for the hasSome query
+  // Otherwise, don't filter by roles
+  const org = await prisma.organization.findFirst({
+    where: {
+      slug: orgSlug,
+      members: {
+        some: {
+          userId: userId,
+          // Only add the roles filter if roles array is provided
+          ...(roles && roles.length > 0 ? {
+            roles: {
+              hasSome: roles
             }
+          } : {})
+        }
+      }
+    },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      plan: true,
+      email: true,
+      image: true,
+      websiteUrl: true,
+      stripeCustomerId: true,
+      members: {
+        where: {
+          userId: userId
         },
         select: {
-            id: true,
-            slug: true,
-            name: true,
-            plan: true,
-            email: true,
-            image: true,
-            stripeCustomerId: true,
-            members: {
-                where: {
-                    userId: userId
-                },
-                select: {
-                    roles: true
-                }
-            }
+          roles: true
         }
-    });
-
-    if (!org) {
-        return null;
+      }
     }
+  });
 
-    return {
-        ...org,
-        roles: org.members[0]?.roles || []
-    };
+  if (!org) {
+    return null;
+  }
+
+  return {
+    ...org,
+    roles: org.members[0]?.roles || []
+  };
 }
 
 /**
