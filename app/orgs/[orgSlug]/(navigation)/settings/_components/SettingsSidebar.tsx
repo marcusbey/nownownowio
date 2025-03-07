@@ -39,9 +39,9 @@ export function SettingsSidebar({ orgSlug, className }: SettingsSidebarProps) {
       items: [
         {
           id: "general",
-          label: "General",
+          label: "Personal Account",
           href: `${basePath}`,
-          icon: Settings
+          icon: User
         },
         {
           id: "widget",
@@ -69,13 +69,13 @@ export function SettingsSidebar({ orgSlug, className }: SettingsSidebarProps) {
       ]
     },
     {
-      title: "Account",
+      title: "Organization",
       items: [
         {
-          id: "account",
-          label: "Account",
-          href: `${basePath}/account`,
-          icon: User
+          id: "organization",
+          label: "Organization",
+          href: `${basePath}/organization`,
+          icon: Settings
         },
         {
           id: "members",
