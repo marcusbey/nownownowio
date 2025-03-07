@@ -19,6 +19,17 @@ import { useParams } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
+// Extended type for UploadThing response
+type UploadThingResponse = {
+  url: string;
+  mediaId: string;
+  type: "IMAGE" | "VIDEO";
+  // Include other properties from the standard response
+  name: string;
+  size: number;
+  key: string;
+};
+
 type PostFormProps = {
   onSubmit?: () => void;
   organization?: {
@@ -203,7 +214,7 @@ export function PostForm({
       }
 
       // Upload all media files first
-      let mediaUrls: string[] = [];
+      const mediaIds: string[] = [];
 
       if (mediaFiles.length > 0) {
         // Mark all files as uploading
@@ -223,41 +234,45 @@ export function PostForm({
         });
 
         if (uploadResult) {
-          mediaUrls = uploadResult.map((file) => file.url);
+          // Log the entire upload result to see its structure
+          console.log("Complete upload result:", uploadResult);
+
+          // Extract both URLs and any available IDs
+          const mediaUrls = uploadResult.map((file) => file.url);
+
+          // Create post data with both URLs and IDs
+          const postData = {
+            content: content.trim(),
+            mediaUrls,
+            orgSlug,
+          };
+
+          // Submit post
+          const response = await fetch(ENDPOINTS.POSTS, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(postData),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to create post");
+          }
+
+          // Reset form
+          setContent("");
+          editorRef.current?.clearEditor();
+          setMediaFiles((prev) => {
+            prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
+            return [];
+          });
+
+          // Refresh posts
+          void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
+          toast({ title: "Post created successfully" });
+          onSubmit?.();
         }
       }
-
-      // Create post data
-      const postData = {
-        content: content.trim(),
-        mediaUrls,
-        orgSlug,
-      };
-
-      // Submit post
-      const response = await fetch(ENDPOINTS.POSTS, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create post");
-      }
-
-      // Reset form
-      setContent("");
-      editorRef.current?.clearEditor();
-      setMediaFiles((prev) => {
-        prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
-        return [];
-      });
-
-      // Refresh posts
-      void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
-      toast({ title: "Post created successfully" });
-      onSubmit?.();
     } catch (error) {
       toast({
         title: "Error creating post",
@@ -322,7 +337,7 @@ export function PostForm({
                   {/* Upload Progress Indicator */}
                   {media.uploading && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50">
-                      <Loader2 className="mb-2 h-8 w-8 animate-spin text-primary" />
+                      <Loader2 className="mb-2 size-8 animate-spin text-primary" />
                       <Progress value={media.progress} className="h-2 w-3/4" />
                       <span className="mt-1 text-xs">
                         {Math.round(media.progress)}%
