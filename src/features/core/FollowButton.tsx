@@ -26,9 +26,9 @@ export default function FollowButton({
   const { mutate } = useMutation({
     mutationFn: async () => {
       if (followerInfo.isFollowedByUser) {
-        return kyInstance.delete(`/api/users/${userId}/followers`);
+        return kyInstance.delete(`/api/v1/users/${userId}/followers`);
       } else {
-        return kyInstance.post(`/api/users/${userId}/followers`);
+        return kyInstance.post(`/api/v1/users/${userId}/followers`);
       }
     },
     onMutate: async () => {

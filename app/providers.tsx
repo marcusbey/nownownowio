@@ -39,17 +39,6 @@ export const Providers = ({ children }: PropsWithChildren) => {
         basePath="/api/v1/auth"
         refetchInterval={5 * 60} // Refetch session every 5 minutes
         refetchOnWindowFocus={true} // Refetch on window focus
-        refetchWhenOffline={false} // Don't refetch when offline
-        onUnauthenticated={() => {
-          // Clear any cached user data when session becomes unauthenticated
-          try {
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('cachedUserData');
-            }
-          } catch (error) {
-            console.error('Error clearing cached user data:', error);
-          }
-        }}
       >
         <QueryClientProvider client={queryClient}>
           <Toaster />

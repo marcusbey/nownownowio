@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 // If needed, you can also import & use your auth checks
-// import { validateRequest } from "@/lib/auth";
+// import { validateRequest } from "@/lib/auth/helper";
 
 export async function GET(
     request: Request,

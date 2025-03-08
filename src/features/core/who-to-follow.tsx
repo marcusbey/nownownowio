@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import FollowButton from "./FollowButton";
-import UserTooltip from "./UserTooltip";
+import UserTooltip from "@/components/composite/UserTooltip";
 
 // Simplified user type for who-to-follow API response
 type WhoToFollowUser = {

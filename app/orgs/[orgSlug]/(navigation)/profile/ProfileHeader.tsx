@@ -6,6 +6,7 @@ import { UserData } from "@/lib/types";
 import { CalendarDays, Link2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
+import Linkify from "@/components/data-display/Linkify";
 
 interface ProfileHeaderProps {
   user: UserData & { bannerImage?: string | null };
@@ -91,7 +92,11 @@ export default function ProfileHeader({ user, orgSlug }: ProfileHeaderProps) {
             </div>
 
             {user.bio && (
-              <p className="text-pretty text-muted-foreground">{user.bio}</p>
+              <Linkify>
+                <p className="text-pretty text-muted-foreground">
+                  {user.bio}
+                </p>
+              </Linkify>
             )}
 
             {/* Meta Information */}

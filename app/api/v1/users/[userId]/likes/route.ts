@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validateRequest } from "@/lib/auth";
+import { validateRequest } from "@/lib/auth/helper";
 import { PrismaClient } from "@prisma/client";
 import { PostsPage } from "@/lib/types";
 import { getPostsWithUserData } from "@/lib/api/posts";

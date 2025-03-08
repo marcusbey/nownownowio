@@ -4564,7 +4564,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import FollowButton from "./FollowButton";
 import UserAvatar from "./UserAvatar";
-import UserTooltip from "./UserTooltip";
+import UserTooltip from "../composite/UserTooltip";
 
 export default function TrendsSidebar() {
   return (
@@ -4814,7 +4814,7 @@ import { useQuery } from "@tanstack/react-query";
 import { HTTPError } from "ky";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
-import UserTooltip from "./UserTooltip";
+import UserTooltip from "../composite/UserTooltip";
 
 interface UserLinkWithTooltipProps extends PropsWithChildren {
   username: string;
