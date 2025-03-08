@@ -213,9 +213,13 @@ export function PostForm({
         throw new Error("No organization slug provided");
       }
 
-      // Upload all media files first
-      const mediaIds: string[] = [];
+      // Create base post data
+      let postData = {
+        content: content.trim(),
+        orgSlug,
+      };
 
+      // Handle media files if present
       if (mediaFiles.length > 0) {
         // Mark all files as uploading
         setMediaFiles((prev) =>
@@ -272,48 +276,50 @@ export function PostForm({
 
             console.log("Extracted mediaIds:", mediaIds);
 
-            // Create post data with URLs and/or IDs
-            const postData = {
-              content: content.trim(),
-              ...(mediaUrls.length > 0 ? { mediaUrls } : {}),
-              ...(mediaIds.length > 0 ? { mediaIds } : {}),
-              orgSlug,
-            };
-
-            // Submit post
-            const response = await fetch(ENDPOINTS.POSTS, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(postData),
-            });
-
-            if (!response.ok) {
-              const error = await response.json();
-              throw new Error(error.error || "Failed to create post");
+            // Add media data to post data
+            if (mediaUrls.length > 0) {
+              postData = { ...postData, mediaUrls };
             }
-
-            // Reset form
-            setContent("");
-            editorRef.current?.clearEditor();
-            setMediaFiles((prev) => {
-              prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
-              return [];
-            });
-
-            // Refresh posts
-            void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
-            toast({ title: "Post created successfully" });
-            onSubmit?.();
+            if (mediaIds.length > 0) {
+              postData = { ...postData, mediaIds };
+            }
           }
         } catch (error) {
           toast({
-            title: "Error creating post",
+            title: "Error uploading media",
             description:
               error instanceof Error ? error.message : "Please try again later",
             variant: "destructive",
           });
+          setIsSubmitting(false);
+          return;
         }
       }
+
+      // Submit post
+      const response = await fetch(ENDPOINTS.POSTS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(postData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create post");
+      }
+
+      // Reset form
+      setContent("");
+      editorRef.current?.clearEditor();
+      setMediaFiles((prev) => {
+        prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
+        return [];
+      });
+
+      // Refresh posts
+      void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
+      toast({ title: "Post created successfully" });
+      onSubmit?.();
     } catch (error) {
       toast({
         title: "Error creating post",
