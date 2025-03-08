@@ -1,5 +1,9 @@
 // SERVER-SIDE EXPORTS
 // This file should only be imported in server components or API routes
+import { UTApi } from "uploadthing/server";
+
+// Initialize the UploadThing server API
+const utapi = new UTApi();
 
 // Helper functions for working with UploadThing URLs (safe for server)
 export function getDirectUploadthingUrl(url: string): string {
@@ -9,6 +13,13 @@ export function getDirectUploadthingUrl(url: string): string {
     if (url.includes('8s2dp0f8rl.ufs.sh')) {
         url = url.replace('8s2dp0f8rl.ufs.sh', 'utfs.io');
     }
+    
+    // Check if this is an UploadThing file URL that needs transformation
+    if (url.includes('utfs.io/f/')) {
+        // For publicly accessible files, we need to use the /p/ endpoint instead of /f/
+        // This makes the file publicly accessible without authentication
+        url = url.replace('/f/', '/p/');
+    }
 
     // Ensure URL has proper protocol
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -17,16 +28,33 @@ export function getDirectUploadthingUrl(url: string): string {
             url = `https://${url}`;
         }
         // Handle relative paths that might be UploadThing URLs
-        else if (url.includes('/f/') || url.match(/\/[a-zA-Z0-9_-]{20,}/)) {
-            // Extract the file ID and create a proper UploadThing URL
+        else if ((url.includes('/f/') || url.includes('/p/')) || url.match(/\/[a-zA-Z0-9_-]{20,}/)) {
+            // Extract the file ID and create a proper UploadThing URL with public access
             const fileId = url.split('/').pop();
             if (fileId && fileId.length > 20) {
-                url = `https://utfs.io/f/${fileId}`;
+                url = `https://utfs.io/p/${fileId}`;
             }
         }
     }
 
     return url;
+}
+
+// Function to make a file public
+export async function makeFilePublic(fileKey: string): Promise<string | null> {
+    try {
+        // Extract the file key if it's a full URL
+        if (fileKey.includes('utfs.io/')) {
+            fileKey = fileKey.split('/').pop() || fileKey;
+        }
+        
+        // Use the UploadThing API to make the file public
+        const result = await utapi.makeFilePublic(fileKey);
+        return result.data?.url || null;
+    } catch (error) {
+        console.error('Error making file public:', error);
+        return null;
+    }
 }
 
 // Verify if a URL is a valid UploadThing URL

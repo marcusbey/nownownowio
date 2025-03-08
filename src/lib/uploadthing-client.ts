@@ -2,6 +2,9 @@
 
 import { generateReactHelpers } from "@uploadthing/react";
 
+// Get the UploadThing app ID from environment variables
+const UPLOADTHING_APP_ID = process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID || '';
+
 // CLIENT-SIDE EXPORTS
 // This file should only be imported in client components
 export const { useUploadThing, uploadFiles } =
@@ -18,6 +21,13 @@ export function getDirectUploadthingUrl(url: string): string {
         url = url.replace('8s2dp0f8rl.ufs.sh', 'utfs.io');
     }
 
+    // Check if this is an UploadThing file URL that needs transformation
+    if (url.includes('utfs.io/f/')) {
+        // For publicly accessible files, we need to use the /p/ endpoint instead of /f/
+        // This makes the file publicly accessible without authentication
+        url = url.replace('/f/', '/p/');
+    }
+
     // Ensure URL has proper protocol
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
         // If it's a UploadThing URL without protocol
@@ -25,11 +35,11 @@ export function getDirectUploadthingUrl(url: string): string {
             url = `https://${url}`;
         }
         // Handle relative paths that might be UploadThing URLs
-        else if (url.includes('/f/') || url.match(/\/[a-zA-Z0-9_-]{20,}/)) {
-            // Extract the file ID and create a proper UploadThing URL
+        else if ((url.includes('/f/') || url.includes('/p/')) || url.match(/\/[a-zA-Z0-9_-]{20,}/)) {
+            // Extract the file ID and create a proper UploadThing URL with public access
             const fileId = url.split('/').pop();
             if (fileId && fileId.length > 20) {
-                url = `https://utfs.io/f/${fileId}`;
+                url = `https://utfs.io/p/${fileId}`;
             }
         }
     }

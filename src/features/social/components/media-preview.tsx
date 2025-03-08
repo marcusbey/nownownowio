@@ -92,7 +92,8 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     (() => {
       const fileId = media.url.split("/").pop();
       if (fileId && fileId.length > 20) {
-        const fallbackUrl = `https://utfs.io/f/${fileId}`;
+        // Use the public endpoint (/p/) instead of the private one (/f/)
+        const fallbackUrl = `https://utfs.io/p/${fileId}`;
         return `/api/v1/media-proxy?url=${encodeURIComponent(fallbackUrl)}&t=${Date.now() + 200}`;
       }
       return "";

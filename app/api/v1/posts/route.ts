@@ -140,7 +140,8 @@ export async function POST(request: Request) {
                 } else if (absoluteUrl.includes('/f/') || absoluteUrl.match(/\/[a-zA-Z0-9_-]{20,}/)) {
                   const fileId = absoluteUrl.split('/').pop();
                   if (fileId && fileId.length > 20) {
-                    absoluteUrl = `https://utfs.io/f/${fileId}`;
+                    // Use the public endpoint (/p/) instead of the private one (/f/)
+                    absoluteUrl = `https://utfs.io/p/${fileId}`;
                   }
                 }
               }
