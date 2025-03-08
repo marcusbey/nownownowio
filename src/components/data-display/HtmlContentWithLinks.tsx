@@ -21,16 +21,16 @@ export function HtmlContentWithLinks({ htmlContent, className }: HtmlContentWith
       '<a href="$1" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>'
     );
 
-    // Process hashtags - Add data-hashtag attribute and styling
+    // Process hashtags - Link to explore page with hashtag search
     processed = processed.replace(
       /#([a-zA-Z0-9]+)/g,
-      '<a href="/hashtag/$1" data-hashtag class="text-primary hover:underline">#$1</a>'
+      '<a href="/explore?q=%23$1" data-hashtag class="text-primary hover:underline">#$1</a>'
     );
 
-    // Process mentions - Add data-mention attribute and styling
+    // Process mentions - Link to organization profile page
     processed = processed.replace(
       /@([a-zA-Z0-9_-]+)/g,
-      '<a href="/u/$1" data-mention class="text-primary hover:underline">@$1</a>'
+      '<a href="/orgs/$1/profile" data-mention class="text-primary hover:underline">@$1</a>'
     );
 
     return processed;
