@@ -21,10 +21,10 @@ export function HtmlContentWithLinks({ htmlContent, className }: HtmlContentWith
       '<a href="$1" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>'
     );
 
-    // Process hashtags - Link to explore page with hashtag search
+    // Process hashtags - Link to search page with hashtag search
     processed = processed.replace(
       /#([a-zA-Z0-9]+)/g,
-      '<a href="/explore?q=%23$1" data-hashtag class="text-primary hover:underline">#$1</a>'
+      '<a href="/search?q=%23$1" data-hashtag class="text-primary hover:underline">#$1</a>'
     );
 
     // Process mentions - Link to organization profile page
