@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
               comments: true
             }
           },
+          media: true, // Include media in the query
           likes: {
             where: { userId: existingUser.id },
             select: { userId: true }

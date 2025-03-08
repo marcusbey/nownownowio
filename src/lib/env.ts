@@ -28,6 +28,10 @@ const serverSchema = z.object({
   STRIPE_SECRET_KEY_TEST: z.string().min(1).optional(),
   STRIPE_WEBHOOK_SECRET_TEST: z.string().min(1).optional(),
 
+  // UploadThing
+  UPLOADTHING_SECRET: z.string().min(1),
+  UPLOADTHING_TOKEN: z.string().min(1),
+
   // Widget
   API_KEY_SECRET: z.string().min(1).optional(),
   WIDGET_SECRET_KEY: z.string().min(1).optional(),
@@ -44,6 +48,10 @@ const clientSchema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST: z.string().min(1).optional(),
   NEXT_PUBLIC_WIDGET_URL: z.string().url().optional(),
   NEXT_PUBLIC_API_URL: z.string().url().optional(),
+  
+  // UploadThing
+  NEXT_PUBLIC_UPLOADTHING_ID: z.string().min(1),
+  NEXT_PUBLIC_UPLOADTHING_API_URL: z.string().url(),
 
   // Stripe Price IDs
   NEXT_PUBLIC_STRIPE_FREE_PRICE_ID: z.string().min(1).optional(),
@@ -105,6 +113,12 @@ const processEnv = {
 
   // API
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+
+  // UploadThing
+  UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
+  UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
+  NEXT_PUBLIC_UPLOADTHING_ID: process.env.NEXT_PUBLIC_UPLOADTHING_ID,
+  NEXT_PUBLIC_UPLOADTHING_API_URL: process.env.NEXT_PUBLIC_UPLOADTHING_API_URL,
 
   // Node Environment
   NODE_ENV: process.env.NODE_ENV,

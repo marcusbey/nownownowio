@@ -1,21 +1,17 @@
-import kyInstance from "@/lib/ky";
-import { BookmarkInfo } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import {
-  QueryKey,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { Bookmark } from "lucide-react";
-import { useToast } from "@/components/feedback/use-toast";
 import { Button } from "@/components/core/button";
+import { useToast } from "@/components/feedback/use-toast";
+import kyInstance from "@/lib/ky";
+import type { BookmarkInfo } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import type { QueryKey } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bookmark } from "lucide-react";
 
-interface BookmarkButtonProps {
+type BookmarkButtonProps = {
   postId: string;
   initialState: BookmarkInfo;
   className?: string;
-}
+};
 
 export default function BookmarkButton({
   postId,
@@ -30,7 +26,7 @@ export default function BookmarkButton({
 
   const { data } = useQuery({
     queryKey,
-    queryFn: () =>
+    queryFn: async () =>
       kyInstance.get(`/api/v1/posts/${postId}/bookmark`).json<BookmarkInfo>(),
     initialData: initialState,
     staleTime: 0, // Set to 0 to refetch on mount
@@ -44,7 +40,9 @@ export default function BookmarkButton({
         await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`);
         return { isBookmarkedByUser: false };
       } else {
-        const response = await kyInstance.post(`/api/v1/posts/${postId}/bookmark`).json<BookmarkInfo>();
+        const response = await kyInstance
+          .post(`/api/v1/posts/${postId}/bookmark`)
+          .json<BookmarkInfo>();
         return { isBookmarkedByUser: true };
       }
     },
@@ -66,7 +64,7 @@ export default function BookmarkButton({
     onSuccess: (result) => {
       // Update the bookmark info cache with the result
       queryClient.setQueryData<BookmarkInfo>(queryKey, result);
-      
+
       // Invalidate related queries to ensure bookmarks page is updated
       queryClient.invalidateQueries({ queryKey: ["post-feed", "bookmarks"] });
     },
@@ -81,17 +79,17 @@ export default function BookmarkButton({
   });
 
   return (
-    <Button 
-      onClick={() => mutate()} 
+    <Button
+      onClick={() => mutate()}
       variant="ghost"
       size="icon"
       className={cn(
         "h-8 w-8 text-muted-foreground/50 hover:text-primary/70",
         data.isBookmarkedByUser && "text-primary/70",
-        className
+        className,
       )}
     >
-      <Bookmark className="h-3.5 w-3.5" />
+      <Bookmark className="size-3.5" />
     </Button>
   );
 }

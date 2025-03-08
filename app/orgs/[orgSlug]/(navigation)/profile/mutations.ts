@@ -1,10 +1,12 @@
 import { useToast } from "@/components/feedback/use-toast";
-import { PostsPage } from "@/lib/types";
-import { useUploadThing } from "@/lib/uploadthing";
-import { UpdateUserProfileValues } from "@/lib/validation";
-import {
+import type { PostsPage } from "@/lib/types";
+import { useUploadThing } from "@/lib/uploadthing-client";
+import type { UpdateUserProfileValues } from "@/lib/validation";
+import type {
   InfiniteData,
-  QueryFilters,
+  QueryFilters
+} from "@tanstack/react-query";
+import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";

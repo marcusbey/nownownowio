@@ -1,7 +1,7 @@
 import kyInstance from "@/lib/ky";
-import { CommentData } from "@/lib/types";
+import type { CommentData } from "@/lib/types";
 
-interface CreateCommentData {
+type CreateCommentData = {
   content: string;
   postId: string;
 }

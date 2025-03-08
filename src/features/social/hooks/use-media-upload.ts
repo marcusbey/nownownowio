@@ -1,8 +1,8 @@
 import { useToast } from "@/components/feedback/use-toast";
-import { useUploadThing } from "@/lib/uploadthing";
+import { useUploadThing } from "@/lib/uploadthing-client";
 import { useState } from "react";
 
-export interface Attachment {
+export type Attachment = {
   file: File;
   mediaId?: string;
   isUploading: boolean;
@@ -61,23 +61,26 @@ export default function useMediaUpload() {
   });
 
   function handleStartUpload(files: File[]) {
-    if (isUploading) {
+    if (!files.length) {
       toast({
+        title: "No files selected",
+        description: "Please select at least one file to upload",
         variant: "destructive",
-        description: "Please wait for the current upload to finish.",
       });
       return;
     }
 
-    if (attachments.length + files.length > 5) {
-      toast({
-        variant: "destructive",
-        description: "You can only upload up to 5 attachments per post.",
-      });
-      return;
-    }
+    // Mark all files as uploading
+    setAttachments((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        file,
+        isUploading: true,
+      })),
+    ]);
 
-    startUpload(files);
+    // Use void to explicitly ignore the Promise
+    void startUpload(files);
   }
 
   function removeAttachment(fileName: string) {

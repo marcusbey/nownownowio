@@ -25,9 +25,12 @@ export const fileRouter = {
         },
       });
 
+      console.log(`[UPLOADTHING] Created media record with ID: ${media.id} for file: ${file.name}`);
+
+      // Return the media ID directly in the response
       return {
-        url: file.url,
         mediaId: media.id,
+        url: file.url,
         type: file.type.startsWith("image") ? "IMAGE" : "VIDEO"
       };
     }),

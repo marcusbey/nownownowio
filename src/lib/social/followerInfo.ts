@@ -1,6 +1,6 @@
 import kyInstance from "@/lib/ky";
 
-export interface FollowerInfo {
+export type FollowerInfo = {
   isFollowing: boolean;
   followerCount: number;
   followingCount: number;

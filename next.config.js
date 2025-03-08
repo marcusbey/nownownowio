@@ -25,6 +25,26 @@ const nextConfig = {
         hostname: 'secure.gravatar.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.ufs.sh',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '8s2dp0f8rl.ufs.sh',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.uploadthing.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'utfs.io',
+        pathname: '/**',
+      },
     ],
   },
 };

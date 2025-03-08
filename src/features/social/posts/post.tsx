@@ -55,7 +55,7 @@ export default function Post({ post }: PostProps) {
   const { views, isLoading } = usePostViews(post.id);
   const deletePostMutation = useDeletePostMutation();
   const togglePinPostMutation = useTogglePinPostMutation();
-  
+
   // Check if user has a plan that allows pinning (basic or pro)
   const hasEligiblePlan = user?.planId !== undefined && user?.planId !== null;
 
@@ -74,18 +74,21 @@ export default function Post({ post }: PostProps) {
   }, [status, session, user]);
 
   // Simple comment click handler that prevents default and toggles comments
-  const handleCommentClick = useCallback((e: React.MouseEvent | null) => {
-    if (!isClient) return;
-    
-    // If event exists, prevent default behavior
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    // Toggle comments visibility
-    setShowComments(prev => !prev);
-  }, [isClient]);
+  const handleCommentClick = useCallback(
+    (e: React.MouseEvent | null) => {
+      if (!isClient) return;
+
+      // If event exists, prevent default behavior
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // Toggle comments visibility
+      setShowComments((prev) => !prev);
+    },
+    [isClient],
+  );
 
   const userProfileLink = useMemo(() => {
     if (user?.email && post.user.id === user.id) {
@@ -111,8 +114,12 @@ export default function Post({ post }: PostProps) {
     return post.user.name ?? "Unknown User";
   }, [post.user.name]);
 
+  // Add debugging for media items
+  console.log(`[POST_DEBUG] Post ${post.id} media:`, post.media);
   const mediaItems = Array.isArray(post.media) ? post.media : [];
+  console.log(`[POST_DEBUG] Post ${post.id} mediaItems:`, mediaItems);
   const hasAttachments = mediaItems.length > 0;
+  console.log(`[POST_DEBUG] Post ${post.id} hasAttachments:`, hasAttachments);
 
   return (
     <motion.article
@@ -328,10 +335,10 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
   // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
   const commentCount =
     // Check if post._count exists and has comments property
-    (post._count && post._count.comments !== undefined)
+    post._count?.comments !== undefined
       ? post._count.comments
       : // Check user posts API format
-      (post as any).commentCount !== undefined
+        (post as any).commentCount !== undefined
         ? (post as any).commentCount
         : // Fallback
           0;

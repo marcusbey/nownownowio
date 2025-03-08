@@ -9,7 +9,7 @@ import { useToast } from "@/components/feedback/use-toast";
 import { EmojiPickerButton } from "@/features/social/posts/components/emoji-picker";
 import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
-import { useUploadThing } from "@/lib/uploadthing";
+import { useUploadThing } from "@/lib/uploadthing-client";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
@@ -224,57 +224,94 @@ export function PostForm({
 
         // Upload files
         const filesToUpload = mediaFiles.map((mf) => mf.file);
-        const uploadResult = await startUpload(filesToUpload, {
-          onUploadProgress: (progress: number) => {
-            // Update progress for all files
-            setMediaFiles((prev) =>
-              prev.map((file) => ({ ...file, progress })),
-            );
-          },
-        });
-
-        if (uploadResult) {
-          // Log the entire upload result to see its structure
-          console.log("Complete upload result:", uploadResult);
-
-          // Extract URLs from the upload result
-          // Note: UploadThing is deprecating 'url' in favor of 'ufsUrl'
-          const mediaUrls = uploadResult.map((file) => {
-            // Use ufsUrl if available, fall back to url
-            return file.ufsUrl || file.url;
+        try {
+          const uploadResult = await startUpload(filesToUpload, {
+            onUploadProgress: (progress: number) => {
+              // Update progress for all files
+              setMediaFiles((prev) =>
+                prev.map((file) => ({ ...file, progress })),
+              );
+            },
           });
 
-          // Create post data with URLs
-          const postData = {
-            content: content.trim(),
-            mediaUrls,
-            orgSlug,
-          };
+          if (uploadResult) {
+            console.log("Upload completed successfully:", uploadResult);
 
-          // Submit post
-          const response = await fetch(ENDPOINTS.POSTS, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(postData),
-          });
+            // Extract URLs from the upload result with safer access
+            const mediaUrls = uploadResult
+              .map((file) => {
+                try {
+                  // Safely access properties with fallbacks
+                  const url = file.url;
+                  if (url) {
+                    console.log(`Extracted URL for file ${file.name}: ${url}`);
+                    return url;
+                  }
+                  return null;
+                } catch (err) {
+                  console.error("Error extracting URL from file:", err, file);
+                  return null;
+                }
+              })
+              .filter(Boolean); // Filter out any null values
 
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Failed to create post");
+            console.log("Extracted mediaUrls:", mediaUrls);
+
+            // Extract media IDs if available
+            const mediaIds = uploadResult
+              .map((file) => {
+                try {
+                  // Access it using type assertion for custom response fields
+                  const response = file as unknown as { mediaId?: string };
+                  return response.mediaId ?? null;
+                } catch (err) {
+                  return null;
+                }
+              })
+              .filter(Boolean);
+
+            console.log("Extracted mediaIds:", mediaIds);
+
+            // Create post data with URLs and/or IDs
+            const postData = {
+              content: content.trim(),
+              ...(mediaUrls.length > 0 ? { mediaUrls } : {}),
+              ...(mediaIds.length > 0 ? { mediaIds } : {}),
+              orgSlug,
+            };
+
+            // Submit post
+            const response = await fetch(ENDPOINTS.POSTS, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(postData),
+            });
+
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.error || "Failed to create post");
+            }
+
+            // Reset form
+            setContent("");
+            editorRef.current?.clearEditor();
+            setMediaFiles((prev) => {
+              prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
+              return [];
+            });
+
+            // Refresh posts
+            void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
+            toast({ title: "Post created successfully" });
+            onSubmit?.();
           }
-
-          // Reset form
-          setContent("");
-          editorRef.current?.clearEditor();
-          setMediaFiles((prev) => {
-            prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
-            return [];
+        } catch (error) {
+          toast({
+            title: "Error creating post",
+            description:
+              error instanceof Error ? error.message : "Please try again later",
+            variant: "destructive",
           });
-
-          // Refresh posts
-          void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
-          toast({ title: "Post created successfully" });
-          onSubmit?.();
         }
       }
     } catch (error) {

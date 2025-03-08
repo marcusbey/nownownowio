@@ -1,24 +1,19 @@
-import kyInstance from "@/lib/ky";
-import { LikeInfo } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import {
-  QueryKey,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { Heart } from "lucide-react";
-import { useToast } from "@/components/feedback/use-toast";
 import { Button } from "@/components/core/button";
+import { useToast } from "@/components/feedback/use-toast";
+import kyInstance from "@/lib/ky";
+import { cn } from "@/lib/utils";
+import type { QueryKey } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Heart } from "lucide-react";
 
-interface LikeButtonProps {
+type LikeButtonProps = {
   postId: string;
   initialState: {
     likes: number;
     isLikedByUser: boolean;
   };
   className?: string;
-}
+};
 
 export default function LikeButton({
   postId,
@@ -33,8 +28,10 @@ export default function LikeButton({
 
   const { data } = useQuery({
     queryKey,
-    queryFn: () =>
-      kyInstance.get(`/api/v1/posts/${postId}/likes`).json<typeof initialState>(),
+    queryFn: async () =>
+      kyInstance
+        .get(`/api/v1/posts/${postId}/likes`)
+        .json<typeof initialState>(),
     initialData: initialState,
     staleTime: 0, // Set to 0 to refetch on mount
     refetchOnMount: true,
@@ -58,7 +55,8 @@ export default function LikeButton({
 
       await queryClient.cancelQueries({ queryKey });
 
-      const previousState = queryClient.getQueryData<typeof initialState>(queryKey);
+      const previousState =
+        queryClient.getQueryData<typeof initialState>(queryKey);
 
       queryClient.setQueryData<typeof initialState>(queryKey, (old) => ({
         likes: (old?.likes ?? 0) + (data.isLikedByUser ? -1 : 1),
@@ -70,7 +68,7 @@ export default function LikeButton({
     onSuccess: (result) => {
       // Update the like info cache with the result
       queryClient.setQueryData<typeof initialState>(queryKey, result);
-      
+
       // Invalidate related queries to ensure feed is updated
       queryClient.invalidateQueries({ queryKey: ["post-feed"] });
     },
@@ -93,17 +91,14 @@ export default function LikeButton({
         className={cn(
           "h-8 w-8 text-muted-foreground/50 hover:text-primary/70",
           data.isLikedByUser && "text-primary/70",
-          className
+          className,
         )}
       >
         <Heart
-          className={cn(
-            "h-3.5 w-3.5",
-            data.isLikedByUser && "fill-current"
-          )}
+          className={cn("h-3.5 w-3.5", data.isLikedByUser && "fill-current")}
         />
       </Button>
-      <span className="text-xs text-muted-foreground/50 tabular-nums -ml-1">
+      <span className="-ml-1 text-xs tabular-nums text-muted-foreground/50">
         {data.likes}
       </span>
     </div>

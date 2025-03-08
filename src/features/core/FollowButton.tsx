@@ -55,10 +55,10 @@ export default function FollowButton({
 
   return (
     <Button
-      variant={followerInfo?.isFollowedByUser ? "secondary" : "default"}
+      variant={followerInfo.isFollowedByUser ? "secondary" : "default"}
       onClick={() => mutate()}
     >
-      {followerInfo?.isFollowedByUser ? "Unfollow" : "Follow"}
+      {followerInfo.isFollowedByUser ? "Unfollow" : "Follow"}
     </Button>
   );
 }
