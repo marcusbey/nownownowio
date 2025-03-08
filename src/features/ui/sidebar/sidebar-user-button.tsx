@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/a
 import { Button } from "@/components/core/button";
 import { useSession } from "next-auth/react";
 import { UserDropdown } from "@/features/core/auth/user-dropdown";
+import { SignInButton } from "@/features/core/auth/sign-in-button";
 import { useEffect, useState } from "react";
 
 interface CachedUserData {
@@ -77,11 +78,21 @@ export const SidebarUserButton = () => {
     ? (session.data as SessionUser) 
     : (shouldUseCachedData ? cachedUserData : null);
   
-  // Don't render the dropdown at all if there's no user data and we're not loading
-  if (!userData && session.status === 'unauthenticated') {
-    return null;
+  // Show sign in button if logged out
+  if (session.status === 'unauthenticated') {
+    return <SignInButton className="w-full" />;
   }
   
+  // Show loading state if we're loading and don't have cached data
+  if (session.status === 'loading' && !userData) {
+    return (
+      <Button variant="outline" className="w-full justify-start" disabled>
+        <span className="ml-2 truncate">Loading...</span>
+      </Button>
+    );
+  }
+  
+  // Show user dropdown if authenticated or have cached data during loading
   return (
     <UserDropdown>
       <Button variant="outline" className="w-full justify-start">
@@ -93,7 +104,7 @@ export const SidebarUserButton = () => {
           )}
         </Avatar>
         <span className="ml-2 truncate">
-          {userData ? (userData.name || userData.email || "User") : "Loading..."}
+          {userData.name || userData.email || "User"}
         </span>
       </Button>
     </UserDropdown>
