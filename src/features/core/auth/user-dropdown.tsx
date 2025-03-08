@@ -36,16 +36,33 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
     mutationFn: async () => {
       // Clear any cached user data from localStorage
       try {
+        // Clear all potential user data from localStorage
         localStorage.removeItem('cachedUserData');
+        localStorage.removeItem('next-auth.session-token');
+        localStorage.removeItem('next-auth.callback-url');
+        localStorage.removeItem('next-auth.csrf-token');
+        
+        // Clear session cookies by setting their expiration to the past
+        document.cookie.split(';').forEach(cookie => {
+          const [name] = cookie.split('=').map(c => c.trim());
+          if (name.includes('next-auth') || name.includes('authjs')) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+          }
+        });
       } catch (error) {
         console.error('Error clearing cached user data during logout:', error);
       }
       
       // Force a complete session cleanup and redirect to home
-      return signOut({ 
+      // Use a combination of NextAuth signOut and manual page reload
+      await signOut({ 
         callbackUrl: "/", 
-        redirect: true,
+        redirect: false, // Don't redirect yet, we'll do it manually
       });
+      
+      // Force a complete page reload to clear any in-memory state
+      window.location.href = "/";
+      return;
     },
   });
   const session = useSession();
@@ -69,7 +86,7 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>
           <Typography variant="small">
-            {user?.name ?? user?.email ?? "Guest User"}
+            {user?.name ?? user?.email ?? (session.status === 'loading' ? "Loading..." : "Sign In")}
           </Typography>
           {user?.email && <Typography variant="muted">{user.email}</Typography>}
         </DropdownMenuLabel>

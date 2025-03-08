@@ -68,10 +68,19 @@ export const SidebarUserButton = () => {
     }
   }, [session.status, session.data]);
   
-  // Use session data if available, otherwise fall back to cached data
+  // Only use cached data if we're in the loading state and have cached data
+  // This prevents showing cached data when actually logged out
+  const shouldUseCachedData = session.status === 'loading' && cachedUserData !== null;
+  
+  // Use session data if authenticated, cached data only during loading, otherwise null
   const userData = (session.status === 'authenticated' && session.data) 
     ? (session.data as SessionUser) 
-    : cachedUserData;
+    : (shouldUseCachedData ? cachedUserData : null);
+  
+  // Don't render the dropdown at all if there's no user data and we're not loading
+  if (!userData && session.status === 'unauthenticated') {
+    return null;
+  }
   
   return (
     <UserDropdown>
@@ -84,7 +93,7 @@ export const SidebarUserButton = () => {
           )}
         </Avatar>
         <span className="ml-2 truncate">
-          {userData ? (userData.name || userData.email) : "Guest User"}
+          {userData ? (userData.name || userData.email || "User") : "Loading..."}
         </span>
       </Button>
     </UserDropdown>
