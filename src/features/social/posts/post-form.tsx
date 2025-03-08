@@ -343,7 +343,14 @@ export function PostForm({
           />
         </div>
         <div className="relative flex-1 space-y-3">
-          <RichTextEditor onChange={setContent} ref={editorRef} />
+          <RichTextEditor 
+            onChange={setContent} 
+            ref={editorRef} 
+            onMediaSelect={(files) => {
+              // Process the files selected from the rich text editor
+              onDrop(files);
+            }}
+          />
 
           {/* Media Preview Section */}
           {mediaFiles.length > 0 && (
@@ -408,31 +415,7 @@ export function PostForm({
             </div>
           )}
 
-          {/* Dropzone Area */}
-          {mediaFiles.length < 4 && !isSubmitting && !isUploading && (
-            <div
-              {...getRootProps()}
-              className={cn(
-                "border-2 border-dashed rounded-md p-4 transition-colors cursor-pointer",
-                isDragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-muted-foreground/20 hover:border-muted-foreground/50",
-              )}
-            >
-              <input {...getInputProps()} />
-              <div className="flex flex-col items-center justify-center text-sm text-muted-foreground">
-                <ImagePlus className="mb-2 size-6" />
-                <p>
-                  {isDragActive
-                    ? "Drop files here"
-                    : "Drag & drop or click to add images/videos"}
-                </p>
-                <p className="mt-1 text-xs">
-                  Up to 4 files (4MB per image, 64MB per video)
-                </p>
-              </div>
-            </div>
-          )}
+          {/* Removed always-visible dropzone area in favor of the Media option in the rich text editor */}
 
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-1">
