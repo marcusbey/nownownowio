@@ -33,7 +33,20 @@ import type { PropsWithChildren } from "react";
 
 export const UserDropdown = ({ children }: PropsWithChildren) => {
   const logout = useMutation({
-    mutationFn: async () => signOut({ callbackUrl: "/" }),
+    mutationFn: async () => {
+      // Clear any cached user data from localStorage
+      try {
+        localStorage.removeItem('cachedUserData');
+      } catch (error) {
+        console.error('Error clearing cached user data during logout:', error);
+      }
+      
+      // Force a complete session cleanup and redirect to home
+      return signOut({ 
+        callbackUrl: "/", 
+        redirect: true,
+      });
+    },
   });
   const session = useSession();
   const theme = useTheme();

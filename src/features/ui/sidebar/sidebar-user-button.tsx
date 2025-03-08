@@ -24,14 +24,27 @@ export const SidebarUserButton = () => {
   
   // Load cached user data and update cache if we have session data
   useEffect(() => {
-    // Load cached user data
-    try {
-      const cachedData = localStorage.getItem('cachedUserData');
-      if (cachedData) {
-        setCachedUserData(JSON.parse(cachedData));
+    // Clear cached data when session is unauthenticated (logged out)
+    if (session.status === 'unauthenticated') {
+      try {
+        localStorage.removeItem('cachedUserData');
+        setCachedUserData(null);
+      } catch (error) {
+        console.error('Error clearing cached user data:', error);
       }
-    } catch (error) {
-      console.error('Error loading cached user data:', error);
+      return;
+    }
+    
+    // Load cached user data if session is loading
+    if (session.status === 'loading') {
+      try {
+        const cachedData = localStorage.getItem('cachedUserData');
+        if (cachedData) {
+          setCachedUserData(JSON.parse(cachedData));
+        }
+      } catch (error) {
+        console.error('Error loading cached user data:', error);
+      }
     }
     
     // Update cache if we have session data
