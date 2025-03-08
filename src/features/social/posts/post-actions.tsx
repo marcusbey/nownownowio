@@ -71,7 +71,9 @@ export function LikeButton({
 
 type BookmarkButtonProps = {
   postId: string;
-  initialBookmarked?: boolean;
+  initialState?: {
+    isBookmarkedByUser: boolean;
+  };
   onBookmark?: (postId: string) => void;
   className?: string;
 };
@@ -79,7 +81,7 @@ type BookmarkButtonProps = {
 // Bookmark Button Component
 export function BookmarkButton({
   postId,
-  initialBookmarked = false,
+  initialState = { isBookmarkedByUser: false },
   onBookmark,
   className,
 }: BookmarkButtonProps) {
@@ -98,10 +100,10 @@ export function BookmarkButton({
         return response;
       } catch (error) {
         console.error("Failed to fetch bookmark status:", error);
-        return { isBookmarkedByUser: initialBookmarked };
+        return { isBookmarkedByUser: initialState.isBookmarkedByUser };
       }
     },
-    initialData: { isBookmarkedByUser: initialBookmarked },
+    initialData: { isBookmarkedByUser: initialState.isBookmarkedByUser },
     staleTime: 0, // Refetch on mount
     refetchOnMount: true,
     refetchOnWindowFocus: true,

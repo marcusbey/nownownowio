@@ -3,6 +3,7 @@
 import UserAvatar from "@/components/composite/UserAvatar";
 import UserTooltip from "@/components/composite/UserTooltip";
 import Linkify from "@/components/data-display/Linkify";
+import { HtmlContentWithLinks } from "@/components/data-display/HtmlContentWithLinks";
 import { usePostViews } from "@/hooks/use-post-views";
 import type { PostData } from "@/lib/types";
 import { cn, extractUserFromSession, formatRelativeDate } from "@/lib/utils";
@@ -187,16 +188,10 @@ export default function Post({ post }: PostProps) {
         )}
       </div>
 
-      <Linkify>
-        <div
-          className={cn(
-            "prose prose-stone dark:prose-invert prose-sm",
-            "max-w-none whitespace-pre-line break-words text-[15px] leading-relaxed text-foreground/90 py-3 px-2",
-            "[&_[data-hashtag]]:text-blue-500 [&_[data-hashtag]]:hover:underline [&_[data-hashtag]]:cursor-pointer",
-          )}
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-      </Linkify>
+      <HtmlContentWithLinks 
+        htmlContent={post.content}
+        className="text-[15px] leading-relaxed text-foreground/90 py-3 px-2 [&_[data-hashtag]]:text-blue-500 [&_[data-hashtag]]:hover:underline [&_[data-hashtag]]:cursor-pointer"
+      />
 
       {hasAttachments && (
         <div className="mt-2 overflow-hidden rounded-lg">
@@ -291,10 +286,10 @@ export default function Post({ post }: PostProps) {
           </span>
           <BookmarkButton
             postId={post.id}
-            initialBookmarked={
-              Array.isArray(post.bookmarks) &&
-              post.bookmarks.some((bookmark) => bookmark.userId === user?.id)
-            }
+            initialState={{
+              isBookmarkedByUser: Array.isArray(post.bookmarks) &&
+                post.bookmarks.some((bookmark) => bookmark.userId === user?.id)
+            }}
             className="text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
         </div>
