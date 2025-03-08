@@ -1,5 +1,5 @@
 import { mergeAttributes, Node } from "@tiptap/core";
-import { ReactNodeViewRenderer } from "@tiptap/react";
+import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
 import { FilmIcon, Volume2 } from "lucide-react";
 import Image from "next/image";
 import React from "react";
@@ -13,7 +13,7 @@ const MediaNodeView: React.FC<{
   const { src, alt, type } = node.attrs;
 
   return (
-    <div
+    <NodeViewWrapper
       className="media-node my-4 relative overflow-hidden rounded-md"
       style={{ aspectRatio: type === "audio" ? "auto" : "16/9" }}
       data-type={type}
@@ -54,7 +54,7 @@ const MediaNodeView: React.FC<{
           />
         </div>
       )}
-    </div>
+    </NodeViewWrapper>
   );
 };
 

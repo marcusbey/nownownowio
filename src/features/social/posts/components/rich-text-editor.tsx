@@ -437,8 +437,11 @@ const RichTextEditor = React.forwardRef<
   };
 
   // Function to insert media into the editor
-  const insertMediaToEditor = useCallback((src: string, type: "image" | "video") => {
-    if (editor) {
+  const insertMediaToEditor = useCallback((src: string, type: "image" | "video" | "audio") => {
+    if (!editor || !editor.isEditable) return;
+    
+    try {
+      // First try to insert at current position with proper error handling
       editor
         .chain()
         .focus()
@@ -449,15 +452,73 @@ const RichTextEditor = React.forwardRef<
             type,
           },
         })
+        // Add a new paragraph after the media to allow continued typing
+        .insertContent({ type: "paragraph" })
         .run();
+    } catch (error) {
+      console.error("Error inserting media at current position:", error);
+      
+      // Fallback: Try to insert at the end of the document
+      try {
+        editor
+          .chain()
+          .selectEnd()
+          .insertContent({
+            type: "mediaNode",
+            attrs: {
+              src,
+              type,
+            },
+          })
+          // Add a new paragraph after the media
+          .insertContent({ type: "paragraph" })
+          .run();
+      } catch (fallbackError) {
+        console.error("Fallback insertion failed:", fallbackError);
+        // Last resort: Create a new paragraph and insert there
+        try {
+          editor
+            .chain()
+            .selectEnd()
+            .insertContent({
+              type: "mediaNode",
+              attrs: {
+                src,
+                type,
+              },
+            })
+            // Add a new paragraph after the media
+            .insertContent({ type: "paragraph" })
+            .run();
+        } catch (lastError) {
+          console.error("All insertion attempts failed:", lastError);
+        }
+      }
     }
   }, [editor]);
 
   const confirmMediaSelection = () => {
+    if (!editor || !editor.isEditable) {
+      setShowMediaPrompt(false);
+      return;
+    }
+    
     // Insert each media file into the editor
-    mediaFiles.forEach((media) => {
-      insertMediaToEditor(media.previewUrl, media.type as "image" | "video");
-    });
+    // Use a slight delay between insertions to ensure proper handling
+    if (mediaFiles.length > 0) {
+      // Insert the first media file immediately
+      const firstMedia = mediaFiles[0];
+      insertMediaToEditor(firstMedia.previewUrl, firstMedia.type as "image" | "video" | "audio");
+      
+      // Insert any remaining media files with a slight delay
+      if (mediaFiles.length > 1) {
+        mediaFiles.slice(1).forEach((media, index) => {
+          setTimeout(() => {
+            insertMediaToEditor(media.previewUrl, media.type as "image" | "video" | "audio");
+          }, (index + 1) * 100); // 100ms delay between insertions
+        });
+      }
+    }
     
     // Also pass the files to the parent component if needed
     if (mediaFiles.length > 0 && onMediaSelect) {
