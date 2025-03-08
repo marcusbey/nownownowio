@@ -1,0 +1,160 @@
+import { mergeAttributes, Node } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { FilmIcon, Volume2 } from "lucide-react";
+import Image from "next/image";
+import React from "react";
+
+// React component for rendering the media node
+const MediaNodeView: React.FC<{
+  node: { attrs: { src: string; alt?: string; type: "image" | "video" | "audio" } };
+  updateAttributes: (attrs: Record<string, any>) => void;
+  extension: any;
+}> = ({ node, updateAttributes }) => {
+  const { src, alt, type } = node.attrs;
+
+  return (
+    <div
+      className="media-node my-4 relative overflow-hidden rounded-md"
+      style={{ aspectRatio: type === "audio" ? "auto" : "16/9" }}
+      data-type={type}
+      contentEditable={false}
+    >
+      {type === "image" ? (
+        <div className="relative w-full h-full">
+          <Image
+            src={src}
+            alt={alt || ""}
+            fill
+            className="object-cover"
+            draggable={false}
+          />
+        </div>
+      ) : type === "video" ? (
+        <div className="relative w-full h-full">
+          <video
+            src={src}
+            className="w-full h-full object-cover"
+            controls
+            draggable={false}
+          />
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0">
+            <FilmIcon className="size-8 text-white opacity-70" />
+          </div>
+        </div>
+      ) : (
+        <div className="relative w-full p-4 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center">
+          <div className="mr-3">
+            <Volume2 className="size-6 text-primary" />
+          </div>
+          <audio
+            src={src}
+            className="w-full"
+            controls
+            draggable={false}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Define the Media extension
+export const MediaNode = Node.create({
+  name: "mediaNode",
+  group: "block",
+  selectable: true,
+  draggable: true,
+  
+  // Define the attributes for the media node
+  addAttributes() {
+    return {
+      src: {
+        default: null,
+      },
+      alt: {
+        default: null,
+      },
+      type: {
+        default: "image",
+        parseHTML: (element) => {
+          return element.getAttribute("data-type") || "image";
+        },
+      },
+    };
+  },
+
+  // Define how the node should be parsed from HTML
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-type="image"]',
+        getAttrs: (el) => {
+          if (typeof el === "string" || !(el instanceof HTMLElement)) return {};
+          
+          const img = el.querySelector("img");
+          return {
+            src: img?.getAttribute("src"),
+            alt: img?.getAttribute("alt"),
+            type: "image",
+          };
+        },
+      },
+      {
+        tag: 'div[data-type="video"]',
+        getAttrs: (el) => {
+          if (typeof el === "string" || !(el instanceof HTMLElement)) return {};
+          
+          const video = el.querySelector("video");
+          return {
+            src: video?.getAttribute("src"),
+            type: "video",
+          };
+        },
+      },
+      {
+        tag: 'div[data-type="audio"]',
+        getAttrs: (el) => {
+          if (typeof el === "string" || !(el instanceof HTMLElement)) return {};
+          
+          const audio = el.querySelector("audio");
+          return {
+            src: audio?.getAttribute("src"),
+            type: "audio",
+          };
+        },
+      },
+    ];
+  },
+
+  // Define how the node should be rendered to HTML
+  renderHTML({ HTMLAttributes }) {
+    const { type } = HTMLAttributes;
+    
+    if (type === "video") {
+      return [
+        "div",
+        { "data-type": "video", class: "media-node" },
+        ["video", { src: HTMLAttributes.src, controls: "true" }],
+      ];
+    } else if (type === "audio") {
+      return [
+        "div",
+        { "data-type": "audio", class: "media-node" },
+        ["audio", { src: HTMLAttributes.src, controls: "true" }],
+      ];
+    }
+    
+    return [
+      "div",
+      { "data-type": "image", class: "media-node" },
+      ["img", mergeAttributes({ src: HTMLAttributes.src, alt: HTMLAttributes.alt || "" })],
+    ];
+  },
+
+  // Use React to render the node
+  addNodeView() {
+    return ReactNodeViewRenderer(MediaNodeView);
+  },
+});
+
+export default MediaNode;
