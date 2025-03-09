@@ -80,9 +80,10 @@ export const getNextAuthConfigProviders = cache((): Providers => {
             name: profile.data.name,
             email: email,
             image: profile.data.profile_image_url,
+            emailVerified: new Date(), // Set emailVerified to current date for OAuth providers
           };
         },
-      } as any),
+      }),
     );
   }
 
@@ -97,6 +98,15 @@ export const getNextAuthConfigProviders = cache((): Providers => {
       Google({
         clientId: env.AUTH_GOOGLE_ID,
         clientSecret: env.AUTH_GOOGLE_SECRET,
+        profile(profile: { sub: string; name: string; email: string; picture?: string }) {
+          return {
+            id: profile.sub,
+            name: profile.name,
+            email: profile.email,
+            image: profile.picture,
+            emailVerified: new Date(), // Set emailVerified to current date for OAuth providers
+          };
+        },
         authorization: {
           params: {
             prompt: "consent",
@@ -105,16 +115,7 @@ export const getNextAuthConfigProviders = cache((): Providers => {
             scope: "openid email profile",
             redirect_uri: `${baseUrl}/api/v1/auth/callback/google`
           }
-        },
-        async profile(profile, tokens) {
-          return {
-            id: profile.sub,
-            email: profile.email,
-            name: profile.name,
-            image: profile.picture,
-            emailVerified: profile.email_verified ? new Date() : null,
-          };
-        },
+        }
       }),
     );
   }
