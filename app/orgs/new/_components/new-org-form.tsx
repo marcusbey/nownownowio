@@ -245,7 +245,11 @@ export function NewOrganizationForm() {
                         field.onChange("MONTHLY");
                         // Update planId to maintain consistency
                         const currentPlan = form.getValues("planId").split("_")[0];
-                        form.setValue("planId", `${currentPlan}_MONTHLY`);
+                        if (currentPlan === "BASIC") {
+                          form.setValue("planId", "BASIC_MONTHLY");
+                        } else {
+                          form.setValue("planId", "PRO_MONTHLY");
+                        }
                       }}
                     >
                       <div className="font-medium">Monthly</div>
@@ -259,7 +263,11 @@ export function NewOrganizationForm() {
                         field.onChange("YEARLY");
                         // Update planId to maintain consistency
                         const currentPlan = form.getValues("planId").split("_")[0];
-                        form.setValue("planId", `${currentPlan}_YEARLY`);
+                        if (currentPlan === "BASIC") {
+                          form.setValue("planId", "BASIC_YEARLY");
+                        } else {
+                          form.setValue("planId", "PRO_YEARLY");
+                        }
                       }}
                     >
                       <div className="font-medium">Yearly</div>
@@ -273,7 +281,11 @@ export function NewOrganizationForm() {
                         field.onChange("LIFETIME");
                         // Update planId to maintain consistency
                         const currentPlan = form.getValues("planId").split("_")[0];
-                        form.setValue("planId", `${currentPlan}_LIFETIME`);
+                        if (currentPlan === "BASIC") {
+                          form.setValue("planId", "BASIC_LIFETIME");
+                        } else {
+                          form.setValue("planId", "PRO_LIFETIME");
+                        }
                       }}
                     >
                       <div className="font-medium">Lifetime</div>
@@ -308,7 +320,13 @@ export function NewOrganizationForm() {
                           )}
                           onClick={() => {
                             const period = form.getValues("billingPeriod");
-                            field.onChange(`BASIC_${period}`);
+                            if (period === "MONTHLY") {
+                              field.onChange("BASIC_MONTHLY");
+                            } else if (period === "YEARLY") {
+                              field.onChange("BASIC_YEARLY");
+                            } else {
+                              field.onChange("BASIC_LIFETIME");
+                            }
                           }}
                         >
                           {!field.value.startsWith("PRO_") && (
@@ -328,7 +346,13 @@ export function NewOrganizationForm() {
                           )}
                           onClick={() => {
                             const period = form.getValues("billingPeriod");
-                            field.onChange(`PRO_${period}`);
+                            if (period === "MONTHLY") {
+                              field.onChange("PRO_MONTHLY");
+                            } else if (period === "YEARLY") {
+                              field.onChange("PRO_YEARLY");
+                            } else {
+                              field.onChange("PRO_LIFETIME");
+                            }
                           }}
                         >
                           {field.value.startsWith("PRO_") && (

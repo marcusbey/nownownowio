@@ -6,7 +6,7 @@ export const NewOrgsSchema = z.object({
   name: z.string().min(1, "Company name is required"),
   websiteUrl: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
   bio: z.string().max(500, "Bio must be less than 500 characters").optional().or(z.literal('')),
-  planId: z.string().default("FREE_MONTHLY"),
+  planId: z.enum(["BASIC_MONTHLY", "BASIC_YEARLY", "BASIC_LIFETIME", "PRO_MONTHLY", "PRO_YEARLY", "PRO_LIFETIME"]).default("PRO_MONTHLY"),
   billingPeriod: z.enum(["MONTHLY", "YEARLY", "LIFETIME"]).default("MONTHLY"),
 }).transform((data) => {
   // Auto-generate slug and email from name
