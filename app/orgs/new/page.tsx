@@ -24,8 +24,8 @@ export default async function RoutePage() {
     <div className="flex min-h-screen flex-col">
       <NewOrgNavigation userOrgs={userOrganizations}>
         <div className="mx-auto w-full max-w-4xl py-8">
-          <h1 className="mb-8 text-3xl font-bold">Create a new organization</h1>
-          <p className="mb-8 text-muted-foreground">Fill in the details below to create your new organization. The sidebar on the left shows a preview of the navigation you'll have access to after creating your organization.</p>
+          <h1 className="mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-3xl font-bold text-transparent">Welcome to your new workspace!</h1>
+          <p className="mb-8 text-muted-foreground">Let's set up your organization and get you started with all the powerful tools at your fingertips. The sidebar preview shows what you'll have access to once you're all set up.</p>
           <NewOrganizationForm />
         </div>
       </NewOrgNavigation>
