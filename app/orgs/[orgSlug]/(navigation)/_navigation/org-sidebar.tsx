@@ -82,11 +82,20 @@ export function OrgSidebar({
                         item.icon as keyof typeof Icons
                       ] as React.ComponentType<{ className?: string }>;
 
+                      // Skip rendering if hidden
+                      if (item.hidden) return null;
+
                       return (
                         <SidebarMenuItem key={item.label}>
                           <SidebarMenuButtonLink
-                            href={item.href}
-                            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-accent"
+                            href={item.disabled ? "#" : item.href}
+                            className={cn(
+                              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm",
+                              item.disabled 
+                                ? "cursor-not-allowed opacity-50" 
+                                : "hover:bg-accent"
+                            )}
+                            onClick={item.disabled ? (e) => e.preventDefault() : undefined}
                           >
                             <Icon
                               className={cn(
@@ -96,7 +105,10 @@ export function OrgSidebar({
                                   : "text-muted-foreground",
                               )}
                             />
-                            <span>{item.label}</span>
+                            <span>
+                              {item.label}
+                              {item.disabled && " (Coming Soon)"}
+                            </span>
                           </SidebarMenuButtonLink>
                         </SidebarMenuItem>
                       );

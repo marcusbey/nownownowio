@@ -76,12 +76,14 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
         icon: "PanelLeft",
         label: "Panel",
         roles: ["OWNER", "ADMIN"],
+        disabled: true,
       },
       {
         href: prependOrgPath("/dashboard"),
         icon: "LayoutDashboard",
         label: "Dashboard",
         roles: ["OWNER", "ADMIN"],
+        disabled: true,
       },
       {
         href: prependOrgPath("/settings"),

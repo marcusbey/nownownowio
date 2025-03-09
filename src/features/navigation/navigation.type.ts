@@ -15,4 +15,5 @@ export type NavigationLink = {
   label: string;
   roles?: OrganizationMembershipRole[];
   hidden?: boolean;
+  disabled?: boolean;
 };
