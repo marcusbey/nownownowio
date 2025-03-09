@@ -1,3 +1,7 @@
+-- First, modify the OrganizationPlanType enum to include BASIC and PRO
+ALTER TYPE "OrganizationPlanType" ADD VALUE IF NOT EXISTS 'BASIC';
+ALTER TYPE "OrganizationPlanType" ADD VALUE IF NOT EXISTS 'PRO';
+
 -- Add billingCycle enum type if it doesn't exist
 DO $$ 
 BEGIN
@@ -24,12 +28,12 @@ SET "billingCycle" = 'ANNUAL'
 WHERE "id" LIKE '%ANNUAL%';
 
 -- Update plan types based on our new structure
--- Convert PREMIUM to BASIC
+-- Convert PREMIUM to BASIC (only after the enum type has been updated)
 UPDATE "OrganizationPlan"
 SET "type" = 'BASIC'
 WHERE "type" = 'PREMIUM';
 
--- Convert LIFETIME type to PRO
+-- Convert LIFETIME type to PRO (only after the enum type has been updated)
 UPDATE "OrganizationPlan"
 SET "type" = 'PRO'
 WHERE "type" = 'LIFETIME';
