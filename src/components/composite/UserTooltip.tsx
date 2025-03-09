@@ -1,6 +1,7 @@
 "use client";
 
 import FollowButton from "@/components/composite/follow-button";
+import type { FollowerInfo, UserData } from "@/lib/types";
 import UserAvatar from "@/components/composite/UserAvatar";
 import { FollowerCount } from "@/components/data-display/FollowerCount";
 import Linkify from "@/components/data-display/Linkify";
@@ -10,41 +11,36 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/data-display/tooltip";
-import type { UserData } from "@/lib/types";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import type { PropsWithChildren } from "react";
 import { useMemo } from "react";
+import type { Session } from "next-auth";
 
 type UserTooltipProps = {
-  user: UserData | null | undefined;
+  user: UserData;
 } & PropsWithChildren;
 
 export default function UserTooltip({ children, user }: UserTooltipProps) {
   const { data: session } = useSession();
-  const loggedInUser = session?.user;
-
-  // If user is null/undefined, bail early
-  if (!user) return <>{children}</>;
-
-  const followerState = useMemo(
-    () => ({
-      followers: user._count?.followers ?? 0,
-      isFollowedByUser: user.followers?.some(
-        ({ followerId }) => followerId === loggedInUser?.id
-      ) ?? false
-    }),
-    [user._count?.followers, user.followers, loggedInUser?.id],
-  );
 
   const tooltipContent = useMemo(
-    () => (
+    () => {
+      // Calculate followerState inside useMemo to avoid dependency changes
+      const followerState: FollowerInfo = {
+        followers: user._count?.followers ?? 0,
+        isFollowedByUser: user.followers?.some(
+          ({ followerId }) => followerId === session?.user?.id,
+        ) ?? false,
+      };
+      
+      return (
       <div className="flex max-w-80 flex-col gap-3 break-words px-1 py-2.5 md:min-w-52">
         <div className="flex items-center justify-between gap-2">
           <Link href={`/users/${user.name}`}>
             <UserAvatar size={70} avatarUrl={user.image} />
           </Link>
-          {loggedInUser && loggedInUser.id !== user.id && (
+          {session?.user && session.user.id !== user.id && (
             <FollowButton userId={user.id} initialState={followerState} />
           )}
         </div>
@@ -69,12 +65,11 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
           }}
         />
       </div>
-    ),
-    [user, loggedInUser, followerState],
+    );
+    },
+    [user, session],
   );
-
-  if (!user) return <>{children}</>;
-
+  
   return (
     <TooltipProvider>
       <Tooltip delayDuration={300}>

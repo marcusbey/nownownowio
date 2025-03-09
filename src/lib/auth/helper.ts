@@ -7,14 +7,19 @@ const isServer = typeof window === "undefined";
 export class AuthError extends Error {}
 
 export const auth = async () => {
-  const session = await baseAuth();
+  try {
+    const session = await baseAuth();
 
-  if (session?.user) {
-    const user = session.user as User;
-    return user;
+    if (session?.user) {
+      const user = session.user as User;
+      return user;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Auth error:', error);
+    return null;
   }
-
-  return null;
 };
 
 export const requiredAuth = async () => {
