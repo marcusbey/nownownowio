@@ -12,26 +12,94 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
+import { Textarea } from "@/components/core/textarea";
 import { LoadingButton } from "@/features/ui/form/submit-button";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Globe, FileText, BadgeCheck } from "lucide-react";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
-import { formatId } from "@/lib/format/id";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createOrganizationAction } from "../new-org.action";
 import type { NewOrganizationSchemaType} from "../new-org.schema";
 import { NewOrgsSchema } from "../new-org.schema";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core/select";
+
+type NameAvailabilityResponse = {
+  available: boolean;
+  message: string;
+  slug?: string;
+}
 
 export function NewOrganizationForm() {
   const form = useZodForm({
     schema: NewOrgsSchema,
+    defaultValues: {
+      name: "",
+      websiteUrl: "",
+      bio: "",
+      planId: "FREE",
+    },
   });
   const router = useRouter();
+  const [nameToCheck, setNameToCheck] = useState("");
+  const [isBlurred, setIsBlurred] = useState(false);
+  
+  // Query to check name availability
+  const nameAvailabilityQuery = useQuery<NameAvailabilityResponse>({
+    queryKey: ["checkOrgName", nameToCheck],
+    queryFn: async () => {
+      if (!nameToCheck) return { available: false, message: "Name is required" };
+      
+      const response = await fetch(`/api/v1/orgs/check-name?name=${encodeURIComponent(nameToCheck)}`);
+      if (!response.ok) {
+        throw new Error("Failed to check name availability");
+      }
+      return response.json();
+    },
+    enabled: nameToCheck.length > 0 && isBlurred,
+    staleTime: 30000, // Cache for 30 seconds
+  });
 
+  // Handle name change with debounce
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    form.setValue("name", value);
+    setIsBlurred(false);
+  };
+
+  // Handle blur event to trigger validation
+  const handleBlur = () => {
+    const value = form.getValues("name");
+    if (value) {
+      setNameToCheck(value);
+      setIsBlurred(true);
+    }
+  };
+
+  // Create organization mutation
   const mutation = useMutation({
     mutationFn: async (values: NewOrganizationSchemaType) => {
-      const result = await createOrganizationAction(values);
+      // Check name availability one last time before submission
+      if (nameToCheck) {
+        const checkResponse = await fetch(`/api/v1/orgs/check-name?name=${encodeURIComponent(nameToCheck)}`);
+        const checkResult = await checkResponse.json();
+        
+        if (!checkResult.available) {
+          toast.error(checkResult.message ?? "Organization name is not available");
+          return;
+        }
+      }
+      
+      // Ensure data is properly typed before passing to action
+      const formattedValues = {
+        ...values,
+        websiteUrl: values.websiteUrl === "" ? undefined : values.websiteUrl,
+        bio: values.bio === "" ? undefined : values.bio,
+      };
+      
+      const result = await createOrganizationAction(formattedValues);
 
       if (!isActionSuccessful(result)) {
         toast.error(result?.serverError ?? "Failed to create organization");
@@ -48,11 +116,11 @@ export function NewOrganizationForm() {
     <Form
       form={form}
       onSubmit={async (v) => mutation.mutateAsync(v)}
-      className="w-full max-w-3xl mx-auto"
+      className="mx-auto w-full max-w-3xl"
     >
       <Card className="bg-card shadow-md">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Organization Details</CardTitle>
+          <CardTitle className="text-xl font-semibold">Create Your Organization</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <FormField
@@ -60,63 +128,136 @@ export function NewOrganizationForm() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Organization Name</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    {...field}
-                    className="w-full"
-                    placeholder="Enter organization name"
-                    onChange={(e) => {
-                      field.onChange(e);
-                      form.setValue("slug", formatId(e.target.value));
-                    }}
-                  />
-                </FormControl>
+                <FormLabel>Company Name</FormLabel>
+                <div className="relative">
+                  <FormControl>
+                    <Input
+                      type="text"
+                      {...field}
+                      className={cn("w-full pr-10", {
+                        "border-green-500 focus-visible:ring-green-500": isBlurred && nameAvailabilityQuery.data?.available,
+                        "border-red-500 focus-visible:ring-red-500": isBlurred && nameAvailabilityQuery.data && !nameAvailabilityQuery.data.available,
+                      })}
+                      placeholder="Enter company name"
+                      autoFocus
+                      onChange={handleNameChange}
+                      onBlur={handleBlur}
+                    />
+                  </FormControl>
+                  {isBlurred && !nameAvailabilityQuery.isLoading && nameAvailabilityQuery.data && (
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      {nameAvailabilityQuery.data.available ? (
+                        <CheckCircle2 className="size-5 text-green-500" />
+                      ) : (
+                        <XCircle className="size-5 text-red-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {isBlurred && !nameAvailabilityQuery.isLoading && nameAvailabilityQuery.data && (
+                  <p className={cn("text-sm mt-1", {
+                    "text-green-500": nameAvailabilityQuery.data.available,
+                    "text-red-500": !nameAvailabilityQuery.data.available,
+                  })}>
+                    {nameAvailabilityQuery.data.message}
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
           />
+          
           <FormField
             control={form.control}
-            name="slug"
+            name="websiteUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Organization ID</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    {...field}
-                    className="w-full"
-                    placeholder="Enter organization ID"
-                    onChange={(e) => {
-                      field.onChange(formatId(e.target.value));
-                    }}
-                  />
-                </FormControl>
+                <FormLabel>Website URL</FormLabel>
+                <div className="relative">
+                  <FormControl>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <Globe className="size-4 text-muted-foreground" />
+                      </div>
+                      <Input
+                        type="url"
+                        {...field}
+                        value={field.value ?? ""}
+                        className="w-full pl-10"
+                        placeholder="https://yourcompany.com"
+                      />
+                    </div>
+                  </FormControl>
+                </div>
                 <FormDescription>
-                  The organization ID is used to identify the organization. It will be used in all the URLs.
+                  Optional: Enter your company website URL
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+          
           <FormField
             control={form.control}
-            name="email"
+            name="bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Organization Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    {...field}
-                    className="w-full"
-                    placeholder="Enter organization email"
-                  />
-                </FormControl>
+                <FormLabel>Company Bio</FormLabel>
+                <div className="relative">
+                  <FormControl>
+                    <div className="relative">
+                      <div className="pointer-events-none absolute left-3 top-3">
+                        <FileText className="size-4 text-muted-foreground" />
+                      </div>
+                      <Textarea
+                        {...field}
+                        value={field.value ?? ""}
+                        className="min-h-[100px] w-full resize-y pl-10"
+                        placeholder="Tell us about your company..."
+                      />
+                    </div>
+                  </FormControl>
+                </div>
                 <FormDescription>
-                  The billing email, will be used to send invoices, plan reminders.
+                  Optional: Brief description of your company (max 500 characters)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="planId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Select Plan</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a plan" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="FREE">
+                      <div className="flex items-center">
+                        <span>Free - Basic features for small teams</span>
+                        <BadgeCheck className="ml-2 size-4 text-green-500" />
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="BASIC">
+                      Basic - Enhanced features for growing teams
+                    </SelectItem>
+                    <SelectItem value="PRO">
+                      Pro - Advanced features for professional teams
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  You can change your plan anytime after creating your organization
                 </FormDescription>
                 <FormMessage />
               </FormItem>
