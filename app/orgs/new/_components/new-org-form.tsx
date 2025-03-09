@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/core/input";
 import { Textarea } from "@/components/core/textarea";
 import { Button } from "@/components/core/button";
-import { Loader2, CheckCircle2, XCircle, Globe, FileText, BadgeCheck } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Globe, FileText, Check } from "lucide-react";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -39,7 +39,7 @@ export function NewOrganizationForm() {
       name: "",
       websiteUrl: "",
       bio: "",
-      planId: "FREE_MONTHLY",
+      planId: "PRO_MONTHLY",
       billingPeriod: "MONTHLY",
     },
   });
@@ -235,11 +235,11 @@ export function NewOrganizationForm() {
               render={({ field }) => (
                 <FormItem className="space-y-1">
                   <FormLabel>Billing Period</FormLabel>
-                  <div className="flex space-x-4">
+                  <div className="mx-auto flex max-w-xs overflow-hidden rounded-lg border bg-background/80">
                     <div
                       className={cn(
-                        "flex-1 cursor-pointer rounded-md border p-3 text-center transition-all hover:border-primary",
-                        field.value === "MONTHLY" && "border-2 border-primary bg-primary/5"
+                        "flex-1 cursor-pointer px-4 py-2 text-center transition-all",
+                        field.value === "MONTHLY" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                       )}
                       onClick={() => {
                         field.onChange("MONTHLY");
@@ -249,12 +249,11 @@ export function NewOrganizationForm() {
                       }}
                     >
                       <div className="font-medium">Monthly</div>
-                      <div className="text-xs text-muted-foreground">Pay month-to-month</div>
                     </div>
                     <div
                       className={cn(
-                        "flex-1 cursor-pointer rounded-md border p-3 text-center transition-all hover:border-primary",
-                        field.value === "YEARLY" && "border-2 border-primary bg-primary/5"
+                        "flex-1 cursor-pointer px-4 py-2 text-center transition-all",
+                        field.value === "YEARLY" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                       )}
                       onClick={() => {
                         field.onChange("YEARLY");
@@ -264,12 +263,11 @@ export function NewOrganizationForm() {
                       }}
                     >
                       <div className="font-medium">Yearly</div>
-                      <div className="text-xs text-muted-foreground">Save 20% annually</div>
                     </div>
                     <div
                       className={cn(
-                        "flex-1 cursor-pointer rounded-md border p-3 text-center transition-all hover:border-primary",
-                        field.value === "LIFETIME" && "border-2 border-primary bg-primary/5"
+                        "flex-1 cursor-pointer px-4 py-2 text-center transition-all",
+                        field.value === "LIFETIME" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                       )}
                       onClick={() => {
                         field.onChange("LIFETIME");
@@ -279,8 +277,12 @@ export function NewOrganizationForm() {
                       }}
                     >
                       <div className="font-medium">Lifetime</div>
-                      <div className="text-xs text-muted-foreground">One-time payment</div>
                     </div>
+                  </div>
+                  <div className="mt-1 text-center text-xs text-muted-foreground">
+                    {field.value === "MONTHLY" && "Pay month-to-month"}
+                    {field.value === "YEARLY" && "Save 20% annually"}
+                    {field.value === "LIFETIME" && "One-time payment"}
                   </div>
                   <FormMessage />
                 </FormItem>
@@ -293,60 +295,63 @@ export function NewOrganizationForm() {
               render={({ field }) => (
                 <FormItem className="space-y-4">
                   <FormLabel>Select Plan</FormLabel>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {/* Free Plan */}
-                    <div
-                      className={cn(
-                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
-                        field.value.startsWith("FREE_") && "border-2 border-primary bg-primary/5"
-                      )}
-                      onClick={() => {
-                        const period = form.getValues("billingPeriod");
-                        field.onChange(`FREE_${period}`);
-                      }}
-                    >
-                      <div className="mb-2 flex items-center justify-between">
-                        <h4 className="font-semibold">Free</h4>
-                        <BadgeCheck className="size-5 text-green-500" />
-                      </div>
-                      <div className="mb-2">
-                        <span className="text-2xl font-bold">$0</span>
-                        <span className="text-muted-foreground">{form.getValues("billingPeriod") === "LIFETIME" ? " one-time" : form.getValues("billingPeriod") === "YEARLY" ? "/year" : "/month"}</span>
-                      </div>
-                      <ul className="mb-4 space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>1 organization</span>
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>1 widget per organization</span>
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>Unlimited posts</span>
-                        </li>
-                        <li className="flex items-center">
-                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>1 team member</span>
-                        </li>
-                        <li className="flex items-center text-muted-foreground">
-                          <XCircle className="mr-2 size-4 text-muted-foreground" />
-                          <span>Includes "Powered by" branding</span>
-                        </li>
-                      </ul>
-                    </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Basic Plan */}
 
+                    {/* Plan Toggle */}
+                    <div className="col-span-2 mb-4">
+                      <div className="flex items-center justify-center space-x-4">
+                        <div 
+                          className={cn(
+                            "relative flex cursor-pointer items-center space-x-2 rounded-lg border px-4 py-3 transition-all",
+                            !field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5"
+                          )}
+                          onClick={() => {
+                            const period = form.getValues("billingPeriod");
+                            field.onChange(`BASIC_${period}`);
+                          }}
+                        >
+                          {!field.value.startsWith("PRO_") && (
+                            <div className="absolute right-2 top-2 rounded-full bg-primary p-1">
+                              <Check className="size-3 text-white" />
+                            </div>
+                          )}
+                          <div className="text-center">
+                            <h4 className="font-semibold">Basic</h4>
+                            <div className="text-sm text-muted-foreground">For small teams</div>
+                          </div>
+                        </div>
+                        
+                        <div 
+                          className={cn(
+                            "relative flex cursor-pointer items-center space-x-2 rounded-lg border px-4 py-3 transition-all",
+                            field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5"
+                          )}
+                          onClick={() => {
+                            const period = form.getValues("billingPeriod");
+                            field.onChange(`PRO_${period}`);
+                          }}
+                        >
+                          {field.value.startsWith("PRO_") && (
+                            <div className="absolute right-2 top-2 rounded-full bg-primary p-1">
+                              <Check className="size-3 text-white" />
+                            </div>
+                          )}
+                          <div className="text-center">
+                            <h4 className="font-semibold">Pro</h4>
+                            <div className="text-sm text-muted-foreground">For growing teams</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
                     {/* Basic Plan */}
                     <div
                       className={cn(
-                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
-                        field.value.startsWith("BASIC_") && "border-2 border-primary bg-primary/5"
+                        "flex flex-col rounded-lg border p-4 transition-all",
+                        !field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5",
+                        field.value.startsWith("PRO_") && "opacity-50"
                       )}
-                      onClick={() => {
-                        const period = form.getValues("billingPeriod");
-                        field.onChange(`BASIC_${period}`);
-                      }}
                     >
                       <div className="mb-2 flex items-center justify-between">
                         <h4 className="font-semibold">Basic</h4>
@@ -392,13 +397,10 @@ export function NewOrganizationForm() {
                     {/* Pro Plan */}
                     <div
                       className={cn(
-                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
-                        field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5"
+                        "flex flex-col rounded-lg border p-4 transition-all",
+                        field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5",
+                        !field.value.startsWith("PRO_") && "opacity-50"
                       )}
-                      onClick={() => {
-                        const period = form.getValues("billingPeriod");
-                        field.onChange(`PRO_${period}`);
-                      }}
                     >
                       <div className="mb-2 flex items-center justify-between">
                         <h4 className="font-semibold">Pro</h4>
