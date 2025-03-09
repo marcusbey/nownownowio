@@ -20,6 +20,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createOrganizationAction } from "../new-org.action";
+import { createCheckoutSessionAction } from "../create-checkout-session.action";
 import type { NewOrganizationSchemaType} from "../new-org.schema";
 import { NewOrgsSchema } from "../new-org.schema";
 import { useState } from "react";
@@ -100,6 +101,7 @@ export function NewOrganizationForm() {
         bio: values.bio === "" ? undefined : values.bio,
       };
       
+      // First create the organization
       const result = await createOrganizationAction(formattedValues);
 
       if (!isActionSuccessful(result)) {
@@ -107,6 +109,28 @@ export function NewOrganizationForm() {
         return;
       }
 
+      // Then create a checkout session for payment
+      // Skip payment for LIFETIME plans as they're handled differently
+      if (!values.planId.startsWith("FREE_")) {
+        try {
+          const checkoutResult = await createCheckoutSessionAction({
+            planId: values.planId,
+            organizationId: result.data.id,
+            organizationSlug: result.data.slug,
+          });
+
+          if (isActionSuccessful(checkoutResult) && checkoutResult.data.url) {
+            // Redirect to Stripe checkout
+            window.location.href = checkoutResult.data.url;
+            return;
+          }
+        } catch {
+          toast.error("Failed to create payment session. Please try again.");
+          // Error is handled by the toast notification
+        }
+      }
+
+      // If no payment needed or checkout failed, redirect to org page
       router.refresh();
       form.reset(result.data as NewOrganizationSchemaType);
       router.push(`/orgs/${result.data.slug}`);
