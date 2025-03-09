@@ -15,23 +15,45 @@ export const createOrganizationQuery = async (
     name: params.name as string,
   });
 
-  // Extract the plan ID and billing period from the combined format (e.g., "BASIC_MONTHLY")
-  const planIdParts = params.planId.split("_");
-  const planType = planIdParts[0];
-  // Use the provided billing period
-  const billingPeriod = params.billingPeriod;
+  // First, try to find the plan requested by the user
+  let planId = params.planId;
   
-  // Construct the actual plan ID for the database
-  // Format: PLANTYPE_BILLINGTYPE (e.g., BASIC_RECURRING, PRO_LIFETIME)
-  const dbPlanId = `${planType}_${billingPeriod === "LIFETIME" ? "LIFETIME" : "RECURRING"}`;
+  // Check if the requested plan exists
+  let plan = await prisma.organizationPlan.findUnique({
+    where: { id: planId }
+  });
+  
+  // If the requested plan doesn't exist, find any available plan
+  if (!plan) {
+    // First try to find the FREE plan
+    plan = await prisma.organizationPlan.findFirst({
+      where: { type: "FREE" }
+    });
+    
+    // If no FREE plan exists, find any plan
+    if (!plan) {
+      plan = await prisma.organizationPlan.findFirst();
+      
+      // If no plans exist at all, we can't proceed
+      if (!plan) {
+        throw new Error("No organization plans exist in the database. Please contact support.");
+      }
+    }
+    
+    // Use the found plan's ID
+    planId = plan.id;
+  }
 
   const organization = await prisma.organization.create({
     data: {
-      ...params,
-      planId: dbPlanId,
-      stripeCustomerId: customer.id,
+      slug: params.slug,
+      name: params.name,
+      email: params.email,
       websiteUrl: params.websiteUrl === "" ? undefined : params.websiteUrl,
       bio: params.bio === "" ? undefined : params.bio,
+      stripeCustomerId: customer.id,
+      members: params.members,
+      planId: planId // Use the plan ID we found or created
     },
   });
 

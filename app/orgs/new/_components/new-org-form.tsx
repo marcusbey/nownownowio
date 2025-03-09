@@ -73,11 +73,18 @@ export function NewOrganizationForm() {
     setIsBlurred(false);
   };
 
-  // Handle blur event to trigger validation
+  // Handle blur event to remove spaces and trigger validation
   const handleBlur = () => {
     const value = form.getValues("name");
     if (value) {
-      setNameToCheck(value);
+      // Remove all spaces from the input value
+      const trimmedValue = value.replace(/\s+/g, "");
+      
+      // Update the form value with the trimmed value
+      form.setValue("name", trimmedValue);
+      
+      // Set the trimmed value for validation
+      setNameToCheck(trimmedValue);
       setIsBlurred(true);
     }
   };
@@ -107,7 +114,7 @@ export function NewOrganizationForm() {
       const result = await createOrganizationAction(formattedValues);
 
       if (!isActionSuccessful(result)) {
-        toast.error(result?.serverError ?? "Failed to create organization");
+        toast.error(result?.serverError ?? "Failed to create project");
         return;
       }
 
@@ -131,13 +138,11 @@ export function NewOrganizationForm() {
             throw new Error("Failed to create checkout session");
           }
 
-          const checkoutData = await response.json();
-          
-          if (checkoutData.url) {
-            // Redirect to Stripe checkout
-            window.location.href = checkoutData.url;
-            return;
-          }
+          // Skip Stripe checkout for trial period
+          toast.success("Your project has been created with a 7-day free trial!");
+          // Redirect to organization settings page
+          router.push(`/orgs/${result.data.slug}`);
+          return;
         } catch {
           toast.error("Failed to create payment session. Please try again.");
           // Error is handled by the toast notification
@@ -159,7 +164,7 @@ export function NewOrganizationForm() {
     >
       <Card className="bg-card shadow-md">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Create Your Organization</CardTitle>
+          <CardTitle className="text-xl font-semibold">Create Your Project</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <FormField
@@ -167,7 +172,7 @@ export function NewOrganizationForm() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company Name</FormLabel>
+                <FormLabel>Companyname or Username</FormLabel>
                 <div className="relative">
                   <FormControl>
                     <Input
@@ -176,7 +181,7 @@ export function NewOrganizationForm() {
                       className={cn("w-full pr-10 bg-background/80 border-input/80", {
                         "border-red-500 focus-visible:ring-red-500": isBlurred && nameAvailabilityQuery.data && !nameAvailabilityQuery.data.available,
                       })}
-                      placeholder="Enter company name"
+                      placeholder="Enter a name"
                       autoFocus
                       onChange={handleNameChange}
                       onBlur={handleBlur}
@@ -219,13 +224,13 @@ export function NewOrganizationForm() {
                         {...field}
                         value={field.value ?? ""}
                         className="w-full border-input/80 bg-background/80 pl-10"
-                        placeholder="https://yourcompany.com"
+                        placeholder="https://yourproject.com"
                       />
                     </div>
                   </FormControl>
                 </div>
                 <FormDescription>
-                  Optional: Enter your company website URL
+                  Optional: Enter your project website URL
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -237,7 +242,7 @@ export function NewOrganizationForm() {
             name="bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company Bio</FormLabel>
+                <FormLabel>Bio</FormLabel>
                 <div className="relative">
                   <FormControl>
                     <div className="relative">
@@ -248,13 +253,13 @@ export function NewOrganizationForm() {
                         {...field}
                         value={field.value ?? ""}
                         className="min-h-[100px] w-full resize-y border-input/80 bg-background/80 pl-10"
-                        placeholder="Tell us about your company..."
+                        placeholder="Tell us about your project..."
                       />
                     </div>
                   </FormControl>
                 </div>
                 <FormDescription>
-                  Optional: Brief description of your company (max 500 characters)
+                  Optional: Brief description of your project (max 500 characters)
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -262,9 +267,13 @@ export function NewOrganizationForm() {
           />
           
           <div className="space-y-6 rounded-lg border p-6">
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">Select Your Plan</h3>
-              <p className="text-sm text-muted-foreground">Choose the plan that works best for your organization</p>
+            <div className="space-y-3 px-1">
+              <h3 className="pl-1 text-lg font-medium">Select Your Plan</h3>
+              <p className="text-sm text-muted-foreground">Choose the plan that works best for your project</p>
+              <div className="mt-2 flex items-center justify-center rounded-md bg-primary/10 p-2 text-sm text-primary">
+                <span className="mr-2 rounded border border-primary/30 px-1 py-0.5 text-xs font-medium text-primary">NEW</span>
+                <span>7-day free trial on all plans. No credit card required.</span>
+              </div>
             </div>
 
             <FormField
@@ -329,7 +338,7 @@ export function NewOrganizationForm() {
                       <div className="font-medium">Lifetime</div>
                     </div>
                   </div>
-                  <div className="mt-1 text-center text-xs text-muted-foreground">
+                  <div className="mt-8 text-center text-xs text-muted-foreground">
                     {field.value === "MONTHLY" && "Pay month-to-month"}
                     {field.value === "YEARLY" && "Save 20% annually"}
                     {field.value === "LIFETIME" && "One-time payment"}
@@ -384,11 +393,11 @@ export function NewOrganizationForm() {
                       <ul className="mb-4 space-y-2 text-sm">
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>1 organization</span>
+                          <span>1 project</span>
                         </li>
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>1 widget per organization</span>
+                          <span>1 widget per project</span>
                         </li>
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
@@ -444,11 +453,11 @@ export function NewOrganizationForm() {
                       <ul className="mb-4 space-y-2 text-sm">
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>Up to 5 organizations</span>
+                          <span>Up to 5 projects</span>
                         </li>
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>1 widget per organization</span>
+                          <span>1 widget per project</span>
                         </li>
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
@@ -468,7 +477,7 @@ export function NewOrganizationForm() {
                         </li>
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
-                          <span>Custom domain support</span>
+                          <span>Customers Feedback</span>
                         </li>
                         <li className="flex items-center">
                           <CheckCircle2 className="mr-2 size-4 text-green-500" />
@@ -478,7 +487,7 @@ export function NewOrganizationForm() {
                     </div>
                   </div>
                   <FormDescription>
-                    You can change your plan anytime after creating your organization
+                    You can change your plan anytime after creating your project
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -506,7 +515,7 @@ export function NewOrganizationForm() {
             }}
           >
             {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Create organization
+            Start Sharing Your Journey
           </Button>
         </CardFooter>
       </Card>
