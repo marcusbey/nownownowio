@@ -136,7 +136,6 @@ export function NewOrganizationForm() {
                       type="text"
                       {...field}
                       className={cn("w-full pr-10 bg-background/80 border-input/80", {
-                        "border-green-500 focus-visible:ring-green-500": isBlurred && nameAvailabilityQuery.data?.available,
                         "border-red-500 focus-visible:ring-red-500": isBlurred && nameAvailabilityQuery.data && !nameAvailabilityQuery.data.available,
                       })}
                       placeholder="Enter company name"
@@ -155,11 +154,8 @@ export function NewOrganizationForm() {
                     </div>
                   )}
                 </div>
-                {isBlurred && !nameAvailabilityQuery.isLoading && nameAvailabilityQuery.data && (
-                  <p className={cn("text-sm mt-1", {
-                    "text-green-500": nameAvailabilityQuery.data.available,
-                    "text-red-500": !nameAvailabilityQuery.data.available,
-                  })}>
+                {isBlurred && !nameAvailabilityQuery.isLoading && nameAvailabilityQuery.data && !nameAvailabilityQuery.data.available && (
+                  <p className="mt-1 text-sm text-red-500">
                     {nameAvailabilityQuery.data.message}
                   </p>
                 )}
@@ -184,7 +180,7 @@ export function NewOrganizationForm() {
                         type="url"
                         {...field}
                         value={field.value ?? ""}
-                        className="w-full pl-10 bg-background/80 border-input/80"
+                        className="w-full border-input/80 bg-background/80 pl-10"
                         placeholder="https://yourcompany.com"
                       />
                     </div>
@@ -213,7 +209,7 @@ export function NewOrganizationForm() {
                       <Textarea
                         {...field}
                         value={field.value ?? ""}
-                        className="min-h-[100px] w-full resize-y pl-10 bg-background/80 border-input/80"
+                        className="min-h-[100px] w-full resize-y border-input/80 bg-background/80 pl-10"
                         placeholder="Tell us about your company..."
                       />
                     </div>
