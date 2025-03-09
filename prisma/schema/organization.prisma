@@ -1,28 +1,22 @@
 model Organization {
-  id                String                   @id @default(nanoid(11))
-  name              String
-  slug              String                   @unique @default(nanoid(6))
-  email             String?
-  websiteUrl        String?
-  stripeCustomerId  String?
-  bannerImage       String?
-  planId            String                   @default("FREE")
-  previousPlanId    String?                  // Track the previous plan for upgrades/downgrades
-  planChangedAt     DateTime?                // When the plan was last changed
-  customDomain      String?                  // For Pro plan Customers Feedback
-  hideBranding      Boolean                  @default(false) // Option to hide "Powered by" branding
-  image             String?
-  bio               String?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-  plan              OrganizationPlan         @relation(fields: [planId], references: [id], onDelete: Cascade)
-  previousPlan      OrganizationPlan?        @relation("PreviousPlan", fields: [previousPlanId], references: [id])
-  invitations       OrganizationInvitation[]
-  members           OrganizationMembership[]
-  posts             Post[]
-  widgetConfig      WidgetConfig?
-  widgetUsage       WidgetUsage[]
-  planHistory       OrganizationPlanHistory[]
+  id               String                    @id @default(nanoid(11))
+  name             String
+  slug             String                    @unique @default(nanoid(6))
+  email            String?
+  websiteUrl       String?
+  stripeCustomerId String?
+  planId           String                    @default("FREE")
+  image            String?
+  bio              String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  previousPlanId   String?
+  planChangedAt    DateTime?                 @db.Timestamp(6)
+  plan             OrganizationPlan          @relation(fields: [planId], references: [id], onDelete: Cascade)
+  invitations      OrganizationInvitation[]
+  members          OrganizationMembership[]
+  planHistory      OrganizationPlanHistory[]
+  posts            Post[]
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -45,12 +39,12 @@ model OrganizationInvitation {
 }
 
 model OrganizationMembership {
-  id             String                     @id @default(nanoid(11))
+  id             String                       @id @default(nanoid(11))
   organizationId String
   userId         String
-  role           OrganizationMembershipRole  @default(MEMBER)
-  organization   Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles          OrganizationMembershipRole[]
+  organization   Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
   @@index([organizationId])
@@ -58,36 +52,41 @@ model OrganizationMembership {
 }
 
 model OrganizationPlan {
-  id                    String                @id @default(nanoid(11))
-  name                  String
-  type                  OrganizationPlanType  @default(FREE)
-  billingCycle          BillingCycle          @default(MONTHLY)
-  price                 Int                   @default(0)        // Price in cents
-  maximumOrganizations  Int                   @default(1)        // Number of orgs a user can create with this plan
-  maximumMembers        Int                   @default(1)        // Team members per org
-  maximumWidgets        Int                   @default(1)        // Widgets per org
-  monthlyViews          Int                   @default(500)      // Monthly widget views
-  canHideBranding       Boolean               @default(false)    // Can hide "Powered by" branding
-  canUseCustomDomain    Boolean               @default(false)    // Can use custom domain
-  supportPriority       SupportPriority       @default(STANDARD) // Support priority level
-  canPinPosts           Boolean               @default(false)    // Can pin posts
-  canEditPosts          Boolean               @default(false)    // Can edit posts
-  canDeletePosts        Boolean               @default(false)    // Can delete posts
-  canArchivePosts       Boolean               @default(false)    // Can archive posts
-  hasAnalytics          Boolean               @default(false)    // Has analytics
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  organizations         Organization[]        @relation()
-  previousOrganizations Organization[]        @relation("PreviousPlan")
-  users                 User[]                @relation("UserPlan")
-  userPlanHistory       UserPlanHistory[]     @relation()
-  previousUserPlans     UserPlanHistory[]     @relation("PreviousPlanHistory")
-  orgPlanHistory        OrganizationPlanHistory[] @relation()
-  previousOrgPlans      OrganizationPlanHistory[] @relation("OrgPreviousPlanHistory")
-
-  @@unique([type, billingCycle])
+  id                String                    @id @default(nanoid(11))
+  name              String
+  type              OrganizationPlanType      @default(FREE)
+  billingCycle      BillingCycle              @default(MONTHLY)
+  maximumMembers    Int                       @default(1)
+  maxPostsPerDay    Int                       @default(5)
+  maxCommentsPerDay Int                       @default(20)
+  maxLikesPerDay    Int                       @default(100)
+  maxMediaPerPost   Int                       @default(1)
+  canSchedulePosts  Boolean                   @default(false)
+  canPinPosts       Boolean                   @default(false)
+  hasAnalytics      Boolean                   @default(false)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  organizations     Organization[]
+  orgPlanHistory    OrganizationPlanHistory[]
+  previousOrgPlans  OrganizationPlanHistory[] @relation("OrgPreviousPlanHistory")
 
   @@index([type])
+}
+
+model OrganizationPlanHistory {
+  id             String            @id @default(nanoid(11))
+  organizationId String
+  planId         String
+  previousPlanId String?
+  changeType     String            @default("UPGRADE")
+  startDate      DateTime          @default(now()) @db.Timestamp(6)
+  endDate        DateTime?         @db.Timestamp(6)
+  proratedAmount Int?
+  notes          String?
+  createdAt      DateTime          @default(now()) @db.Timestamp(6)
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan           OrganizationPlan  @relation(fields: [planId], references: [id])
+  previousPlan   OrganizationPlan? @relation("OrgPreviousPlanHistory", fields: [previousPlanId], references: [id])
 }
 
 enum OrganizationPlanType {
@@ -96,77 +95,14 @@ enum OrganizationPlanType {
   PRO
 }
 
-enum OrganizationMembershipRole {
-  OWNER
-  ADMIN
-  MEMBER
-}
-
 enum BillingCycle {
   MONTHLY
   ANNUAL
   LIFETIME
 }
 
-enum SupportPriority {
-  STANDARD
-  PRIORITY
-}
-
-enum PlanChangeType {
-  UPGRADE
-  DOWNGRADE
-  RENEWAL
-  CANCELLATION
-  TRIAL
-}
-
-model WidgetConfig {
-  id                String       @id @default(nanoid(11))
-  organizationId    String       @unique
-  customCss         String?      // Custom CSS for widget styling
-  theme             String       @default("light") // Widget theme (light, dark, etc.)
-  maxPostsToShow    Int          @default(5) // Number of posts to display in widget
-  refreshInterval   Int          @default(60) // Refresh interval in seconds
-  showBranding      Boolean      @default(true) // Show "Powered by NowNowNow" branding
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-}
-
-model WidgetUsage {
-  id                String       @id @default(nanoid(11))
-  organizationId    String
-  date              DateTime     @default(now()) @db.Date
-  views             Int          @default(0) // Daily widget views
-  uniqueVisitors    Int          @default(0) // Unique visitors
-  referrers         Json?        // Referrer domains as JSON
-  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([organizationId, date])
-  @@index([date])
-  @@index([organizationId])
-}
-
-model OrganizationPlanHistory {
-  id                String            @id @default(nanoid(11))
-  organizationId    String
-  planId            String
-  previousPlanId    String?
-  changeType        PlanChangeType    @default(UPGRADE)
-  startDate         DateTime          @default(now())
-  endDate           DateTime?
-  proratedAmount    Int?              // Amount in cents for prorated charges/refunds
-  notes             String?
-  createdAt         DateTime          @default(now())
-  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  plan              OrganizationPlan  @relation(fields: [planId], references: [id])
-  previousPlan      OrganizationPlan? @relation("OrgPreviousPlanHistory", fields: [previousPlanId], references: [id])
-
-  @@index([organizationId])
-  @@index([planId])
-  @@index([previousPlanId])
-  @@index([startDate, endDate])
+enum OrganizationMembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
 }
