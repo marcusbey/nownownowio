@@ -13,7 +13,7 @@ import {
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
 import { Textarea } from "@/components/core/textarea";
-import { LoadingButton } from "@/features/ui/form/submit-button";
+import { Button } from "@/components/core/button";
 import { Loader2, CheckCircle2, XCircle, Globe, FileText, BadgeCheck } from "lucide-react";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -265,12 +265,27 @@ export function NewOrganizationForm() {
           />
         </CardContent>
         <CardFooter className="flex justify-end border-t p-6">
-          <LoadingButton
+          <Button
+            type="submit"
             className="w-full sm:w-auto"
+            disabled={!form.getValues("name") || form.formState.isSubmitting || mutation.isPending}
+            onClick={() => {
+              if (!form.getValues("name")) {
+                toast.error("Company name is required");
+                return;
+              }
+              void form.handleSubmit(async (v) => {
+                try {
+                  await mutation.mutateAsync(v);
+                } catch {
+                  // Error is already handled in mutation error handler
+                }
+              })();
+            }}
           >
             {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             Create organization
-          </LoadingButton>
+          </Button>
         </CardFooter>
       </Card>
     </Form>
