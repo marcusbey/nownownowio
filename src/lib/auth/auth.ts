@@ -75,13 +75,16 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   events: {
     signIn: async (message) => {
       // First handle the standard credential sign-in callback
-      if (req) {
-        await credentialsSignInCallback(req)(message);
+      if (req && typeof credentialsSignInCallback === 'function') {
+        const callback = credentialsSignInCallback(req);
+        if (typeof callback === 'function') {
+          await callback(message);
+        }
       }
       
       // Then check if we need to send a verification email
       const { user, account } = message;
-      if (!user?.email || !user.id) return;
+      if (!user || !user.email || !user.id) return;
       
       // Only proceed for credentials provider and if email isn't verified
       if (account && account.provider === 'credentials') {

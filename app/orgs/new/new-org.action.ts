@@ -13,7 +13,7 @@ export const createOrganizationAction = authAction
     
     // Use the user's email as the organization email
     // This ensures the organization email matches the owner's email
-    const orgEmail = userEmail || `admin@${slug}.com`;
+    const orgEmail = userEmail;
     
     const org = await createOrganizationQuery({
       slug: parsedInput.slug,

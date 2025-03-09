@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Skeleton } from "@/components/feedback/skeleton";
 import type { PageParams } from "@/types/next";
-import { PlanContent } from "./plan-content";
+import { SettingsPlanContent } from "./settings-plan-content";
 import { combineWithParentMetadata } from "@/lib/metadata";
 
 export const generateMetadata = combineWithParentMetadata({
@@ -10,11 +10,13 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function PlanPage({ params }: PageParams<{ orgSlug: string }>) {
-  const { orgSlug } = params;
+  // Next.js 15+ requires awaiting params
+  const awaitedParams = await params;
+  const orgSlug = awaitedParams.orgSlug;
   
   return (
     <Suspense fallback={<PlanSkeleton />}>
-      <PlanContent orgSlug={orgSlug} />
+      <SettingsPlanContent orgSlug={orgSlug} />
     </Suspense>
   );
 }
