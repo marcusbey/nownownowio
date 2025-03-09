@@ -24,7 +24,7 @@ import type { NewOrganizationSchemaType} from "../new-org.schema";
 import { NewOrgsSchema } from "../new-org.schema";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/core/select";
+// Select components no longer needed with the new card-based plan selection
 
 type NameAvailabilityResponse = {
   available: boolean;
@@ -39,7 +39,8 @@ export function NewOrganizationForm() {
       name: "",
       websiteUrl: "",
       bio: "",
-      planId: "FREE",
+      planId: "FREE_MONTHLY",
+      billingPeriod: "MONTHLY",
     },
   });
   const router = useRouter();
@@ -134,7 +135,7 @@ export function NewOrganizationForm() {
                     <Input
                       type="text"
                       {...field}
-                      className={cn("w-full pr-10", {
+                      className={cn("w-full pr-10 bg-background/80 border-input/80", {
                         "border-green-500 focus-visible:ring-green-500": isBlurred && nameAvailabilityQuery.data?.available,
                         "border-red-500 focus-visible:ring-red-500": isBlurred && nameAvailabilityQuery.data && !nameAvailabilityQuery.data.available,
                       })}
@@ -183,7 +184,7 @@ export function NewOrganizationForm() {
                         type="url"
                         {...field}
                         value={field.value ?? ""}
-                        className="w-full pl-10"
+                        className="w-full pl-10 bg-background/80 border-input/80"
                         placeholder="https://yourcompany.com"
                       />
                     </div>
@@ -212,7 +213,7 @@ export function NewOrganizationForm() {
                       <Textarea
                         {...field}
                         value={field.value ?? ""}
-                        className="min-h-[100px] w-full resize-y pl-10"
+                        className="min-h-[100px] w-full resize-y pl-10 bg-background/80 border-input/80"
                         placeholder="Tell us about your company..."
                       />
                     </div>
@@ -226,43 +227,241 @@ export function NewOrganizationForm() {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="planId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Select Plan</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a plan" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="FREE">
-                      <div className="flex items-center">
-                        <span>Free - Basic features for small teams</span>
-                        <BadgeCheck className="ml-2 size-4 text-green-500" />
+          <div className="space-y-6 rounded-lg border p-6">
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">Select Your Plan</h3>
+              <p className="text-sm text-muted-foreground">Choose the plan that works best for your organization</p>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="billingPeriod"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel>Billing Period</FormLabel>
+                  <div className="flex space-x-4">
+                    <div
+                      className={cn(
+                        "flex-1 cursor-pointer rounded-md border p-3 text-center transition-all hover:border-primary",
+                        field.value === "MONTHLY" && "border-2 border-primary bg-primary/5"
+                      )}
+                      onClick={() => {
+                        field.onChange("MONTHLY");
+                        // Update planId to maintain consistency
+                        const currentPlan = form.getValues("planId").split("_")[0];
+                        form.setValue("planId", `${currentPlan}_MONTHLY`);
+                      }}
+                    >
+                      <div className="font-medium">Monthly</div>
+                      <div className="text-xs text-muted-foreground">Pay month-to-month</div>
+                    </div>
+                    <div
+                      className={cn(
+                        "flex-1 cursor-pointer rounded-md border p-3 text-center transition-all hover:border-primary",
+                        field.value === "YEARLY" && "border-2 border-primary bg-primary/5"
+                      )}
+                      onClick={() => {
+                        field.onChange("YEARLY");
+                        // Update planId to maintain consistency
+                        const currentPlan = form.getValues("planId").split("_")[0];
+                        form.setValue("planId", `${currentPlan}_YEARLY`);
+                      }}
+                    >
+                      <div className="font-medium">Yearly</div>
+                      <div className="text-xs text-muted-foreground">Save 20% annually</div>
+                    </div>
+                    <div
+                      className={cn(
+                        "flex-1 cursor-pointer rounded-md border p-3 text-center transition-all hover:border-primary",
+                        field.value === "LIFETIME" && "border-2 border-primary bg-primary/5"
+                      )}
+                      onClick={() => {
+                        field.onChange("LIFETIME");
+                        // Update planId to maintain consistency
+                        const currentPlan = form.getValues("planId").split("_")[0];
+                        form.setValue("planId", `${currentPlan}_LIFETIME`);
+                      }}
+                    >
+                      <div className="font-medium">Lifetime</div>
+                      <div className="text-xs text-muted-foreground">One-time payment</div>
+                    </div>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="planId"
+              render={({ field }) => (
+                <FormItem className="space-y-4">
+                  <FormLabel>Select Plan</FormLabel>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {/* Free Plan */}
+                    <div
+                      className={cn(
+                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
+                        field.value.startsWith("FREE_") && "border-2 border-primary bg-primary/5"
+                      )}
+                      onClick={() => {
+                        const period = form.getValues("billingPeriod");
+                        field.onChange(`FREE_${period}`);
+                      }}
+                    >
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-semibold">Free</h4>
+                        <BadgeCheck className="size-5 text-green-500" />
                       </div>
-                    </SelectItem>
-                    <SelectItem value="BASIC">
-                      Basic - Enhanced features for growing teams
-                    </SelectItem>
-                    <SelectItem value="PRO">
-                      Pro - Advanced features for professional teams
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  You can change your plan anytime after creating your organization
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                      <div className="mb-2">
+                        <span className="text-2xl font-bold">$0</span>
+                        <span className="text-muted-foreground">{form.getValues("billingPeriod") === "LIFETIME" ? " one-time" : form.getValues("billingPeriod") === "YEARLY" ? "/year" : "/month"}</span>
+                      </div>
+                      <ul className="mb-4 space-y-2 text-sm">
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>1 organization</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>1 widget per organization</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Unlimited posts</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>1 team member</span>
+                        </li>
+                        <li className="flex items-center text-muted-foreground">
+                          <XCircle className="mr-2 size-4 text-muted-foreground" />
+                          <span>Includes "Powered by" branding</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Basic Plan */}
+                    <div
+                      className={cn(
+                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
+                        field.value.startsWith("BASIC_") && "border-2 border-primary bg-primary/5"
+                      )}
+                      onClick={() => {
+                        const period = form.getValues("billingPeriod");
+                        field.onChange(`BASIC_${period}`);
+                      }}
+                    >
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-semibold">Basic</h4>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-2xl font-bold">
+                          {form.getValues("billingPeriod") === "LIFETIME" ? "$199" : 
+                           form.getValues("billingPeriod") === "YEARLY" ? "$86" : "$9"}
+                        </span>
+                        <span className="text-muted-foreground">{form.getValues("billingPeriod") === "LIFETIME" ? " one-time" : form.getValues("billingPeriod") === "YEARLY" ? "/year" : "/month"}</span>
+                        {form.getValues("billingPeriod") === "YEARLY" && (
+                          <span className="ml-2 rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">Save 20%</span>
+                        )}
+                      </div>
+                      <ul className="mb-4 space-y-2 text-sm">
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>1 organization</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>1 widget per organization</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Unlimited posts</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>1 team member</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Post management features</span>
+                        </li>
+                        <li className="flex items-center text-muted-foreground">
+                          <XCircle className="mr-2 size-4 text-muted-foreground" />
+                          <span>Includes "Powered by" branding</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Pro Plan */}
+                    <div
+                      className={cn(
+                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
+                        field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5"
+                      )}
+                      onClick={() => {
+                        const period = form.getValues("billingPeriod");
+                        field.onChange(`PRO_${period}`);
+                      }}
+                    >
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-semibold">Pro</h4>
+                        <div className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">Popular</div>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-2xl font-bold">
+                          {form.getValues("billingPeriod") === "LIFETIME" ? "$399" : 
+                           form.getValues("billingPeriod") === "YEARLY" ? "$182" : "$19"}
+                        </span>
+                        <span className="text-muted-foreground">{form.getValues("billingPeriod") === "LIFETIME" ? " one-time" : form.getValues("billingPeriod") === "YEARLY" ? "/year" : "/month"}</span>
+                        {form.getValues("billingPeriod") === "YEARLY" && (
+                          <span className="ml-2 rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">Save 20%</span>
+                        )}
+                      </div>
+                      <ul className="mb-4 space-y-2 text-sm">
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Up to 5 organizations</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>1 widget per organization</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Unlimited posts</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Up to 5 team members</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Optional branding removal</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Advanced analytics</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Custom domain support</span>
+                        </li>
+                        <li className="flex items-center">
+                          <CheckCircle2 className="mr-2 size-4 text-green-500" />
+                          <span>Priority access to new features</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <FormDescription>
+                    You can change your plan anytime after creating your organization
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </CardContent>
         <CardFooter className="flex justify-end border-t p-6">
           <Button
