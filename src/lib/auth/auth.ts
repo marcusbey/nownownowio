@@ -69,9 +69,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   },
   events: {
     signIn: credentialsSignInCallback(req),
-    createUser: async (message) => {
-      const user = message.user;
-
+    createUser: async ({ user }) => {
       if (!user.email) {
         return;
       }
@@ -80,13 +78,35 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
 
       await setupDefaultOrganizationsOrInviteUser(user);
 
+      // Get the user's accounts to check if they used an OAuth provider
+      const accounts = await prisma.account.findMany({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      // Prepare update data
+      const updateData: {
+        resendContactId?: string;
+        emailVerified?: Date;
+      } = {
+        resendContactId,
+      };
+      
+      // Set emailVerified to true for OAuth providers (Google, Twitter, etc.)
+      const hasOAuthAccount = accounts.some(account => 
+        account.provider !== 'credentials'
+      );
+      
+      if (hasOAuthAccount) {
+        updateData.emailVerified = new Date();
+      }
+
       await prisma.user.update({
         where: {
           id: user.id,
         },
-        data: {
-          resendContactId,
-        },
+        data: updateData,
       });
       
       // Set up the user's display name
