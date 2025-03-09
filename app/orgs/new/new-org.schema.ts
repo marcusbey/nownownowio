@@ -8,8 +8,9 @@ export const NewOrgsSchema = z.object({
   bio: z.string().max(500, "Bio must be less than 500 characters").optional().or(z.literal('')),
   planId: z.enum(["BASIC_MONTHLY", "BASIC_YEARLY", "BASIC_LIFETIME", "PRO_MONTHLY", "PRO_YEARLY", "PRO_LIFETIME"]).default("PRO_MONTHLY"),
   billingPeriod: z.enum(["MONTHLY", "YEARLY", "LIFETIME"]).default("MONTHLY"),
+  userEmail: z.string().optional(), // Optional field to store the user's email
 }).transform((data) => {
-  // Auto-generate slug and email from name
+  // Auto-generate slug from name
   const slug = formatId(data.name);
   
   // Ensure slug doesn't use reserved names
@@ -20,7 +21,8 @@ export const NewOrgsSchema = z.object({
   return {
     name: data.name,
     slug: slug,
-    email: `admin@${slug}.com`, // Default email based on slug
+    // The email will be set in the action handler
+    email: data.userEmail, // This will be populated in the action
     websiteUrl: data.websiteUrl ?? undefined,
     bio: data.bio ?? undefined,
     planId: data.planId,

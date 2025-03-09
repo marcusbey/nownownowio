@@ -12,7 +12,9 @@ import { useUploadThing } from "@/lib/uploadthing-client";
 import { Image, Upload, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast type BannerImageFormProps = ageFormProps = {
+import { toast } from "sonner";
+
+type BannerImageFormProps = {
   user: {
     id: string;
     name: string | null;
@@ -97,7 +99,11 @@ export function BannerImageForm({ user }: BannerImageFormProps) {
       );
     } finally {
       setIsUploading(false);
-border-border bg-background<Card className="border-border bg-background">
+    }
+  };
+
+  return (
+    <Card className="border-border bg-background">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg">Profile Banner</CardTitle>
         <CardDescription>
@@ -106,24 +112,28 @@ border-border bg-background<Card className="border-border bg-background">
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-        relative h-32 w-full overflow-hidden rounded-md border border-borderrder border-border">
+          <div className="relative h-32 w-full overflow-hidden rounded-md border border-border">
             {previewUrl ? (
               <>
                 <img
                   src={previewUrl}
                   alt="Banner image"
-                h-full w-full object-coverect-cover"
+                  className="h-full w-full object-cover"
                 />
                 <Button
                   variant="destructive"
-                  className="absolute right-2 top-absolute right-2 top-2 h-8 w-8 border border-border bg-background/80 text-foreground hover:bg-background/90Click={handleRemoveBanner}
+                  className="absolute right-2 top-2 h-8 w-8 border border-border bg-background/80 text-foreground hover:bg-background/90"
+                  onClick={handleRemoveBanner}
                   disabled={isUploading}
                 >
                   <X className="size-4" />
-           size-4Button>
+                </Button>
               </>
             ) : (
-              <div className="flex size-full items-ceflex h-full w-full items-center justify-center bg-muted/30lassName="size-8 text-muted-foregrounsize-8 text-muted-foreground          )}
+              <div className="flex h-full w-full items-center justify-center bg-muted/30">
+                <Image className="size-8 text-muted-foreground" />
+              </div>
+            )}
           </div>
 
           {/* Upload Button */}
@@ -135,7 +145,8 @@ border-border bg-background<Card className="border-border bg-background">
               <input
                 type="file"
                 id="banner-upload"
-                className="absolute inset-0 size-full cabsolute inset-0 h-full w-full cursor-pointer opacity-0leFileChange}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                onChange={handleFileChange}
                 accept="image/*"
                 disabled={isUploading}
               />
@@ -145,7 +156,7 @@ border-border bg-background<Card className="border-border bg-background">
                 disabled={isUploading}
               >
                 <Upload className="size-4" />
-                {isUplosize-4 "Uploading..." : "Upload Banner"}
+                {isUploading ? "Uploading..." : "Upload Banner"}
               </Button>
             </div>
           </div>
