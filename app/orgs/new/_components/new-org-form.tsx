@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/core/input";
 import { Textarea } from "@/components/core/textarea";
 import { Button } from "@/components/core/button";
-import { Loader2, CheckCircle2, XCircle, Globe, FileText, Check } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Globe, FileText } from "lucide-react";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -310,70 +310,25 @@ export function NewOrganizationForm() {
                   <div className="grid gap-4 md:grid-cols-2">
                     {/* Basic Plan */}
 
-                    {/* Plan Toggle */}
-                    <div className="col-span-2 mb-4">
-                      <div className="flex items-center justify-center space-x-4">
-                        <div 
-                          className={cn(
-                            "relative flex cursor-pointer items-center space-x-2 rounded-lg border px-4 py-3 transition-all",
-                            !field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5"
-                          )}
-                          onClick={() => {
-                            const period = form.getValues("billingPeriod");
-                            if (period === "MONTHLY") {
-                              field.onChange("BASIC_MONTHLY");
-                            } else if (period === "YEARLY") {
-                              field.onChange("BASIC_YEARLY");
-                            } else {
-                              field.onChange("BASIC_LIFETIME");
-                            }
-                          }}
-                        >
-                          {!field.value.startsWith("PRO_") && (
-                            <div className="absolute right-2 top-2 rounded-full bg-primary p-1">
-                              <Check className="size-3 text-white" />
-                            </div>
-                          )}
-                          <div className="text-center">
-                            <h4 className="font-semibold">Basic</h4>
-                          </div>
-                        </div>
-                        
-                        <div 
-                          className={cn(
-                            "relative flex cursor-pointer items-center space-x-2 rounded-lg border px-4 py-3 transition-all",
-                            field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5"
-                          )}
-                          onClick={() => {
-                            const period = form.getValues("billingPeriod");
-                            if (period === "MONTHLY") {
-                              field.onChange("PRO_MONTHLY");
-                            } else if (period === "YEARLY") {
-                              field.onChange("PRO_YEARLY");
-                            } else {
-                              field.onChange("PRO_LIFETIME");
-                            }
-                          }}
-                        >
-                          {field.value.startsWith("PRO_") && (
-                            <div className="absolute right-2 top-2 rounded-full bg-primary p-1">
-                              <Check className="size-3 text-white" />
-                            </div>
-                          )}
-                          <div className="text-center">
-                            <h4 className="font-semibold">Pro</h4>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+
                     
                     {/* Basic Plan */}
                     <div
                       className={cn(
-                        "flex flex-col rounded-lg border p-4 transition-all",
+                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
                         !field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5",
-                        field.value.startsWith("PRO_") && "opacity-50"
+                        field.value.startsWith("PRO_") && "opacity-70"
                       )}
+                      onClick={() => {
+                        const period = form.getValues("billingPeriod");
+                        if (period === "MONTHLY") {
+                          field.onChange("BASIC_MONTHLY");
+                        } else if (period === "YEARLY") {
+                          field.onChange("BASIC_YEARLY");
+                        } else {
+                          field.onChange("BASIC_LIFETIME");
+                        }
+                      }}
                     >
                       <div className="mb-2 flex items-center justify-between">
                         <h4 className="font-semibold">Basic</h4>
@@ -419,10 +374,20 @@ export function NewOrganizationForm() {
                     {/* Pro Plan */}
                     <div
                       className={cn(
-                        "flex flex-col rounded-lg border p-4 transition-all",
+                        "flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-primary",
                         field.value.startsWith("PRO_") && "border-2 border-primary bg-primary/5",
-                        !field.value.startsWith("PRO_") && "opacity-50"
+                        !field.value.startsWith("PRO_") && "opacity-70"
                       )}
+                      onClick={() => {
+                        const period = form.getValues("billingPeriod");
+                        if (period === "MONTHLY") {
+                          field.onChange("PRO_MONTHLY");
+                        } else if (period === "YEARLY") {
+                          field.onChange("PRO_YEARLY");
+                        } else {
+                          field.onChange("PRO_LIFETIME");
+                        }
+                      }}
                     >
                       <div className="mb-2 flex items-center justify-between">
                         <h4 className="font-semibold">Pro</h4>
