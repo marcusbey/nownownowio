@@ -20,7 +20,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createOrganizationAction } from "../new-org.action";
-import { createCheckoutSessionAction } from "../create-checkout-session.action";
 import type { NewOrganizationSchemaType} from "../new-org.schema";
 import { NewOrgsSchema } from "../new-org.schema";
 import { useState } from "react";
@@ -113,15 +112,27 @@ export function NewOrganizationForm() {
       // Skip payment for LIFETIME plans as they're handled differently
       if (!values.planId.startsWith("FREE_")) {
         try {
-          const checkoutResult = await createCheckoutSessionAction({
-            planId: values.planId,
-            organizationId: result.data.id,
-            organizationSlug: result.data.slug,
+          // Use the API route to create a checkout session
+          const response = await fetch("/api/v1/payments/create-checkout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              organizationId: result.data.id,
+              planId: values.planId,
+            }),
           });
 
-          if (isActionSuccessful(checkoutResult) && checkoutResult.data.url) {
+          if (!response.ok) {
+            throw new Error("Failed to create checkout session");
+          }
+
+          const checkoutData = await response.json();
+          
+          if (checkoutData.url) {
             // Redirect to Stripe checkout
-            window.location.href = checkoutResult.data.url;
+            window.location.href = checkoutData.url;
             return;
           }
         } catch {
