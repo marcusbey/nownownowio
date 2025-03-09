@@ -318,7 +318,6 @@ export function NewOrganizationForm() {
                           )}
                           <div className="text-center">
                             <h4 className="font-semibold">Basic</h4>
-                            <div className="text-sm text-muted-foreground">For small teams</div>
                           </div>
                         </div>
                         
@@ -339,7 +338,6 @@ export function NewOrganizationForm() {
                           )}
                           <div className="text-center">
                             <h4 className="font-semibold">Pro</h4>
-                            <div className="text-sm text-muted-foreground">For growing teams</div>
                           </div>
                         </div>
                       </div>
