@@ -11,6 +11,7 @@ import {
   credentialsSignInCallback,
 } from "./credentials-provider";
 import { getNextAuthConfigProviders } from "./getNextAuthConfigProviders";
+import { setupUserDisplayName } from "./user-setup";
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   prefix: "/api/v1",
@@ -87,6 +88,11 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
           resendContactId,
         },
       });
+      
+      // Set up the user's display name
+      if (user.id) {
+        await setupUserDisplayName(user.id);
+      }
     },
   },
   jwt: credentialsOverrideJwt,
