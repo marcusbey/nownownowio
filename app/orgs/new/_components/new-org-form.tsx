@@ -71,6 +71,9 @@ export function NewOrganizationForm() {
     const value = e.target.value;
     form.setValue("name", value);
     setIsBlurred(false);
+    
+    // Log form values for debugging
+    console.log("Form values after name change:", form.getValues());
   };
 
   // Handle blur event to remove spaces and trigger validation
@@ -92,6 +95,8 @@ export function NewOrganizationForm() {
   // Create organization mutation
   const mutation = useMutation({
     mutationFn: async (values: NewOrganizationSchemaType) => {
+      // Log form values before submission
+      console.log("Form values before submission:", values);
       // Check name availability one last time before submission
       if (nameToCheck) {
         const checkResponse = await fetch(`/api/v1/orgs/check-name?name=${encodeURIComponent(nameToCheck)}`);
@@ -172,7 +177,7 @@ export function NewOrganizationForm() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Companyname or Username</FormLabel>
+                <FormLabel>Company name or Username</FormLabel>
                 <div className="relative">
                   <FormControl>
                     <Input
@@ -297,6 +302,8 @@ export function NewOrganizationForm() {
                         } else {
                           form.setValue("planId", "PRO_MONTHLY");
                         }
+                        // Log form values for debugging
+                        console.log("Form values after selecting MONTHLY:", form.getValues());
                       }}
                     >
                       <div className="font-medium">Monthly</div>
@@ -315,6 +322,8 @@ export function NewOrganizationForm() {
                         } else {
                           form.setValue("planId", "PRO_YEARLY");
                         }
+                        // Log form values for debugging
+                        console.log("Form values after selecting YEARLY:", form.getValues());
                       }}
                     >
                       <div className="font-medium">Yearly</div>
@@ -333,6 +342,8 @@ export function NewOrganizationForm() {
                         } else {
                           form.setValue("planId", "PRO_LIFETIME");
                         }
+                        // Log form values for debugging
+                        console.log("Form values after selecting LIFETIME:", form.getValues());
                       }}
                     >
                       <div className="font-medium">Lifetime</div>
@@ -375,6 +386,8 @@ export function NewOrganizationForm() {
                         } else {
                           field.onChange("BASIC_LIFETIME");
                         }
+                        // Log form values for debugging
+                        console.log("Form values after selecting BASIC plan:", form.getValues());
                       }}
                     >
                       <div className="mb-2 flex items-center justify-between">
@@ -434,6 +447,8 @@ export function NewOrganizationForm() {
                         } else {
                           field.onChange("PRO_LIFETIME");
                         }
+                        // Log form values for debugging
+                        console.log("Form values after selecting PRO plan:", form.getValues());
                       }}
                     >
                       <div className="mb-2 flex items-center justify-between">

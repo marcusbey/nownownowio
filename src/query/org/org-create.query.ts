@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { createCustomer } from "@/lib/stripe";
-import type { Prisma, OrganizationPlanType } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export const createOrganizationQuery = async (
   params: Prisma.OrganizationUncheckedCreateInput & { 
@@ -15,48 +15,30 @@ export const createOrganizationQuery = async (
     name: params.name as string,
   });
 
-  // Extract plan type from the planId (e.g., PRO_MONTHLY -> PRO)
-  const planParts = params.planId.split('_');
-  // Map the plan type string to the enum value
-  let planType: OrganizationPlanType;
-  
-  // Convert the string to the proper enum value
-  if (planParts[0] === 'PRO') {
-    planType = 'PRO' as OrganizationPlanType;
-  } else if (planParts[0] === 'BASIC') {
-    planType = 'BASIC' as OrganizationPlanType;
-  } else {
-    planType = 'FREE' as OrganizationPlanType;
-  }
-  
-  // Try to find a plan with the requested type
+  // Try to find a plan with the requested ID directly
+  // This is the most reliable approach since the IDs in the form match the IDs in the database
   let plan = await prisma.organizationPlan.findFirst({
     where: { 
-      type: planType
+      id: params.planId
     }
   });
   
-  // If no plan with the requested type exists, fall back to the FREE plan
+  // If no plan with the exact ID exists, try to find a FREE plan
   if (!plan) {
     plan = await prisma.organizationPlan.findFirst({
-      where: { type: "FREE" }
+      where: { 
+        id: 'FREE_MONTHLY'
+      }
     });
   }
   
-  // If no plan with the requested type exists, fall back to the FREE plan
+  // If no FREE_MONTHLY plan exists, find any plan
   if (!plan) {
-    plan = await prisma.organizationPlan.findFirst({
-      where: { type: "FREE" }
-    });
+    plan = await prisma.organizationPlan.findFirst();
     
-    // If no FREE plan exists, find any plan
+    // If no plans exist at all, we can't proceed
     if (!plan) {
-      plan = await prisma.organizationPlan.findFirst();
-      
-      // If no plans exist at all, we can't proceed
-      if (!plan) {
-        throw new Error("No organization plans exist in the database. Please contact support.");
-      }
+      throw new Error("No organization plans exist in the database. Please contact support.");
     }
   }
   
