@@ -6,20 +6,20 @@ export const createOrganizationQuery = async (
   params: Prisma.OrganizationUncheckedCreateInput & { 
     websiteUrl?: string | undefined;
     bio?: string | undefined;
-    planId?: string;
-    billingPeriod?: "MONTHLY" | "YEARLY" | "LIFETIME";
+    planId: string;
+    billingPeriod: "MONTHLY" | "YEARLY" | "LIFETIME";
   },
 ) => {
   const customer = await createCustomer({
-    email: params.email,
-    name: params.name,
+    email: params.email as string,
+    name: params.name as string,
   });
 
   // Extract the plan ID and billing period from the combined format (e.g., "BASIC_MONTHLY")
-  const planIdParts = (params.planId ?? "FREE_MONTHLY").split("_");
-  const planType = planIdParts[0] ?? "FREE";
-  // planIdParts[1] might be undefined if planId doesn't contain an underscore
-  const billingPeriod = params.billingPeriod ?? planIdParts[1] ?? "MONTHLY";
+  const planIdParts = params.planId.split("_");
+  const planType = planIdParts[0];
+  // Use the provided billing period
+  const billingPeriod = params.billingPeriod;
   
   // Construct the actual plan ID for the database
   // Format: PLANTYPE_BILLINGTYPE (e.g., BASIC_RECURRING, PRO_LIFETIME)
