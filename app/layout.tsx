@@ -54,7 +54,16 @@ export default function RootLayout({
           data-domain="nownownow.io"
           src="https://datafa.st/js/script.js"
         />
-        <script defer src="http://localhost:5173/dist/now-widget.js" data-user-id="Ng1D9LbmlQL" data-token="TmcxRDlMYm1sUUwuMTc0MTMxNjEwMzU5Ni53aWRnZXQtdG9rZW4=" data-theme="dark" data-position="left" data-button-color="#1a73e8" data-button-size="90"></script>
+        <script
+          defer
+          src="http://localhost:5173/dist/now-widget.js"
+          data-user-id="NlllYSZEvmr"
+          data-token="TmxsbFlTWkV2bXIuMTc0MTUzMTIzNjcyOC53aWRnZXQtdG9rZW4="
+          data-theme="dark"
+          data-position="left"
+          data-button-color="#1a73e8"
+          data-button-size="90"
+        ></script>
         </body>
       </html>
     </>
