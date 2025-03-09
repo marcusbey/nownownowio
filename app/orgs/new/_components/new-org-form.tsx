@@ -21,6 +21,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createOrganizationAction } from "../new-org.action";
 import type { NewOrganizationSchemaType} from "../new-org.schema";
+
+// Import the API route instead of the server action since we're using the API route
+// for the checkout session
 import { NewOrgsSchema } from "../new-org.schema";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
