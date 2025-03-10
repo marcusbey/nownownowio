@@ -2,6 +2,7 @@
 
 
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
@@ -48,8 +49,9 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
   });
 
   return (
-    <form
-      onSubmit={form.handleSubmit((v) => {
+    <Form
+      form={form}
+      onSubmit={(v) => {
         alertDialog.add({
           title: "Are you sure?",
           description:
@@ -61,7 +63,7 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
             },
           },
         });
-      })}
+      }}
       className="flex w-full flex-col gap-4"
     >
       <div className="flex items-end gap-3">
@@ -94,6 +96,6 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
           Update Slug
         </Button>
       </div>
-    </form>
+    </Form>
   );
 };
