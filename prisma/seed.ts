@@ -16,13 +16,13 @@ async function main() {
         "maxCommentsPerDay", "maxLikesPerDay", "maxMediaPerPost", 
         "canSchedulePosts", "canPinPosts", "hasAnalytics", "createdAt", "updatedAt"
       ) VALUES 
-      ('FREE_PLAN', 'Free', 'FREE', 'MONTHLY', 1, 5, 20, 100, 1, false, false, false, NOW(), NOW()),
-      ('BASIC_MONTHLY', 'Basic Monthly', 'BASIC', 'MONTHLY', 3, 10, 50, 200, 2, false, true, true, NOW(), NOW()),
-      ('BASIC_ANNUAL', 'Basic Annual', 'BASIC', 'ANNUAL', 3, 10, 50, 200, 2, false, true, true, NOW(), NOW()),
-      ('PRO_MONTHLY', 'Pro Monthly', 'PRO', 'MONTHLY', 10, 30, 100, 500, 5, true, true, true, NOW(), NOW()),
-      ('PRO_ANNUAL', 'Pro Annual', 'PRO', 'ANNUAL', 10, 30, 100, 500, 5, true, true, true, NOW(), NOW()),
-      ('PREMIUM_MONTHLY', 'Premium Monthly', 'PREMIUM', 'MONTHLY', 50, 100, 500, 1000, 10, true, true, true, NOW(), NOW()),
-      ('LIFETIME_PLAN', 'Lifetime Plan', 'LIFETIME', 'LIFETIME', 20, 50, 200, 800, 8, true, true, true, NOW(), NOW())
+      ('FREE', 'Free', 'FREE', 'MONTHLY', 1, 5, 20, 100, 1, false, false, false, NOW(), NOW()),
+      ('BASIC_MONTHLY', 'Basic Monthly', 'BASIC', 'MONTHLY', 1, 2147483647, 2147483647, 2147483647, 1, false, true, false, NOW(), NOW()),
+      ('BASIC_ANNUAL', 'Basic Annual', 'BASIC', 'ANNUAL', 1, 2147483647, 2147483647, 2147483647, 1, false, true, false, NOW(), NOW()),
+      ('BASIC_LIFETIME', 'Basic Lifetime', 'BASIC', 'LIFETIME', 1, 2147483647, 2147483647, 2147483647, 1, false, true, false, NOW(), NOW()),
+      ('PRO_MONTHLY', 'Pro Monthly', 'PRO', 'MONTHLY', 5, 2147483647, 2147483647, 2147483647, 5, true, true, true, NOW(), NOW()),
+      ('PRO_ANNUAL', 'Pro Annual', 'PRO', 'ANNUAL', 5, 2147483647, 2147483647, 2147483647, 5, true, true, true, NOW(), NOW()),
+      ('PRO_LIFETIME', 'Pro Lifetime', 'PRO', 'LIFETIME', 5, 2147483647, 2147483647, 2147483647, 5, true, true, true, NOW(), NOW())
       ON CONFLICT (id) DO NOTHING;
     `);
 
