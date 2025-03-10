@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/data-display/card";
+
 import {
   FormControl,
   FormField,
@@ -16,14 +10,14 @@ import {
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
 import { alertDialog } from "@/features/ui/alert-dialog/alert-dialog-store";
-import { FormUnsavedBar } from "@/features/ui/form/form-unsaved-bar";
+import { Button } from "@/components/core/button";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { formatId } from "@/lib/format/id";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateOrganizationDetailsAction } from "../org.action";
-import { OrgDangerFormSchema, OrgDangerFormSchemaType } from "../org.schema";
+import { OrgDangerFormSchema, type OrgDangerFormSchemaType } from "../org.schema";
 type ProductFormProps = {
   defaultValues: OrgDangerFormSchemaType;
 };
@@ -54,9 +48,8 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
   });
 
   return (
-    <FormUnsavedBar
-      form={form}
-      onSubmit={(v) => {
+    <form
+      onSubmit={form.handleSubmit((v) => {
         alertDialog.add({
           title: "Are you sure?",
           description:
@@ -68,15 +61,15 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
             },
           },
         });
-      }}
+      })}
       className="flex w-full flex-col gap-4"
     >
-      <div className="space-y-4">
+      <div className="flex items-end gap-3">
         <FormField
           control={form.control}
           name="slug"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex-1">
               <FormControl>
                 <Input
                   placeholder="Enter new organization slug"
@@ -92,7 +85,15 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
             </FormItem>
           )}
         />
+        <Button 
+          type="submit" 
+          variant="destructive" 
+          size="sm"
+          className="shrink-0"
+        >
+          Update Slug
+        </Button>
       </div>
-    </FormUnsavedBar>
+    </form>
   );
 };

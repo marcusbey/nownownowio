@@ -52,13 +52,13 @@ export default async function RoutePage(props: PageParams) {
     <div className="py-6 max-w-4xl mx-auto">
       <div className="mb-8 border-b pb-4">
         <div className="flex items-center gap-2 mb-2">
-          <div className="bg-destructive/10 p-2 rounded-full">
+          <div className="bg-destructive/15 p-2 rounded-full">
             <ShieldAlert className="size-6 text-destructive" />
           </div>
-          <Typography variant="h2">Danger Zone</Typography>
-          <Badge variant="destructive" className="ml-2">Owner Only</Badge>
+          <Typography variant="h2" className="text-foreground font-bold">Danger Zone</Typography>
+          <Badge variant="destructive" className="ml-2 font-medium">Owner Only</Badge>
         </div>
-        <Typography variant="muted" className="max-w-2xl">
+        <Typography className="max-w-2xl text-foreground/80">
           Manage critical organization settings that could have serious consequences. 
           Changes made here may affect all members and organization data.
         </Typography>
@@ -66,12 +66,12 @@ export default async function RoutePage(props: PageParams) {
       
       <div className="space-y-8">
         {/* Organization Slug Section */}
-        <Card className="border border-destructive/20 shadow-sm hover:border-destructive/40 transition-colors">
+        <Card className="border-2 border-destructive/30 shadow-md hover:border-destructive/50 transition-colors bg-background">
           <CardHeader className="pb-2 border-b border-destructive/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="size-5 text-destructive" />
-                <CardTitle className="text-lg text-destructive">Organization Slug</CardTitle>
+                <CardTitle className="text-lg font-bold text-destructive">Organization Slug</CardTitle>
               </div>
               <TooltipProvider>
                 <Tooltip>
@@ -86,16 +86,17 @@ export default async function RoutePage(props: PageParams) {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <CardDescription className="mt-1 text-destructive/70">
+            <CardDescription className="mt-1 text-destructive/90 font-medium">
               Changing your organization's slug will break all existing links
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="bg-muted/50 p-3 rounded-md mb-4 border border-border">
-              <Typography variant="small" className="text-muted-foreground">Current slug:</Typography>
+            <div className="bg-muted p-3 rounded-md mb-4 border border-border">
+
+              <Typography variant="small" className="text-foreground/70 font-medium">Current slug:</Typography>
               <div className="flex items-center gap-2 mt-1">
-                <code className="px-2 py-1 bg-background rounded text-sm font-mono">{org.slug}</code>
-                <Typography variant="small" className="text-muted-foreground">in URL: nownownow.io/orgs/<span className="font-semibold">{org.slug}</span>/...</Typography>
+                <code className="px-2 py-1 bg-background rounded text-sm font-mono border border-border">{org.slug}</code>
+                <Typography variant="small" className="text-foreground/70">in URL: nownownow.io/orgs/<span className="font-semibold text-foreground">{org.slug}</span>/...</Typography>
               </div>
             </div>
             <OrganizationDangerForm defaultValues={org} />
@@ -103,28 +104,28 @@ export default async function RoutePage(props: PageParams) {
         </Card>
         
         {/* Delete Organization Section */}
-        <Card className="border border-destructive/20 shadow-sm hover:border-destructive/40 transition-colors">
+        <Card className="border-2 border-destructive/30 shadow-md hover:border-destructive/50 transition-colors bg-background">
           <CardHeader className="pb-2 border-b border-destructive/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Trash2 className="size-5 text-destructive" />
-                <CardTitle className="text-lg text-destructive">Delete Organization</CardTitle>
+                <CardTitle className="text-lg font-bold text-destructive">Delete Organization</CardTitle>
               </div>
-              <Badge variant="destructive" className="uppercase text-xs">Irreversible</Badge>
+              <Badge variant="destructive" className="uppercase text-xs font-bold">Irreversible</Badge>
             </div>
-            <CardDescription className="mt-1 text-destructive/70">
+            <CardDescription className="mt-1 text-destructive/90 font-medium">
               Permanently delete this organization and all its data
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="bg-destructive/5 border border-destructive/20 rounded-md p-4 mb-6">
+            <div className="bg-destructive/10 border-2 border-destructive/30 rounded-md p-4 mb-6">
               <div className="flex gap-3">
                 <AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
                 <div>
-                  <Typography variant="small" className="font-medium text-destructive mb-1">
+                  <Typography variant="small" className="font-bold text-destructive mb-1">
                     Warning: This action cannot be undone
                   </Typography>
-                  <Typography variant="small" className="text-muted-foreground">
+                  <Typography variant="small" className="text-foreground/80">
                     {usersOrganizationsCount <= 1 ? 
                       "You can't delete this organization because you are the only member. If you want to delete your organization, you need to delete your account." :
                       "By deleting your organization, you will lose all your data including posts, comments, and media. Your subscription will be cancelled with no refund."}
