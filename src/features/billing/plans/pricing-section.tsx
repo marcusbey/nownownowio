@@ -2,12 +2,15 @@
 
 import { Check } from "lucide-react";
 import { useState } from "react";
-import { PLANS } from "./plans";
-import type { BillingCycle } from "./plans";
+import { PLANS, PLAN_TYPES } from "./plans";
+import type { BillingCycle, PlanType } from "./plans";
 import { PricingCard } from "./pricing-card";
+import { useRouter } from "next/navigation";
+import { savePlanSelection } from "./plan-actions";
 
 interface PricingSectionProps {
   defaultBillingCycle?: BillingCycle;
+  defaultPlanType?: PlanType;
   showFreeOnly?: boolean;
   showPaidOnly?: boolean;
   title?: string;
@@ -17,16 +20,32 @@ interface PricingSectionProps {
 }
 
 export const PricingCards = ({ compact = false }: { compact?: boolean }) => {
+  const router = useRouter();
   const [isAnnual, setIsAnnual] = useState(false);
+  const [selectedPlanType, setSelectedPlanType] = useState<PlanType>(PLAN_TYPES.BASIC);
 
-  // Get the basic and pro plans based on the selected billing cycle
+  // Get the selected plan based on the selected billing cycle and plan type
   const selectedCycle: BillingCycle = isAnnual ? "ANNUAL" : "MONTHLY";
-  const basicPlan = PLANS.find(plan => plan.planType === "BASIC" && plan.billingCycle === selectedCycle);
-  const proPlan = PLANS.find(plan => plan.planType === "PRO" && plan.billingCycle === selectedCycle);
+  const selectedPlan = PLANS.find(plan => plan.planType === selectedPlanType && plan.billingCycle === selectedCycle);
   
-  // Get lifetime plans
-  const basicLifetimePlan = PLANS.find(plan => plan.id === "BASIC_LIFETIME");
-  const proLifetimePlan = PLANS.find(plan => plan.id === "PRO_LIFETIME");
+  // Get lifetime plan for the selected plan type
+  const lifetimePlan = PLANS.find(plan => 
+    plan.planType === selectedPlanType && 
+    plan.billingCycle === "LIFETIME"
+  );
+  
+  // Handle plan selection and redirect to signup
+  const handlePlanSelection = async (planId: string) => {
+    try {
+      // Save the selected plan to the database
+      await savePlanSelection(planId);
+      
+      // Redirect to signup page
+      router.push("/auth/signup");
+    } catch (error) {
+      console.error("Failed to save plan selection:", error);
+    }
+  };
 
   return (
     <div className="container relative z-10">
@@ -37,14 +56,31 @@ export const PricingCards = ({ compact = false }: { compact?: boolean }) => {
         <div className="text-center mb-12">
           <h2 className="mb-4 text-3xl font-bold">Simple, Transparent Pricing</h2>
           <p className="mx-auto max-w-2xl text-lg text-gray-600">
-            Choose the plan that fits your needs. All plans include our core widget functionality.
+            Choose the perfect plan for your needs
           </p>
           
           <div className="mx-auto mt-6 max-w-2xl rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-md font-medium text-blue-700">
             7-day free trial - No credit card required
           </div>
           
-          <div className="mt-6 inline-flex items-center rounded-lg bg-gray-100 p-1">
+          {/* Plan Type Toggle */}
+          <div className="mt-6 inline-flex items-center rounded-lg bg-gray-100 p-1 mb-4">
+            <button 
+              className={`rounded-md px-4 py-2 transition-all ${selectedPlanType === PLAN_TYPES.BASIC ? 'bg-white shadow-sm' : ''}`}
+              onClick={() => setSelectedPlanType(PLAN_TYPES.BASIC)}
+            >
+              Basic
+            </button>
+            <button 
+              className={`rounded-md px-4 py-2 transition-all ${selectedPlanType === PLAN_TYPES.PRO ? 'bg-white shadow-sm' : ''}`}
+              onClick={() => setSelectedPlanType(PLAN_TYPES.PRO)}
+            >
+              Pro
+            </button>
+          </div>
+          
+          {/* Billing Cycle Toggle */}
+          <div className="mt-2 inline-flex items-center rounded-lg bg-gray-100 p-1">
             <button 
               className={`rounded-md px-4 py-2 transition-all ${!isAnnual ? 'bg-white shadow-sm' : ''}`}
               onClick={() => setIsAnnual(false)}
@@ -80,61 +116,78 @@ export const PricingCards = ({ compact = false }: { compact?: boolean }) => {
         </div>
       )}
 
-      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-12 md:grid-cols-3">
-        {/* Basic Plan */}
-        {basicPlan && (
-          <PricingCard
-            {...basicPlan}
-            selectedBillingCycle={selectedCycle}
-            showBillingToggle={false}
-            className="rounded-xl border border-gray-200 bg-white shadow-sm"
-          />
-        )}
-
-        {/* Pro Plan */}
-        {proPlan && (
-          <PricingCard
-            {...proPlan}
-            selectedBillingCycle={selectedCycle}
-            showBillingToggle={false}
-            isRecommended={true}
-            isPopular={true}
-            className="rounded-xl border border-blue-200 bg-white shadow-md"
-          />
+      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-12 md:grid-cols-2">
+        {/* Monthly/Annual Plan */}
+        {selectedPlan && (
+          <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6">
+            <h3 className="text-2xl font-bold text-gray-900">{selectedPlan.name}</h3>
+            <p className="mt-2 text-sm text-gray-500">{selectedPlan.description}</p>
+            
+            <div className="mt-4 flex items-baseline">
+              <span className="text-4xl font-extrabold">${selectedPlan.price}</span>
+              <span className="ml-1 text-xl text-gray-500">{selectedCycle === "MONTHLY" ? "/month" : "/mo"}</span>
+            </div>
+            
+            {selectedCycle === "ANNUAL" && selectedPlan.yearlyPrice && (
+              <p className="mt-1 text-sm text-green-600">
+                ${selectedPlan.yearlyPrice} billed annually
+              </p>
+            )}
+            
+            <ul className="mt-6 space-y-3">
+              {selectedPlan.features.map((feature, index) => (
+                <li key={index} className="flex items-start">
+                  <Check className="h-5 w-5 flex-shrink-0 text-green-500" />
+                  <span className="ml-3 text-sm text-gray-700">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            
+            <div className="mt-8">
+              <button 
+                onClick={() => handlePlanSelection(selectedPlan.id)}
+                className="block w-full rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-3 text-center text-sm font-medium text-white transition"
+              >
+                Join Community
+              </button>
+            </div>
+          </div>
         )}
         
-        {/* Lifetime Plans Section */}
-        <div className="flex flex-col">
-          <div className="mb-4 text-center">
-            <span className="rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 px-3 py-1 text-sm font-medium text-white">Lifetime Access</span>
-          </div>
-          
-          {/* Basic Lifetime */}
-          <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900">Basic Lifetime</h3>
-            <div className="mt-2 flex items-baseline">
-              <span className="text-3xl font-extrabold">${basicLifetimePlan?.price ?? 199}</span>
+        {/* Lifetime Plan */}
+        {lifetimePlan && (
+          <div className="rounded-xl border border-indigo-200 bg-gradient-to-b from-white to-indigo-50 p-6 shadow-md">
+            <div className="mb-4">
+              <span className="rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 px-3 py-1 text-sm font-medium text-white">Lifetime Access</span>
+            </div>
+            
+            <h3 className="text-2xl font-bold text-gray-900">{lifetimePlan.name}</h3>
+            <p className="mt-2 text-sm text-gray-500">{lifetimePlan.description}</p>
+            
+            <div className="mt-4 flex items-baseline">
+              <span className="text-4xl font-extrabold">${lifetimePlan.price}</span>
               <span className="ml-1 text-sm text-gray-500">one-time</span>
             </div>
-            <p className="mt-2 text-sm text-gray-500">Perfect for individuals and personal websites</p>
-            <div className="mt-4">
-              <a href="#" className="block w-full rounded-md bg-gray-900 px-4 py-2 text-center text-sm font-medium text-white">Buy Basic Lifetime</a>
+            
+            <ul className="mt-6 space-y-3">
+              {lifetimePlan.features.map((feature, index) => (
+                <li key={index} className="flex items-start">
+                  <Check className="h-5 w-5 flex-shrink-0 text-green-500" />
+                  <span className="ml-3 text-sm text-gray-700">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            
+            <div className="mt-8">
+              <button 
+                onClick={() => handlePlanSelection(lifetimePlan.id)}
+                className="block w-full rounded-md bg-indigo-600 hover:bg-indigo-700 px-4 py-3 text-center text-sm font-medium text-white transition"
+              >
+                Join Community
+              </button>
             </div>
           </div>
-          
-          {/* Pro Lifetime */}
-          <div className="rounded-xl border border-indigo-200 bg-gradient-to-b from-white to-indigo-50 p-4 shadow-md">
-            <h3 className="text-xl font-bold text-gray-900">Pro Lifetime</h3>
-            <div className="mt-2 flex items-baseline">
-              <span className="text-3xl font-extrabold">${proLifetimePlan?.price ?? 399}</span>
-              <span className="ml-1 text-sm text-gray-500">one-time</span>
-            </div>
-            <p className="mt-2 text-sm text-gray-500">For entrepreneurs with multiple projects</p>
-            <div className="mt-4">
-              <a href="#" className="block w-full rounded-md bg-indigo-600 px-4 py-2 text-center text-sm font-medium text-white">Buy Pro Lifetime</a>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="mt-16 text-center">
