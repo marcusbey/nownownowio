@@ -1,19 +1,25 @@
-import { Button, buttonVariants } from "@/components/core/button";
+import { buttonVariants } from "@/components/core/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/data-display/card";
-import { Separator } from "@/components/layout/separator";
+import { Badge } from "@/components/data-display/badge";
+import { Typography } from "@/components/data-display/typography";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/data-display/tooltip";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { OrganizationMembershipRole } from "@prisma/client";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Info, ShieldAlert, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { OrganizationDangerForm } from "./OrgDangerForm";
 import { OrganizationDeleteDialog } from "./OrganizationDeleteDialog";
@@ -25,12 +31,16 @@ export const generateMetadata = combineWithParentMetadata({
 
 export default async function RoutePage(props: PageParams) {
   // In Next.js 15, params is a Promise that needs to be properly awaited
-  const params = await props.params;
-  const orgSlug = params.orgSlug;
+  const { orgSlug } = await props.params;
   
   const { org, user } = await getRequiredCurrentOrgCache(orgSlug, [
     OrganizationMembershipRole.OWNER,
   ]);
+  
+  // Ensure user is not null before proceeding
+  if (!user) {
+    throw new Error("User not found");
+  }
 
   const usersOrganizationsCount = await prisma.organizationMembership.count({
     where: {
@@ -40,58 +50,111 @@ export default async function RoutePage(props: PageParams) {
 
   return (
     <div className="py-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-destructive" />
-          Danger Zone
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Manage critical organization settings that could have serious consequences
-        </p>
+      <div className="mb-8 border-b pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="bg-destructive/10 p-2 rounded-full">
+            <ShieldAlert className="size-6 text-destructive" />
+          </div>
+          <Typography variant="h2">Danger Zone</Typography>
+          <Badge variant="destructive" className="ml-2">Owner Only</Badge>
+        </div>
+        <Typography variant="muted" className="max-w-2xl">
+          Manage critical organization settings that could have serious consequences. 
+          Changes made here may affect all members and organization data.
+        </Typography>
       </div>
       
       <div className="space-y-8">
         {/* Organization Slug Section */}
-        <Card className="border border-destructive/20 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-destructive">Organization Slug</CardTitle>
-            <CardDescription>
+        <Card className="border border-destructive/20 shadow-sm hover:border-destructive/40 transition-colors">
+          <CardHeader className="pb-2 border-b border-destructive/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="size-5 text-destructive" />
+                <CardTitle className="text-lg text-destructive">Organization Slug</CardTitle>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="cursor-help">
+                      <Info className="size-4 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">The slug is part of your organization's URL and is used in all links to your organization.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <CardDescription className="mt-1 text-destructive/70">
               Changing your organization's slug will break all existing links
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Your current organization slug is <code className="px-1 py-0.5 bg-muted rounded text-sm">{org.slug}</code>
-            </p>
+          <CardContent className="pt-4">
+            <div className="bg-muted/50 p-3 rounded-md mb-4 border border-border">
+              <Typography variant="small" className="text-muted-foreground">Current slug:</Typography>
+              <div className="flex items-center gap-2 mt-1">
+                <code className="px-2 py-1 bg-background rounded text-sm font-mono">{org.slug}</code>
+                <Typography variant="small" className="text-muted-foreground">in URL: nownownow.io/orgs/<span className="font-semibold">{org.slug}</span>/...</Typography>
+              </div>
+            </div>
             <OrganizationDangerForm defaultValues={org} />
           </CardContent>
         </Card>
         
         {/* Delete Organization Section */}
-        <Card className="border border-destructive/20 shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg text-destructive">Delete Organization</CardTitle>
-            <CardDescription>
+        <Card className="border border-destructive/20 shadow-sm hover:border-destructive/40 transition-colors">
+          <CardHeader className="pb-2 border-b border-destructive/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Trash2 className="size-5 text-destructive" />
+                <CardTitle className="text-lg text-destructive">Delete Organization</CardTitle>
+              </div>
+              <Badge variant="destructive" className="uppercase text-xs">Irreversible</Badge>
+            </div>
+            <CardDescription className="mt-1 text-destructive/70">
               Permanently delete this organization and all its data
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              {usersOrganizationsCount <= 1 ? 
-                "You can't delete this organization because you are the only member. If you want to delete your organization, you need to delete your account." :
-                "By deleting your organization, you will lose all your data and your subscription will be cancelled. No refund will be provided."}
-            </p>
+          <CardContent className="pt-4">
+            <div className="bg-destructive/5 border border-destructive/20 rounded-md p-4 mb-6">
+              <div className="flex gap-3">
+                <AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <Typography variant="small" className="font-medium text-destructive mb-1">
+                    Warning: This action cannot be undone
+                  </Typography>
+                  <Typography variant="small" className="text-muted-foreground">
+                    {usersOrganizationsCount <= 1 ? 
+                      "You can't delete this organization because you are the only member. If you want to delete your organization, you need to delete your account." :
+                      "By deleting your organization, you will lose all your data including posts, comments, and media. Your subscription will be cancelled with no refund."}
+                  </Typography>
+                </div>
+              </div>
+            </div>
             
             {usersOrganizationsCount <= 1 ? (
               <div className="flex justify-end">
-                <Link
-                  href="/account/danger"
-                  className={buttonVariants({
-                    variant: "destructive",
-                  })}
-                >
-                  Delete Account
-                </Link>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/account/danger"
+                        className={buttonVariants({
+                          variant: "destructive",
+                          size: "sm",
+                          className: "gap-2"
+                        })}
+                      >
+                        <Trash2 className="size-4" />
+                        Delete Account
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>This will delete your account and all associated data</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             ) : (
               <div className="flex justify-end">
