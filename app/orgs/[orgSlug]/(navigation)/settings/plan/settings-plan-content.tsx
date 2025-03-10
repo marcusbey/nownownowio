@@ -240,7 +240,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                           </div>
                         )}
                         {isCurrentPlan && (
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                          <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary">
                             Current Plan
                           </Badge>
                         )}

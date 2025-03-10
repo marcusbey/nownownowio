@@ -7,11 +7,13 @@ import { useState } from "react";
 import { BuyButton } from "@/features/billing/payments/buy-button";
 import type { Plan, BillingCycle } from "./plans";
 
-interface PricingCardProps extends Plan {
+type PricingCardProps = Plan & {
   onSelectBillingCycle?: (billingCycle: BillingCycle) => void;
   selectedBillingCycle?: BillingCycle;
   showBillingToggle?: boolean;
   isRecommended?: boolean;
+  className?: string;
+  isPopular?: boolean;
 }
 
 export const PricingCard = (props: PricingCardProps) => {
@@ -21,16 +23,21 @@ export const PricingCard = (props: PricingCardProps) => {
   
   // Get the appropriate price based on billing cycle
   const getPrice = () => {
-    if (props.billingCycle === "MONTHLY") return props.price;
-    if (props.billingCycle === "ANNUAL") return props.price;
-    if (props.billingCycle === "LIFETIME") return props.price;
-    return 0;
+    if (props.billingCycle === "MONTHLY") return Math.round(props.price ?? 0);
+    if (props.billingCycle === "ANNUAL") return Math.round(props.price ?? 0);
+    // LIFETIME or any other case
+    return Math.round(props.price ?? 0);
+  };
+
+  // Format price to ensure it's always a whole number
+  const formatPrice = (price: number) => {
+    return Math.round(price);
   };
 
   // Get the appropriate lifetime price for the plan type
   const getLifetimePrice = () => {
     if (props.planType === "BASIC") return 199;
-    if (props.planType === "PRO") return 599;
+    if (props.planType === "PRO") return 399; // Updated to match the actual price
     return 0;
   };
 
@@ -38,7 +45,8 @@ export const PricingCard = (props: PricingCardProps) => {
   const getBillingLabel = () => {
     if (props.billingCycle === "MONTHLY") return "/month";
     if (props.billingCycle === "ANNUAL") return "/mo";
-    return "";
+    // For LIFETIME billing cycle
+    return " (lifetime)";
   };
 
   // Get annual billing amount if applicable
@@ -50,7 +58,7 @@ export const PricingCard = (props: PricingCardProps) => {
   };
 
   const cardClasses = cn(
-    "bg-white rounded-lg overflow-hidden border transition-all hover:shadow-xl",
+    props.className ?? "bg-white rounded-lg overflow-hidden border transition-all hover:shadow-xl",
     {
       "shadow-lg border-gray-200": !props.isRecommended,
       "shadow-xl border-2 border-blue-500": props.isRecommended
@@ -69,22 +77,28 @@ export const PricingCard = (props: PricingCardProps) => {
         </div>
       )}
       
+      {props.isPopular && (
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 py-2 text-center">
+          <span className="text-white text-sm font-semibold uppercase tracking-wide">Popular</span>
+        </div>
+      )}
+      
       <div className="p-6">
         <h3 className="text-2xl font-bold text-gray-900">{props.name}</h3>
         <div className="mt-4 flex items-baseline">
-          <span className="text-4xl font-extrabold">${getPrice()}</span>
+          <span className="text-4xl font-extrabold">${formatPrice(getPrice())}</span>
           <span className="ml-1 text-xl text-gray-500">{getBillingLabel()}</span>
         </div>
         
         {props.billingCycle === "ANNUAL" && (
-          <p className="text-sm text-green-600 mt-1">
-            ${getAnnualBillingAmount()} billed annually
+          <p className="mt-1 text-sm text-green-600">
+            ${formatPrice(getAnnualBillingAmount() ?? 0)} billed annually
           </p>
         )}
         
         {showLifetime && props.planType !== "FREE" && (
-          <div className="mt-3 p-2 bg-blue-50 rounded-md border border-blue-100">
-            <p className="text-blue-700 font-medium">Lifetime: ${getLifetimePrice()}</p>
+          <div className="mt-3 rounded-md border border-blue-100 bg-blue-50 p-2">
+            <p className="font-medium text-blue-700">Lifetime: ${getLifetimePrice()}</p>
             <p className="text-xs text-blue-600">One-time payment, lifetime access</p>
           </div>
         )}
@@ -118,20 +132,20 @@ export const PricingCard = (props: PricingCardProps) => {
         <div className="mt-8">
           {props.planType === "FREE" ? (
             <button 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold w-full py-2 px-4 rounded-lg transition"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
               onClick={() => window.location.href = "/auth/signup"}
             >
-              {props.cta || "Get Started Free"}
+              {props.cta ?? "Get Started Free"}
             </button>
           ) : (
             <BuyButton
               orgSlug={String(organizationSlug)}
               priceId={props.priceId}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold w-full py-2 px-4 rounded-lg transition"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
             >
               {showLifetime && props.billingCycle !== "LIFETIME" 
                 ? "Get Lifetime Access" 
-                : props.cta || "Subscribe Now"}
+                : props.cta ?? "Subscribe Now"}
             </BuyButton>
           )}
         </div>
@@ -140,7 +154,7 @@ export const PricingCard = (props: PricingCardProps) => {
   );
 };
 
-interface PricingItemProps {
+type PricingItemProps = {
   included: boolean;
   children: React.ReactNode;
 }
@@ -148,14 +162,14 @@ interface PricingItemProps {
 const PricingItem = ({ included, children }: PricingItemProps) => {
   return (
     <li className="flex items-start">
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         {included ? (
-          <Check className="h-5 w-5 text-green-500" />
+          <Check className="size-5 text-green-500" />
         ) : (
-          <X className="h-5 w-5 text-gray-400" />
+          <X className="size-5 text-gray-400" />
         )}
       </div>
-      <span className={`ml-3 ${included ? 'text-gray-900' : 'text-gray-500 line-through'}`}>
+      <span className={`ml-3 ${included ? 'text-gray-900' : 'line-through text-gray-500'}`}>
         {children}
       </span>
     </li>
