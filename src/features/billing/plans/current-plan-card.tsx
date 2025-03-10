@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { BillingCycle, PlanType, formatBillingCycle, formatPlanType, getPlanFeatures } from "./plans";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
+import { Badge } from "@/components/data-display/badge";
+import { Button } from "@/components/core/button";
+import { BillingCycle, PlanType, formatBillingCycle, formatPlanType, getPlanFeatures } from "@/features/billing/plans/plans";
 import { Infinity, Check } from "lucide-react";
 import { PlanBuyButton } from "../payments/buy-button";
 
