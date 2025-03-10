@@ -454,7 +454,7 @@ export async function login(
 
 
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/APP/(AUTH)/LOGIN/GOOGLE/GOOGLESIGNINBUTTON.TSX CODE IS BELOW
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 
 export default function GoogleSignInButton() {
   return (
@@ -942,7 +942,7 @@ export default function ForYouFeed() {
 
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/APP/(MAIN)/MENUBAR.TSX CODE IS BELOW
 import { validateRequest } from "@/auth";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import prisma from "@/lib/prisma";
 import streamServerClient from "@/lib/stream";
 import { Bookmark, Home } from "lucide-react";
@@ -1005,7 +1005,7 @@ export default async function MenuBar({ className }: MenuBarProps) {
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/APP/(MAIN)/MESSAGESBUTTON.TSX CODE IS BELOW
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import kyInstance from "@/lib/ky";
 import { MessageCountInfo } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
@@ -1071,7 +1071,7 @@ export default function Navbar() {
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/APP/(MAIN)/NOTIFICATIONSBUTTON.TSX CODE IS BELOW
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import kyInstance from "@/lib/ky";
 import { NotificationCountInfo } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
@@ -1329,7 +1329,7 @@ export default function Chat() {
 
 
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/APP/(MAIN)/MESSAGES/CHATCHANNEL.TSX CODE IS BELOW
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import { cn } from "@/lib/utils";
 import { Menu } from "lucide-react";
 import {
@@ -1382,7 +1382,7 @@ function CustomChannelHeader({
 
 
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/APP/(MAIN)/MESSAGES/CHATSIDEBAR.TSX CODE IS BELOW
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { MailPlus, X } from "lucide-react";
@@ -2211,7 +2211,7 @@ export default function Page({ searchParams: { q } }: PageProps) {
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/APP/(MAIN)/USERS/[USERNAME]/EDITPROFILEBUTTON.TSX CODE IS BELOW
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import { UserData } from "@/lib/types";
 import { useState } from "react";
 import EditProfileDialog from "./EditProfileDialog";
@@ -4214,7 +4214,7 @@ export const validateRequest = cache(
 import "cropperjs/dist/cropper.css";
 import { useRef } from "react";
 import { Cropper, ReactCropperElement } from "react-cropper";
-import { Button } from "./ui/button";
+import { Button } from "./core/button";
 import {
   Dialog,
   DialogContent,
@@ -4278,7 +4278,7 @@ import useFollowerInfo from "@/hooks/useFollowerInfo";
 import kyInstance from "@/lib/ky";
 import { FollowerInfo } from "@/lib/types";
 import { QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "./ui/button";
+import { Button } from "./core/button";
 import { useToast } from "./ui/use-toast";
 
 interface FollowButtonProps {
@@ -4459,7 +4459,7 @@ function LinkifyHashtag({ children }: LinkifyProps) {
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/COMPONENTS/LOADINGBUTTON.TSX CODE IS BELOW
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import { Button, ButtonProps } from "./ui/button";
+import { Button, ButtonProps } from "./core/button";
 
 interface LoadingButtonProps extends ButtonProps {
   loading: boolean;
@@ -4935,7 +4935,7 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
 import { PostData } from "@/lib/types";
 import { Loader2, SendHorizonal } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "../core/button";
 import { Input } from "../ui/input";
 import { useSubmitCommentMutation } from "./mutations";
 
@@ -4993,7 +4993,7 @@ export default function CommentInput({ post }: CommentInputProps) {
 import { CommentData } from "@/lib/types";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "../core/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5045,7 +5045,7 @@ import kyInstance from "@/lib/ky";
 import { CommentsPage, PostData } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "../core/button";
 import Comment from "./Comment";
 import CommentInput from "./CommentInput";
 
@@ -5109,7 +5109,7 @@ export default function Comments({ post }: CommentsProps) {
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/COMPONENTS/COMMENTS/DELETECOMMENTDIALOG.TSX CODE IS BELOW
 import { CommentData } from "@/lib/types";
 import LoadingButton from "../LoadingButton";
-import { Button } from "../ui/button";
+import { Button } from "../core/button";
 import {
   Dialog,
   DialogContent,
@@ -5432,7 +5432,7 @@ export default function BookmarkButton({
 /USERS/MARCUSBEY/DESKTOP/02-CS/05-STARTUP/NOWNOWNOWIO/NEXTJS-15-SOCIAL-MEDIA-APP/SRC/COMPONENTS/POSTS/DELETEPOSTDIALOG.TSX CODE IS BELOW
 import { PostData } from "@/lib/types";
 import LoadingButton from "../LoadingButton";
-import { Button } from "../ui/button";
+import { Button } from "../core/button";
 import {
   Dialog,
   DialogContent,
@@ -5741,7 +5741,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
 import { PostData } from "@/lib/types";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "../core/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -5851,7 +5851,7 @@ export async function deletePost(id: string) {
 
 import { useSession } from "@/app/(main)/SessionProvider";
 import LoadingButton from "@/components/LoadingButton";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/core/button";
 import UserAvatar from "@/components/UserAvatar";
 import { cn } from "@/lib/utils";
 import Placeholder from "@tiptap/extension-placeholder";
