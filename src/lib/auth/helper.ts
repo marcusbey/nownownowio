@@ -16,9 +16,26 @@ export class AuthError extends Error {}
 export const auth = cache(async (): Promise<User | null> => {
   try {
     const session = await baseAuth();
+    
+    // Add debug logging
+    logger.debug('Auth helper - session data:', { 
+      hasSession: !!session, 
+      hasUser: !!session?.user,
+      userEmail: session?.user?.email
+    });
 
     if (session?.user) {
       const user = session.user as User;
+      
+      // Validate user object
+      if (!user.id || !user.email) {
+        logger.error('Auth helper - Invalid user object in session', { 
+          hasId: !!user.id, 
+          hasEmail: !!user.email 
+        });
+        return null;
+      }
+      
       return user;
     }
 
