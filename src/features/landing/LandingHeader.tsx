@@ -71,8 +71,8 @@ export function LandingHeader() {
           }}
           className="flex items-center gap-4 text-sm font-medium text-muted-foreground"
         >
-          {/* <a href="#pricing">Pricing</a>
-          <a href="/posts">Blog</a> */}
+          <a href="#pricing">Pricing</a>
+          {/* <a href="/posts">Blog</a> */}
           <AuthButtonClient />
           <ThemeToggle />
         </motion.nav>

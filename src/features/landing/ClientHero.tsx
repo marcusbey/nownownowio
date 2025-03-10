@@ -3,7 +3,7 @@
 import { Button } from "@/components/core/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 import { HeroContent } from "./HeroContent";
 import { WidgetPreview } from "./WidgetPreview";
 
