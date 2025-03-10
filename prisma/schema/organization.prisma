@@ -93,6 +93,8 @@ enum OrganizationPlanType {
   FREE
   BASIC
   PRO
+  PREMIUM
+  LIFETIME
 }
 
 enum BillingCycle {
