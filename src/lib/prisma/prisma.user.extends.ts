@@ -1,7 +1,7 @@
 "use server";
 
 import { SiteConfig } from "@/site-config";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import type {
   DefaultArgs,
   DynamicQueryExtensionCb,
@@ -10,7 +10,19 @@ import type {
 import { env } from "process";
 import { setupResendCustomer } from "../auth/auth-config-setup";
 import { removeContact } from "../mail/resend";
-import { prisma } from "../prisma";
+// Remove direct prisma import to break circular dependency
+
+// Get a fresh PrismaClient instance when needed
+let localPrismaClient: PrismaClient | null = null;
+
+async function getPrismaClient(): Promise<PrismaClient> {
+  if (!localPrismaClient) {
+    // Dynamically import to avoid circular dependency
+    const { prisma } = await import("../prisma");
+    localPrismaClient = prisma;
+  }
+  return localPrismaClient;
+}
 
 export const onUserUpdate: DynamicQueryExtensionCb<
   Prisma.TypeMap<InternalArgs & DefaultArgs, Prisma.PrismaClientOptions>,
@@ -45,8 +57,9 @@ const syncWithResendContact: DynamicQueryExtensionCb<
   if (!args.data.email) {
     return;
   }
-
-  const user = await prisma.user.findUnique({
+  
+  const prismaClient = await getPrismaClient();
+  const user = await prismaClient.user.findUnique({
     where: {
       id: userId,
     },
@@ -74,7 +87,7 @@ const syncWithResendContact: DynamicQueryExtensionCb<
 
   const newResendContactId = await setupResendCustomer(user);
 
-  await prisma.user.update({
+  await prismaClient.user.update({
     where: {
       id: userId,
     },
@@ -99,7 +112,8 @@ const syncWithOrganizations: DynamicQueryExtensionCb<
     return;
   }
 
-  const user = await prisma.user.findUnique({
+  const prismaClient = await getPrismaClient();
+  const user = await prismaClient.user.findUnique({
     where: {
       id: userId,
     },
@@ -122,7 +136,7 @@ const syncWithOrganizations: DynamicQueryExtensionCb<
     },
   });
 
-  const firstOrg = user?.organizations[0].organization;
+  const firstOrg = user?.organizations[0]?.organization;
 
   if (!firstOrg?.id) {
     return;
@@ -134,7 +148,7 @@ const syncWithOrganizations: DynamicQueryExtensionCb<
     : undefined;
   const imageUpdate = args.data.image ? String(args.data.image) : undefined;
 
-  await prisma.organization.update({
+  await prismaClient.organization.update({
     where: {
       id: firstOrg.id,
     },

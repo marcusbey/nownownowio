@@ -1,6 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { onOrganizationUpdate } from "./prisma/prisma.org.extends";
-import { onUserUpdate } from "./prisma/prisma.user.extends";
 
 /**
  * This is a type-only import/export to ensure that the Prisma client type
@@ -13,9 +11,9 @@ export type { PrismaClient } from "@prisma/client";
 const isBrowser = typeof window !== 'undefined';
 
 // Type for our singleton instance
-type ExtendedPrismaClient = ReturnType<typeof createPrismaClient>;
+type ExtendedPrismaClient = PrismaClient;
 
-// Create a function to initialize the Prisma client with extensions
+// Create a function to initialize the base Prisma client without extensions
 function createPrismaClient() {
   // Only create the client on the server side
   if (isBrowser) {
@@ -36,16 +34,7 @@ function createPrismaClient() {
     );
   }
 
-  return new PrismaClient().$extends({
-    query: {
-      organization: {
-        update: onOrganizationUpdate,
-      },
-      user: {
-        update: onUserUpdate,
-      },
-    },
-  });
+  return new PrismaClient();
 }
 
 // For singleton pattern in development to prevent multiple instances
@@ -53,10 +42,29 @@ const globalForPrisma = globalThis as unknown as {
   prisma: ExtendedPrismaClient | undefined;
 };
 
-// Export the Prisma client singleton
+// Export the Prisma client singleton without extensions
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 // In development, attach to global to prevent multiple instances
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
+}
+
+// Apply extensions after initialization to avoid circular dependencies
+export async function applyPrismaExtensions() {
+  // This will be called after all modules are loaded
+  // Import extensions dynamically when needed using ESM dynamic imports
+  const orgExtends = await import("./prisma/prisma.org.extends");
+  const userExtends = await import("./prisma/prisma.user.extends");
+  
+  return prisma.$extends({
+    query: {
+      organization: {
+        update: orgExtends.onOrganizationUpdate,
+      },
+      user: {
+        update: userExtends.onUserUpdate,
+      },
+    },
+  });
 }
