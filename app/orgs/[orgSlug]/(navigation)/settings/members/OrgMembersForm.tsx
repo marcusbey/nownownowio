@@ -53,9 +53,11 @@ import {
 } from "@/components/feedback/alert-dialog";
 import { Mail } from "lucide-react";
 import { SettingsCard } from "@/components/layout/SettingsLayout";
+import { PlanBuyButton } from "@/features/billing/payments/buy-button";
+import { ArrowUpCircle } from "lucide-react";
 
 type OrgMembersFormProps = {
-  defaultValues: OrgMemberFormSchemaType;
+  defaultValues: OrgMemberFormSchemaType & { orgSlug?: string };
   members: {
     id: string;
     name: string | null;
@@ -346,9 +348,22 @@ export const OrgMembersForm = ({
           </Typography>
           {members.length >= maxMembers && (
             <Alert variant="destructive" className="mt-2">
-              <Typography variant="small" className="font-medium">
-                You've reached your member limit. Upgrade your plan to add more members.
-              </Typography>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <Typography variant="small" className="font-medium ">
+                  You've reached your member limit. Upgrade your plan to add more members.
+                </Typography>
+                <PlanBuyButton
+                  planType="PRO"
+                  billingCycle="MONTHLY"
+                  orgSlug={defaultValues.orgSlug ?? ''}
+                  variant="default"
+                  size="sm"
+                  className="shrink-0 font-medium"
+                >
+                  <ArrowUpCircle className="mr-2 size-4" />
+                  Upgrade Plan
+                </PlanBuyButton>
+              </div>
             </Alert>
           )}
         </div>
