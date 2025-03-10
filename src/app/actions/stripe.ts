@@ -1,13 +1,13 @@
 "use server";
 
-import { auth } from "@/auth";
-import { db } from "@/db";
+import { auth } from "@/lib/auth/helper";
+import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { createCheckoutSession, getCustomer, getPriceIdByPlan } from "@/lib/stripe";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { action } from "@/lib/safe-action";
+import { action } from "@/lib/actions/safe-actions";
 
 // Schema for plan checkout
 const checkoutSchema = z.object({
@@ -42,7 +42,7 @@ export const checkoutPlan = action(checkoutSchema, async (input: CheckoutInput) 
     // Check if user has organization with Stripe customer ID
     let organization;
     if (input.organizationId) {
-      organization = await db.organization.findUnique({
+      organization = await prisma.organization.findUnique({
         where: { id: input.organizationId },
         select: { stripeCustomerId: true },
       });
