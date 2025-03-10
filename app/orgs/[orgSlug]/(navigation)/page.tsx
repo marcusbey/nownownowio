@@ -7,6 +7,7 @@ import {
 } from "@/components/data-display/tabs";
 import { Layout, LayoutContent } from "@/features/page/layout";
 import { WidgetSetupBanner } from "@/components/feedback/widget-setup-banner";
+import Link from "next/link";
 
 // Auth & Data
 import { baseAuth } from "@/lib/auth/auth";
@@ -31,16 +32,17 @@ export default async function RoutePage(
   const awaitedParams = await props.params;
   const orgSlug = awaitedParams.orgSlug;
   
-  const { org: organization, user, roles } = await getRequiredCurrentOrgCache(orgSlug);
-  const session = await baseAuth();
-  
-  // Check if the widget has been set up
-  const widgetSetupStatus = await getWidgetSetupStatusQuery(organization.id);
-  const showWidgetSetupBanner = !widgetSetupStatus.isConfigured && isInRoles(roles, ["ADMIN", "OWNER"]);
+  try {
+    const { org: organization, user, roles } = await getRequiredCurrentOrgCache(orgSlug);
+    const session = await baseAuth();
+    
+    // Check if the widget has been set up
+    const widgetSetupStatus = await getWidgetSetupStatusQuery(organization.id);
+    const showWidgetSetupBanner = !widgetSetupStatus.isConfigured && isInRoles(roles, ["ADMIN", "OWNER"]);
 
-  if (!session?.user?.id) {
-    return null; // Handle unauthorized access
-  }
+    if (!session?.user?.id) {
+      return null; // Handle unauthorized access
+    }
   return (
     <Layout>
       <LayoutContent>
@@ -90,4 +92,22 @@ export default async function RoutePage(
       </LayoutContent>
     </Layout>
   );
+  } catch (error) {
+    // Handle organization not found or access denied errors
+    return (
+      <Layout>
+        <LayoutContent>
+          <div className="flex min-h-[50vh] flex-col items-center justify-center p-4 text-center">
+            <h1 className="mb-4 text-2xl font-bold">Organization Error</h1>
+            <p className="mb-6 text-muted-foreground">
+              {error instanceof Error ? error.message : 'An error occurred while accessing this organization'}
+            </p>
+            <Link href="/orgs" className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+              Go to My Organizations
+            </Link>
+          </div>
+        </LayoutContent>
+      </Layout>
+    );
+  }
 }

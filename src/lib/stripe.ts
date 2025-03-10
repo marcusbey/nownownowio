@@ -44,9 +44,16 @@ export async function updateCustomer(id: string, params: Stripe.CustomerUpdatePa
   return stripe.customers.update(id, params);
 }
 
-export async function getCustomer(customerId: string) {
+export async function getCustomer(params: Stripe.CustomerCreateParams | string) {
   const stripe = await getStripe();
-  return stripe.customers.retrieve(customerId);
+  
+  if (typeof params === 'string') {
+    // If params is a string, it's a customer ID to retrieve
+    return stripe.customers.retrieve(params);
+  } else {
+    // If params is an object, it's parameters to create a new customer
+    return stripe.customers.create(params);
+  }
 }
 
 export async function deleteCustomer(customerId: string) {

@@ -27,6 +27,8 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     signOut: "/auth/signout",
     error: "/auth/error",
     verifyRequest: "/auth/verify-request",
+    // This will be dynamically overridden in the createUser event
+    // Default fallback if we can't determine the org slug
     newUser: "/orgs",
   },
   adapter: PrismaAdapter(prisma),
@@ -40,8 +42,8 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       try {
         // Enhanced logging for Next.js 15 session debugging
         // Log session data for debugging
-        const sessionObj = typeof session === 'object' ? session : {};
-        const hasUserProperty = 'user' in sessionObj;
+        // Session is always an object in this context
+        const hasUserProperty = 'user' in session;
         
         logger.info("Session callback - raw data", {
           sessionExists: Boolean(session),
@@ -49,10 +51,12 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
           sessionHasUser: hasUserProperty
         });
 
-        // This check is technically redundant but serves as a fallback safety measure
+        // Session will always exist at this point due to the callback structure
+        // but we'll log if it's unexpectedly empty
         if (!session) {
           logger.error("Session callback - No session object");
-          return session; // Return the original session to maintain type compatibility
+          // Return a minimal valid session object to maintain type compatibility
+          return { expires: new Date(Date.now() + 2 * 86400).toISOString() };
         }
 
         // CRITICAL: Detect orphaned sessions (cookie exists but DB session is gone)
@@ -160,13 +164,28 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       }
     },
     createUser: async ({ user }) => {
-      if (!user.email) {
+      if (!user.email || !user.id) {
         return;
       }
 
       const resendContactId = await setupResendCustomer(user);
 
-      await setupDefaultOrganizationsOrInviteUser(user);
+      // Get the organization slug for the new user
+      const orgSlug = await setupDefaultOrganizationsOrInviteUser(user);
+      
+      // If we have an organization slug, store it in a verification token to use for redirection
+      if (orgSlug) {
+        // Store the redirect URL in NextAuth's internal state
+        // This will override the newUser setting in the config
+        await prisma.verificationToken.create({
+          data: {
+            identifier: `${user.id}-redirect`,
+            token: nanoid(),
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+            data: { redirectUrl: `/orgs/${orgSlug}` },
+          },
+        });
+      }
 
       // Get the user's accounts to check if they used an OAuth provider
       const accounts = await prisma.account.findMany({
@@ -190,6 +209,19 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       
       if (hasOAuthAccount) {
         updateData.emailVerified = new Date();
+        
+        // Update the user with the generated data
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: updateData,
+        });
+        
+        // Set up display name for OAuth users
+        await setupUserDisplayName(user.id);
+        
+        return;
       }
 
       await prisma.user.update({

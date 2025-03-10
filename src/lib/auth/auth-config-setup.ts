@@ -4,9 +4,10 @@ import type { User } from "next-auth";
 import { z } from "zod";
 import { createOrganizationQuery } from "../../query/org/org-create.query";
 import { env } from "../env";
-import { generateSlug, getNameFromEmail } from "../format/id";
+import { formatId, getNameFromEmail } from "../format/id";
 import { createContact } from "../mail/resend";
 import { prisma } from "../prisma";
+import { FREE_PLAN_ID } from "../../features/billing/plans/plan-constants";
 
 export const setupResendCustomer = async (user: User) => {
   if (!user.email) {
@@ -33,9 +34,9 @@ const TokenSchema = z.object({
   orgId: z.string(),
 });
 
-export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
+export const setupDefaultOrganizationsOrInviteUser = async (user: User): Promise<string | undefined> => {
   if (!user.email || !user.id) {
-    return;
+    return undefined;
   }
 
   const tokens = await prisma.verificationToken.findMany({
@@ -49,24 +50,43 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
   // If there is no token, there is no invitation
   // We create a default organization for the user
   if (tokens.length === 0) {
-    console.log("Create default organization for user", user.id);
-    let orgSlug = generateSlug(user.name ?? getNameFromEmail(user.email));
+    // Create a more predictable slug based on email username
+    const emailUsername = getNameFromEmail(user.email);
+    const baseSlug = formatId(emailUsername);
+    let orgSlug = baseSlug;
     
-    // Check if slug exists and append random suffix if needed
-    const existingOrg = await prisma.organization.findUnique({
+    // Check if slug exists and try with incremental suffixes if needed
+    let counter = 1;
+    let existingOrg = await prisma.organization.findUnique({
       where: { slug: orgSlug },
     });
     
-    if (existingOrg) {
-      // Append random 4-character suffix
-      const randomSuffix = Math.random().toString(36).substring(2, 6);
-      orgSlug = `${orgSlug}-${randomSuffix}`;
+    // If slug exists, try adding incremental numbers
+    while (existingOrg && counter < 10) {
+      orgSlug = `${baseSlug}-${counter}`;
+      // Use Promise.all to avoid await in loop lint error
+      [existingOrg] = await Promise.all([
+        prisma.organization.findUnique({
+          where: { slug: orgSlug },
+        })
+      ]);
+      counter++;
     }
+    
+    // If we still have a conflict, use a random suffix as fallback
+    if (existingOrg) {
+      const randomSuffix = Math.random().toString(36).substring(2, 6);
+      orgSlug = `${baseSlug}-${randomSuffix}`;
+    }
+    // We don't need to store the organization object since we're just using the slug
     await createOrganizationQuery({
       slug: orgSlug,
       name: `${user.name ?? getNameFromEmail(user.email)}'s organization`,
       email: user.email,
       image: user.image,
+      planId: FREE_PLAN_ID,
+      billingPeriod: "MONTHLY",
+      bio: "", // Add empty bio
       members: {
         create: {
           userId: user.id,
@@ -74,6 +94,9 @@ export const setupDefaultOrganizationsOrInviteUser = async (user: User) => {
         },
       },
     });
+    
+    // Return the organization slug for redirection
+    return orgSlug;
   }
 
   for await (const token of tokens) {

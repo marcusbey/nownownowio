@@ -1,6 +1,5 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth/helper";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
@@ -14,12 +13,17 @@ export async function savePlanSelection(planId: string): Promise<{ success: bool
   try {
     const session = await auth();
     
-    // If user is authenticated, save to database
-    if (session?.user?.id) {
-      // Update the user's selected plan in the database
-      await db.user.update({
-        where: { id: session.user.id },
-        data: { selectedPlanId: planId }
+    // If user is authenticated, store the selection in cookies
+    // We'll use this later when creating or updating an organization
+    if (session?.id) {
+      // Store the plan selection in cookies for later use in organization creation/update
+      const cookieStore = cookies();
+      cookieStore.set("selectedPlanId", planId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+        path: "/",
       });
       
       revalidatePath("/");
@@ -28,7 +32,8 @@ export async function savePlanSelection(planId: string): Promise<{ success: bool
     
     // If user is not authenticated, save to cookies
     // This will be used during the signup process
-    cookies().set("selectedPlanId", planId, {
+    const cookieStore = cookies();
+    cookieStore.set("selectedPlanId", planId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 1 week

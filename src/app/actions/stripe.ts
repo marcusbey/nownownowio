@@ -26,9 +26,8 @@ type CheckoutInput = z.infer<typeof checkoutSchema>;
  */
 export const checkoutPlan = action(checkoutSchema, async (input: CheckoutInput) => {
   const session = await auth();
-  const user = session?.user;
 
-  if (!user || !user.id) {
+  if (!session?.id) {
     throw new Error("You must be logged in to checkout");
   }
 
@@ -52,10 +51,10 @@ export const checkoutPlan = action(checkoutSchema, async (input: CheckoutInput) 
       } else {
         // Create new customer for organization
         const customer = await getCustomer({
-          email: user.email || undefined,
-          name: user.name || undefined,
+          email: session.email || undefined,
+          name: session.name || undefined,
           metadata: {
-            userId: user.id,
+            userId: session.id,
             organizationId: input.organizationId,
           },
         });
@@ -63,7 +62,7 @@ export const checkoutPlan = action(checkoutSchema, async (input: CheckoutInput) 
         customerId = customer.id;
         
         // Update organization with customer ID
-        await db.organization.update({
+        await prisma.organization.update({
           where: { id: input.organizationId },
           data: { stripeCustomerId: customerId },
         });
@@ -72,10 +71,10 @@ export const checkoutPlan = action(checkoutSchema, async (input: CheckoutInput) 
       // Personal plan for user
       // TODO: Implement user customer ID logic if needed
       const customer = await getCustomer({
-        email: user.email || undefined,
-        name: user.name || undefined,
+        email: session.email || undefined,
+        name: session.name || undefined,
         metadata: {
-          userId: user.id,
+          userId: session.id,
         },
       });
       
@@ -129,9 +128,8 @@ export const createBillingPortal = action(
   }),
   async (input) => {
     const session = await auth();
-    const user = session?.user;
 
-    if (!user || !user.id) {
+    if (!session?.id) {
       throw new Error("You must be logged in to access billing portal");
     }
 
@@ -141,7 +139,7 @@ export const createBillingPortal = action(
       
       if (input.organizationId) {
         // Get organization's customer ID
-        const organization = await db.organization.findUnique({
+        const organization = await prisma.organization.findUnique({
           where: { id: input.organizationId },
           select: { stripeCustomerId: true },
         });

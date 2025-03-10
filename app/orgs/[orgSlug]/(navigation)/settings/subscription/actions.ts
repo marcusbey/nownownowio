@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { getStripeInstance } from "@/lib/stripe";
 import { getServerUrl } from "@/lib/server-url";
 import { prisma } from "@/lib/prisma";
@@ -13,7 +12,7 @@ export async function updateSubscription(
 ) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!session?.id) {
       throw new Error("Unauthorized");
     }
 
@@ -61,7 +60,7 @@ export async function updateSubscription(
 
     return { url: checkoutSession.url };
   } catch (error) {
-    console.error("Error updating subscription:", error);
+    // Re-throw the error to be handled by the calling component
     throw error;
   }
 }
@@ -69,7 +68,7 @@ export async function updateSubscription(
 export async function manageBilling(orgId: string) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!session?.id) {
       throw new Error("Unauthorized");
     }
 
@@ -93,7 +92,7 @@ export async function manageBilling(orgId: string) {
 
     return { url: portalSession.url };
   } catch (error) {
-    console.error("Error managing billing:", error);
+    // Re-throw the error to be handled by the calling component
     throw error;
   }
 }

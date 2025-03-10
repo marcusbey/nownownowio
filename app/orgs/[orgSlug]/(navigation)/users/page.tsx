@@ -18,7 +18,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function RoutePage(props: PageParams<{ orgSlug: string }>) {
-  const { orgSlug } = props.params;
+  // In Next.js 15, we need to await the params object
+  const awaitedParams = await props.params;
+  const orgSlug = awaitedParams.orgSlug;
   return (
     <Layout>
       <LayoutHeader>

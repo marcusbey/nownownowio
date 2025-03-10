@@ -30,8 +30,9 @@ export function ProviderButton({
 }: ProviderButtonProps) {
   const handleSignIn = async () => {
     try {
+      // Redirect to the organization page instead of dashboard
       await signIn(providerId, {
-        callbackUrl: "/dashboard",
+        callbackUrl: "/orgs",
       });
     } catch (error) {
       console.error("Error signing in:", error);

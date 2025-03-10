@@ -97,7 +97,7 @@ export default async function RouteLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <Suspense fallback={<LoadingFallback />}>
-        <OrgNavigation>{children}</OrgNavigation>
+        <OrgNavigation params={Promise.resolve({ orgSlug })}>{children}</OrgNavigation>
       </Suspense>
     </div>
   );

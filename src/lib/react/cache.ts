@@ -112,14 +112,20 @@ export const getCurrentOrgCache = cache(async (orgSlug?: string) => {
  */
 export const getRequiredCurrentOrgCache = cache(
     async (orgSlug: string, roles?: OrganizationMembershipRole[]) => {
-        // Get the current organization
-        const session = await auth();
-        const org = await getRequiredCurrentOrg(orgSlug, roles);
-        return {
-            org,
-            user: session,
-            roles: org.members[0].roles
-        };
+        try {
+            // Get the current organization
+            const session = await auth();
+            const org = await getRequiredCurrentOrg(orgSlug, roles);
+            return {
+                org,
+                user: session,
+                roles: org.members[0].roles
+            };
+        } catch (error) {
+            console.error(`Error accessing organization ${orgSlug}:`, error);
+            // Re-throw the error to be handled by the calling component
+            throw error;
+        }
     }
 );
 
@@ -131,6 +137,22 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
 
     if (!session?.id) {
         throw new Error("User not authenticated");
+    }
+    
+    // Validate orgSlug to prevent unexpected errors
+    if (!orgSlug) {
+        console.error('Missing organization slug');
+        throw new Error("Missing organization slug");
+    }
+    
+    if (typeof orgSlug !== 'string') {
+        console.error(`Invalid organization slug type: ${typeof orgSlug}`);
+        throw new Error("Invalid organization slug format");
+    }
+    
+    if (orgSlug.trim() === '') {
+        console.error('Empty organization slug');
+        throw new Error("Invalid organization slug");
     }
 
     // Find the organization by slug
@@ -150,6 +172,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
             slug: true,
             email: true,
             image: true,
+            bio: true,
             websiteUrl: true,
             stripeCustomerId: true,
             plan: true,
@@ -165,7 +188,38 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
     });
 
     if (!org) {
-        throw new Error(`Organization not found or user doesn't have required access`);
+        try {
+            // Validate the orgSlug format first
+            if (!orgSlug || typeof orgSlug !== 'string' || orgSlug.trim() === '') {
+                console.error(`Invalid organization slug format: '${orgSlug}'`);
+                throw new Error(`Invalid organization slug format`);
+            }
+
+            // Check if the organization exists but user doesn't have access
+            const orgExists = await prisma.organization.findUnique({
+                where: { slug: orgSlug },
+                select: { id: true, name: true }
+            });
+            
+            if (orgExists) {
+                console.error(`User ${session.id} doesn't have access to organization ${orgSlug} (${orgExists.name})`);
+                throw new Error(`You don't have access to this organization`);
+            } else {
+                // Log detailed error for debugging but provide a more generic user-facing message
+                console.error(`Organization with slug '${orgSlug}' not found in database`);
+                throw new Error(`Organization not found`);
+            }
+        } catch (error) {
+            // Check if this is already an enhanced error to prevent recursive wrapping
+            if (error instanceof Error && error.message.includes('Error accessing organization')) {
+                console.error(error);
+                throw error;
+            }
+            
+            // Add context to the error but keep the message clean
+            console.error(`Error accessing organization ${orgSlug}:`, error);
+            throw new Error('Organization not found');
+        }
     }
 
     return org;
