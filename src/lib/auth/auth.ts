@@ -1,5 +1,6 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
+import type { Session } from "next-auth";
 import { env } from "../env";
 import { logger } from "../logger";
 import { prisma } from "../prisma";
@@ -37,37 +38,69 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   callbacks: {
     session: async ({ session, user }) => {
       try {
-        if (!session || !session.user) {
-          console.error("Session callback - Invalid session or missing user in session");
-          return session;
+        // Enhanced logging for Next.js 15 session debugging
+        // Log session data for debugging
+        const sessionObj = typeof session === 'object' ? session : {};
+        const hasUserProperty = 'user' in sessionObj;
+        
+        logger.info("Session callback - raw data", {
+          sessionExists: Boolean(session),
+          userExists: Boolean(user),
+          sessionHasUser: hasUserProperty
+        });
+
+        // This check is technically redundant but serves as a fallback safety measure
+        if (!session) {
+          logger.error("Session callback - No session object");
+          return session; // Return the original session to maintain type compatibility
         }
 
+        // CRITICAL: Detect orphaned sessions (cookie exists but DB session is gone)
+        // This happens when the database is wiped but the cookie remains
         if (!user) {
-          console.error("Session callback - Missing user data");
+          logger.warn("Session callback - Orphaned session detected (cookie exists but no user found in database)");
+          // Set a flag on the session to indicate it's invalid (client can handle this accordingly)
+          // Use type assertion with the Session type from nextauth.d.ts
+          (session as Session).isOrphanedSession = true;
           return session;
         }
 
-        // Add user data to session
+        // Initialize session.user if it doesn't exist
+        if (!session.user) {
+          logger.info("Session callback - Initializing missing session.user");
+          // Create a minimal user object that meets the type requirements
+          session.user = { 
+            id: "", // Required by AdapterUser
+            name: null,
+            email: "", 
+            image: null,
+            emailVerified: null // Required by AdapterUser
+          };
+        }
+
+        // Add user data to session - using explicit properties to ensure type safety
         session.user.id = user.id;
         session.user.email = user.email;
         session.user.name = user.name;
         session.user.image = user.image;
+        
         // Remove sensitive data
         // @ts-expect-error - NextAuth doesn't know about this property
         session.user.passwordHash = null;
 
         // Add debug logging
-        console.log("Session callback - user data:", {
+        logger.info("Session callback - processed user data", {
           id: user.id,
           email: user.email,
           name: user.name,
           hasImage: !!user.image,
-          sessionValid: !!session && !!session.user
+          sessionValid: !!session && !!session.user && !!session.user.id
         });
 
         return session;
       } catch (error) {
-        console.error("Session callback - Error:", error);
+        logger.error("Session callback - Error:", error);
+        // Return the original session to maintain type compatibility
         return session;
       }
     },
