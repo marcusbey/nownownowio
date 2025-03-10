@@ -104,7 +104,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
             // Create verification token in database
             await prisma.verificationToken.create({
               data: {
-                identifier: dbUser.email,
+                identifier: dbUser.email || user.email,
                 token,
                 expires,
               },
@@ -115,7 +115,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
             
             // Send verification email
             await sendEmail({
-              to: dbUser.email,
+              to: dbUser.email || user.email,
               subject: `Verify your email for ${SiteConfig.title}`,
               react: VerifyEmail({ url: verificationUrl }),
             });

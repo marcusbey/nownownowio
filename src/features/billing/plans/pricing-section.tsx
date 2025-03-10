@@ -35,8 +35,8 @@ export const PricingCards = ({ compact = false }: { compact?: boolean }) => {
     <div className={`w-full ${compact ? 'max-w-full' : 'mx-auto py-12'} px-4`}>
       {!compact && (
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h2 className="mb-4 text-3xl font-bold">Simple, Transparent Pricing</h2>
+          <p className="mx-auto max-w-2xl text-lg text-gray-600">
             Choose the plan that fits your needs. All plans include our core widget functionality.
           </p>
           
@@ -65,13 +65,13 @@ export const PricingCards = ({ compact = false }: { compact?: boolean }) => {
         <div className="flex justify-end mb-6">
           <div className="inline-flex items-center rounded-lg bg-gray-100 p-1">
             <button 
-              className={`rounded-md px-3 py-1 text-sm transition-all ${!isAnnual ? 'bg-white shadow-sm' : ''}`}
+              className={`rounded-md text-sm px-3 py-1 transition-all ${!isAnnual ? 'bg-white shadow-sm' : ''}`}
               onClick={() => setIsAnnual(false)}
             >
               Monthly
             </button>
             <button 
-              className={`rounded-md px-3 py-1 text-sm transition-all ${isAnnual ? 'bg-white shadow-sm' : ''}`}
+              className={`rounded-md text-sm px-3 py-1 transition-all ${isAnnual ? 'bg-white shadow-sm' : ''}`}
               onClick={() => setIsAnnual(true)}
             >
               Annual
