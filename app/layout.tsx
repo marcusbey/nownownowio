@@ -11,6 +11,8 @@ import { Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.scss";
 import { Providers } from "./providers";
+import { auth } from "@/lib/auth/helper";
+import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = {
   title: SiteConfig.title,
@@ -23,10 +25,18 @@ const CaptionFont = Space_Grotesk({
   variable: "--font-caption",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
   modal,
 }: LayoutParams & { modal?: ReactNode }) {
+  // Debug auth state at the root level
+  const session = await auth();
+  logger.debug('[RootLayout] Server-side session:', { 
+    hasSession: !!session,
+    userId: session?.id,
+    userEmail: session?.email
+  });
+  
   return (
     <>
       <html lang="en" className="h-full" suppressHydrationWarning>
