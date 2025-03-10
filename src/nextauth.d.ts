@@ -8,5 +8,7 @@ declare module "next-auth" {
       name?: string;
       image?: string;
     };
+    // Flag to detect orphaned sessions (cookie exists but no matching DB record)
+    isOrphanedSession?: boolean;
   }
 }
