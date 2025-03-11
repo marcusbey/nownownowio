@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useOrganization } from "@/query/org/org.query";
 import { PLANS } from "@/features/billing/plans/plans";
 import type { BillingCycle } from "@/features/billing/plans/plans";
+import { TRIAL_PERIOD_DAYS } from "@/features/billing/plans/plan-constants";
 import { Badge } from "@/components/data-display/badge";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -18,46 +19,81 @@ type SettingsPlanContentProps = {
 
 export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   const { organization } = useOrganization(orgSlug);
-  const [billingPeriod, setBillingPeriod] = useState<BillingCycle>("MONTHLY");
+  // Initialize billing period based on the organization's plan
+  const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(() => {
+    // Always use the organization's plan billing cycle if available
+    if (organization && organization.plan && organization.plan.billingCycle) {
+      return organization.plan.billingCycle as BillingCycle;
+    }
+    // Default to MONTHLY if no organization data is available
+    return "MONTHLY";
+  });
   const [trialInfo, setTrialInfo] = useState<{ daysLeft: number; expiryDate: Date | null }>({ 
     daysLeft: 0, 
     expiryDate: null 
   });
   
-  // Find the current plan - assuming PRO_MONTHLY if not found
-  const currentPlanId = organization?.plan?.id || "PRO_MONTHLY";
-  const currentPlan = PLANS.find(p => p.id === currentPlanId);
+  // Debug information is shown in the UI for development mode only
+
+  // Debug information is shown in the UI for development mode only
+
+  // Log the organization object to debug
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('Organization object:', organization);
+  }
+
+  // The organization has a nested plan object with all the plan details
+  // Extract the plan details directly from the organization.plan object
+  const planId = organization && organization.plan ? organization.plan.id : 'FREE';
+  const planType = organization && organization.plan ? organization.plan.type : 'BASIC';
+  const planBillingCycle = organization && organization.plan ? organization.plan.billingCycle : 'MONTHLY';
+  
+  // Construct the selected plan ID using the plan type and billing cycle
+  // This ensures we always use the correct plan information
+  const selectedPlanId = planId.includes('_') ? planId : `${planType}_${planBillingCycle}`;
+  
+  // For backward compatibility, keep the currentPlanId variable
+  const currentPlanId = planId;
+  
+  const currentPlan = PLANS.find(p => p.id === selectedPlanId);
   
   // Extract plan type and billing cycle from the planId - used in the UI
   // These variables are used in the getPlanDisplayName function
-  const _planInfo = currentPlanId?.split('_') || ['FREE', 'MONTHLY'];
+  const _planInfo = selectedPlanId ? selectedPlanId.split('_') : ['FREE', 'MONTHLY', 'LIFETIME'];
   
-  // Set initial billing period based on the current plan
+  // Update billing period whenever organization data changes
   useEffect(() => {
-    if (currentPlanId) {
-      const planParts = currentPlanId.split('_');
-      if (planParts.length > 1) {
-        setBillingPeriod(planParts[1] as BillingCycle);
-      }
+    // Set the billing period based on the plan billing cycle
+    setBillingPeriod(planBillingCycle);
+    
+    // For debugging
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('Setting billing period to:', planBillingCycle);
     }
-  }, [currentPlanId]);
+  }, [planBillingCycle]);
   
   // Calculate trial period information
   useEffect(() => {
-    if (organization?.createdAt && !currentPlanId?.startsWith('FREE')) {
-      // Use organization creation date as trial start date if planChangedAt is not available
-      const trialStartDate = organization.planChangedAt 
-        ? new Date(organization.planChangedAt)
-        : new Date(organization.createdAt);
-      const trialEndDate = addDays(trialStartDate, 7); // 7-day trial
+    if (organization?.plan?.createdAt && !planId.startsWith('FREE')) {
+      // Use plan creation date as trial start date
+      const trialStartDate = new Date(organization.plan.createdAt);
+      const trialEndDate = addDays(trialStartDate, TRIAL_PERIOD_DAYS);
       const daysLeft = differenceInDays(trialEndDate, new Date());
       
       setTrialInfo({
         daysLeft: Math.max(0, daysLeft),
         expiryDate: trialEndDate
       });
+      
+      // For debugging
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log('Trial info:', { trialStartDate, trialEndDate, daysLeft });
+      }
     }
-  }, [organization, currentPlanId]);
+  }, [organization, planId]);
   
   // Get a more descriptive plan name
   const getPlanDisplayName = (): string => {
@@ -82,11 +118,34 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   };
   
   // Filter plans to show only relevant ones based on the selected billing period
+  // Make sure to include plans that match the current billing period
   const filteredPlans = PLANS.filter(plan => 
     plan.billingCycle === billingPeriod && 
     (plan.planType === "BASIC" || plan.planType === "PRO")
   );
-
+  
+  // Ensure we're showing the correct billing period tab based on the user's current plan
+  useEffect(() => {
+    if (currentPlanId) {
+      const [, cycle] = currentPlanId.split('_');
+      if (cycle && cycle !== billingPeriod) {
+        setBillingPeriod(cycle as BillingCycle);
+      }
+    }
+  }, [currentPlanId, billingPeriod]);
+  
+  // Force the billing period to match the current plan's billing cycle on initial load
+  // This is a separate effect to ensure it runs only once at mount time
+  useEffect(() => {
+    if (currentPlanId) {
+      const [, currentBillingCycle] = currentPlanId.split('_');
+      if (currentBillingCycle) {
+        // Force the billing period to match the current plan's billing cycle
+        setBillingPeriod(currentBillingCycle as BillingCycle);
+      }
+    }
+  }, [currentPlanId]);
+  // Debug information is shown in the UI for development mode only
   return (
     <div className="py-6">
       <div className="mb-6">
@@ -104,7 +163,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
               <CardTitle className="text-lg">Current Plan: <span className="font-bold">{getPlanDisplayName()}</span></CardTitle>
             </div>
             <div className="flex gap-2">
-              {currentPlanId?.startsWith('FREEBIRD') && (
+              {currentPlanId && currentPlanId.startsWith('FREEBIRD') && (
                 <Badge variant="secondary" className="bg-primary/10 text-primary">
                   Free Bird
                 </Badge>
@@ -201,12 +260,26 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                 {billingPeriod === "ANNUAL" && "Save 20% annually"}
                 {billingPeriod === "LIFETIME" && "One-time payment"}
               </div>
+              {/* Debug info - can be removed after testing */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-1 space-y-1 text-center text-xs text-muted-foreground/50">
+                  <div>Current plan: {currentPlanId} | Selected plan: {selectedPlanId} | Billing period: {billingPeriod}</div>
+                  <div>Organization plan ID: {organization?.plan?.id ?? 'undefined'}</div>
+                  <div>Organization plan type: {organization?.plan?.type ?? 'undefined'}</div>
+                  <div>Organization plan billing cycle: {organization?.plan?.billingCycle ?? 'undefined'}</div>
+                </div>
+              )}
             </div>
 
             {/* Enhanced Plan Cards */}
             <div className="grid gap-6 md:grid-cols-2">
               {filteredPlans.map((plan) => {
-                const isCurrentPlan = currentPlanId === plan.id;
+                // Check if this is the current plan by comparing with the organization's plan ID
+                // This ensures the correct plan is highlighted
+                // We need to compare both the plan type and billing cycle to properly highlight the current plan
+                const [currentType, currentCycle] = currentPlanId ? currentPlanId.split('_') : ['', ''];
+                const [planType, planCycle] = plan.id.split('_');
+                const isCurrentPlan = currentPlanId === plan.id || (currentType === planType && currentCycle === planCycle);
                 const isBasicPlan = plan.planType === "BASIC";
                 const isProPlan = plan.planType === "PRO";
                 
@@ -227,7 +300,8 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                     key={plan.id}
                     className={cn(
                       "relative flex flex-col rounded-xl border p-6 transition-all hover:shadow-md",
-                      isCurrentPlan && "border-[3px] border-primary bg-primary/10 shadow-md"
+                      isCurrentPlan && "border-[3px] border-primary bg-primary/10 shadow-md",
+                      !isCurrentPlan && "border-muted"
                     )}
                   >
                     {/* Plan Header */}
@@ -239,7 +313,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                             Popular
                           </div>
                         )}
-                        {isCurrentPlan && (
+                        {plan.id === selectedPlanId && (
                           <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary">
                             Current Plan
                           </Badge>
@@ -305,7 +379,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                             return (
                               <Button 
                                 variant="outline"
-                                className="w-full border-primary/50 border-2 text-primary font-medium hover:bg-primary/10"
+                                className="w-full border-2 border-primary/50 text-primary font-medium hover:bg-primary/10"
                                 disabled
                               >
                                 Current Plan
@@ -320,7 +394,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                         
                         // Determine if this is an upgrade, downgrade, or just a billing change
                         const isUpgrade = 
-                          (currentType === 'FREE' || currentType === 'FREEBIRD') || 
+                          currentType === 'FREE' || currentType === 'FREEBIRD' || 
                           (currentType === 'BASIC' && targetType === 'PRO');
                           
                         const isDowngrade = 

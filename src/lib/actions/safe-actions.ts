@@ -3,7 +3,7 @@ import { createSafeActionClient } from "next-safe-action";
 import { z } from "zod";
 import { auth, AuthError } from "../auth/helper";
 import { logger } from "../logger";
-import { getRequiredCurrentOrg } from "../organizations/get-org";
+import { getCurrentOrgFromUrl } from "../organizations/get-org";
 
 export class ActionError extends Error {}
 
@@ -66,7 +66,16 @@ export const orgAction = createSafeActionClient({
   },
 }).use(async ({ next, metadata = { roles: [] } }) => {
   try {
-    const org = await getRequiredCurrentOrg(metadata.roles);
+    // Get the current URL from headers
+    const headers = new Headers();
+    const url = headers.get('referer') ?? '';
+    
+    // Get the organization from the URL
+    const org = await getCurrentOrgFromUrl(url, metadata.roles);
+    
+    if (!org) {
+      throw new ActionError("Organization not found");
+    }
     return next({
       ctx: org,
     });
