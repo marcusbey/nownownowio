@@ -1,22 +1,19 @@
 import type { OrganizationMembershipRole, Prisma } from "@prisma/client";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { auth } from "../auth/helper";
 import { prisma } from "../prisma";
 
 /**
- * Helper function to get org slug from URL
+ * Helper function to extract org slug from a URL string
+ * This version doesn't use headers() which is server-component only
  */
-export const getOrgSlugFromUrl = async () => {
-  const headerList = await headers();
-  const xURL = headerList.get("x-url");
-
-  if (!xURL) {
+export const extractOrgSlugFromUrl = (url: string): string | null => {
+  if (!url) {
     return null;
   }
 
   // get the parameters after /orgs/ or /organizations/ and before a / or ? (if there are params)
-  const match = xURL.match(/\/(?:orgs|organizations)\/([^/?]+)(?:[/?]|$)/);
+  const match = url.match(/\/(?:orgs|organizations)\/([^/?]+)(?:[/?]|$)/);
 
   if (!match) {
     return null;
@@ -65,7 +62,8 @@ export type CurrentOrgPayload = Prisma.OrganizationGetPayload<{
  */
 export async function getCurrentOrgBySlug(orgSlug: string, roles?: OrganizationMembershipRole[]) {
   const session = await auth();
-  const userId = session?.user?.id;
+  // In Next.js 15, session structure changed
+  const userId = session?.id;
 
   if (!userId || !orgSlug) {
     return null;
@@ -114,61 +112,48 @@ export async function getCurrentOrgBySlug(orgSlug: string, roles?: OrganizationM
 
   return {
     ...org,
-    roles: org.members[0]?.roles || []
+    roles: org.members[0]?.roles ?? []
   };
 }
 
 /**
- * Get current organization from URL
+ * Get current organization from URL string
+ * @param url The URL to extract the organization slug from
+ * @param roles Optional roles to filter by
  */
-export const getCurrentOrg = async (roles?: OrganizationMembershipRole[]) => {
-  const user = await auth();
-
-  if (!user) {
+export const getCurrentOrgFromUrl = async (url: string, roles?: OrganizationMembershipRole[]) => {
+  const orgSlug = extractOrgSlugFromUrl(url);
+  if (!orgSlug) {
     return null;
   }
 
-  const organizationSlug = await getOrgSlugFromUrl();
-
-  if (!organizationSlug) {
-    return null;
-  }
-
-  const org = await prisma.organization.findFirst({
-    where: {
-      slug: organizationSlug,
-      members: {
-        some: {
-          userId: user.id,
-          ...(roles && roles.length > 0 ? {
-            roles: {
-              hasSome: roles
-            }
-          } : {})
-        },
-      },
-    },
-    select: OrgSelectQuery(user.id),
-  });
-
-  if (!org) {
-    return null;
-  }
-
-  return {
-    org,
-    user,
-    roles: org.members[0].roles,
-  };
+  return getCurrentOrgBySlug(orgSlug, roles);
 };
 
 /**
- * Get required current organization or throw notFound
+ * Get required current organization by slug or throw notFound
  */
-export const getRequiredCurrentOrg = async (
+export const getRequiredCurrentOrgBySlug = async (
+  orgSlug: string,
   roles?: OrganizationMembershipRole[],
 ) => {
-  const result = await getCurrentOrg(roles);
+  const result = await getCurrentOrgBySlug(orgSlug, roles);
+
+  if (!result) {
+    notFound();
+  }
+
+  return result;
+};
+
+/**
+ * Get required current organization from URL or throw notFound
+ */
+export const getRequiredCurrentOrgFromUrl = async (
+  url: string,
+  roles?: OrganizationMembershipRole[],
+) => {
+  const result = await getCurrentOrgFromUrl(url, roles);
 
   if (!result) {
     notFound();
