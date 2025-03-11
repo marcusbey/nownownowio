@@ -717,6 +717,7 @@ const RichTextEditor = React.forwardRef<
           <div
             className="absolute z-50 w-72"
             ref={menuRef}
+            onClick={(e) => e.stopPropagation()}
             style={{
               left: `${menuPosition.x}px`,
               top: `${menuPosition.y}px`,
@@ -739,6 +740,11 @@ const RichTextEditor = React.forwardRef<
                       onMouseEnter={() => setSelectedIndex(index)}
                       onMouseDown={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         applyFormat(command);
                         setShowCommandMenu(false);
                       }}
