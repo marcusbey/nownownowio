@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/data-display/card";
 import { Button } from "@/components/core/button";
 import { CreditCard, Receipt } from "lucide-react";
 import { useState } from "react";
@@ -13,14 +19,14 @@ interface BillingContentProps {
 export function BillingContent({ orgSlug }: BillingContentProps) {
   const { organization, isLoading } = useOrganization(orgSlug);
   const [showInvoices, setShowInvoices] = useState(false);
-  
+
   // Mock data - in a real app, this would come from an API
   type Invoice = {
     id: string;
     date: string;
     amount: number;
-  }
-  
+  };
+
   const invoices: Invoice[] = [];
 
   return (
@@ -31,7 +37,7 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
           Manage your billing information
         </p>
       </div>
-      
+
       {/* Billing History Section */}
       <Card>
         <CardHeader>
@@ -52,42 +58,58 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
                   </p>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
                 size="sm"
+                variant="outline"
                 onClick={() => setShowInvoices(!showInvoices)}
               >
                 {showInvoices ? "Hide" : "View"}
               </Button>
             </div>
-            
+
             {/* Invoice list - shows when toggled */}
             {showInvoices && (
-              <div className="mt-4 border p-4 rounded-lg">
+              <div className="p-4 mt-4 border rounded-lg">
                 {invoices.length > 0 ? (
                   <div className="space-y-2">
                     {invoices.map((invoice, index) => (
-                      <div key={index} className="flex items-center justify-between border-b py-2 last:border-0">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between border-b py-2 last:border-0"
+                      >
                         <div>
-                          <p className="text-sm font-medium">Invoice #{invoice.id}</p>
-                          <p className="text-xs text-muted-foreground">{invoice.date}</p>
+                          <p className="text-sm font-medium">
+                            Invoice #{invoice.id}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {invoice.date}
+                          </p>
                         </div>
                         <div className="flex space-x-2">
-                          <p className="text-sm font-medium">${invoice.amount}</p>
-                          <Button variant="ghost" size="sm">Download</Button>
+                          <p className="text-sm font-medium">
+                            ${invoice.amount}
+                          </p>
+                          <Button variant="ghost" size="sm">
+                            Download
+                          </Button>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="py-8 text-center">
-                    <p className="text-sm text-muted-foreground">No invoices available yet.</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Your invoice history will appear here once you have billing activity.</p>
+                    <p className="text-sm text-muted-foreground">
+                      No invoices available yet.
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Your invoice history will appear here once you have
+                      billing activity.
+                    </p>
                   </div>
                 )}
               </div>
             )}
-            
+
             {/* Billing address */}
             <div className="mt-6">
               <h3 className="text-sm font-medium mb-2">Billing Address</h3>
@@ -95,17 +117,25 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
                 {organization?.stripeCustomerId ? (
                   <div className="space-y-1">
                     <p className="text-sm">{organization.name}</p>
-                    <p className="text-sm text-muted-foreground">123 Business Street</p>
+                    <p className="text-sm text-muted-foreground">
+                      123 Business Street
+                    </p>
                     <p className="text-sm text-muted-foreground">Suite 101</p>
-                    <p className="text-sm text-muted-foreground">San Francisco, CA 94103</p>
-                    <p className="text-sm text-muted-foreground">United States</p>
+                    <p className="text-sm text-muted-foreground">
+                      San Francisco, CA 94103
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      United States
+                    </p>
                     <Button variant="outline" size="sm" className="mt-2">
                       Update
                     </Button>
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground mb-2">No billing address on file</p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      No billing address on file
+                    </p>
                     <Button variant="outline" size="sm">
                       Add Billing Address
                     </Button>

@@ -19,6 +19,10 @@ type SettingsPlanContentProps = {
 
 export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   const { organization } = useOrganization(orgSlug);
+  
+  // Track the selected billing period separately from the current billing period
+  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState<BillingCycle | null>(null);
+  
   // Initialize billing period based on the organization's plan
   const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(() => {
     // Always use the organization's plan billing cycle if available
@@ -28,6 +32,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
     // Default to MONTHLY if no organization data is available
     return "MONTHLY";
   });
+  
   const [trialInfo, setTrialInfo] = useState<{ daysLeft: number; expiryDate: Date | null }>({ 
     daysLeft: 0, 
     expiryDate: null 
@@ -49,18 +54,30 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   const planType = organization && organization.plan ? organization.plan.type : 'BASIC';
   const planBillingCycle = organization && organization.plan ? organization.plan.billingCycle : 'MONTHLY';
   
-  // Construct the selected plan ID using the plan type and billing cycle
+  // Reset selected billing period when organization data changes
+  useEffect(() => {
+    if (organization?.plan) {
+      setSelectedBillingPeriod(null);
+    }
+  }, [organization]);
+  
+  // Construct the current plan ID using the plan type and billing cycle
   // This ensures we always use the correct plan information
-  const selectedPlanId = planId.includes('_') ? planId : `${planType}_${planBillingCycle}`;
+  const currentPlanId = planId.includes('_') ? planId : `${planType}_${planBillingCycle}`;
   
-  // For backward compatibility, keep the currentPlanId variable
-  const currentPlanId = planId;
+  // Determine the effective billing period to use (selected or current)
+  const effectiveBillingPeriod = selectedBillingPeriod ?? billingPeriod;
   
-  const currentPlan = PLANS.find(p => p.id === selectedPlanId);
+  // Calculate the effective plan ID using the current plan type but with the effective billing period
+  // This is used for debugging and UI display purposes
+  const _effectivePlanId = organization?.plan ? `${organization.plan.type}_${effectiveBillingPeriod}` : '';
+  
+  // Find the current plan from the PLANS array
+  const currentPlan = PLANS.find(p => p.id === currentPlanId);
   
   // Extract plan type and billing cycle from the planId - used in the UI
   // These variables are used in the getPlanDisplayName function
-  const _planInfo = selectedPlanId ? selectedPlanId.split('_') : ['FREE', 'MONTHLY', 'LIFETIME'];
+  const _planInfo = currentPlanId ? currentPlanId.split('_') : ['FREE', 'MONTHLY', 'LIFETIME'];
   
   // Update billing period whenever organization data changes
   useEffect(() => {
@@ -74,7 +91,10 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
     }
   }, [planBillingCycle]);
   
-  // Calculate trial period information
+  // Calculate trial period information and determine if user is on trial
+  // This is used in the button text and behavior logic
+  const isOnTrial = trialInfo.daysLeft > 0;
+  
   useEffect(() => {
     if (organization?.plan?.createdAt && !planId.startsWith('FREE')) {
       // Use plan creation date as trial start date
@@ -117,10 +137,9 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
     return planName;
   };
   
-  // Filter plans to show only relevant ones based on the selected billing period
-  // Make sure to include plans that match the current billing period
+  // Filter plans to show only relevant ones based on the effective billing period
   const filteredPlans = PLANS.filter(plan => 
-    plan.billingCycle === billingPeriod && 
+    plan.billingCycle === effectiveBillingPeriod && 
     (plan.planType === "BASIC" || plan.planType === "PRO")
   );
   
@@ -230,40 +249,58 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                 <div
                   className={cn(
                     "flex-1 cursor-pointer px-4 py-2.5 text-center transition-all",
-                    billingPeriod === "MONTHLY" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                    effectiveBillingPeriod === "MONTHLY" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   )}
-                  onClick={() => setBillingPeriod("MONTHLY")}
+                  onClick={() => {
+                    // Set the selected billing period
+                    setSelectedBillingPeriod("MONTHLY");
+                  }}
                 >
                   <div className="font-medium">Monthly</div>
                 </div>
                 <div
                   className={cn(
                     "flex-1 cursor-pointer px-4 py-2.5 text-center transition-all",
-                    billingPeriod === "ANNUAL" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                    effectiveBillingPeriod === "ANNUAL" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   )}
-                  onClick={() => setBillingPeriod("ANNUAL")}
+                  onClick={() => {
+                    // Set the selected billing period
+                    setSelectedBillingPeriod("ANNUAL");
+                  }}
                 >
                   <div className="font-medium">Yearly</div>
                 </div>
                 <div
                   className={cn(
                     "flex-1 cursor-pointer px-4 py-2.5 text-center transition-all",
-                    billingPeriod === "LIFETIME" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                    effectiveBillingPeriod === "LIFETIME" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                   )}
-                  onClick={() => setBillingPeriod("LIFETIME")}
+                  onClick={() => {
+                    // Set the selected billing period
+                    setSelectedBillingPeriod("LIFETIME");
+                  }}
                 >
                   <div className="font-medium">Lifetime</div>
                 </div>
               </div>
               <div className="mt-2 text-center text-xs text-muted-foreground">
-                {billingPeriod === "MONTHLY" && "Pay month-to-month"}
-                {billingPeriod === "ANNUAL" && "Save 20% annually"}
-                {billingPeriod === "LIFETIME" && "One-time payment"}
+                {effectiveBillingPeriod === "MONTHLY" && "Pay month-to-month"}
+                {effectiveBillingPeriod === "ANNUAL" && "Save 20% annually"}
+                {effectiveBillingPeriod === "LIFETIME" && "One-time payment"}
               </div>
+              
+              {/* Show which billing period is being viewed */}
+              {selectedBillingPeriod && (
+                <div className="mt-1 text-center text-xs text-primary">
+                  Viewing plans with {selectedBillingPeriod.toLowerCase()} billing
+                </div>
+              )}
               {/* Debug info - can be removed after testing */}
               {process.env.NODE_ENV === 'development' && (
                 <div className="mt-1 space-y-1 text-center text-xs text-muted-foreground/50">
-                  <div>Current plan: {currentPlanId} | Selected plan: {selectedPlanId} | Billing period: {billingPeriod}</div>
+                  <div>Current plan: {currentPlanId} | Current billing period: {billingPeriod}</div>
+                  <div>Selected billing period: {selectedBillingPeriod ?? 'none'}</div>
+                  <div>Effective billing period: {effectiveBillingPeriod}</div>
                   <div>Organization plan ID: {organization?.plan?.id ?? 'undefined'}</div>
                   <div>Organization plan type: {organization?.plan?.type ?? 'undefined'}</div>
                   <div>Organization plan billing cycle: {organization?.plan?.billingCycle ?? 'undefined'}</div>
@@ -274,25 +311,30 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
             {/* Enhanced Plan Cards */}
             <div className="grid gap-6 md:grid-cols-2">
               {filteredPlans.map((plan) => {
-                // Check if this is the current plan by comparing with the organization's plan ID
-                // This ensures the correct plan is highlighted
-                // We need to compare both the plan type and billing cycle to properly highlight the current plan
-                const [currentType, currentCycle] = currentPlanId ? currentPlanId.split('_') : ['', ''];
+                // Extract plan type and billing cycle from plan ID
                 const [planType, planCycle] = plan.id.split('_');
-                const isCurrentPlan = currentPlanId === plan.id || (currentType === planType && currentCycle === planCycle);
+                
+                // Check if this is the current active plan
+                const isCurrentPlan = organization?.plan?.id === plan.id || 
+                  (organization?.plan && organization.plan.type === planType && organization.plan.billingCycle === planCycle);
+                
+                // Check if this is the effective plan (same type as current plan but with selected billing period)
+                const isEffectivePlan = organization?.plan && organization.plan.type === planType && plan.billingCycle === effectiveBillingPeriod;
                 const isBasicPlan = plan.planType === "BASIC";
                 const isProPlan = plan.planType === "PRO";
                 
-                // Calculate price based on plan and billing period
-                const price = billingPeriod === "LIFETIME" ? 
+                // Calculate price based on plan and effective billing period
+                // This ensures prices update when tabs are clicked
+                const price = plan.billingCycle === "LIFETIME" ? 
                   (isBasicPlan ? "199" : "399") : 
-                  billingPeriod === "ANNUAL" ? 
+                  plan.billingCycle === "ANNUAL" ? 
                     (isBasicPlan ? "86" : "182") : 
                     (isBasicPlan ? "9" : "19");
                 
-                // Get price suffix based on billing period
-                const priceSuffix = billingPeriod === "LIFETIME" ? 
-                  " one-time" : billingPeriod === "ANNUAL" ? 
+                // Get price suffix based on the plan's billing period
+                // This ensures suffixes update when tabs are clicked
+                const priceSuffix = plan.billingCycle === "LIFETIME" ? 
+                  " one-time" : plan.billingCycle === "ANNUAL" ? 
                   "/year" : "/month";
                 
                 return (
@@ -313,7 +355,13 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                             Popular
                           </div>
                         )}
-                        {plan.id === selectedPlanId && (
+                        {/* Show badge for the effective plan when billing period is changed */}
+                        {selectedBillingPeriod && isEffectivePlan && !isCurrentPlan && (
+                          <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary">
+                            Selected Billing
+                          </Badge>
+                        )}
+                        {isCurrentPlan && (
                           <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary">
                             Current Plan
                           </Badge>
@@ -408,11 +456,17 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                         let buttonText = "Change Plan";
                         let buttonVariant: "default" | "secondary" | "outline" = "default";
                         
-                        // Check if user is in trial period
-                        const isInTrial = trialInfo && typeof trialInfo.daysLeft === 'number' && trialInfo.daysLeft > 0;
+                        // Use the isOnTrial variable from the component scope
+                        // This ensures we're consistent with the trial status throughout the component
                         
-                        if (isUpgrade) {
-                          buttonText = isInTrial ? "Activate This Plan" : "Upgrade to this Plan";
+                        // Use the isEffectivePlan variable to determine if this plan should show as selected
+                        // when a different billing period is chosen
+                        
+                        if (isEffectivePlan && selectedBillingPeriod) {
+                          buttonText = "Selected Billing";
+                          buttonVariant = "default";
+                        } else if (isUpgrade) {
+                          buttonText = isOnTrial ? "Activate This Plan" : "Upgrade to this Plan";
                           buttonVariant = "default";
                         } else if (isDowngrade) {
                           buttonText = "Downgrade to this Plan";
@@ -421,6 +475,8 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                           buttonText = `Switch to ${targetCycle.toLowerCase()} billing`;
                           buttonVariant = "outline";
                         }
+                        
+
                         
                         return (
                           <Link href={`/orgs/${orgSlug}/settings/subscription`}>
@@ -446,6 +502,20 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                 );
               })}
             </div>
+            
+            {/* Reset Selection Button - only shown when a billing period is selected */}
+            {selectedBillingPeriod && (
+              <div className="mb-4 flex justify-center">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedBillingPeriod(null)}
+                  className="text-sm"
+                >
+                  Reset to Current Billing
+                </Button>
+              </div>
+            )}
             
             {/* Additional Information */}
             <div className="rounded-lg bg-muted/30 p-4 text-sm">
