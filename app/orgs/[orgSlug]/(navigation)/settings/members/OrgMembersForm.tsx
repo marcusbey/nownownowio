@@ -54,6 +54,7 @@ import {
 import { Mail } from "lucide-react";
 import { SettingsCard } from "@/components/layout/SettingsLayout";
 import { PlanBuyButton } from "@/features/billing/payments/buy-button";
+import { PLAN_TYPES, PlanType } from "@/features/billing/plans/plans";
 import { ArrowUpCircle } from "lucide-react";
 
 type OrgMembersFormProps = {
@@ -67,13 +68,38 @@ type OrgMembersFormProps = {
   }[];
   invitedEmail: string[];
   maxMembers: number;
+  currentPlanType?: PlanType;
 };
+
+/**
+ * Determines the next recommended plan type based on the current plan type.
+ * @param currentPlanType - The current plan type of the organization
+ * @returns The next recommended plan type for upgrade
+ */
+function getNextPlanType(currentPlanType?: PlanType): PlanType {
+  if (!currentPlanType) {
+    return PLAN_TYPES.BASIC;
+  }
+  
+  switch (currentPlanType) {
+    case PLAN_TYPES.FREE:
+      return PLAN_TYPES.BASIC;
+    case PLAN_TYPES.BASIC:
+      return PLAN_TYPES.PRO;
+    case PLAN_TYPES.PRO:
+    default:
+      return PLAN_TYPES.PRO; // Already at the highest tier
+  }
+}
+
+
 
 export const OrgMembersForm = ({
   defaultValues,
   members,
   invitedEmail,
   maxMembers,
+  currentPlanType,
 }: OrgMembersFormProps) => {
   const form = useZodForm({
     schema: OrgMemberFormSchema,
@@ -349,11 +375,11 @@ export const OrgMembersForm = ({
           {members.length >= maxMembers && (
             <Alert variant="destructive" className="mt-2">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <Typography variant="small" className="font-medium ">
+                <Typography variant="default" className="font-medium">
                   You've reached your member limit. Upgrade your plan to add more members.
                 </Typography>
                 <PlanBuyButton
-                  planType="PRO"
+                  planType={getNextPlanType(currentPlanType)}
                   billingCycle="MONTHLY"
                   orgSlug={defaultValues.orgSlug ?? ''}
                   variant="default"

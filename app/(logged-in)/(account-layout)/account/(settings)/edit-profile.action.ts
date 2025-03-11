@@ -17,6 +17,7 @@ import { z } from "zod";
 import {
   EditPasswordFormSchema,
   ProfileFormSchema,
+  SetInitialPasswordFormSchema,
 } from "./edit-profile.schema";
 
 export const updateProfileAction = authAction
@@ -51,6 +52,7 @@ export const updateProfileAction = authAction
       },
       data: {
         name: input.name,
+        displayName: input.displayName,
         email: input.email,
         image: input.image,
         emailVerified: previousEmail === input.email ? undefined : null,
@@ -96,6 +98,57 @@ export const editPasswordAction = authAction
       },
       data: {
         passwordHash: hashStringWithSalt(input.newPassword, env.AUTH_SECRET),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return updatedUser;
+  });
+
+export const setInitialPasswordAction = authAction
+  .schema(SetInitialPasswordFormSchema)
+  .action(async ({ parsedInput: input, ctx }) => {
+    // Check if user already has a password
+    const user = await prisma.user.findUnique({
+      where: {
+        id: ctx.user.id,
+      },
+      select: {
+        id: true,
+        passwordHash: true,
+      },
+    });
+
+    if (!user) {
+      throw new ActionError("User not found");
+    }
+
+    if (user.passwordHash) {
+      throw new ActionError("Password already set. Please use the change password form.");
+    }
+
+    if (input.newPassword !== input.confirmPassword) {
+      throw new ActionError("Passwords don't match");
+    }
+
+    if (!validatePassword(input.newPassword)) {
+      throw new ActionError(
+        "Invalid password. Must be at least 8 characters, and contain at least one letter and one number",
+      );
+    }
+
+    // Hash new password
+    const newPasswordHash = hashStringWithSalt(input.newPassword, env.AUTH_SECRET);
+
+    // Set initial password
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: ctx.user.id,
+      },
+      data: {
+        passwordHash: newPasswordHash,
       },
       select: {
         id: true,

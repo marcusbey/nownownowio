@@ -54,7 +54,12 @@ export const EditProfileCardForm = ({
 }: EditProfileFormProps) => {
   const form = useZodForm({
     schema: ProfileFormSchema,
-    defaultValues: defaultValues,
+    defaultValues: {
+      name: defaultValues.name,
+      email: defaultValues.email,
+      image: defaultValues.image,
+      displayName: defaultValues.displayName ?? displayName(defaultValues),
+    },
   });
   const router = useRouter();
   const [verification, setVerification] = useState({
@@ -136,18 +141,35 @@ export const EditProfileCardForm = ({
           <CardContent className="flex flex-col gap-4">
             <FormField
               control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Your public username"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder=""
+                      placeholder="Your real name"
                       {...field}
                       value={field.value ?? ""}
                     />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
@@ -247,7 +269,7 @@ const EmailVerificationDialog = (props: {
         <DialogHeader>
           <DialogTitle>Verify your current email</DialogTitle>
           <DialogDescription>
-            We have sent you a new email verification code.
+            We have sent you a verification code to your email address.
           </DialogDescription>
         </DialogHeader>
         <form

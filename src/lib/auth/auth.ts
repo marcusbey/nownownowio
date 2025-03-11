@@ -41,25 +41,21 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     session: async ({ session, user }) => {
       try {
         // Enhanced logging for Next.js 15 session debugging
-        // Log session data for debugging
-        // Session is always an object in this context
-        const hasUserProperty = 'user' in session;
-        
         logger.info("Session callback - raw data", {
-          sessionExists: Boolean(session),
-          userExists: Boolean(user),
-          sessionHasUser: hasUserProperty
+          sessionData: 'present', // Session will always exist in this callback
+          userData: 'present',     // User will always exist in this callback
+          sessionHasUser: 'user' in session
         });
 
         // Session will always exist at this point due to the callback structure
-        // but we'll log if it's unexpectedly empty
+        // If session is unexpectedly empty, we'll log it but continue with the flow
         if (!session) {
           logger.error("Session callback - No session object");
-          // Return a minimal valid session object to maintain type compatibility
+          // This code is unreachable due to NextAuth's implementation, but kept for safety
           return { expires: new Date(Date.now() + 2 * 86400).toISOString() };
         }
 
-        // CRITICAL: Detect orphaned sessions (cookie exists but DB session is gone)
+        // CRITICAL: Handle orphaned sessions (cookie exists but DB session is gone)
         // This happens when the database is wiped but the cookie remains
         if (!user) {
           logger.warn("Session callback - Orphaned session detected (cookie exists but no user found in database)");
@@ -88,9 +84,9 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         session.user.name = user.name;
         session.user.image = user.image;
         
-        // Remove sensitive data
+        // We need the passwordHash property to determine if a password is set
         // @ts-expect-error - NextAuth doesn't know about this property
-        session.user.passwordHash = null;
+        session.user.passwordHash = user.passwordHash;
 
         // Add debug logging
         logger.info("Session callback - processed user data", {
@@ -209,21 +205,9 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       
       if (hasOAuthAccount) {
         updateData.emailVerified = new Date();
-        
-        // Update the user with the generated data
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: updateData,
-        });
-        
-        // Set up display name for OAuth users
-        await setupUserDisplayName(user.id);
-        
-        return;
       }
 
+      // Update the user with the generated data
       await prisma.user.update({
         where: {
           id: user.id,

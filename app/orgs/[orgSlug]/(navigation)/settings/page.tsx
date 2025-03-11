@@ -1,8 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth/helper";
 import { logger } from "@/lib/logger";
-import { prisma } from "@/lib/prisma";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { notFound } from "next/navigation";
@@ -25,12 +23,31 @@ export default async function RoutePage(props: SettingsPageParams) {
 
   try {
     // Get the current user and organization
-    const { org, user } = await getRequiredCurrentOrgCache(orgSlug);
+    const { user } = await getRequiredCurrentOrgCache(orgSlug);
+    
+    if (!user) {
+      throw new Error("User not found");
+    }
     
     // Check if the user's email is verified
-    const isEmailVerified = user.emailVerified !== null;
+    // For OAuth provider sign-ups, emailVerified should be set to a Date
+    // For email/password sign-ups without verification, it will be null
+    // We need to properly check if it's a valid Date object or string
+    const isEmailVerified = user.emailVerified instanceof Date || 
+      (typeof user.emailVerified === 'string' && new Date(user.emailVerified).toString() !== 'Invalid Date');
 
-    return <PersonalAccountContent user={user} orgSlug={orgSlug} isEmailVerified={isEmailVerified} />;
+    // Create a user object with the required properties for PersonalAccountContent
+    const userForComponent = {
+      id: user.id,
+      name: user.name,
+      displayName: user.displayName,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      image: user.image,
+      passwordHash: user.passwordHash
+    };
+
+    return <PersonalAccountContent user={userForComponent} orgSlug={orgSlug} isEmailVerified={isEmailVerified} />;
   } catch (error) {
     logger.error("Error accessing settings page:", error);
     notFound();
