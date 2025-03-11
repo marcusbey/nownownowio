@@ -14,6 +14,8 @@ import { baseAuth } from "@/lib/auth/auth";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import { isInRoles } from "@/lib/organizations/is-in-roles";
 import { getWidgetSetupStatusQuery } from "../../../../src/query/widget/widget-setup-status.query";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
 // Types
 import type { PageParams } from "@/types/next";
@@ -33,6 +35,36 @@ export default async function RoutePage(
   const orgSlug = awaitedParams.orgSlug;
   
   try {
+    // First check if the organization exists directly
+    const orgExists = await prisma.organization.findUnique({
+      where: { slug: orgSlug },
+      select: { id: true }
+    });
+    
+    // If organization doesn't exist, try to find similar ones
+    if (!orgExists) {
+      // Look for similar organizations based on the first part of the slug
+      const similarOrgs = await prisma.organization.findMany({
+        where: {
+          slug: {
+            contains: orgSlug.split('-')[0],
+            mode: 'insensitive'
+          }
+        },
+        take: 1,
+        select: { slug: true }
+      });
+      
+      // If we found a similar organization, redirect to it
+      if (similarOrgs.length > 0) {
+        console.info(`Redirecting from ${orgSlug} to similar organization: ${similarOrgs[0].slug}`);
+        redirect(`/orgs/${similarOrgs[0].slug}`);
+      }
+      
+      // If no similar organizations found, redirect to the organizations list
+      redirect('/orgs');
+    }
+    
     const { org: organization, user, roles } = await getRequiredCurrentOrgCache(orgSlug);
     const session = await baseAuth();
     

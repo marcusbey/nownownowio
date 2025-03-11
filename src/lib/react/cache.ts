@@ -207,7 +207,24 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
             } else {
                 // Log detailed error for debugging but provide a more generic user-facing message
                 console.error(`Organization with slug '${orgSlug}' not found in database`);
-                throw new Error(`Organization not found`);
+                
+                // Check if this might be a typo or case sensitivity issue
+                const similarOrgs = await prisma.organization.findMany({
+                    where: {
+                        slug: {
+                            contains: orgSlug.split('-')[0], // Try to match on first part of slug
+                            mode: 'insensitive'
+                        }
+                    },
+                    take: 3,
+                    select: { slug: true, name: true }
+                });
+                
+                if (similarOrgs.length > 0) {
+                    console.info(`Found similar organizations: ${JSON.stringify(similarOrgs)}`);
+                }
+                
+                throw new Error(`Organization not found. Please check the URL and try again.`);
             }
         } catch (error) {
             // Check if this is already an enhanced error to prevent recursive wrapping
@@ -218,7 +235,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
             
             // Add context to the error but keep the message clean
             console.error(`Error accessing organization ${orgSlug}:`, error);
-            throw new Error('Organization not found');
+            throw new Error('Organization not found. Please check the URL or contact support if the issue persists.');
         }
     }
 

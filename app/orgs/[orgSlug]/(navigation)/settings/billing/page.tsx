@@ -10,7 +10,9 @@ export const generateMetadata = combineWithParentMetadata({
 });
 
 export default async function BillingPage({ params }: PageParams<{ orgSlug: string }>) {
-  const { orgSlug } = params;
+  // In Next.js 15, we need to await the params object
+  const awaitedParams = await params;
+  const orgSlug = awaitedParams.orgSlug;
   return (
     <Suspense fallback={<BillingSkeleton />}>
       <BillingContent orgSlug={orgSlug} />
