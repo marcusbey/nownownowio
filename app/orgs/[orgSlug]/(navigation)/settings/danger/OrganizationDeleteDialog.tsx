@@ -18,8 +18,8 @@ export const OrganizationDeleteDialog = ({
     mutationFn: async () => {
       const result = await organizationDeleteAction({ orgSlug: org.slug });
 
-      if (!result || result.serverError) {
-        toast.error(result?.serverError ?? "Failed to delete organization");
+      if (result.serverError) {
+        toast.error(result.serverError);
         return;
       }
 
@@ -32,7 +32,8 @@ export const OrganizationDeleteDialog = ({
   return (
     <Button
       type="button"
-      variant="destructive"
+      variant="outline"
+      className="border-amber-500/50 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700"
       onClick={() => {
         alertDialog.add({
           title: "Delete Organization",

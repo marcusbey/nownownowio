@@ -89,9 +89,9 @@ export const OrganizationDangerForm = ({ defaultValues }: ProductFormProps) => {
         />
         <Button 
           type="submit" 
-          variant="destructive" 
+          variant="outline" 
           size="sm"
-          className="shrink-0"
+          className="shrink-0 border-amber-500/50 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700"
         >
           Update Slug
         </Button>

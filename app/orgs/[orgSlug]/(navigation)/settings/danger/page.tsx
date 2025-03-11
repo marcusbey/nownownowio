@@ -52,26 +52,26 @@ export default async function RoutePage(props: PageParams) {
     <div className="py-6 max-w-4xl mx-auto">
       <div className="mb-8 border-b pb-4">
         <div className="flex items-center gap-2 mb-2">
-          <div className="bg-destructive/15 p-2 rounded-full">
-            <ShieldAlert className="size-6 text-destructive" />
+          <div className="bg-amber-500/15 p-2 rounded-full">
+            <ShieldAlert className="size-6 text-amber-500" />
           </div>
-          <Typography variant="h2" className="text-foreground font-bold">Danger Zone</Typography>
-          <Badge variant="destructive" className="ml-2 font-medium">Owner Only</Badge>
+          <Typography variant="h2" className="text-foreground font-bold">Advanced Settings</Typography>
+          <Badge variant="outline" className="ml-2 font-medium border-amber-500/50 text-amber-500">Owner Only</Badge>
         </div>
         <Typography className="max-w-2xl text-foreground/80">
-          Manage critical organization settings that could have serious consequences. 
+          Manage important organization settings that require careful consideration. 
           Changes made here may affect all members and organization data.
         </Typography>
       </div>
       
       <div className="space-y-8">
         {/* Organization Slug Section */}
-        <Card className="border-2 border-destructive/30 shadow-md hover:border-destructive/50 transition-colors bg-background">
-          <CardHeader className="pb-2 border-b border-destructive/10">
+        <Card className="border-2 border-amber-500/20 shadow-md hover:border-amber-500/30 transition-colors bg-background">
+          <CardHeader className="pb-2 border-b border-amber-500/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="size-5 text-destructive" />
-                <CardTitle className="text-lg font-bold text-destructive">Organization Slug</CardTitle>
+                <AlertTriangle className="size-5 text-amber-500" />
+                <CardTitle className="text-lg font-bold text-foreground">Organization Slug</CardTitle>
               </div>
               <TooltipProvider>
                 <Tooltip>
@@ -86,7 +86,7 @@ export default async function RoutePage(props: PageParams) {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <CardDescription className="mt-1 text-destructive/90 font-medium">
+            <CardDescription className="mt-1 text-muted-foreground font-medium">
               Changing your organization's slug will break all existing links
             </CardDescription>
           </CardHeader>
@@ -104,25 +104,25 @@ export default async function RoutePage(props: PageParams) {
         </Card>
         
         {/* Delete Organization Section */}
-        <Card className="border-2 border-destructive/30 shadow-md hover:border-destructive/50 transition-colors bg-background">
-          <CardHeader className="pb-2 border-b border-destructive/10">
+        <Card className="border-2 border-amber-500/20 shadow-md hover:border-amber-500/30 transition-colors bg-background">
+          <CardHeader className="pb-2 border-b border-amber-500/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Trash2 className="size-5 text-destructive" />
-                <CardTitle className="text-lg font-bold text-destructive">Delete Organization</CardTitle>
+                <Trash2 className="size-5 text-amber-500" />
+                <CardTitle className="text-lg font-bold text-foreground">Delete Organization</CardTitle>
               </div>
-              <Badge variant="destructive" className="uppercase text-xs font-bold">Irreversible</Badge>
+              <Badge variant="outline" className="uppercase text-xs font-bold border-amber-500/50 text-amber-500">Irreversible</Badge>
             </div>
-            <CardDescription className="mt-1 text-destructive/90 font-medium">
+            <CardDescription className="mt-1 text-muted-foreground font-medium">
               Permanently delete this organization and all its data
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="bg-destructive/10 border-2 border-destructive/30 rounded-md p-4 mb-6">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-md p-4 mb-6">
               <div className="flex gap-3">
-                <AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
+                <AlertTriangle className="size-5 text-amber-500 shrink-0 mt-0.5" />
                 <div>
-                  <Typography variant="small" className="font-bold text-destructive mb-1">
+                  <Typography variant="small" className="font-bold text-foreground mb-1">
                     Warning: This action cannot be undone
                   </Typography>
                   <Typography variant="small" className="text-foreground/80">
