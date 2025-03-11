@@ -86,7 +86,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
     setIsSubmitting(true);
     
     try {
-      const response = await fetch("/api/user/update", {
+      const response = await fetch("/api/v1/user/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -331,7 +331,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
                 setIsSubmitting(true);
                 
                 try {
-                  const response = await fetch("/api/user/set-password", {
+                  const response = await fetch("/api/v1/user/set-password", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",

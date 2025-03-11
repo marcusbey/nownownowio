@@ -73,7 +73,7 @@ export function BannerImageForm({ user }: BannerImageFormProps) {
   const handleRemoveBanner = async () => {
     setIsUploading(true);
     try {
-      const response = await fetch("/api/user/update", {
+      const response = await fetch("/api/v1/user/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
