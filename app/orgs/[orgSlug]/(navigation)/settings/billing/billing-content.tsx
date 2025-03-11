@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { Button } from "@/components/core/button";
 import { CreditCard, Receipt } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react";
 import { useOrganization } from "@/query/org/org.query";
 
 interface BillingContentProps {
@@ -12,43 +12,25 @@ interface BillingContentProps {
 
 export function BillingContent({ orgSlug }: BillingContentProps) {
   const { organization, isLoading } = useOrganization(orgSlug);
+  const [showInvoices, setShowInvoices] = useState(false);
+  
+  // Mock data - in a real app, this would come from an API
+  type Invoice = {
+    id: string;
+    date: string;
+    amount: number;
+  }
+  
+  const invoices: Invoice[] = [];
 
   return (
     <div className="py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">Billing Settings</h2>
         <p className="text-sm text-muted-foreground">
-          Manage your payment methods and billing information
+          Manage your billing information
         </p>
       </div>
-
-      {/* Billing Information Section */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Payment Methods</CardTitle>
-          <CardDescription>
-            Manage your payment methods for subscription billing
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="flex items-center space-x-4">
-                <CreditCard className="h-6 w-6 text-muted-foreground" />
-                <div>
-                  <h3 className="text-sm font-medium">Credit/Debit Cards</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Add or update your payment cards
-                  </p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">
-                Manage
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
       
       {/* Billing History Section */}
       <Card>
@@ -70,12 +52,41 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
                   </p>
                 </div>
               </div>
-              <Link href={`/orgs/${orgSlug}/settings/billing/invoices`}>
-                <Button variant="outline" size="sm">
-                  View
-                </Button>
-              </Link>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowInvoices(!showInvoices)}
+              >
+                {showInvoices ? "Hide" : "View"}
+              </Button>
             </div>
+            
+            {/* Invoice list - shows when toggled */}
+            {showInvoices && (
+              <div className="mt-4 border p-4 rounded-lg">
+                {invoices.length > 0 ? (
+                  <div className="space-y-2">
+                    {invoices.map((invoice, index) => (
+                      <div key={index} className="flex items-center justify-between border-b py-2 last:border-0">
+                        <div>
+                          <p className="text-sm font-medium">Invoice #{invoice.id}</p>
+                          <p className="text-xs text-muted-foreground">{invoice.date}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <p className="text-sm font-medium">${invoice.amount}</p>
+                          <Button variant="ghost" size="sm">Download</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <p className="text-sm text-muted-foreground">No invoices available yet.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Your invoice history will appear here once you have billing activity.</p>
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* Billing address */}
             <div className="mt-6">
