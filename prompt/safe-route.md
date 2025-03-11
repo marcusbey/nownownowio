@@ -5,7 +5,7 @@ You need to use next-zod-route to create a safe route.
 <example>
 
 ```ts
-// app/api/org/[orgId]/route.ts
+// app/api/v1/org/[orgId]/route.ts
 import { prisma } from "@/lib/prisma";
 import { orgRoute } from "@/lib/safe-route";
 import { z } from "zod";

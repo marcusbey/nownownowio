@@ -11,7 +11,7 @@ import {
 } from "@/components/data-display/card";
 import { Typography } from "@/components/data-display/typography";
 import { Check } from "lucide-react";
-import { PLANS } from "@/features/plans/plans";
+import { PLANS } from "@/features/billing/plans/plans";
 import type { OrganizationPlan } from "@prisma/client";
 import type Stripe from "stripe";
 import { toast } from "sonner";
@@ -27,9 +27,10 @@ interface PlansProps {
   currentPlan: OrganizationPlan | null;
   subscription?: Stripe.Subscription;
   organizationId: string;
+  isTrialPeriod?: boolean;
 }
 
-export function Plans({ currentPlan, subscription, organizationId }: PlansProps) {
+export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod = false }: PlansProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isYearly, setIsYearly] = useState(false);
@@ -51,10 +52,14 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
     <div className="space-y-8">
       <div className="grid gap-6 lg:grid-cols-2">
         {PLANS.map((plan) => {
+          // Check if this is the current plan by comparing with the organization's plan ID
+          // This ensures the correct plan is highlighted
           const isCurrentPlan = currentPlan?.id === plan.id;
           const buttonDisabled = isCurrentPlan || isPending || !plan.yearlyPriceId || !plan.priceId;
-          const currentPrice = isYearly && plan.type === "recurring" ? plan.yearlyPrice || plan.price : plan.price;
-          const currentPriceId = isYearly && plan.type === "recurring" ? plan.yearlyPriceId || plan.priceId : plan.priceId;
+          // Determine if plan is recurring based on having both monthly and yearly prices
+          const isRecurring = Boolean(plan.yearlyPrice) && Boolean(plan.yearlyPriceId);
+          const currentPrice = isYearly && isRecurring ? plan.yearlyPrice ?? plan.price : plan.price;
+          const currentPriceId = isYearly && isRecurring ? plan.yearlyPriceId ?? plan.priceId : plan.priceId;
           const monthlyPrice = plan.price ?? 0;
           const yearlyPrice = plan.yearlyPrice;
           const yearlyMonthlyPrice = yearlyPrice ? yearlyPrice / 12 : null;
@@ -84,13 +89,13 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
                   <p className="text-lg font-bold uppercase text-primary">
                     {plan.name}
                   </p>
-                  <Typography variant="muted">{plan.subtitle || plan.description}</Typography>
+                  <Typography variant="muted">{plan.subtitle ?? plan.description}</Typography>
                 </div>
 
                 {/* Pricing Section - Fixed Height */}
                 <div className="space-y-6">
                   {/* Toggle or Info Box */}
-                  {plan.type === "recurring" ? (
+                  {plan.yearlyPrice && plan.yearlyPriceId ? (
                     <div className="flex items-center justify-between gap-2 bg-muted/30 rounded-lg p-2">
                       <div className="flex items-center gap-2">
                         <Label className={cn("text-sm", !isYearly && "text-primary font-medium")}>Monthly</Label>
@@ -163,16 +168,20 @@ export function Plans({ currentPlan, subscription, organizationId }: PlansProps)
                     size="lg"
                     variant={plan.isPopular ? "default" : "outline"}
                     disabled={buttonDisabled}
-                    onClick={() => currentPriceId && handleSubscriptionUpdate(currentPriceId)}
+                    onClick={async () => {
+                      if (currentPriceId) {
+                        await handleSubscriptionUpdate(currentPriceId);
+                      }
+                    }}
                   >
                     {isCurrentPlan
-                      ? "Current Plan"
+                      ? (isTrialPeriod ? "Activate Plan" : "Current Plan")
                       : subscription
                       ? "Change Plan"
                       : "Get Started"}
                   </Button>
                   <Typography variant="small" className="text-center text-muted-foreground">
-                    {plan.type === "recurring" 
+                    {plan.yearlyPrice && plan.yearlyPriceId
                       ? (isYearly ? "Billed yearly" : "Billed monthly") 
                       : "One-time payment"}
                   </Typography>

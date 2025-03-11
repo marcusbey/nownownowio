@@ -30,11 +30,9 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
   
   // Calculate trial period information
   useEffect(() => {
-    if (organization?.createdAt && !currentPlanId?.startsWith('FREE')) {
-      // Use organization creation date as trial start date if planChangedAt is not available
-      const trialStartDate = organization.planChangedAt 
-        ? new Date(organization.planChangedAt)
-        : new Date(organization.createdAt);
+    if (organization?.plan?.createdAt && currentPlanId && !currentPlanId.startsWith('FREE')) {
+      // Use plan creation date as trial start date
+      const trialStartDate = new Date(organization.plan.createdAt);
       const trialEndDate = addDays(trialStartDate, 7); // 7-day trial
       const daysLeft = differenceInDays(trialEndDate, new Date());
       
