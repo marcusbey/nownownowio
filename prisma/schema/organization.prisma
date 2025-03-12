@@ -24,19 +24,6 @@ model Organization {
   @@index([createdAt])
 }
 
-model Widget {
-  id             String       @id @default(nanoid(11))
-  organizationId String
-  widgetToken    String
-  settings       Json?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([createdAt])
-}
-
 model OrganizationInvitation {
   id             String       @id @default(nanoid(11))
   email          String
@@ -50,6 +37,19 @@ model OrganizationInvitation {
   @@index([token])
   @@index([organizationId])
   @@index([expiresAt])
+}
+
+model Widget {
+  id             String       @id @default(nanoid(11))
+  organizationId String
+  widgetToken    String
+  settings       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([createdAt])
 }
 
 model OrganizationMembership {
@@ -69,7 +69,6 @@ model OrganizationPlan {
   id                String                    @id @default(nanoid(11))
   name              String
   type              OrganizationPlanType      @default(FREE)
-  billingCycle      BillingCycle              @default(MONTHLY)
   maximumMembers    Int                       @default(1)
   maxPostsPerDay    Int                       @default(5)
   maxCommentsPerDay Int                       @default(20)
@@ -80,6 +79,7 @@ model OrganizationPlan {
   hasAnalytics      Boolean                   @default(false)
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
+  billingCycle      BillingCycle              @default(MONTHLY)
   organizations     Organization[]
   orgPlanHistory    OrganizationPlanHistory[]
   previousOrgPlans  OrganizationPlanHistory[] @relation("OrgPreviousPlanHistory")

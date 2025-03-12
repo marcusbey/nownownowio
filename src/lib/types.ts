@@ -11,7 +11,6 @@ export function getUserDataSelect(loggedInUserId: string) {
     bio: true,
     resendContactId: true,
     passwordHash: true,
-    widgetToken: true,
     websiteUrl: true,
     createdAt: true,
     updatedAt: true,
@@ -199,7 +198,6 @@ export type User = Prisma.UserGetPayload<{
     bio: true;
     resendContactId: true;
     passwordHash: true,
-    widgetToken: true,
     websiteUrl: true,
     createdAt: true,
     updatedAt: true,

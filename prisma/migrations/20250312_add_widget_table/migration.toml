@@ -1,0 +1,5 @@
+# Prisma Migrate
+# migration_name = "20250312_add_widget_table"
+# datasource_provider = "postgresql"
+
+# This is an empty migration.

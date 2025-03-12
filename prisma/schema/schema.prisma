@@ -19,7 +19,6 @@ model User {
   bio                   String?
   resendContactId       String?
   passwordHash          String?
-  widgetToken           String?
   websiteUrl            String?
   failedAttempts        Int                      @default(0)
   lockedUntil           DateTime?

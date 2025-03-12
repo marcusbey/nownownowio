@@ -1,0 +1,5 @@
+# Prisma Migrate
+# migration_name = "20250312_remove_widget_token_from_user"
+# datasource_provider = "postgresql"
+
+# This migration removes the widgetToken field from the User model
