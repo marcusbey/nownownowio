@@ -19,16 +19,21 @@ export async function getWidgetSetupStatusQuery(
   });
 
   // Find the most recent widget for this organization
-  // Using the Widget model from Prisma schema
-  const widget = await prisma.$queryRaw`
-    SELECT * FROM "Widget"
-    WHERE "organizationId" = ${organizationId}
-    ORDER BY "createdAt" DESC
-    LIMIT 1
-  `;
+  // Using the Prisma client to query the Widget model
+  const widget = await prisma.$transaction(async (tx) => {
+    return tx.$queryRaw<{ id: string; createdAt: Date }[]>`
+      SELECT id, "createdAt" FROM "Widget"
+      WHERE "organizationId" = ${organizationId}
+      ORDER BY "createdAt" DESC
+      LIMIT 1
+    `;
+  });
 
+  // Check if widget exists and return appropriate status
+  const widgetExists = Array.isArray(widget) && widget.length > 0;
+  
   return {
-    isConfigured: !!widget && Array.isArray(widget) && widget.length > 0,
-    lastGeneratedAt: Array.isArray(widget) && widget.length > 0 ? widget[0].createdAt : null
+    isConfigured: widgetExists,
+    lastGeneratedAt: widgetExists ? widget[0].createdAt : undefined
   };
 }
