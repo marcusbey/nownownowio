@@ -16,8 +16,8 @@ model Organization {
   invitations      OrganizationInvitation[]
   members          OrganizationMembership[]
   planHistory      OrganizationPlanHistory[]
-  posts            Post[]
   widgets          Widget[]
+  posts            Post[]
 
   @@index([slug])
   @@index([stripeCustomerId])

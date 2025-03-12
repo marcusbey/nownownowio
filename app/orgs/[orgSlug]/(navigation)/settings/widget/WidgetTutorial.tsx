@@ -39,7 +39,7 @@ export function WidgetTutorial() {
     `}<span className="bg-amber-100/30 dark:bg-amber-900/30 px-1 py-0.5 rounded text-amber-700 dark:text-amber-300 font-medium">{`<script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_USER_ID" 
+      data-org-id="DEMO_ORGANIZATION_ID" 
       data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
@@ -72,7 +72,7 @@ export function WidgetTutorial() {
     `}<span className="bg-amber-100/30 dark:bg-amber-900/30 px-1 py-0.5 rounded text-amber-700 dark:text-amber-300 font-medium">{`<script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_USER_ID" 
+      data-org-id="DEMO_ORGANIZATION_ID" 
       data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
@@ -91,8 +91,8 @@ export function WidgetTutorial() {
             <h4 className="text-sm font-medium">Script Attributes</h4>
             <ul className="text-sm space-y-2">
               <li className="flex gap-2">
-                <code className="text-xs bg-muted px-1 py-0.5 rounded shrink-0">data-user-id</code>
-                <span className="text-muted-foreground">Your unique NowNowNow user ID (automatically included in generated script)</span>
+                <code className="text-xs bg-muted px-1 py-0.5 rounded shrink-0">data-org-id</code>
+                <span className="text-muted-foreground">Your unique NowNowNow org ID (automatically included in generated script)</span>
               </li>
               <li className="flex gap-2">
                 <code className="text-xs bg-muted px-1 py-0.5 rounded shrink-0">data-token</code>

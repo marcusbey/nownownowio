@@ -1,51 +1,53 @@
-import { verifyWidgetToken } from '@/lib/now-widget';
+import { verifyWidgetToken, validateWidgetOrigin, getWidgetCorsHeaders } from '@/lib/now-widget';
 import { prisma } from '@/lib/prisma';
+import { widgetExtensions } from '@/lib/prisma/prisma.widget.extends';
+import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 
-export async function OPTIONS(_req: NextRequest) {
+export async function OPTIONS(req: NextRequest) {
+    // Get the origin from the request
+    const origin = req.headers.get('origin');
+    
     return new NextResponse(null, {
         status: 204,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET,OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Max-Age': '86400',
-        },
+        headers: getWidgetCorsHeaders(origin ?? undefined),
     });
 }
 
 export async function GET(req: NextRequest) {
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    };
+    // Get the origin from the request
+    const origin = req.headers.get('origin');
+    const headers = getWidgetCorsHeaders(origin ?? undefined);
 
     const { searchParams } = new URL(req.url);
     const orgId = searchParams.get('orgId');
     const token = req.headers.get('Authorization')?.split(' ')[1];
 
     if (!orgId || !token) {
+        logger.warn('Widget org-info request missing required parameters', {
+            hasOrgId: Boolean(orgId),
+            hasToken: Boolean(token),
+            origin
+        });
         return NextResponse.json(
-            { error: 'Invalid request' },
+            { error: 'Invalid request', message: 'Organization ID and authorization token are required' },
             { status: 400, headers }
         );
     }
 
-    // Verify the widget token against the organization
-    const isValid = verifyWidgetToken(token, orgId);
-    if (!isValid) {
-        return NextResponse.json(
-            { error: 'Invalid token' },
-            { status: 401, headers }
-        );
-    }
-
     try {
-        // Find the organization and its owner
-        const organization = await prisma.organization.findUnique({
+        // First, get the widget information to verify domain
+        const widget = await widgetExtensions.findLatestForOrganization(orgId);
+        
+        // Get the organization details to extract the website URL
+        const orgDetails = widget ? await prisma.organization.findUnique({
             where: { id: orgId },
-            include: {
+            select: {
+                id: true,
+                name: true,
+                image: true,
+                bio: true,
+                websiteUrl: true,
                 members: {
                     where: { roles: { has: 'OWNER' } },
                     take: 1,
@@ -67,35 +69,95 @@ export async function GET(req: NextRequest) {
                     }
                 }
             }
-        });
+        }) : null;
 
-        if (!organization || organization.members.length === 0) {
+        if (!widget) {
+            logger.warn('Widget not found for organization', { orgId, origin });
             return NextResponse.json(
-                { error: 'Organization not found' },
+                { error: 'Widget not configured', message: 'No widget found for this organization' },
                 { status: 404, headers }
             );
         }
 
-        const owner = organization.members[0].user;
+        // Extract domain from website URL
+        let allowedDomain: string | null = null;
+        if (orgDetails?.websiteUrl) {
+            try {
+                allowedDomain = new URL(orgDetails.websiteUrl).hostname;
+            } catch (error) {
+                logger.error('Invalid website URL in organization settings', { 
+                    orgId, 
+                    websiteUrl: orgDetails.websiteUrl,
+                    error
+                });
+            }
+        }
+
+        // Verify the widget token against the organization
+        const isTokenValid = verifyWidgetToken(token, orgId);
+        if (!isTokenValid) {
+            logger.warn('Invalid widget token', { orgId, origin });
+            return NextResponse.json(
+                { error: 'Invalid token', message: 'The provided authorization token is invalid' },
+                { status: 401, headers }
+            );
+        }
+
+        // If we have an origin and allowed domain, validate the origin
+        if (origin && allowedDomain) {
+            const isOriginValid = validateWidgetOrigin(origin, allowedDomain);
+            if (!isOriginValid) {
+                logger.warn('Invalid widget origin', { 
+                    orgId, 
+                    origin,
+                    allowedDomain 
+                });
+                return NextResponse.json(
+                    { error: 'Invalid origin', message: 'This widget can only be used on the registered domain' },
+                    { status: 403, headers }
+                );
+            }
+        }
+
+        if (!orgDetails || orgDetails.members.length === 0) {
+            logger.warn('Organization or owner not found', { orgId });
+            return NextResponse.json(
+                { error: 'Organization not found', message: 'The organization or its owner could not be found' },
+                { status: 404, headers }
+            );
+        }
+
+        const owner = orgDetails.members[0].user;
+
+        // Log successful request
+        logger.info('Widget org-info request successful', { 
+            orgId,
+            origin,
+            organizationName: orgDetails.name
+        });
 
         return NextResponse.json(
             { 
                 organization: {
-                    id: organization.id,
-                    name: organization.name,
-                    image: organization.image
+                    id: orgDetails.id,
+                    name: orgDetails.name,
+                    image: orgDetails.image,
+                    bio: orgDetails.bio,
+                    websiteUrl: orgDetails.websiteUrl
                 },
                 user: owner 
             },
             { headers }
         );
     } catch (error) {
-        // Log error but avoid console statement in production
-        if (process.env.NODE_ENV !== 'production') {
-            console.error('Error fetching user info:', error);
-        }
+        logger.error('Error fetching organization info', { 
+            error, 
+            orgId,
+            origin
+        });
+        
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: 'Internal server error', message: 'An error occurred while fetching organization information' },
             { status: 500, headers }
         );
     }

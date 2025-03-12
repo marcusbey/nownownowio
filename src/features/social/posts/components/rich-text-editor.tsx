@@ -871,6 +871,7 @@ const RichTextEditor = React.forwardRef<
                   if (e.key === " " && filteredCommands.length > 0 && commandSearch.trim()) {
                     e.preventDefault();
                     const selectedCommand = filteredCommands[selectedIndex];
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                     if (selectedCommand) {
                       applyFormat(selectedCommand);
                       setShowCommandMenu(false);

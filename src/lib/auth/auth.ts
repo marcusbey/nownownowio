@@ -1,4 +1,4 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
+// import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
 import type { Session } from "next-auth";
 import { env } from "../env";
@@ -17,6 +17,7 @@ import { setupUserDisplayName } from "./user-setup";
 import { sendEmail } from "../mail/sendEmail";
 import VerifyEmail from "@/emails/verify-email.email";
 import { SiteConfig } from "@/site-config";
+import { CustomPrismaAdapter } from "./custom-prisma-adapter";
 import { nanoid } from "nanoid";
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
@@ -31,7 +32,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
     // Default fallback if we can't determine the org slug
     newUser: "/orgs",
   },
-  adapter: PrismaAdapter(prisma),
+  adapter: CustomPrismaAdapter(prisma),
   providers: getNextAuthConfigProviders(),
   session: {
     strategy: "database",
@@ -42,21 +43,23 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       try {
         // Enhanced logging for Next.js 15 session debugging
         logger.info("Session callback - raw data", {
-          sessionData: 'present', // Session will always exist in this callback
-          userData: 'present',     // User will always exist in this callback
-          sessionHasUser: 'user' in session
+          // These conditionals are necessary for runtime safety
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          sessionData: session ? 'present' : 'missing',
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          userData: user ? 'present' : 'missing',
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          sessionHasUser: session && 'user' in session ? 'yes' : 'no',
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          userDetails: user ? { id: user.id, email: user.email } : 'no user data'
         });
 
         // Session will always exist at this point due to the callback structure
-        // If session is unexpectedly empty, we'll log it but continue with the flow
-        if (!session) {
-          logger.error("Session callback - No session object");
-          // This code is unreachable due to NextAuth's implementation, but kept for safety
-          return { expires: new Date(Date.now() + 2 * 86400).toISOString() };
-        }
+        // Removed unreachable condition (!session) as it's impossible per NextAuth's implementation
 
         // CRITICAL: Handle orphaned sessions (cookie exists but DB session is gone)
         // This happens when the database is wiped but the cookie remains
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!user) {
           logger.warn("Session callback - Orphaned session detected (cookie exists but no user found in database)");
           // Set a flag on the session to indicate it's invalid (client can handle this accordingly)
@@ -66,6 +69,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         }
 
         // Initialize session.user if it doesn't exist
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (!session.user) {
           logger.info("Session callback - Initializing missing session.user");
           // Create a minimal user object that meets the type requirements
@@ -94,7 +98,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
           email: user.email,
           name: user.name,
           hasImage: !!user.image,
-          sessionValid: !!session && !!session.user && !!session.user.id
+          sessionValid: !!session.user.id
         });
 
         return session;
@@ -108,7 +112,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   events: {
     signIn: async (message) => {
       // First handle the standard credential sign-in callback
-      if (req && typeof credentialsSignInCallback === 'function') {
+      if (typeof credentialsSignInCallback === 'function') {
         const callback = credentialsSignInCallback(req);
         if (typeof callback === 'function') {
           await callback(message);
@@ -117,10 +121,11 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       
       // Then check if we need to send a verification email
       const { user, account } = message;
-      if (!user || !user.email || !user.id) return;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      if (!user?.email || !user?.id) return;
       
       // Only proceed for credentials provider and if email isn't verified
-      if (account && account.provider === 'credentials') {
+      if (account?.provider === 'credentials') {
         // Get the user with emailVerified status
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },

@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { baseAuth } from "./auth";
 import { cache } from "react";
 import { logger } from "../logger";
-
-const isServer = typeof window === "undefined";
+import type { Session } from "next-auth";
 
 export class AuthError extends Error {}
 
@@ -15,13 +14,20 @@ export class AuthError extends Error {}
  */
 export const auth = cache(async (): Promise<User | null> => {
   try {
-    const session = await baseAuth();
+    const session = await baseAuth() as Session | null;
     
-    // Add debug logging
-    logger.debug('Auth helper - session data:', { 
+    // Enhanced debug logging with more details
+    logger.info('Auth helper - session data:', { 
       hasSession: !!session, 
       hasUser: !!session?.user,
-      userEmail: session?.user?.email
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      userEmail: session && session.user ? session.user.email : undefined,
+      // Only access Object.keys when session exists
+      sessionKeys: session ? Object.keys(session) : [],
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      userKeys: session && session.user ? Object.keys(session.user) : [],
+      // Check if session has custom property added in auth.ts
+      isOrphanedSession: session ? 'isOrphanedSession' in session : false
     });
 
     if (session?.user) {
@@ -31,14 +37,22 @@ export const auth = cache(async (): Promise<User | null> => {
       if (!user.id || !user.email) {
         logger.error('Auth helper - Invalid user object in session', { 
           hasId: !!user.id, 
-          hasEmail: !!user.email 
+          hasEmail: !!user.email,
+          userObject: JSON.stringify(user)
         });
         return null;
       }
       
+      // Log successful authentication
+      logger.info('Auth helper - Valid user authenticated', {
+        userId: user.id,
+        email: user.email
+      });
+      
       return user;
     }
-
+    
+    logger.warn('Auth helper - No user in session');
     return null;
   } catch (error) {
     logger.error('Auth error:', { error });

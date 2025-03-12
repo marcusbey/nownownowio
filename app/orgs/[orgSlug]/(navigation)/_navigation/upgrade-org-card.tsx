@@ -27,9 +27,13 @@ export const UpgradeCard = () => {
     // eslint-disable-next-line no-console
     console.log('Organization object:', org);
     
-    // Log the user session for debugging
+    // Log the user session for debugging with more details
     // eslint-disable-next-line no-console
-    console.log('User session:', session);
+    console.log('User session:', {
+      isAuthenticated: !!session,
+      sessionData: session ? 'present' : 'missing',
+      orgData: 'present' // org is always present here since we check !org above
+    });
     
     // For demo purposes, we'll simulate a trial period based on the current date
     // In a real app, you would fetch this from the OrganizationPlanHistory table
