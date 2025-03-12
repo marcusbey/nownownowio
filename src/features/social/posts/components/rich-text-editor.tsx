@@ -615,7 +615,11 @@ const RichTextEditor = React.forwardRef<
         break;
       case "divider":
         // Insert a horizontal rule that spans the full width
-        editor.chain().focus().insertContent('<hr class="w-full my-4 border-t border-muted-foreground" />').run();
+        // Use a paragraph after the HR to ensure there's a valid cursor position
+        editor.chain()
+          .focus()
+          .insertContent('<hr class="w-full my-4 border-t border-muted-foreground" /><p></p>')
+          .run();
         break;
       case "callout": {
         // Insert a callout block with the selected text or default text
@@ -654,12 +658,18 @@ const RichTextEditor = React.forwardRef<
     }
 
     // Move cursor to start if current node is empty or if switching to a new block type
+    // Skip this for divider which doesn't need cursor positioning
     if (
-      isEmpty ||
-      node.type.name !== editor.state.selection.$head.parent.type.name
+      command.id !== "divider" && 
+      (isEmpty ||
+      node.type.name !== editor.state.selection.$head.parent.type.name)
     ) {
-      const pos = editor.state.selection.$head.before();
-      editor.commands.setTextSelection(pos);
+      try {
+        const pos = editor.state.selection.$head.before();
+        editor.commands.setTextSelection(pos);
+      } catch {
+        // Silently handle positioning errors without logging
+      }
     }
   };
 
