@@ -91,5 +91,54 @@ export const widgetExtensions = {
     }
     
     return widgets[0];
+  },
+
+  /**
+   * Create or update a widget for an organization
+   */
+  async upsert(data: { 
+    where: { organizationId: string }; 
+    create: { organizationId: string; widgetToken: string; settings?: Record<string, unknown> };
+    update: { widgetToken: string; settings?: Record<string, unknown> };
+  }): Promise<Widget> {
+    const prisma = await getPrismaClient();
+    
+    // Check if widget exists for this organization
+    const existingWidgets = await prisma.$queryRaw<Widget[]>`
+      SELECT * FROM "Widget"
+      WHERE "organizationId" = ${data.where.organizationId}
+      LIMIT 1
+    `;
+    
+    if (existingWidgets.length > 0) {
+      // Update existing widget
+      await prisma.$executeRaw`
+        UPDATE "Widget"
+        SET "widgetToken" = ${data.update.widgetToken},
+            "settings" = ${data.update.settings ? JSON.stringify(data.update.settings) : null}::jsonb,
+            "updatedAt" = NOW()
+        WHERE "organizationId" = ${data.where.organizationId}
+      `;
+    } else {
+      // Create new widget
+      await prisma.$executeRaw`
+        INSERT INTO "Widget" ("id", "organizationId", "widgetToken", "settings", "createdAt", "updatedAt")
+        VALUES (nanoid(11), ${data.create.organizationId}, ${data.create.widgetToken}, ${data.create.settings ? JSON.stringify(data.create.settings) : null}::jsonb, NOW(), NOW())
+      `;
+    }
+    
+    // Fetch the updated/created widget
+    const widgets = await prisma.$queryRaw<Widget[]>`
+      SELECT * FROM "Widget"
+      WHERE "organizationId" = ${data.where.organizationId}
+      ORDER BY "createdAt" DESC
+      LIMIT 1
+    `;
+    
+    if (!widgets.length) {
+      throw new Error('Failed to upsert widget');
+    }
+    
+    return widgets[0];
   }
 };

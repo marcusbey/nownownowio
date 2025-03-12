@@ -1,34 +1,34 @@
 
 /**
  * Generates a token for widget authentication
- * @param userId User ID to include in the token
+ * @param orgId Organization ID to include in the token
  * @returns Generated token string
  */
-export function generateWidgetToken(userId: string): string {
+export function generateWidgetToken(orgId: string): string {
     // Simple implementation - in production you'd use JWT or similar
     const timestamp = Date.now();
-    const tokenParts = [userId, timestamp, 'widget-token'];
+    const tokenParts = [orgId, timestamp, 'widget-token'];
 
     // In a real app, you'd sign this with a secret key
     return Buffer.from(tokenParts.join('.')).toString('base64');
 }
 
 /**
- * Verifies a widget token against a user ID
+ * Verifies a widget token against an organization ID
  * @param token Token to verify
- * @param userId User ID to check against
+ * @param orgId Organization ID to check against
  * @returns Boolean indicating if token is valid
  */
-export function verifyWidgetToken(token: string, userId: string): boolean {
+export function verifyWidgetToken(token: string, orgId: string): boolean {
     try {
         // Decode the token
         const decoded = Buffer.from(token, 'base64').toString();
-        const [tokenUserId] = decoded.split('.');
+        const [tokenOrgId] = decoded.split('.');
 
-        // Check if user ID matches
-        return tokenUserId === userId;
-    } catch (error) {
-        console.error('Error verifying widget token:', error);
+        // Check if organization ID matches
+        return tokenOrgId === orgId;
+    } catch {
+        // Silently fail and return false for invalid tokens
         return false;
     }
 } 

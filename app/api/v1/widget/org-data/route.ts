@@ -1,18 +1,13 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { verifyWidgetToken } from '@/lib/now-widget';
 
 export async function GET(request: Request) {
   try {
-    console.log('API: Widget org-data request received');
-    
     // Get the organization slug from the query params
     const url = new URL(request.url);
     const slug = url.searchParams.get('slug');
-    console.log('API: Requested organization slug:', slug);
 
     if (!slug) {
-      console.log('API: Missing organization slug');
       return NextResponse.json({ error: 'Organization slug is required' }, { status: 400 });
     }
     
@@ -44,7 +39,6 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('API: Error fetching organization data:', error);
     // Return more detailed error information in development
     const errorMessage = process.env.NODE_ENV === 'development' 
       ? `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` 

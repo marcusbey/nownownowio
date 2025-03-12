@@ -69,21 +69,28 @@ export async function POST(request: Request) {
             const token = generateWidgetToken(org.id);
             
             // Create or update the widget for this organization
-            await prisma.widget.create({
-                organizationId: org.id,
-                widgetToken: token,
-                settings: settings // TypeScript should now recognize this as valid
+            await prisma.widget.upsert({
+                where: { organizationId: org.id },
+                update: {
+                    widgetToken: token,
+                    settings: settings
+                },
+                create: {
+                    organizationId: org.id,
+                    widgetToken: token,
+                    settings: settings
+                }
             });
             
             return generateWidgetScript(org.id, token, domain, settings);
         } catch (dbError) {
-            console.error('Error updating user widget token');
+            console.error('Error updating organization widget token');
             if (dbError instanceof Error) {
                 console.error('Error message:', dbError.message);
             }
             return NextResponse.json({ 
                 error: 'Database error', 
-                message: 'Failed to update user widget settings.'
+                message: 'Failed to update organization widget settings.'
             }, { status: 500 });
         }
 
