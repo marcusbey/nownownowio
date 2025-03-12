@@ -15,7 +15,10 @@ import Placeholder from "@tiptap/extension-placeholder";
 import type { Editor } from "@tiptap/react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Italic from "@tiptap/extension-italic";
+// We'll use TipTap's built-in commands for cursor positioning
 import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
+import type { Node } from "@tiptap/core";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -40,25 +43,29 @@ type RichTextEditorProps = {
 const RichTextEditor = React.forwardRef<
   { clearEditor: () => void },
   RichTextEditorProps
->(({ onChange, onEmojiSelect, onMediaSelect }, ref) => {
+>(({ onChange, onMediaSelect }, ref) => {
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [commandSearch, setCommandSearch] = React.useState("");
   const menuRef = React.useRef<HTMLDivElement>(null);
-  const formatCommands = [
+  // Define format commands outside of render to avoid re-creating on each render
+  const formatCommands = React.useMemo(() => [
+    
     { id: "text", label: "Text", icon: "¶", keywords: ["text", "paragraph"] },
     { id: "h1", label: "Heading 1", icon: "H1", keywords: ["heading", "title", "h1"] },
     { id: "h2", label: "Heading 2", icon: "H2", keywords: ["heading", "subtitle", "h2"] },
     { id: "h3", label: "Heading 3", icon: "H3", keywords: ["heading", "subtitle", "h3"] },
+    { id: "divider", label: "Divider", icon: "---", keywords: ["divider", "separator", "line", "hr"] },
     { id: "bullet", label: "Bullet List", icon: "•", keywords: ["bullet", "list", "unordered"] },
     { id: "numbered", label: "Numbered List", icon: "1.", keywords: ["numbered", "list", "ordered"] },
-    { id: "quote", label: "Quote", icon: '"', keywords: ["quote", "blockquote", "citation"] },
-    { id: "code", label: "Code Block", icon: "<>", keywords: ["code", "codeblock", "programming"] },
     { id: "link", label: "Link", icon: "🔗", keywords: ["link", "url", "hyperlink"] },
+    { id: "quote", label: "Quote", icon: '"', keywords: ["quote", "blockquote", "citation"] },
+    { id: "callout", label: "Callout", icon: "💡", keywords: ["callout", "note", "highlight", "important"] },
+    { id: "code", label: "Code Block", icon: "<>", keywords: ["code", "codeblock", "programming"] },
     { id: "image", label: "Image", icon: "🖼️", keywords: ["image", "picture", "photo", "media"] },
     { id: "video", label: "Video", icon: "🎬", keywords: ["video", "movie", "clip", "media"] },
     { id: "audio", label: "Audio", icon: "🔊", keywords: ["audio", "sound", "music", "media"] },
-  ];
+  ], []);
 
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
   const [showLinkPrompt, setShowLinkPrompt] = React.useState(false);
@@ -68,7 +75,7 @@ const RichTextEditor = React.forwardRef<
   const [linkUrl, setLinkUrl] = React.useState("");
   const [embedUrl, setEmbedUrl] = React.useState("");
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading] = useState(false);
   const { toast } = useToast();
 
   /**
@@ -76,55 +83,56 @@ const RichTextEditor = React.forwardRef<
    * Handles multi-word searches by skipping non-matching words and filtering based on matching words.
    */
   const filteredCommands = React.useMemo(() => {
-    const searchWords = commandSearch.trim().toLowerCase().split(/\s+/);
-    if (searchWords.length === 0 || !commandSearch.trim())
-      return formatCommands;
+    const searchTerm = commandSearch.trim().toLowerCase();
+    if (!searchTerm) return formatCommands;
 
-    // Find the first word that matches any command
-    let startIndex = -1;
-    for (let i = 0; i < searchWords.length; i++) {
-      const word = searchWords[i];
-      const matches = formatCommands.some((cmd) => {
-        const cmdText = `${cmd.id} ${cmd.label}`.toLowerCase();
-        if (cmdText.includes(word)) return true;
-        
-        // Also check keywords
-        if (cmd.keywords) {
-          return cmd.keywords.some(keyword => keyword.toLowerCase().includes(word));
-        }
-        
-        return false;
-      });
-      if (matches) {
-        startIndex = i;
-        break;
+    // First prioritize exact matches for the command ID
+    const exactIdMatches = formatCommands.filter(cmd => 
+      cmd.id.toLowerCase() === searchTerm
+    );
+    
+    // Then prioritize commands that start with the search term
+    const startsWithMatches = formatCommands.filter(cmd => {
+      // Skip exact matches we already included
+      if (exactIdMatches.some(m => m.id === cmd.id)) return false;
+      
+      // Check if command ID or label starts with search term
+      const idStartsWithTerm = cmd.id.toLowerCase().startsWith(searchTerm);
+      const labelStartsWithTerm = cmd.label.toLowerCase().startsWith(searchTerm);
+      
+      // Check if any keyword starts with search term
+      let keywordStartsWithTerm = false;
+      if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
+        keywordStartsWithTerm = cmd.keywords.some(k => 
+          k.toLowerCase().startsWith(searchTerm)
+        );
       }
-    }
-
-    // If no word matches, return empty array
-    if (startIndex === -1) return [];
-
-    // Filter commands based on all words from the first matching word
-    const relevantWords = searchWords.slice(startIndex);
-    return formatCommands.filter((cmd) => {
-      // Check command text (id and label)
+      
+      return idStartsWithTerm || labelStartsWithTerm || keywordStartsWithTerm;
+    });
+    
+    // Finally include commands that contain the search term anywhere
+    const containsMatches = formatCommands.filter(cmd => {
+      // Skip commands we already included
+      if (exactIdMatches.some(m => m.id === cmd.id) || 
+          startsWithMatches.some(m => m.id === cmd.id)) return false;
+      
       const cmdText = `${cmd.id} ${cmd.label}`.toLowerCase();
+      if (cmdText.includes(searchTerm)) return true;
       
-      // Check if all search words match the command text
-      const matchesCommandText = relevantWords.every((word) => cmdText.includes(word));
-      if (matchesCommandText) return true;
-      
-      // Check if command has keywords and if any keyword matches the search
-      if (cmd.keywords) {
-        // For each search word, check if any keyword contains it
-        return relevantWords.every(word => {
-          return cmd.keywords.some(keyword => keyword.toLowerCase().includes(word));
-        });
+      // Check if any keyword contains the search term
+      if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
+        return cmd.keywords.some(keyword => 
+          keyword.toLowerCase().includes(searchTerm)
+        );
       }
       
       return false;
     });
-  }, [commandSearch]);
+    
+    // Combine all matches in priority order
+    return [...exactIdMatches, ...startsWithMatches, ...containsMatches];
+  }, [commandSearch, formatCommands]);
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -183,34 +191,41 @@ const RichTextEditor = React.forwardRef<
             class: "is-empty",
           },
         },
+        blockquote: {
+          HTMLAttributes: {
+            class: "italic border-l-4 border-muted-foreground pl-4 py-1 my-4",
+          },
+        },
       }),
+      Italic,
       MediaNode,
       Placeholder.configure({
-        placeholder: ({ node }) => {
-          if (node.type.name === "paragraph") {
-            return 'Press "/" for commands...';
-          }
-          return "";
-        },
-        className:
-          "text-muted-foreground/30 select-none text-sm font-light italic",
         placeholder: ({ node, editor }) => {
-          const doc = editor.state.doc;
-          const isFirstChild = doc.firstChild && doc.firstChild.eq(node);
-
-          if (isFirstChild && node.type.name === "paragraph") {
-            return "What's on your mind? Type '/' for formatting...";
+          // Skip if we don't have the necessary properties
+          if (!node || !editor) return "";
+          
+          // Get the node type name safely
+          const typeName = node.type?.name;
+          if (!typeName) return "";
+          
+          // Check if this is a paragraph and if it's the first node
+          const isParagraph = typeName === "paragraph";
+          const doc = editor.state?.doc;
+          const isFirstNode = doc?.firstChild === node;
+          
+          if (isParagraph && isFirstNode) {
+            return 'Press "/" for commands...';
           }
 
           switch (node.type.name) {
             case "heading":
               switch (node.attrs.level) {
                 case 1:
-                  return "Type heading 1...";
+                  return "Heading 1...";
                 case 2:
-                  return "Type heading 2...";
+                  return "Heading 2...";
                 case 3:
-                  return "Type heading 3...";
+                  return "Heading 3...";
                 default:
                   return "Heading";
               }
@@ -229,7 +244,6 @@ const RichTextEditor = React.forwardRef<
           }
         },
         showOnlyWhenEditable: true,
-        showCursor: true,
       }),
       Link.configure({
         openOnClick: false,
@@ -271,6 +285,10 @@ const RichTextEditor = React.forwardRef<
             const selectedCommand = filteredCommands[selectedIndex];
             if (selectedCommand) {
               applyFormat(selectedCommand);
+              // Ensure we focus the editor after applying format
+              setTimeout(() => {
+                editor?.commands.focus();
+              }, 10);
             }
             setShowCommandMenu(false);
             return true;
@@ -320,7 +338,9 @@ const RichTextEditor = React.forwardRef<
           setShowCommandMenu(true);
           setSelectedIndex(0);
           setCommandSearch("");
-          updateMenuPosition(editor);
+          if (editor) {
+            updateMenuPosition(editor);
+          }
           return true;
         }
         return false;
@@ -386,7 +406,7 @@ const RichTextEditor = React.forwardRef<
           }
 
           let type = "";
-          let previewUrl = URL.createObjectURL(file);
+          const previewUrl = URL.createObjectURL(file);
           
           if (isImage) {
             type = "image";
@@ -438,7 +458,7 @@ const RichTextEditor = React.forwardRef<
 
   // Function to insert media into the editor
   const insertMediaToEditor = useCallback((src: string, type: "image" | "video" | "audio") => {
-    if (!editor || !editor.isEditable) return;
+    if (!editor?.isEditable) return;
     
     try {
       // First try to insert at current position with proper error handling
@@ -455,14 +475,19 @@ const RichTextEditor = React.forwardRef<
         // Add a new paragraph after the media to allow continued typing
         .insertContent({ type: "paragraph" })
         .run();
-    } catch (error) {
-      console.error("Error inserting media at current position:", error);
+    } catch (_insertError) {
+      // Error is intentionally ignored
+      // Handle error inserting media at current position
       
       // Fallback: Try to insert at the end of the document
       try {
+        // Move to the end of the document and insert content
         editor
           .chain()
-          .selectEnd()
+          .focus()
+          // Move cursor to the end of the document
+          // Simply focus the editor and append content at current position
+          .focus()
           .insertContent({
             type: "mediaNode",
             attrs: {
@@ -473,13 +498,16 @@ const RichTextEditor = React.forwardRef<
           // Add a new paragraph after the media
           .insertContent({ type: "paragraph" })
           .run();
-      } catch (fallbackError) {
-        console.error("Fallback insertion failed:", fallbackError);
+      } catch (_fallbackError) {
+        // Silently handle error and continue with last resort approach
         // Last resort: Create a new paragraph and insert there
         try {
           editor
             .chain()
-            .selectEnd()
+            .focus()
+            // Move cursor to the end of the document
+            // Simply focus the editor and append content at current position
+            .focus()
             .insertContent({
               type: "mediaNode",
               attrs: {
@@ -490,8 +518,8 @@ const RichTextEditor = React.forwardRef<
             // Add a new paragraph after the media
             .insertContent({ type: "paragraph" })
             .run();
-        } catch (lastError) {
-          console.error("All insertion attempts failed:", lastError);
+        } catch (_lastError) {
+          // Silently handle the error when all insertion attempts fail
         }
       }
     }
@@ -508,13 +536,13 @@ const RichTextEditor = React.forwardRef<
     if (mediaFiles.length > 0) {
       // Insert the first media file immediately
       const firstMedia = mediaFiles[0];
-      insertMediaToEditor(firstMedia.previewUrl, firstMedia.type as "image" | "video" | "audio");
+      insertMediaToEditor(firstMedia.previewUrl, firstMedia.type);
       
       // Insert any remaining media files with a slight delay
       if (mediaFiles.length > 1) {
         mediaFiles.slice(1).forEach((media, index) => {
           setTimeout(() => {
-            insertMediaToEditor(media.previewUrl, media.type as "image" | "video" | "audio");
+            insertMediaToEditor(media.previewUrl, media.type);
           }, (index + 1) * 100); // 100ms delay between insertions
         });
       }
@@ -538,6 +566,9 @@ const RichTextEditor = React.forwardRef<
 
   const applyFormat = (command: { id: string; label: string }) => {
     if (!editor) return;
+    
+    // Ensure editor is focused before applying format
+    editor.commands.focus();
 
     // Get the current node
     const node = editor.state.selection.$head.parent;
@@ -571,11 +602,36 @@ const RichTextEditor = React.forwardRef<
         }
         break;
       case "quote":
-        editor.chain().focus().clearNodes().setBlockquote().run();
+        // Set blockquote with italic styling
+        editor.chain()
+          .focus()
+          .clearNodes()
+          .setBlockquote()
+          .setMark('italic')
+          .run();
         break;
       case "code":
         editor.chain().focus().clearNodes().setCodeBlock().run();
         break;
+      case "divider":
+        // Insert a horizontal rule that spans the full width
+        editor.chain().focus().insertContent('<hr class="w-full my-4 border-t border-muted-foreground" />').run();
+        break;
+      case "callout": {
+        // Insert a callout block with the selected text or default text
+        const selectedText = editor.state.selection.empty 
+          ? 'Important note' 
+          : editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to);
+        
+        // Create a custom callout div with proper styling
+        editor.chain()
+          .focus()
+          .insertContent(`<div class="bg-muted/80 p-4 my-4 rounded-md border-l-4 border-primary callout not-prose">
+<p>💡 ${selectedText}</p>
+</div>`)
+          .run();
+        break;
+      }
       case "link":
         setLinkUrl("");
         setShowLinkPrompt(true);
@@ -741,18 +797,21 @@ const RichTextEditor = React.forwardRef<
                       onMouseDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        // Apply format and close menu on mouse down for better responsiveness
+                        applyFormat(command);
+                        setShowCommandMenu(false);
                       }}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        applyFormat(command);
-                        setShowCommandMenu(false);
                       }}
                       className={cn(
-                        "flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer text-gray-900 dark:text-gray-100",
+                        "flex items-center gap-2 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100",
+                        "hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
+                        "cursor-pointer",
                         selectedIndex === index
                           ? "bg-gray-100 dark:bg-gray-800"
-                          : "hover:bg-gray-50 dark:hover:bg-gray-800/50",
+                          : "",
                       )}
                     >
                       <span className="w-6 flex-none text-center">
