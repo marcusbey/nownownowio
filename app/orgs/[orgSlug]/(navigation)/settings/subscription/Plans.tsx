@@ -1,29 +1,23 @@
 "use client";
 
 import { Button } from "@/components/core/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/data-display/card";
+import { Card } from "@/components/data-display/card";
 import { Typography } from "@/components/data-display/typography";
 import { Check } from "lucide-react";
 import { PLANS } from "@/features/billing/plans/plans";
 import type { OrganizationPlan } from "@prisma/client";
 import type Stripe from "stripe";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+
 import { updateSubscription } from "./actions";
 import { useTransition, useState } from "react";
 import { Badge } from "@/components/data-display/badge";
 import { Switch } from "@/components/core/switch";
 import { Label } from "@/components/core/label";
 import { cn } from "@/lib/utils";
+import { usePlanPricing } from "@/features/billing/plans/plan-pricing-context";
 
-interface PlansProps {
+type PlansProps = {
   currentPlan: OrganizationPlan | null;
   subscription?: Stripe.Subscription;
   organizationId: string;
@@ -31,9 +25,11 @@ interface PlansProps {
 }
 
 export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod = false }: PlansProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isYearly, setIsYearly] = useState(false);
+  
+  // Use the plan pricing context
+  const { isLoading: isPricesLoading, getPriceAmount } = usePlanPricing();
 
   const handleSubscriptionUpdate = async (priceId: string) => {
     try {
@@ -138,7 +134,10 @@ export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod
                     <div className="flex items-baseline justify-center gap-2">
                       <span className="text-3xl font-medium">$</span>
                       <span className="text-6xl font-extrabold tracking-tight">
-                        {typeof currentPrice === 'number' ? currentPrice.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '--'}
+                        {isPricesLoading
+                          ? typeof currentPrice === 'number' ? currentPrice.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '--'
+                          : (getPriceAmount(plan.planType, isYearly ? 'ANNUAL' : 'MONTHLY') || 
+                            (typeof currentPrice === 'number' ? currentPrice : 0)).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </span>
                       <span className="text-lg text-muted-foreground">
                         {plan.currency ?? "USD"}

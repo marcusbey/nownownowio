@@ -10,19 +10,23 @@ import { SettingsPage, SettingsCard, SettingsSection } from "@/components/layout
 import { useOrganization } from "@/query/org/org.query";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { usePlanPricing } from "@/features/billing/plans/plan-pricing-context";
 import { addDays, differenceInDays } from "date-fns";
 import type { OrganizationPlan } from "@prisma/client";
 
 export default function SubscriptionPage() {
   const params = useParams();
-  // Extract orgSlug from params and ensure it's a string
-  const orgSlug = Array.isArray(params.orgSlug) ? params.orgSlug[0] : params.orgSlug as string;
-  const { organization, isLoading } = useOrganization(orgSlug);
+  // In Next.js 15, we need to await params before accessing properties
+  const { orgSlug } = params;
+  const { organization, isLoading } = useOrganization(orgSlug as string);
   const [isTrialPeriod, setIsTrialPeriod] = useState(false);
+  
+  // Use the plan pricing context
+  const { isLoading: _ } = usePlanPricing(); // We only need to initialize the context
   
   // Calculate if the user is in a trial period
   useEffect(() => {
-    if (organization && organization.plan && organization.plan.createdAt && organization.plan.id && !organization.plan.id.startsWith('FREE')) {
+    if (organization?.plan?.createdAt && organization.plan.id && !organization.plan.id.startsWith('FREE')) {
       // Use plan creation date as trial start date
       const trialStartDate = new Date(organization.plan.createdAt);
       const trialEndDate = addDays(trialStartDate, TRIAL_PERIOD_DAYS);
@@ -81,7 +85,7 @@ export default function SubscriptionPage() {
               <div>
                 <CardTitle>Current Plan</CardTitle>
                 <CardDescription>
-                  You are currently on the {currentPlan?.name || "Free"} plan
+                  You are currently on the {currentPlan?.name ?? "Free"} plan
                 </CardDescription>
               </div>
               {currentPlan?.id.startsWith('FREEBIRD') && (
@@ -96,13 +100,11 @@ export default function SubscriptionPage() {
 
       <SettingsSection>
         <Typography variant="h4" className="mb-6">Available Plans</Typography>
-        {organization && (
-          <Plans 
-            currentPlan={convertToPlanType(organization.plan)} 
-            organizationId={organization.id}
-            isTrialPeriod={isTrialPeriod}
-          />
-        )}
+        <Plans 
+        currentPlan={convertToPlanType(organization.plan)} 
+        organizationId={organization.id}
+        isTrialPeriod={isTrialPeriod}
+      />
       </SettingsSection>
     </SettingsPage>
   );
