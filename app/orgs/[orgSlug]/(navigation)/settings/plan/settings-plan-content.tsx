@@ -12,6 +12,7 @@ import { Badge } from "@/components/data-display/badge";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { addDays, format, differenceInDays } from "date-fns";
+import { usePlanPricing, FALLBACK_PRICES } from "@/features/billing/plans/plan-pricing-context";
 
 type SettingsPlanContentProps = {
   orgSlug: string;
@@ -26,17 +27,16 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   // Initialize billing period based on the organization's plan
   const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(() => {
     // Always use the organization's plan billing cycle if available
-    if (organization && organization.plan && organization.plan.billingCycle) {
-      return organization.plan.billingCycle as BillingCycle;
-    }
-    // Default to MONTHLY if no organization data is available
-    return "MONTHLY";
+    return organization?.plan?.billingCycle as BillingCycle || "MONTHLY";
   });
   
   const [trialInfo, setTrialInfo] = useState<{ daysLeft: number; expiryDate: Date | null }>({ 
     daysLeft: 0, 
     expiryDate: null 
   });
+  
+  // Use the plan pricing context
+  const { isLoading: isPricesLoading, getPriceAmount } = usePlanPricing();
   
   // Debug information is shown in the UI for development mode only
 
@@ -49,10 +49,10 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   }
 
   // The organization has a nested plan object with all the plan details
-  // Extract the plan details directly from the organization.plan object
-  const planId = organization && organization.plan ? organization.plan.id : 'FREE';
-  const planType = organization && organization.plan ? organization.plan.type : 'BASIC';
-  const planBillingCycle = organization && organization.plan ? organization.plan.billingCycle : 'MONTHLY';
+  // Extract the plan details directly from the organization.plan object using optional chaining
+  const planId = organization?.plan?.id ?? 'FREE';
+  const planType = organization?.plan?.type ?? 'BASIC';
+  const planBillingCycle = organization?.plan?.billingCycle ?? 'MONTHLY';
   
   // Reset selected billing period when organization data changes
   useEffect(() => {
@@ -325,11 +325,21 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                 
                 // Calculate price based on plan and effective billing period
                 // This ensures prices update when tabs are clicked
-                const price = plan.billingCycle === "LIFETIME" ? 
-                  (isBasicPlan ? "199" : "399") : 
-                  plan.billingCycle === "ANNUAL" ? 
-                    (isBasicPlan ? "86" : "182") : 
-                    (isBasicPlan ? "9" : "19");
+                const price = isPricesLoading ?
+                  // Use fallback prices during loading
+                  (plan.billingCycle === "LIFETIME" ? 
+                    (isBasicPlan ? FALLBACK_PRICES.BASIC.LIFETIME : FALLBACK_PRICES.PRO.LIFETIME) : 
+                    plan.billingCycle === "ANNUAL" ? 
+                      (isBasicPlan ? FALLBACK_PRICES.BASIC.ANNUAL : FALLBACK_PRICES.PRO.ANNUAL) : 
+                      (isBasicPlan ? FALLBACK_PRICES.BASIC.MONTHLY : FALLBACK_PRICES.PRO.MONTHLY)) :
+                  // Use prices from API
+                  getPriceAmount(isBasicPlan ? "BASIC" : "PRO", plan.billingCycle) || 
+                  // Fallback if price not found
+                  (plan.billingCycle === "LIFETIME" ? 
+                    (isBasicPlan ? FALLBACK_PRICES.BASIC.LIFETIME : FALLBACK_PRICES.PRO.LIFETIME) : 
+                    plan.billingCycle === "ANNUAL" ? 
+                      (isBasicPlan ? FALLBACK_PRICES.BASIC.ANNUAL : FALLBACK_PRICES.PRO.ANNUAL) : 
+                      (isBasicPlan ? FALLBACK_PRICES.BASIC.MONTHLY : FALLBACK_PRICES.PRO.MONTHLY));
                 
                 // Get price suffix based on the plan's billing period
                 // This ensures suffixes update when tabs are clicked

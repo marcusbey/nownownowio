@@ -11,6 +11,7 @@ import { Badge } from "@/components/data-display/badge";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { addDays, format, differenceInDays } from "date-fns";
+import { usePlanPricing, FALLBACK_PRICES } from "@/features/billing/plans/plan-pricing-context";
 
 type PlanContentProps = {
   orgSlug: string;
@@ -23,6 +24,9 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
     daysLeft: 0, 
     expiryDate: null 
   });
+  
+  // Use the plan pricing context for dynamic pricing
+  const { isLoading: isPricesLoading, getPriceAmount } = usePlanPricing();
   
   // Find the current plan
   const currentPlanId = organization?.plan?.id;
@@ -212,11 +216,21 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
                     </div>
                     <div className="mb-2">
                       <span className="text-2xl font-bold">
-                        ${billingPeriod === "LIFETIME" ? 
-                          (isBasicPlan ? "199" : "399") : 
-                          billingPeriod === "ANNUAL" ? 
-                            (isBasicPlan ? "86" : "182") : 
-                            (isBasicPlan ? "9" : "19")}
+                        ${isPricesLoading ? 
+                          // Use fallback prices during loading
+                          (billingPeriod === "LIFETIME" ? 
+                            (isBasicPlan ? FALLBACK_PRICES.BASIC.LIFETIME : FALLBACK_PRICES.PRO.LIFETIME) : 
+                            billingPeriod === "ANNUAL" ? 
+                              (isBasicPlan ? FALLBACK_PRICES.BASIC.ANNUAL : FALLBACK_PRICES.PRO.ANNUAL) : 
+                              (isBasicPlan ? FALLBACK_PRICES.BASIC.MONTHLY : FALLBACK_PRICES.PRO.MONTHLY)) :
+                          // Use prices from API
+                          getPriceAmount(isBasicPlan ? "BASIC" : "PRO", billingPeriod) || 
+                          // Fallback if price not found
+                          (billingPeriod === "LIFETIME" ? 
+                            (isBasicPlan ? FALLBACK_PRICES.BASIC.LIFETIME : FALLBACK_PRICES.PRO.LIFETIME) : 
+                            billingPeriod === "ANNUAL" ? 
+                              (isBasicPlan ? FALLBACK_PRICES.BASIC.ANNUAL : FALLBACK_PRICES.PRO.ANNUAL) : 
+                              (isBasicPlan ? FALLBACK_PRICES.BASIC.MONTHLY : FALLBACK_PRICES.PRO.MONTHLY))}
                       </span>
                       <span className="text-muted-foreground">
                         {billingPeriod === "LIFETIME" ? " one-time" : 

@@ -1,18 +1,8 @@
 import { z } from "zod";
+import { PLAN_TYPES, BILLING_CYCLES, FALLBACK_PRICES } from "./fallback-prices";
 
 // Import types from Prisma schema
 // These are the enum values defined in the Prisma schema
-export const PLAN_TYPES = {
-  FREE: "FREE",
-  BASIC: "BASIC",
-  PRO: "PRO"
-} as const;
-
-export const BILLING_CYCLES = {
-  MONTHLY: "MONTHLY",
-  ANNUAL: "ANNUAL",
-  LIFETIME: "LIFETIME"
-} as const;
 
 // Define plan types and billing cycles to match the database structure
 export const PlanType = z.enum([PLAN_TYPES.FREE, PLAN_TYPES.BASIC, PLAN_TYPES.PRO]);
@@ -74,10 +64,10 @@ export const PLANS: Plan[] = [
       "1 team member",
       "Email support"
     ],
-    price: 9,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID,
+    price: FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.MONTHLY].amount,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.MONTHLY].priceId,
     cta: "Get Started",
-    ctaSubtitle: "$9/month",
+    ctaSubtitle: `$${FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.MONTHLY].amount}/month`,
     maxOrganizations: 1,
     maxMembers: 1,
     maxWidgets: 1,
@@ -134,8 +124,8 @@ export const PLANS: Plan[] = [
       "Lifetime access",
       "All future updates included"
     ],
-    price: 199,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_LIFETIME_PRICE_ID,
+    price: FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.LIFETIME].amount,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_LIFETIME_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.LIFETIME].priceId,
     cta: "Buy Lifetime Access",
     ctaSubtitle: "One-time payment of $199",
     maxOrganizations: 1,
@@ -165,10 +155,10 @@ export const PLANS: Plan[] = [
       "Priority support",
       "Priority access to new features"
     ],
-    price: 19,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
+    price: FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.MONTHLY].amount,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.MONTHLY].priceId,
     cta: "Get Started",
-    ctaSubtitle: "$19/month",
+    ctaSubtitle: `$${FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.MONTHLY].amount}/month`,
     isPopular: true,
     maxOrganizations: 5,
     maxMembers: 5,
@@ -234,8 +224,8 @@ export const PLANS: Plan[] = [
       "Lifetime access",
       "All future updates included"
     ],
-    price: 399,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_LIFETIME_PRICE_ID,
+    price: FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.LIFETIME].amount,
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_LIFETIME_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.LIFETIME].priceId,
     cta: "Buy Lifetime Access",
     ctaSubtitle: "One-time payment of $499",
     isPopular: false,

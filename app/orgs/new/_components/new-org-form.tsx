@@ -27,6 +27,8 @@ import type { NewOrganizationSchemaType} from "../new-org.schema";
 import { NewOrgsSchema } from "../new-org.schema";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { usePlanPricing } from "@/features/billing/plans/plan-pricing-context";
+import { FALLBACK_PRICES } from "@/features/billing/plans/fallback-prices";
 // Select components no longer needed with the new card-based plan selection
 
 type NameAvailabilityResponse = {
@@ -36,6 +38,8 @@ type NameAvailabilityResponse = {
 }
 
 export function NewOrganizationForm() {
+  // Use the plan pricing context
+  const { isLoading: isPricesLoading, getPriceAmount } = usePlanPricing();
   const form = useZodForm({
     schema: NewOrgsSchema,
     defaultValues: {
@@ -386,8 +390,7 @@ export function NewOrganizationForm() {
                         } else {
                           field.onChange("BASIC_LIFETIME");
                         }
-                        // Log form values for debugging
-                        console.log("Form values after selecting BASIC plan:", form.getValues());
+                        // Update form values without logging
                       }}
                     >
                       <div className="mb-2 flex items-center justify-between">
@@ -395,8 +398,12 @@ export function NewOrganizationForm() {
                       </div>
                       <div className="mb-2">
                         <span className="text-2xl font-bold">
-                          {form.getValues("billingPeriod") === "LIFETIME" ? "$199" : 
-                           form.getValues("billingPeriod") === "YEARLY" ? "$86" : "$9"}
+                          ${isPricesLoading ? 
+                            (form.getValues("billingPeriod") === "LIFETIME" ? FALLBACK_PRICES.BASIC.LIFETIME.amount : 
+                             form.getValues("billingPeriod") === "YEARLY" ? FALLBACK_PRICES.BASIC.YEARLY.amount : FALLBACK_PRICES.BASIC.MONTHLY.amount) :
+                            getPriceAmount("BASIC", form.getValues("billingPeriod")) ?? 
+                            (form.getValues("billingPeriod") === "LIFETIME" ? FALLBACK_PRICES.BASIC.LIFETIME.amount : 
+                             form.getValues("billingPeriod") === "YEARLY" ? FALLBACK_PRICES.BASIC.YEARLY.amount : FALLBACK_PRICES.BASIC.MONTHLY.amount)}
                         </span>
                         <span className="text-muted-foreground">{form.getValues("billingPeriod") === "LIFETIME" ? " one-time" : form.getValues("billingPeriod") === "YEARLY" ? "/year" : "/month"}</span>
                         {form.getValues("billingPeriod") === "YEARLY" && (
@@ -447,8 +454,7 @@ export function NewOrganizationForm() {
                         } else {
                           field.onChange("PRO_LIFETIME");
                         }
-                        // Log form values for debugging
-                        console.log("Form values after selecting PRO plan:", form.getValues());
+                        // Update form values without logging
                       }}
                     >
                       <div className="mb-2 flex items-center justify-between">
@@ -457,8 +463,12 @@ export function NewOrganizationForm() {
                       </div>
                       <div className="mb-2">
                         <span className="text-2xl font-bold">
-                          {form.getValues("billingPeriod") === "LIFETIME" ? "$399" : 
-                           form.getValues("billingPeriod") === "YEARLY" ? "$182" : "$19"}
+                          ${isPricesLoading ? 
+                            (form.getValues("billingPeriod") === "LIFETIME" ? FALLBACK_PRICES.PRO.LIFETIME.amount : 
+                             form.getValues("billingPeriod") === "YEARLY" ? FALLBACK_PRICES.PRO.YEARLY.amount : FALLBACK_PRICES.PRO.MONTHLY.amount) :
+                            getPriceAmount("PRO", form.getValues("billingPeriod")) ?? 
+                            (form.getValues("billingPeriod") === "LIFETIME" ? FALLBACK_PRICES.PRO.LIFETIME.amount : 
+                             form.getValues("billingPeriod") === "YEARLY" ? FALLBACK_PRICES.PRO.YEARLY.amount : FALLBACK_PRICES.PRO.MONTHLY.amount)}
                         </span>
                         <span className="text-muted-foreground">{form.getValues("billingPeriod") === "LIFETIME" ? " one-time" : form.getValues("billingPeriod") === "YEARLY" ? "/year" : "/month"}</span>
                         {form.getValues("billingPeriod") === "YEARLY" && (

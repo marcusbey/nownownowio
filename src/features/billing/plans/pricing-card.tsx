@@ -6,6 +6,8 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { BuyButton } from "@/features/billing/payments/buy-button";
 import type { Plan, BillingCycle } from "./plans";
+import { usePlanPricing } from "./plan-pricing-context";
+import { FALLBACK_PRICES } from "./fallback-prices";
 
 type PricingCardProps = Plan & {
   onSelectBillingCycle?: (billingCycle: BillingCycle) => void;
@@ -20,13 +22,18 @@ export const PricingCard = (props: PricingCardProps) => {
   const params = useParams();
   const organizationSlug = params.orgSlug ? params.orgSlug : "";
   const [showLifetime, setShowLifetime] = useState(false);
+  const { getPriceAmount } = usePlanPricing();
   
   // Get the appropriate price based on billing cycle
   const getPrice = () => {
-    if (props.billingCycle === "MONTHLY") return Math.round(props.price ?? 0);
-    if (props.billingCycle === "ANNUAL") return Math.round(props.price ?? 0);
-    // LIFETIME or any other case
-    return Math.round(props.price ?? 0);
+    // If the price is provided in props, use it; otherwise, get it from the context
+    if (props.price !== undefined) return Math.round(props.price);
+    
+    // Use the pricing context to get the price or fall back to the centralized fallback prices
+    const price = getPriceAmount(props.planType, props.billingCycle) || 
+      (props.planType && props.billingCycle ? FALLBACK_PRICES[props.planType][props.billingCycle].amount : 0);
+    
+    return Math.round(price);
   };
 
   // Format price to ensure it's always a whole number
@@ -36,8 +43,12 @@ export const PricingCard = (props: PricingCardProps) => {
 
   // Get the appropriate lifetime price for the plan type
   const getLifetimePrice = () => {
-    if (props.planType === "BASIC") return 199;
-    if (props.planType === "PRO") return 399; // Updated to match the actual price
+    if (props.planType === "BASIC") {
+      return getPriceAmount("BASIC", "LIFETIME") || FALLBACK_PRICES.BASIC.LIFETIME.amount;
+    }
+    if (props.planType === "PRO") {
+      return getPriceAmount("PRO", "LIFETIME") || FALLBACK_PRICES.PRO.LIFETIME.amount;
+    }
     return 0;
   };
 
