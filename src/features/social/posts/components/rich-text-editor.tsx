@@ -618,7 +618,7 @@ const RichTextEditor = React.forwardRef<
         // Use a paragraph after the HR to ensure there's a valid cursor position
         editor.chain()
           .focus()
-          .insertContent('<hr class="w-full my-4 border-t border-muted-foreground" /><p></p>')
+          .insertContent('<hr class="w-full my-1 border-t border-muted-foreground" /><p></p>')
           .run();
         break;
       case "callout": {
