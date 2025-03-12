@@ -615,10 +615,11 @@ const RichTextEditor = React.forwardRef<
         break;
       case "divider":
         // Insert a horizontal rule that spans the full width
-        // Use a paragraph after the HR to ensure there's a valid cursor position
         editor.chain()
           .focus()
-          .insertContent('<hr class="w-full my-1 border-t border-muted-foreground" /><p></p>')
+          .setHorizontalRule()
+          // Add an empty paragraph after to ensure there's a valid cursor position
+          .insertContent('<p></p>')
           .run();
         break;
       case "callout": {
@@ -627,12 +628,21 @@ const RichTextEditor = React.forwardRef<
           ? 'Important note' 
           : editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to);
         
-        // Create a custom callout div with proper styling
+        // Create a custom callout div with proper styling using TipTap's API
         editor.chain()
           .focus()
-          .insertContent(`<div class="bg-muted/80 p-4 my-4 rounded-md border-l-4 border-primary callout not-prose">
-<p>💡 ${selectedText}</p>
-</div>`)
+          .insertContent({
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: `💡 ${selectedText}`
+              }
+            ],
+            attrs: {
+              class: 'bg-muted/80 p-4 my-4 rounded-md border-l-4 border-primary callout not-prose'
+            }
+          })
           .run();
         break;
       }
