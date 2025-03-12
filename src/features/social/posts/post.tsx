@@ -69,10 +69,8 @@ export default function Post({ post }: PostProps) {
       setFirstMount(false);
     }, 500);
 
-    // Development logging removed
-
     return () => clearTimeout(timer);
-  }, [status, session, user]);
+  }, []);
 
   // Simple comment click handler that prevents default and toggles comments
   const handleCommentClick = useCallback(
@@ -115,12 +113,9 @@ export default function Post({ post }: PostProps) {
     return post.user.name ?? "Unknown User";
   }, [post.user.name]);
 
-  // Add debugging for media items
-  console.log(`[POST_DEBUG] Post ${post.id} media:`, post.media);
-  const mediaItems = Array.isArray(post.media) ? post.media : [];
-  console.log(`[POST_DEBUG] Post ${post.id} mediaItems:`, mediaItems);
+  // Process media items
+  const mediaItems = useMemo(() => Array.isArray(post.media) ? post.media : [], [post.media]);
   const hasAttachments = mediaItems.length > 0;
-  console.log(`[POST_DEBUG] Post ${post.id} hasAttachments:`, hasAttachments);
 
   return (
     <motion.article

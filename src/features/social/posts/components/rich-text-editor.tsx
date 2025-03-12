@@ -15,10 +15,9 @@ import Placeholder from "@tiptap/extension-placeholder";
 import type { Editor } from "@tiptap/react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Italic from "@tiptap/extension-italic";
 // We'll use TipTap's built-in commands for cursor positioning
-import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
 import type { Node } from "@tiptap/core";
+import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -49,28 +48,91 @@ const RichTextEditor = React.forwardRef<
   const [commandSearch, setCommandSearch] = React.useState("");
   const menuRef = React.useRef<HTMLDivElement>(null);
   // Define format commands outside of render to avoid re-creating on each render
-  const formatCommands = React.useMemo(() => [
-    
-    { id: "text", label: "Text", icon: "¶", keywords: ["text", "paragraph"] },
-    { id: "h1", label: "Heading 1", icon: "H1", keywords: ["heading", "title", "h1"] },
-    { id: "h2", label: "Heading 2", icon: "H2", keywords: ["heading", "subtitle", "h2"] },
-    { id: "h3", label: "Heading 3", icon: "H3", keywords: ["heading", "subtitle", "h3"] },
-    { id: "divider", label: "Divider", icon: "---", keywords: ["divider", "separator", "line", "hr"] },
-    { id: "bullet", label: "Bullet List", icon: "•", keywords: ["bullet", "list", "unordered"] },
-    { id: "numbered", label: "Numbered List", icon: "1.", keywords: ["numbered", "list", "ordered"] },
-    { id: "link", label: "Link", icon: "🔗", keywords: ["link", "url", "hyperlink"] },
-    { id: "quote", label: "Quote", icon: '"', keywords: ["quote", "blockquote", "citation"] },
-    { id: "callout", label: "Callout", icon: "💡", keywords: ["callout", "note", "highlight", "important"] },
-    { id: "code", label: "Code Block", icon: "<>", keywords: ["code", "codeblock", "programming"] },
-    { id: "image", label: "Image", icon: "🖼️", keywords: ["image", "picture", "photo", "media"] },
-    { id: "video", label: "Video", icon: "🎬", keywords: ["video", "movie", "clip", "media"] },
-    { id: "audio", label: "Audio", icon: "🔊", keywords: ["audio", "sound", "music", "media"] },
-  ], []);
+  const formatCommands = React.useMemo(
+    () => [
+      { id: "text", label: "Text", icon: "¶", keywords: ["text", "paragraph"] },
+      {
+        id: "h1",
+        label: "Heading 1",
+        icon: "H1",
+        keywords: ["heading", "title", "h1"],
+      },
+      {
+        id: "h2",
+        label: "Heading 2",
+        icon: "H2",
+        keywords: ["heading", "subtitle", "h2"],
+      },
+      {
+        id: "h3",
+        label: "Heading 3",
+        icon: "H3",
+        keywords: ["heading", "subtitle", "h3"],
+      },
+      {
+        id: "divider",
+        label: "Divider",
+        icon: "---",
+        keywords: ["divider", "separator", "line", "hr"],
+      },
+      {
+        id: "bullet",
+        label: "Bullet List",
+        icon: "•",
+        keywords: ["bullet", "list", "unordered"],
+      },
+      {
+        id: "numbered",
+        label: "Numbered List",
+        icon: "1.",
+        keywords: ["numbered", "list", "ordered"],
+      },
+      {
+        id: "link",
+        label: "Link",
+        icon: "🔗",
+        keywords: ["link", "url", "hyperlink"],
+      },
+      {
+        id: "quote",
+        label: "Quote",
+        icon: '"',
+        keywords: ["quote", "blockquote", "citation"],
+      },
+      {
+        id: "code",
+        label: "Code Block",
+        icon: "<>",
+        keywords: ["code", "codeblock", "programming"],
+      },
+      {
+        id: "image",
+        label: "Image",
+        icon: "🖼️",
+        keywords: ["image", "picture", "photo", "media"],
+      },
+      {
+        id: "video",
+        label: "Video",
+        icon: "🎬",
+        keywords: ["video", "movie", "clip", "media"],
+      },
+      {
+        id: "audio",
+        label: "Audio",
+        icon: "🔊",
+        keywords: ["audio", "sound", "music", "media"],
+      },
+    ],
+    [],
+  );
 
   const [showCommandMenu, setShowCommandMenu] = React.useState(false);
   const [showLinkPrompt, setShowLinkPrompt] = React.useState(false);
   const [showMediaPrompt, setShowMediaPrompt] = React.useState(false);
-  const [mediaType, setMediaType] = React.useState<"image" | "video" | "audio">("image");
+  const [mediaType, setMediaType] = React.useState<"image" | "video" | "audio">(
+    "image",
+  );
   const [mediaTab, setMediaTab] = React.useState<"upload" | "embed">("upload");
   const [linkUrl, setLinkUrl] = React.useState("");
   const [embedUrl, setEmbedUrl] = React.useState("");
@@ -87,49 +149,54 @@ const RichTextEditor = React.forwardRef<
     if (!searchTerm) return formatCommands;
 
     // First prioritize exact matches for the command ID
-    const exactIdMatches = formatCommands.filter(cmd => 
-      cmd.id.toLowerCase() === searchTerm
+    const exactIdMatches = formatCommands.filter(
+      (cmd) => cmd.id.toLowerCase() === searchTerm,
     );
-    
+
     // Then prioritize commands that start with the search term
-    const startsWithMatches = formatCommands.filter(cmd => {
+    const startsWithMatches = formatCommands.filter((cmd) => {
       // Skip exact matches we already included
-      if (exactIdMatches.some(m => m.id === cmd.id)) return false;
-      
+      if (exactIdMatches.some((m) => m.id === cmd.id)) return false;
+
       // Check if command ID or label starts with search term
       const idStartsWithTerm = cmd.id.toLowerCase().startsWith(searchTerm);
-      const labelStartsWithTerm = cmd.label.toLowerCase().startsWith(searchTerm);
-      
+      const labelStartsWithTerm = cmd.label
+        .toLowerCase()
+        .startsWith(searchTerm);
+
       // Check if any keyword starts with search term
       let keywordStartsWithTerm = false;
       if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
-        keywordStartsWithTerm = cmd.keywords.some(k => 
-          k.toLowerCase().startsWith(searchTerm)
+        keywordStartsWithTerm = cmd.keywords.some((k) =>
+          k.toLowerCase().startsWith(searchTerm),
         );
       }
-      
+
       return idStartsWithTerm || labelStartsWithTerm || keywordStartsWithTerm;
     });
-    
+
     // Finally include commands that contain the search term anywhere
-    const containsMatches = formatCommands.filter(cmd => {
+    const containsMatches = formatCommands.filter((cmd) => {
       // Skip commands we already included
-      if (exactIdMatches.some(m => m.id === cmd.id) || 
-          startsWithMatches.some(m => m.id === cmd.id)) return false;
-      
+      if (
+        exactIdMatches.some((m) => m.id === cmd.id) ||
+        startsWithMatches.some((m) => m.id === cmd.id)
+      )
+        return false;
+
       const cmdText = `${cmd.id} ${cmd.label}`.toLowerCase();
       if (cmdText.includes(searchTerm)) return true;
-      
+
       // Check if any keyword contains the search term
       if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
-        return cmd.keywords.some(keyword => 
-          keyword.toLowerCase().includes(searchTerm)
+        return cmd.keywords.some((keyword) =>
+          keyword.toLowerCase().includes(searchTerm),
         );
       }
-      
+
       return false;
     });
-    
+
     // Combine all matches in priority order
     return [...exactIdMatches, ...startsWithMatches, ...containsMatches];
   }, [commandSearch, formatCommands]);
@@ -144,7 +211,7 @@ const RichTextEditor = React.forwardRef<
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   // Global keyboard event listener to handle Escape key for all popups
   React.useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -161,7 +228,7 @@ const RichTextEditor = React.forwardRef<
         }
       }
     }
-    
+
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [showCommandMenu, showLinkPrompt, showMediaPrompt]);
@@ -197,22 +264,21 @@ const RichTextEditor = React.forwardRef<
           },
         },
       }),
-      Italic,
       MediaNode,
       Placeholder.configure({
         placeholder: ({ node, editor }) => {
           // Skip if we don't have the necessary properties
           if (!node || !editor) return "";
-          
+
           // Get the node type name safely
-          const typeName = node.type?.name;
+          const typeName = node.type.name;
           if (!typeName) return "";
-          
+
           // Check if this is a paragraph and if it's the first node
           const isParagraph = typeName === "paragraph";
-          const doc = editor.state?.doc;
-          const isFirstNode = doc?.firstChild === node;
-          
+          const doc = editor.state.doc;
+          const isFirstNode = doc.firstChild === node;
+
           if (isParagraph && isFirstNode) {
             return 'Press "/" for commands...';
           }
@@ -393,9 +459,11 @@ const RichTextEditor = React.forwardRef<
           }
 
           // Check file size
-          const maxSize = isImage ? 4 * 1024 * 1024 : 
-                         isVideo ? 64 * 1024 * 1024 : 
-                         16 * 1024 * 1024; // 4MB for images, 64MB for videos, 16MB for audio
+          const maxSize = isImage
+            ? 4 * 1024 * 1024
+            : isVideo
+              ? 64 * 1024 * 1024
+              : 16 * 1024 * 1024; // 4MB for images, 64MB for videos, 16MB for audio
           if (file.size > maxSize) {
             toast({
               title: "File too large",
@@ -407,7 +475,7 @@ const RichTextEditor = React.forwardRef<
 
           let type = "";
           const previewUrl = URL.createObjectURL(file);
-          
+
           if (isImage) {
             type = "image";
           } else if (isVideo) {
@@ -417,7 +485,7 @@ const RichTextEditor = React.forwardRef<
           } else {
             return null; // Shouldn't happen due to earlier check
           }
-          
+
           return {
             file,
             previewUrl,
@@ -436,13 +504,18 @@ const RichTextEditor = React.forwardRef<
   // Define dropzone hook
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: mediaType === "image" ? {
-      "image/*": [".png", ".jpg", ".jpeg", ".gif"],
-    } : mediaType === "video" ? {
-      "video/*": [".mp4", ".webm", ".mov"],
-    } : {
-      "audio/*": [".mp3", ".wav", ".ogg", ".m4a"],
-    },
+    accept:
+      mediaType === "image"
+        ? {
+            "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+          }
+        : mediaType === "video"
+          ? {
+              "video/*": [".mp4", ".webm", ".mov"],
+            }
+          : {
+              "audio/*": [".mp3", ".wav", ".ogg", ".m4a"],
+            },
     maxFiles: 4,
     multiple: true,
   });
@@ -457,36 +530,14 @@ const RichTextEditor = React.forwardRef<
   };
 
   // Function to insert media into the editor
-  const insertMediaToEditor = useCallback((src: string, type: "image" | "video" | "audio") => {
-    if (!editor?.isEditable) return;
-    
-    try {
-      // First try to insert at current position with proper error handling
-      editor
-        .chain()
-        .focus()
-        .insertContent({
-          type: "mediaNode",
-          attrs: {
-            src,
-            type,
-          },
-        })
-        // Add a new paragraph after the media to allow continued typing
-        .insertContent({ type: "paragraph" })
-        .run();
-    } catch (_insertError) {
-      // Error is intentionally ignored
-      // Handle error inserting media at current position
-      
-      // Fallback: Try to insert at the end of the document
+  const insertMediaToEditor = useCallback(
+    (src: string, type: "image" | "video" | "audio") => {
+      if (!editor?.isEditable) return;
+
       try {
-        // Move to the end of the document and insert content
+        // First try to insert at current position with proper error handling
         editor
           .chain()
-          .focus()
-          // Move cursor to the end of the document
-          // Simply focus the editor and append content at current position
           .focus()
           .insertContent({
             type: "mediaNode",
@@ -495,13 +546,16 @@ const RichTextEditor = React.forwardRef<
               type,
             },
           })
-          // Add a new paragraph after the media
+          // Add a new paragraph after the media to allow continued typing
           .insertContent({ type: "paragraph" })
           .run();
-      } catch (_fallbackError) {
-        // Silently handle error and continue with last resort approach
-        // Last resort: Create a new paragraph and insert there
+      } catch (_insertError) {
+        // Error is intentionally ignored
+        // Handle error inserting media at current position
+
+        // Fallback: Try to insert at the end of the document
         try {
+          // Move to the end of the document and insert content
           editor
             .chain()
             .focus()
@@ -518,41 +572,66 @@ const RichTextEditor = React.forwardRef<
             // Add a new paragraph after the media
             .insertContent({ type: "paragraph" })
             .run();
-        } catch (_lastError) {
-          // Silently handle the error when all insertion attempts fail
+        } catch (_fallbackError) {
+          // Silently handle error and continue with last resort approach
+          // Last resort: Create a new paragraph and insert there
+          try {
+            editor
+              .chain()
+              .focus()
+              // Move cursor to the end of the document
+              // Simply focus the editor and append content at current position
+              .focus()
+              .insertContent({
+                type: "mediaNode",
+                attrs: {
+                  src,
+                  type,
+                },
+              })
+              // Add a new paragraph after the media
+              .insertContent({ type: "paragraph" })
+              .run();
+          } catch (_lastError) {
+            // Silently handle the error when all insertion attempts fail
+          }
         }
       }
-    }
-  }, [editor]);
+    },
+    [editor],
+  );
 
   const confirmMediaSelection = () => {
-    if (!editor || !editor.isEditable) {
+    if (!editor?.isEditable) {
       setShowMediaPrompt(false);
       return;
     }
-    
+
     // Insert each media file into the editor
     // Use a slight delay between insertions to ensure proper handling
     if (mediaFiles.length > 0) {
       // Insert the first media file immediately
       const firstMedia = mediaFiles[0];
       insertMediaToEditor(firstMedia.previewUrl, firstMedia.type);
-      
+
       // Insert any remaining media files with a slight delay
       if (mediaFiles.length > 1) {
         mediaFiles.slice(1).forEach((media, index) => {
-          setTimeout(() => {
-            insertMediaToEditor(media.previewUrl, media.type);
-          }, (index + 1) * 100); // 100ms delay between insertions
+          setTimeout(
+            () => {
+              insertMediaToEditor(media.previewUrl, media.type);
+            },
+            (index + 1) * 100,
+          ); // 100ms delay between insertions
         });
       }
     }
-    
+
     // Also pass the files to the parent component if needed
     if (mediaFiles.length > 0 && onMediaSelect) {
-      onMediaSelect(mediaFiles.map(mf => mf.file));
+      onMediaSelect(mediaFiles.map((mf) => mf.file));
     }
-    
+
     setShowMediaPrompt(false);
   };
 
@@ -566,7 +645,7 @@ const RichTextEditor = React.forwardRef<
 
   const applyFormat = (command: { id: string; label: string }) => {
     if (!editor) return;
-    
+
     // Ensure editor is focused before applying format
     editor.commands.focus();
 
@@ -603,11 +682,12 @@ const RichTextEditor = React.forwardRef<
         break;
       case "quote":
         // Set blockquote with italic styling
-        editor.chain()
+        editor
+          .chain()
           .focus()
           .clearNodes()
           .setBlockquote()
-          .setMark('italic')
+          .setMark("italic")
           .run();
         break;
       case "code":
@@ -615,37 +695,14 @@ const RichTextEditor = React.forwardRef<
         break;
       case "divider":
         // Insert a horizontal rule that spans the full width
-        editor.chain()
+        editor
+          .chain()
           .focus()
           .setHorizontalRule()
           // Add an empty paragraph after to ensure there's a valid cursor position
-          .insertContent('<p></p>')
+          .insertContent("<p></p>")
           .run();
         break;
-      case "callout": {
-        // Insert a callout block with the selected text or default text
-        const selectedText = editor.state.selection.empty 
-          ? 'Important note' 
-          : editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to);
-        
-        // Create a custom callout div with proper styling using TipTap's API
-        editor.chain()
-          .focus()
-          .insertContent({
-            type: 'paragraph',
-            content: [
-              {
-                type: 'text',
-                text: `💡 ${selectedText}`
-              }
-            ],
-            attrs: {
-              class: 'bg-muted/80 p-4 my-4 rounded-md border-l-4 border-primary callout not-prose'
-            }
-          })
-          .run();
-        break;
-      }
       case "link":
         setLinkUrl("");
         setShowLinkPrompt(true);
@@ -670,9 +727,9 @@ const RichTextEditor = React.forwardRef<
     // Move cursor to start if current node is empty or if switching to a new block type
     // Skip this for divider which doesn't need cursor positioning
     if (
-      command.id !== "divider" && 
+      command.id !== "divider" &&
       (isEmpty ||
-      node.type.name !== editor.state.selection.$head.parent.type.name)
+        node.type.name !== editor.state.selection.$head.parent.type.name)
     ) {
       try {
         const pos = editor.state.selection.$head.before();
@@ -752,6 +809,11 @@ const RichTextEditor = React.forwardRef<
               "[&_ol]:mt-[0.5em] [&_ol]:mb-[0.5em]",
               "[&_blockquote]:mt-[0.5em] [&_blockquote]:mb-[0.5em]",
               "[&_pre]:mt-[0.5em] [&_pre]:mb-[0.5em]",
+              // Add specific styling for horizontal rule to override prose defaults
+              "[&_hr]:mt-[1.5em] [&_hr]:mb-[1.5em] [&_hr]:border-t [&_hr]:border-muted-foreground/30",
+              // Add specific styling for callout to ensure it's not affected by prose margins
+              "[&_.callout]:!my-2 [&_.callout]:!mt-[0.5em] [&_.callout]:!mb-[0.5em]",
+              "[&_.callout]:bg-zinc-700/50 [&_.callout]:backdrop-blur-sm",
               // Existing styles
               "[&_*]:!text-foreground [&_*]:!opacity-100", // Optional fallback
               "[&_p]:text-base [&_ul]:text-base [&_ol]:text-base",
@@ -804,6 +866,17 @@ const RichTextEditor = React.forwardRef<
                 value={commandSearch}
                 onValueChange={setCommandSearch}
                 placeholder="/Filter..."
+                onKeyDown={(e) => {
+                  // Handle space key for selection when typing in the input
+                  if (e.key === " " && filteredCommands.length > 0 && commandSearch.trim()) {
+                    e.preventDefault();
+                    const selectedCommand = filteredCommands[selectedIndex];
+                    if (selectedCommand) {
+                      applyFormat(selectedCommand);
+                      setShowCommandMenu(false);
+                    }
+                  }
+                }}
               />
               <CommandList>
                 <CommandEmpty className="p-2 text-sm text-gray-500 dark:text-gray-400">
@@ -814,16 +887,10 @@ const RichTextEditor = React.forwardRef<
                     <CommandItem
                       key={command.id}
                       onMouseEnter={() => setSelectedIndex(index)}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Apply format and close menu on mouse down for better responsiveness
+                      onSelect={() => {
+                        // Apply format and close menu when selected
                         applyFormat(command);
                         setShowCommandMenu(false);
-                      }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
                       }}
                       className={cn(
                         "flex items-center gap-2 px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100",
@@ -850,7 +917,7 @@ const RichTextEditor = React.forwardRef<
         )}
 
         {showLinkPrompt && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
             onKeyDown={(e) => {
               if (e.key === "Escape") {
@@ -862,11 +929,16 @@ const RichTextEditor = React.forwardRef<
             <div className="w-[400px] max-w-[90vw] rounded-lg border bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900">
               <h3 className="mb-3 text-lg font-medium">Add Link</h3>
               <div className="mb-4">
-                <label htmlFor="link-url" className="mb-2 block text-sm font-medium">URL</label>
+                <label
+                  htmlFor="link-url"
+                  className="mb-2 block text-sm font-medium"
+                >
+                  URL
+                </label>
                 <input
                   id="link-url"
                   type="url"
-                  className="w-full rounded-md border p-2 text-base dark:border-gray-700 dark:bg-gray-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-md border p-2 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
                   placeholder="https://example.com"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
@@ -881,19 +953,15 @@ const RichTextEditor = React.forwardRef<
                   }}
                   autoFocus
                 />
-                <p className="mt-1 text-xs text-muted-foreground">Enter the full URL including http:// or https://</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Enter the full URL including http:// or https://
+                </p>
               </div>
               <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={cancelLink}
-                >
+                <Button variant="outline" onClick={cancelLink}>
                   Cancel
                 </Button>
-                <Button
-                  onClick={confirmLink}
-                  disabled={!linkUrl.trim()}
-                >
+                <Button onClick={confirmLink} disabled={!linkUrl.trim()}>
                   Add Link
                 </Button>
               </div>
@@ -902,7 +970,7 @@ const RichTextEditor = React.forwardRef<
         )}
 
         {showMediaPrompt && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
             onKeyDown={(e) => {
               if (e.key === "Escape") {
@@ -913,9 +981,13 @@ const RichTextEditor = React.forwardRef<
           >
             <div className="w-[500px] max-w-[90vw] rounded-lg border bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900">
               <h3 className="mb-3 text-lg font-medium">
-                {mediaType === "image" ? "Add Image" : mediaType === "video" ? "Add Video" : "Add Audio"}
+                {mediaType === "image"
+                  ? "Add Image"
+                  : mediaType === "video"
+                    ? "Add Video"
+                    : "Add Audio"}
               </h3>
-              
+
               {/* Tabs */}
               <div className="mb-4 flex border-b">
                 <button
@@ -923,7 +995,7 @@ const RichTextEditor = React.forwardRef<
                     "px-4 py-2 text-sm font-medium",
                     mediaTab === "upload"
                       ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                   onClick={() => setMediaTab("upload")}
                 >
@@ -934,14 +1006,14 @@ const RichTextEditor = React.forwardRef<
                     "px-4 py-2 text-sm font-medium",
                     mediaTab === "embed"
                       ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                   onClick={() => setMediaTab("embed")}
                 >
                   Embed link
                 </button>
               </div>
-              
+
               {mediaTab === "upload" ? (
                 <>
                   {/* Media Preview Section */}
@@ -957,7 +1029,8 @@ const RichTextEditor = React.forwardRef<
                           key={index}
                           className="group relative overflow-hidden rounded-md bg-muted/50"
                           style={{
-                            aspectRatio: media.type === "image" ? "16/9" : "16/9",
+                            aspectRatio:
+                              media.type === "image" ? "16/9" : "16/9",
                           }}
                         >
                           {media.type === "image" ? (
@@ -979,7 +1052,7 @@ const RichTextEditor = React.forwardRef<
                               </div>
                             </div>
                           ) : (
-                            <div className="relative size-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                            <div className="relative flex size-full items-center justify-center bg-gray-100 dark:bg-gray-800">
                               <audio
                                 src={media.previewUrl}
                                 controls={!media.uploading}
@@ -992,7 +1065,10 @@ const RichTextEditor = React.forwardRef<
                           {media.uploading && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50">
                               <Loader2 className="mb-2 size-8 animate-spin text-primary" />
-                              <Progress value={media.progress} className="h-2 w-3/4" />
+                              <Progress
+                                value={media.progress}
+                                className="h-2 w-3/4"
+                              />
                               <span className="mt-1 text-xs">
                                 {Math.round(media.progress)}%
                               </span>
@@ -1035,9 +1111,11 @@ const RichTextEditor = React.forwardRef<
                             : `Drag & drop or click to add ${mediaType === "image" ? "images" : mediaType === "video" ? "videos" : "audio files"}`}
                         </p>
                         <p className="mt-1 text-xs">
-                          {mediaType === "image" ? "Up to 4 files (4MB per image)" : 
-                           mediaType === "video" ? "Up to 4 files (64MB per video)" : 
-                           "Up to 4 files (16MB per audio file)"}
+                          {mediaType === "image"
+                            ? "Up to 4 files (4MB per image)"
+                            : mediaType === "video"
+                              ? "Up to 4 files (64MB per video)"
+                              : "Up to 4 files (16MB per audio file)"}
                         </p>
                       </div>
                     </div>
@@ -1045,16 +1123,27 @@ const RichTextEditor = React.forwardRef<
                 </>
               ) : (
                 <div className="mb-4">
-                  <label htmlFor="embed-url" className="mb-2 block text-sm font-medium">
-                    {mediaType === "image" ? "Image URL" : mediaType === "video" ? "Video URL" : "Audio URL"}
+                  <label
+                    htmlFor="embed-url"
+                    className="mb-2 block text-sm font-medium"
+                  >
+                    {mediaType === "image"
+                      ? "Image URL"
+                      : mediaType === "video"
+                        ? "Video URL"
+                        : "Audio URL"}
                   </label>
                   <input
                     id="embed-url"
                     type="url"
-                    className="w-full rounded-md border p-2 text-base dark:border-gray-700 dark:bg-gray-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    placeholder={mediaType === "image" ? "https://example.com/image.jpg" : 
-                               mediaType === "video" ? "https://youtube.com/watch?v=..." : 
-                               "https://example.com/audio.mp3"}
+                    className="w-full rounded-md border p-2 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
+                    placeholder={
+                      mediaType === "image"
+                        ? "https://example.com/image.jpg"
+                        : mediaType === "video"
+                          ? "https://youtube.com/watch?v=..."
+                          : "https://example.com/audio.mp3"
+                    }
                     value={embedUrl}
                     onChange={(e) => setEmbedUrl(e.target.value)}
                     onKeyDown={(e) => {
@@ -1064,7 +1153,10 @@ const RichTextEditor = React.forwardRef<
                       } else if (e.key === "Enter" && embedUrl.trim()) {
                         e.preventDefault();
                         // Handle embed URL based on media type
-                        insertMediaToEditor(embedUrl, mediaType as "image" | "video" | "audio");
+                        insertMediaToEditor(
+                          embedUrl,
+                          mediaType as "image" | "video" | "audio",
+                        );
                         setShowMediaPrompt(false);
                         setEmbedUrl("");
                       }
@@ -1072,9 +1164,11 @@ const RichTextEditor = React.forwardRef<
                     autoFocus
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {mediaType === "image" ? "Enter the full image URL" : 
-                     mediaType === "video" ? "Works with YouTube, Vimeo, and more" : 
-                     "Enter the full audio URL"}
+                    {mediaType === "image"
+                      ? "Enter the full image URL"
+                      : mediaType === "video"
+                        ? "Works with YouTube, Vimeo, and more"
+                        : "Enter the full audio URL"}
                   </p>
                 </div>
               )}
@@ -1087,21 +1181,31 @@ const RichTextEditor = React.forwardRef<
                 >
                   Cancel
                 </Button>
-                <Button 
-                  onClick={mediaTab === "upload" ? confirmMediaSelection : () => {
-                    if (embedUrl.trim()) {
-                      // Handle embed URL based on media type
-                      insertMediaToEditor(embedUrl, mediaType as "image" | "video");
-                      setShowMediaPrompt(false);
-                      setEmbedUrl("");
-                    }
-                  }}
-                  disabled={(mediaTab === "upload" && mediaFiles.length === 0) || 
-                           (mediaTab === "embed" && !embedUrl.trim()) || 
-                           isUploading}
+                <Button
+                  onClick={
+                    mediaTab === "upload"
+                      ? confirmMediaSelection
+                      : () => {
+                          if (embedUrl.trim()) {
+                            // Handle embed URL based on media type
+                            insertMediaToEditor(
+                              embedUrl,
+                              mediaType as "image" | "video",
+                            );
+                            setShowMediaPrompt(false);
+                            setEmbedUrl("");
+                          }
+                        }
+                  }
+                  disabled={
+                    (mediaTab === "upload" && mediaFiles.length === 0) ||
+                    (mediaTab === "embed" && !embedUrl.trim()) ||
+                    isUploading
+                  }
                 >
-                  {mediaTab === "upload" ? `Add ${mediaType === "image" ? "Image" : mediaType === "video" ? "Video" : "Audio"}` : 
-                   `Embed ${mediaType === "image" ? "Image" : mediaType === "video" ? "Video" : "Audio"}`}
+                  {mediaTab === "upload"
+                    ? `Add ${mediaType === "image" ? "Image" : mediaType === "video" ? "Video" : "Audio"}`
+                    : `Embed ${mediaType === "image" ? "Image" : mediaType === "video" ? "Video" : "Audio"}`}
                 </Button>
               </div>
             </div>

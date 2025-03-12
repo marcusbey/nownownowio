@@ -44,7 +44,7 @@ export default function ForYouFeed() {
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,      // Only fetch once on mount
     refetchOnReconnect: false,
     retry: 1,
     networkMode: "offlineFirst",

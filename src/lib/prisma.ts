@@ -10,8 +10,13 @@ export type { PrismaClient } from "@prisma/client";
 // Determine if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
-// Type for our singleton instance
-type ExtendedPrismaClient = PrismaClient;
+// Import widget extensions type
+import type { widgetExtensions } from "./prisma/prisma.widget.extends";
+
+// Type for our singleton instance with extensions
+type ExtendedPrismaClient = PrismaClient & {
+  widget: typeof widgetExtensions;
+};
 
 // Create a function to initialize the base Prisma client without extensions
 function createPrismaClient() {
@@ -39,15 +44,19 @@ function createPrismaClient() {
 
 // For singleton pattern in development to prevent multiple instances
 const globalForPrisma = globalThis as unknown as {
-  prisma: ExtendedPrismaClient | undefined;
+  prisma: PrismaClient | undefined;
+  extendedPrisma: ExtendedPrismaClient | undefined;
 };
 
-// Export the Prisma client singleton without extensions
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+// Create or reuse the base Prisma client
+const basePrisma = globalForPrisma.prisma ?? createPrismaClient();
+
+// Export the Prisma client singleton (will be extended later)
+export const prisma = basePrisma as unknown as ExtendedPrismaClient;
 
 // In development, attach to global to prevent multiple instances
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  globalForPrisma.prisma = basePrisma;
 }
 
 // Apply extensions after initialization to avoid circular dependencies
@@ -56,8 +65,10 @@ export async function applyPrismaExtensions() {
   // Import extensions dynamically when needed using ESM dynamic imports
   const orgExtends = await import("./prisma/prisma.org.extends");
   const userExtends = await import("./prisma/prisma.user.extends");
+  const widgetExtends = await import("./prisma/prisma.widget.extends");
   
-  return prisma.$extends({
+  // Create extended client with all extensions
+  const extended = basePrisma.$extends({
     query: {
       organization: {
         update: orgExtends.onOrganizationUpdate,
@@ -66,5 +77,16 @@ export async function applyPrismaExtensions() {
         update: userExtends.onUserUpdate,
       },
     },
-  });
+  }) as unknown as ExtendedPrismaClient;
+  
+  // Manually add the widget extensions
+  extended.widget = widgetExtends.widgetExtensions;
+  
+  // Store in global for singleton pattern
+  globalForPrisma.extendedPrisma = extended;
+  
+  // Copy all properties to the exported prisma client
+  Object.assign(prisma, extended);
+  
+  return extended;
 }
