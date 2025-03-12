@@ -23,17 +23,17 @@ export async function GET(req: NextRequest) {
     };
 
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
+    const orgId = searchParams.get('orgId');
     const token = req.headers.get('Authorization')?.split(' ')[1];
 
-    if (!userId || !token) {
+    if (!orgId || !token) {
         return NextResponse.json(
             { error: 'Invalid request' },
             { status: 400, headers }
         );
     }
 
-    const isValid = verifyWidgetToken(token, userId);
+    const isValid = verifyWidgetToken(token, orgId);
     if (!isValid) {
         return NextResponse.json(
             { error: 'Invalid token' },
@@ -42,8 +42,16 @@ export async function GET(req: NextRequest) {
     }
 
     try {
+        // Find organization members to get their posts
+        const members = await prisma.organizationMembership.findMany({
+            where: { organizationId: orgId },
+            select: { userId: true }
+        });
+        
+        const memberIds = members.map((member: { userId: string }) => member.userId);
+        
         const posts = await prisma.post.findMany({
-            where: { userId },
+            where: { userId: { in: memberIds } },
             orderBy: { createdAt: 'desc' },
             take: 5, // Limit to the latest 5 posts
             select: {
