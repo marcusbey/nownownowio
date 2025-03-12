@@ -1,9 +1,9 @@
 import { verifyWidgetToken } from '@/lib/now-widget';
 import { prisma } from '@/lib/prisma';
 import { getUserDataSelect } from '@/lib/types';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
     return new NextResponse(null, {
         status: 204,
         headers: {
@@ -23,17 +23,18 @@ export async function GET(req: NextRequest) {
     };
 
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
+    const orgId = searchParams.get('orgId');
     const token = req.headers.get('Authorization')?.split(' ')[1];
 
-    if (!userId || !token) {
+    if (!orgId || !token) {
         return NextResponse.json(
             { error: 'Invalid request' },
             { status: 400, headers }
         );
     }
 
-    const isValid = verifyWidgetToken(token, userId);
+    // Verify the widget token against the organization
+    const isValid = verifyWidgetToken(token, orgId);
     if (!isValid) {
         return NextResponse.json(
             { error: 'Invalid token' },
@@ -42,24 +43,47 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: getUserDataSelect(userId),
+        // Find the organization and its owner
+        const organization = await prisma.organization.findUnique({
+            where: { id: orgId },
+            include: {
+                members: {
+                    where: { roles: { has: 'OWNER' } },
+                    take: 1,
+                    include: {
+                        user: {
+                            select: getUserDataSelect(''),
+                        }
+                    }
+                }
+            }
         });
 
-        if (!user) {
+        if (!organization || organization.members.length === 0) {
             return NextResponse.json(
-                { error: 'User not found' },
+                { error: 'Organization not found' },
                 { status: 404, headers }
             );
         }
 
+        const owner = organization.members[0].user;
+
         return NextResponse.json(
-            { user },
+            { 
+                organization: {
+                    id: organization.id,
+                    name: organization.name,
+                    image: organization.image
+                },
+                user: owner 
+            },
             { headers }
         );
     } catch (error) {
-        console.error('Error fetching user info:', error);
+        // Log error but avoid console statement in production
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('Error fetching user info:', error);
+        }
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500, headers }

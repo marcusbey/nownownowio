@@ -2,27 +2,33 @@ import { prisma } from "@/lib/prisma";
 
 export type WidgetSetupStatus = {
   isConfigured: boolean;
+  lastGeneratedAt?: Date;
 }
 
 /**
  * Checks if the widget has been set up for an organization
  * @param organizationId The ID of the organization to check
- * @returns Object with isConfigured status
+ * @returns Object with isConfigured status and last generation date if available
  */
 export async function getWidgetSetupStatusQuery(
   organizationId: string
 ): Promise<WidgetSetupStatus> {
-  // For now, we'll use a simpler approach to check if the widget is configured
-  // In a real implementation, we would check for specific widget configuration
-  
   // Verify that the organization exists
   await prisma.organization.findUniqueOrThrow({
     where: { id: organizationId }
   });
 
-  // This is a placeholder logic - in a real implementation, we would check for actual widget configuration
-  // For now, we'll assume the widget is not configured for any organization to show the banner
+  // Find the most recent widget for this organization
+  // Using the Widget model from Prisma schema
+  const widget = await prisma.$queryRaw`
+    SELECT * FROM "Widget"
+    WHERE "organizationId" = ${organizationId}
+    ORDER BY "createdAt" DESC
+    LIMIT 1
+  `;
+
   return {
-    isConfigured: false
+    isConfigured: !!widget && Array.isArray(widget) && widget.length > 0,
+    lastGeneratedAt: Array.isArray(widget) && widget.length > 0 ? widget[0].createdAt : null
   };
 }

@@ -63,24 +63,21 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        const userId = org.members[0].userId;
-        
-        // Store the widget token for this user
+        // Store the widget token for this organization
         try {
-            // Generate the widget token
-            const token = generateWidgetToken(userId);
+            // Generate the widget token using organization ID
+            const token = generateWidgetToken(org.id);
             
-            // Update the user with the token
-            await prisma.user.update({
-                where: { id: userId },
+            // Create or update the widget for this organization
+            await prisma.widget.create({
                 data: {
+                    organizationId: org.id,
                     widgetToken: token,
-                    // Also store the website URL if needed
-                    websiteUrl: org.websiteUrl
+                    settings: settings // TypeScript should now recognize this as valid
                 }
             });
             
-            return generateWidgetScript(userId, token, domain, settings);
+            return generateWidgetScript(org.id, token, domain, settings);
         } catch (dbError) {
             console.error('Error updating user widget token');
             if (dbError instanceof Error) {
@@ -93,7 +90,7 @@ export async function POST(request: Request) {
         }
 
 // Helper function to generate the widget script
-function generateWidgetScript(userId: string, token: string, domain: string, settings?: WidgetSettings) {
+function generateWidgetScript(orgId: string, token: string, domain: string, settings?: WidgetSettings) {
     if (!process.env.NEXT_PUBLIC_WIDGET_URL) {
         return NextResponse.json({ 
             error: 'Configuration error', 
@@ -103,7 +100,7 @@ function generateWidgetScript(userId: string, token: string, domain: string, set
 
     // Build the script tag with attributes
     const scriptAttributes = [
-        `data-user-id="${userId}"`,
+        `data-org-id="${orgId}"`,
         `data-token="${token}"`,
         `data-theme="${settings?.theme || 'dark'}"`,
         `data-position="${settings?.position || 'left'}"`,
@@ -111,7 +108,7 @@ function generateWidgetScript(userId: string, token: string, domain: string, set
         `data-button-size="${settings?.buttonSize || '90'}"`,
     ].join(' ');
 
-    const script = `<script defer src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" ${scriptAttributes}></script>`;
+    const script = `<script defer type="module"src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" ${scriptAttributes}></script>`;
 
     // Return the successful response
     return NextResponse.json({
