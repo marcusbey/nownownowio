@@ -18,22 +18,11 @@ export async function getWidgetSetupStatusQuery(
     where: { id: organizationId }
   });
 
-  // Find the most recent widget for this organization
-  // Using the Prisma client to query the Widget model
-  const widget = await prisma.$transaction(async (tx) => {
-    return tx.$queryRaw<{ id: string; createdAt: Date }[]>`
-      SELECT id, "createdAt" FROM "Widget"
-      WHERE "organizationId" = ${organizationId}
-      ORDER BY "createdAt" DESC
-      LIMIT 1
-    `;
-  });
+  // Make sure the Prisma extensions are applied
+  const { applyPrismaExtensions } = await import("@/lib/prisma");
+  await applyPrismaExtensions();
 
-  // Check if widget exists and return appropriate status
-  const widgetExists = Array.isArray(widget) && widget.length > 0;
-  
-  return {
-    isConfigured: widgetExists,
-    lastGeneratedAt: widgetExists ? widget[0].createdAt : undefined
-  };
+  // Use the Prisma extension to get widget setup status
+  // This avoids SQL injection and provides proper type safety
+  return prisma.widget.getWidgetSetupStatus(organizationId);
 }

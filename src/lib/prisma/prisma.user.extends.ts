@@ -136,7 +136,19 @@ const syncWithOrganizations: DynamicQueryExtensionCb<
     },
   });
 
-  const firstOrg = user?.organizations[0]?.organization;
+  // Define a type that matches our select query structure
+  type UserWithOrganizations = {
+    id: string;
+    organizations: {
+      organization: {
+        id: string;
+      };
+    }[];
+  };
+
+  // Cast the user to the correct type
+  const typedUser = user as UserWithOrganizations | null;
+  const firstOrg = typedUser?.organizations[0]?.organization;
 
   if (!firstOrg?.id) {
     return;

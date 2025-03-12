@@ -70,11 +70,9 @@ export async function POST(request: Request) {
             
             // Create or update the widget for this organization
             await prisma.widget.create({
-                data: {
-                    organizationId: org.id,
-                    widgetToken: token,
-                    settings: settings // TypeScript should now recognize this as valid
-                }
+                organizationId: org.id,
+                widgetToken: token,
+                settings: settings // TypeScript should now recognize this as valid
             });
             
             return generateWidgetScript(org.id, token, domain, settings);
