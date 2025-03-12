@@ -9,6 +9,37 @@ type WidgetSettings = {
   buttonSize: number;
 };
 
+/**
+ * Helper function to generate the widget script
+ */
+function generateWidgetScript(orgId: string, token: string, domain: string, settings?: WidgetSettings) {
+    if (!process.env.NEXT_PUBLIC_WIDGET_URL) {
+        return NextResponse.json({ 
+            error: 'Configuration error', 
+            message: 'Widget URL configuration is missing.'
+        }, { status: 500 });
+    }
+
+    // Build the script tag with attributes
+    const scriptAttributes = [
+        `data-org-id="${orgId}"`,
+        `data-token="${token}"`,
+        `data-theme="${settings?.theme ?? 'dark'}"`,
+        `data-position="${settings?.position ?? 'left'}"`,
+        `data-button-color="${settings?.buttonColor ?? '#1a73e8'}"`,
+        `data-button-size="${settings?.buttonSize ?? '90'}"`,
+    ].join(' ');
+
+    const script = `<script defer type="module" src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" ${scriptAttributes}></script>`;
+
+    // Return the successful response
+    return NextResponse.json({
+        script,
+        token,
+        allowedDomain: domain
+    });
+}
+
 export async function POST(request: Request) {
     try {
         // Parse the request body
@@ -69,16 +100,19 @@ export async function POST(request: Request) {
             const token = generateWidgetToken(org.id);
             
             // Create or update the widget for this organization
+            // Ensure settings is properly serialized for Prisma's Json field
+            const jsonSettings = JSON.parse(JSON.stringify(settings));
+            
             await prisma.widget.upsert({
                 where: { organizationId: org.id },
                 update: {
                     widgetToken: token,
-                    settings: settings
+                    settings: jsonSettings
                 },
                 create: {
                     organizationId: org.id,
                     widgetToken: token,
-                    settings: settings
+                    settings: jsonSettings
                 }
             });
             
@@ -93,35 +127,6 @@ export async function POST(request: Request) {
                 message: 'Failed to update organization widget settings.'
             }, { status: 500 });
         }
-
-// Helper function to generate the widget script
-function generateWidgetScript(orgId: string, token: string, domain: string, settings?: WidgetSettings) {
-    if (!process.env.NEXT_PUBLIC_WIDGET_URL) {
-        return NextResponse.json({ 
-            error: 'Configuration error', 
-            message: 'Widget URL configuration is missing.'
-        }, { status: 500 });
-    }
-
-    // Build the script tag with attributes
-    const scriptAttributes = [
-        `data-org-id="${orgId}"`,
-        `data-token="${token}"`,
-        `data-theme="${settings?.theme || 'dark'}"`,
-        `data-position="${settings?.position || 'left'}"`,
-        `data-button-color="${settings?.buttonColor || '#1a73e8'}"`,
-        `data-button-size="${settings?.buttonSize || '90'}"`,
-    ].join(' ');
-
-    const script = `<script defer type="module"src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" ${scriptAttributes}></script>`;
-
-    // Return the successful response
-    return NextResponse.json({
-        script,
-        token,
-        allowedDomain: domain
-    });
-}
     } catch (error) {
         // Handle any unexpected errors
         console.error('Error generating widget script');

@@ -87,8 +87,20 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
       // Try to construct a URL object to validate
       const urlObj = new URL(url);
       
-      // Check if hostname is valid (not empty and has at least one dot)
-      if (!urlObj.hostname || !urlObj.hostname.includes('.')) {
+      // Check if hostname is valid (not empty)
+      if (!urlObj.hostname) {
+        setUrlError('Please enter a valid domain name');
+        return false;
+      }
+      
+      // Special case for localhost (allow for testing)
+      if (urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+        // Allow localhost URLs for testing
+        return true;
+      }
+      
+      // For non-localhost URLs, require at least one dot in hostname
+      if (!urlObj.hostname.includes('.')) {
         setUrlError('Please enter a valid domain name');
         return false;
       }
