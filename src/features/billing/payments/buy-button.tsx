@@ -6,9 +6,9 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ButtonProps } from "@/components/core/button";
-import { LoadingButton } from "@/features/ui/form/submit-button";
+import { Button } from "@/components/core/button";
 import { buyButtonAction, checkoutPlanAction } from "./buy-button.action";
-import { BillingCycle, PlanType } from "@/features/billing/plans/plans";
+import type { BillingCycle, PlanType } from "@/features/billing/plans/plans";
 import { logger } from "@/lib/logger";
 import { usePlanPricing } from "@/features/billing/plans/plan-pricing-context";
 
@@ -60,9 +60,9 @@ export const BuyButton = ({
     if (priceId) return priceId;
     
     // If we have planType and billingCycle, try to get from context
-    if (planType && billingCycle) {
-      // First try to get from context
-      const contextPriceId = getPriceIdFromContext?.(planType, billingCycle);
+    if (planType && billingCycle && getPriceIdFromContext) {
+      // Get from context
+      const contextPriceId = getPriceIdFromContext(planType, billingCycle);
       if (contextPriceId) return contextPriceId;
     }
     
@@ -80,6 +80,14 @@ export const BuyButton = ({
 
         let result;
         const effectivePriceId = getEffectivePriceId();
+        
+        // Log checkout attempt for debugging
+        logger.info("Initiating checkout", { 
+          priceId: effectivePriceId, 
+          planType, 
+          billingCycle, 
+          orgSlug 
+        });
         
         // Determine which checkout method to use
         if (effectivePriceId) {
@@ -100,10 +108,10 @@ export const BuyButton = ({
         }
 
         if (!isActionSuccessful(result)) {
-          throw new Error(result?.serverError ?? "Failed to create checkout session");
+          throw new Error(result && result.serverError ? result.serverError : "Failed to create checkout session");
         }
 
-        if (!result.data?.url) {
+        if (!result.data || !result.data.url) {
           throw new Error("No checkout URL returned from Stripe");
         }
 
@@ -114,7 +122,9 @@ export const BuyButton = ({
       }
     },
     onSuccess: (url) => {
-      router.push(url);
+      // Direct window location change instead of using router.push
+      // This ensures we properly redirect to external Stripe checkout URL
+      window.location.href = url;
     },
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
@@ -122,12 +132,13 @@ export const BuyButton = ({
   });
 
   return (
-    <LoadingButton
+    <Button
       onClick={() => mutation.mutate()}
       {...props}
-      loading={mutation.isPending}
-      disabled={session.status === "loading"}
-    />
+      disabled={session.status === "loading" || mutation.isPending}
+    >
+      {mutation.isPending ? "Processing..." : props.children}
+    </Button>
   );
 };
 
