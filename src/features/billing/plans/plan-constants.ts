@@ -1,5 +1,5 @@
 // Export plan constants for use throughout the application
-import { PLAN_TYPES } from './plans';
+import { PLAN_TYPES } from './fallback-prices';
 
 // Export the FREE plan ID for easier access
 export const FREE_PLAN_ID = PLAN_TYPES.FREE;

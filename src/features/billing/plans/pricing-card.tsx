@@ -8,6 +8,7 @@ import { BuyButton } from "@/features/billing/payments/buy-button";
 import type { Plan, BillingCycle } from "./plans";
 import { usePlanPricing } from "./plan-pricing-context";
 import { FALLBACK_PRICES } from "./fallback-prices";
+import { env } from "@/lib/env";
 
 type PricingCardProps = Plan & {
   onSelectBillingCycle?: (billingCycle: BillingCycle) => void;
@@ -24,6 +25,9 @@ export const PricingCard = (props: PricingCardProps) => {
   const [showLifetime, setShowLifetime] = useState(false);
   const { getPriceAmount } = usePlanPricing();
   
+  // Determine if we're using live or test mode
+  const useLiveMode = env.USE_LIVE_MODE === 'true';
+  
   // Get the appropriate price based on billing cycle
   const getPrice = () => {
     // If the price is provided in props, use it; otherwise, get it from the context
@@ -34,6 +38,24 @@ export const PricingCard = (props: PricingCardProps) => {
       (props.planType && props.billingCycle ? FALLBACK_PRICES[props.planType][props.billingCycle].amount : 0);
     
     return Math.round(price);
+  };
+  
+  // Get the appropriate price ID based on the plan type and billing cycle
+  const getPriceId = (): string => {
+    // Early return with empty string if we don't have the required properties
+    // This is a safeguard, though props.planType and props.billingCycle should always be defined
+    if (typeof props.planType === 'undefined' || typeof props.billingCycle === 'undefined') return '';
+    
+    // If priceId is explicitly provided in props, use it
+    if (props.priceId) return props.priceId;
+    
+    // Otherwise, determine the price ID based on the environment mode (live/test)
+    const modePrefix = useLiveMode ? 'LIVE' : 'TEST';
+    const envVarName = `NEXT_PUBLIC_STRIPE_${modePrefix}_${props.planType}_${props.billingCycle}_PRICE_ID`;
+    
+    // Access the appropriate environment variable
+    return env[envVarName as keyof typeof env] ?? 
+           FALLBACK_PRICES[props.planType][props.billingCycle].priceId;
   };
 
   // Format price to ensure it's always a whole number
@@ -151,7 +173,7 @@ export const PricingCard = (props: PricingCardProps) => {
           ) : (
             <BuyButton
               orgSlug={String(organizationSlug)}
-              priceId={props.priceId}
+              priceId={getPriceId()}
               className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
             >
               {showLifetime && props.billingCycle !== "LIFETIME" 

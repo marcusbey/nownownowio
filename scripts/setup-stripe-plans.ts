@@ -12,13 +12,21 @@ const envVars = envContent.split('\n').reduce((acc, line) => {
   return acc;
 }, {});
 
-// Use live key for production
-const stripeSecretKey = envVars.STRIPE_SECRET_KEY;
+// Determine which mode to use (live or test)
+const useLiveMode = envVars.USE_LIVE_MODE === 'true';
+const modePrefix = useLiveMode ? 'LIVE' : 'TEST';
+
+// Use appropriate key based on mode
+const stripeSecretKey = useLiveMode 
+  ? envVars.STRIPE_LIVE_SECRET_KEY || envVars.STRIPE_SECRET_KEY 
+  : envVars.STRIPE_TEST_SECRET_KEY || envVars.STRIPE_SECRET_KEY;
 
 if (!stripeSecretKey) {
-  console.error('Missing STRIPE_SECRET_KEY in environment variables');
+  console.error(`Missing ${useLiveMode ? 'STRIPE_LIVE_SECRET_KEY' : 'STRIPE_TEST_SECRET_KEY'} in environment variables`);
   process.exit(1);
 }
+
+console.log(`Running in ${useLiveMode ? 'LIVE' : 'TEST'} mode`);
 
 const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2023-10-16', // Use a supported API version
@@ -258,7 +266,7 @@ async function main() {
   console.log('\n\n--- ENVIRONMENT VARIABLES TO ADD ---\n');
   
   for (const result of results) {
-    const envVarName = `NEXT_PUBLIC_STRIPE_${result.planId}_PRICE_ID`;
+    const envVarName = `NEXT_PUBLIC_STRIPE_${modePrefix}_${result.planId}_PRICE_ID`;
     console.log(`${envVarName}="${result.priceId}"`);
   }
   

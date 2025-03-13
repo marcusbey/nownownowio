@@ -76,8 +76,14 @@ export async function constructWebhookEvent(payload: string, signature: string, 
     ? env.STRIPE_WEBHOOK_SECRET_LIVE
     : env.STRIPE_WEBHOOK_SECRET_TEST;
 
+  // Ensure we have a valid webhook secret
+  const finalSecret = webhookSecret || secret;
+  if (!finalSecret) {
+    throw new Error(`Missing Stripe webhook secret for ${env.NODE_ENV} environment`);
+  }
+
   const stripe = await getStripe();
-  return stripe.webhooks.constructEvent(payload, signature, webhookSecret || secret);
+  return stripe.webhooks.constructEvent(payload, signature, finalSecret);
 }
 
 // Plan and subscription management
@@ -123,25 +129,47 @@ export async function createBillingPortalSession(params: Stripe.BillingPortal.Se
 
 // Helper function to get price ID by plan type and billing cycle
 export async function getPriceIdByPlan(planType: string, billingCycle: string): Promise<string> {
+  // Determine if we're using live mode or test mode
+  const isLiveMode = env.USE_LIVE_MODE === 'true';
+  const modePrefix = isLiveMode ? 'LIVE' : 'TEST';
+  
   // Handle FREE plan which doesn't have billing cycles
   if (planType === 'FREE') {
-    const freeKey = 'NEXT_PUBLIC_STRIPE_FREE_PRICE_ID';
-    const freePriceId = env[freeKey as keyof typeof env];
+    // Try to get mode-specific free price ID first
+    const modeSpecificKey = `NEXT_PUBLIC_STRIPE_${modePrefix}_FREE_PRICE_ID`;
+    const modeSpecificPriceId = env[modeSpecificKey as keyof typeof env];
     
-    if (!freePriceId) {
+    if (modeSpecificPriceId) {
+      return modeSpecificPriceId;
+    }
+    
+    // Fall back to default free price ID
+    const defaultKey = 'NEXT_PUBLIC_STRIPE_FREE_PRICE_ID';
+    const defaultPriceId = env[defaultKey as keyof typeof env];
+    
+    if (!defaultPriceId) {
       throw new Error(`Price ID not found for FREE plan`);
     }
     
-    return freePriceId;
+    return defaultPriceId;
   }
   
-  // Handle regular plans with billing cycles (BASIC, PRO)
-  const key = `NEXT_PUBLIC_STRIPE_${planType}_${billingCycle}_PRICE_ID`;
-  const priceId = env[key as keyof typeof env];
+  // Handle regular plans with billing cycles (BASIC, PRO) and addons
+  // Try to get mode-specific price ID first
+  const modeSpecificKey = `NEXT_PUBLIC_STRIPE_${modePrefix}_${planType}_${billingCycle}_PRICE_ID`;
+  const modeSpecificPriceId = env[modeSpecificKey as keyof typeof env];
   
-  if (!priceId) {
+  if (modeSpecificPriceId) {
+    return modeSpecificPriceId;
+  }
+  
+  // Fall back to default price ID
+  const defaultKey = `NEXT_PUBLIC_STRIPE_${planType}_${billingCycle}_PRICE_ID`;
+  const defaultPriceId = env[defaultKey as keyof typeof env];
+  
+  if (!defaultPriceId) {
     throw new Error(`Price ID not found for plan ${planType}_${billingCycle}`);
   }
   
-  return priceId;
+  return defaultPriceId;
 }

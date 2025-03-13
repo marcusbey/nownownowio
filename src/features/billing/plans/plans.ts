@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PLAN_TYPES, BILLING_CYCLES, FALLBACK_PRICES } from "./fallback-prices";
+import { env } from "@/lib/env";
 
 // Import types from Prisma schema
 // These are the enum values defined in the Prisma schema
@@ -65,7 +66,7 @@ export const PLANS: Plan[] = [
       "Email support"
     ],
     price: FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.MONTHLY].amount,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.MONTHLY].priceId,
+    priceId: (env.USE_LIVE_MODE === 'true' ? env.NEXT_PUBLIC_STRIPE_LIVE_BASIC_MONTHLY_PRICE_ID : env.NEXT_PUBLIC_STRIPE_TEST_BASIC_MONTHLY_PRICE_ID) ?? env.NEXT_PUBLIC_STRIPE_BASIC_MONTHLY_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.MONTHLY].priceId,
     cta: "Get Started",
     ctaSubtitle: `$${FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.MONTHLY].amount}/month`,
     maxOrganizations: 1,
@@ -95,7 +96,7 @@ export const PLANS: Plan[] = [
     price: 7.2, // 20% discount
     yearlyPrice: 86.4, // $9 * 12 * 0.8
     barredPrice: 9,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_ANNUAL_PRICE_ID,
+    priceId: (env.USE_LIVE_MODE === 'true' ? env.NEXT_PUBLIC_STRIPE_LIVE_BASIC_ANNUAL_PRICE_ID : env.NEXT_PUBLIC_STRIPE_TEST_BASIC_ANNUAL_PRICE_ID) ?? env.NEXT_PUBLIC_STRIPE_BASIC_ANNUAL_PRICE_ID,
     cta: "Get Started",
     ctaSubtitle: "$7.20/month, billed annually",
     maxOrganizations: 1,
@@ -125,7 +126,7 @@ export const PLANS: Plan[] = [
       "All future updates included"
     ],
     price: FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.LIFETIME].amount,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_BASIC_LIFETIME_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.LIFETIME].priceId,
+    priceId: (env.USE_LIVE_MODE === 'true' ? env.NEXT_PUBLIC_STRIPE_LIVE_BASIC_LIFETIME_PRICE_ID : env.NEXT_PUBLIC_STRIPE_TEST_BASIC_LIFETIME_PRICE_ID) ?? env.NEXT_PUBLIC_STRIPE_BASIC_LIFETIME_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.BASIC][BILLING_CYCLES.LIFETIME].priceId,
     cta: "Buy Lifetime Access",
     ctaSubtitle: "One-time payment of $199",
     maxOrganizations: 1,
@@ -156,7 +157,7 @@ export const PLANS: Plan[] = [
       "Priority access to new features"
     ],
     price: FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.MONTHLY].amount,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.MONTHLY].priceId,
+    priceId: (env.USE_LIVE_MODE === 'true' ? env.NEXT_PUBLIC_STRIPE_LIVE_PRO_MONTHLY_PRICE_ID : env.NEXT_PUBLIC_STRIPE_TEST_PRO_MONTHLY_PRICE_ID) ?? env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID ?? FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.MONTHLY].priceId,
     cta: "Get Started",
     ctaSubtitle: `$${FALLBACK_PRICES[PLAN_TYPES.PRO][BILLING_CYCLES.MONTHLY].amount}/month`,
     isPopular: true,
@@ -191,7 +192,7 @@ export const PLANS: Plan[] = [
     price: 15.2, // 20% discount
     yearlyPrice: 182.4, // $19 * 12 * 0.8
     barredPrice: 19,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID,
+    priceId: (env.USE_LIVE_MODE === 'true' ? env.NEXT_PUBLIC_STRIPE_LIVE_PRO_ANNUAL_PRICE_ID : env.NEXT_PUBLIC_STRIPE_TEST_PRO_ANNUAL_PRICE_ID) ?? env.NEXT_PUBLIC_STRIPE_PRO_ANNUAL_PRICE_ID,
     cta: "Get Started",
     ctaSubtitle: "$15.20/month, billed annually",
     isPopular: true,
