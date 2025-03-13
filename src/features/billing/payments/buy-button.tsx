@@ -10,6 +10,7 @@ import { LoadingButton } from "@/features/ui/form/submit-button";
 import { buyButtonAction, checkoutPlanAction } from "./buy-button.action";
 import { BillingCycle, PlanType } from "@/features/billing/plans/plans";
 import { logger } from "@/lib/logger";
+import { usePlanPricing } from "@/features/billing/plans/plan-pricing-context";
 
 // Props for direct price ID checkout
 type BuyButtonProps = {
@@ -46,11 +47,28 @@ export const BuyButton = ({
 }: BuyButtonProps) => {
   const router = useRouter();
   const session = useSession();
+  const { getPriceId: getPriceIdFromContext } = usePlanPricing();
 
   // Validate that we have either priceId OR (planType AND billingCycle)
   if (!priceId && (!planType || !billingCycle)) {
     logger.error("BuyButton requires either priceId or both planType and billingCycle");
   }
+  
+  // Get price ID from context if not provided directly
+  const getEffectivePriceId = (): string | undefined => {
+    // If priceId is explicitly provided, use it
+    if (priceId) return priceId;
+    
+    // If we have planType and billingCycle, try to get from context
+    if (planType && billingCycle) {
+      // First try to get from context
+      const contextPriceId = getPriceIdFromContext?.(planType, billingCycle);
+      if (contextPriceId) return contextPriceId;
+    }
+    
+    // Return undefined if we couldn't determine a price ID
+    return undefined;
+  };
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -61,23 +79,24 @@ export const BuyButton = ({
         }
 
         let result;
+        const effectivePriceId = getEffectivePriceId();
         
         // Determine which checkout method to use
-        if (priceId) {
-          // Legacy mode: direct price ID checkout
+        if (effectivePriceId) {
+          // Direct price ID checkout if we have a price ID
           result = await buyButtonAction({
-            priceId,
+            priceId: effectivePriceId,
             orgSlug,
           });
         } else if (planType && billingCycle) {
-          // New mode: plan-based checkout
+          // Plan-based checkout if we have plan type and billing cycle
           result = await checkoutPlanAction({
             planType,
             billingCycle,
             orgSlug,
           });
         } else {
-          throw new Error("Invalid checkout parameters");
+          throw new Error("Invalid checkout parameters: missing price ID or plan details");
         }
 
         if (!isActionSuccessful(result)) {

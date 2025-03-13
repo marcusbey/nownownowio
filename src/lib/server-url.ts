@@ -18,6 +18,8 @@ export const getServerUrl = () => {
     return `https://${process.env.VERCEL_URL}`;
   }
 
-  // If we are in development, we return the localhost URL.
-  return "http://localhost:3000";
+  // If we are in development, we return the localhost URL with the correct port.
+  // First check if we have a PORT environment variable
+  const port = process.env.PORT ?? process.env.NEXT_PUBLIC_PORT ?? 3005;
+  return `http://localhost:${port}`;
 };
