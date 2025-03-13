@@ -6,13 +6,14 @@ import { CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useOrganization } from "@/query/org/org.query";
 import { PLANS } from "@/features/billing/plans/plans";
-import type { BillingCycle } from "@/features/billing/plans/plans";
+import type { BillingCycle, PlanType } from "@/features/billing/plans/plans";
 import { TRIAL_PERIOD_DAYS } from "@/features/billing/plans/plan-constants";
 import { Badge } from "@/components/data-display/badge";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { addDays, format, differenceInDays } from "date-fns";
 import { usePlanPricing, FALLBACK_PRICES } from "@/features/billing/plans/plan-pricing-context";
+import { BuyButton } from "@/features/billing/payments/buy-button";
 
 type SettingsPlanContentProps = {
   orgSlug: string;
@@ -220,11 +221,15 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
               </p>
               {trialInfo.daysLeft <= 2 && trialInfo.daysLeft > 0 && (
                 <div className="mt-2">
-                  <Link href={`/orgs/${orgSlug}/settings/subscription`}>
-                    <Button size="sm" variant="default">
-                      Upgrade Now
-                    </Button>
-                  </Link>
+                  <BuyButton
+                    planType={planType as PlanType}
+                    billingCycle={planBillingCycle as BillingCycle}
+                    orgSlug={orgSlug}
+                    size="sm"
+                    variant="default"
+                  >
+                    Upgrade Now
+                  </BuyButton>
                 </div>
               )}
             </div>
@@ -424,14 +429,15 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                           
                           if (isInTrial) {
                             return (
-                              <Link href={`/orgs/${orgSlug}/settings/subscription`}>
-                                <Button 
-                                  variant="default"
-                                  className="w-full"
-                                >
-                                  Activate Plan
-                                </Button>
-                              </Link>
+                              <BuyButton
+                                planType={planType as PlanType}
+                                billingCycle={planBillingCycle as BillingCycle}
+                                orgSlug={orgSlug}
+                                variant="default"
+                                className="w-full"
+                              >
+                                Activate Plan
+                              </BuyButton>
                             );
                           } else {
                             return (
@@ -489,14 +495,15 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
 
                         
                         return (
-                          <Link href={`/orgs/${orgSlug}/settings/subscription`}>
-                            <Button 
-                              variant={buttonVariant}
-                              className="w-full"
-                            >
-                              {buttonText}
-                            </Button>
-                          </Link>
+                          <BuyButton
+                            planType={targetType as PlanType}
+                            billingCycle={targetCycle as BillingCycle}
+                            orgSlug={orgSlug}
+                            variant={buttonVariant}
+                            className="w-full"
+                          >
+                            {buttonText}
+                          </BuyButton>
                         );
                       })()}
                       
@@ -544,11 +551,15 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                 <p className="text-muted-foreground">
                   Your 7-day free trial gives you full access to all features. Activate now to continue using {getPlanDisplayName()} after your trial ends.
                 </p>
-                <Link href={`/orgs/${orgSlug}/settings/subscription`}>
-                  <Button size="lg" className="mt-2 px-8">
-                    Activate Plan
-                  </Button>
-                </Link>
+                <BuyButton
+                  planType={planType as PlanType}
+                  billingCycle={planBillingCycle as BillingCycle}
+                  orgSlug={orgSlug}
+                  size="lg"
+                  className="mt-2 px-8"
+                >
+                  Activate Plan
+                </BuyButton>
               </div>
             )}
           </div>
