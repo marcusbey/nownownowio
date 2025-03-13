@@ -13,6 +13,17 @@ export async function getStripeInstance(): Promise<Stripe> {
   if (!stripeKey) {
     const message = `Missing Stripe secret key for ${env.NODE_ENV} environment`;
     logger.error(message);
+    
+    // In development, we can use a dummy key for testing UI without actual API calls
+    if (env.NODE_ENV === "development") {
+      logger.warn("Using dummy Stripe instance for development. API calls will fail gracefully.");
+      return Promise.resolve(new Stripe("sk_test_dummy_key_for_development", {
+        apiVersion: "2024-12-18.acacia",
+        typescript: true,
+        telemetry: false,
+      }));
+    }
+    
     throw new Error(message);
   }
 

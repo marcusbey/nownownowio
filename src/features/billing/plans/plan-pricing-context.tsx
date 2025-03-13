@@ -37,29 +37,55 @@ export function PlanPricingProvider({ children }: PlanPricingProviderProps): JSX
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch("/api/v1/payments/plan-prices");
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      if (!response.ok) {
-        throw new Error(`Error fetching prices: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.prices) {
-        setPrices(data.prices);
-      } else {
-        setError("No price data available");
+      try {
+        const response = await fetch("/api/v1/payments/plan-prices", {
+          signal: controller.signal,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          // Log the error but don't throw - we'll use fallback prices
+          // Log error and set error state
+          setError(`Unable to fetch prices (${response.status}). Using fallback prices.`);
+          return; // Exit early but don't throw - we'll use fallbacks
+        }
+        
+        const data = await response.json();
+        
+        if (data.prices && Array.isArray(data.prices) && data.prices.length > 0) {
+          setPrices(data.prices);
+        } else {
+          // No price data available
+          setError("Using fallback pricing data");
+        }
+      } catch (fetchError) {
+        // Handle fetch-specific errors (timeout, network issues, etc.)
+        if (fetchError instanceof DOMException && fetchError.name === 'AbortError') {
+          setError('Request timed out. Using fallback prices.');
+        } else {
+          setError('Network error. Using fallback prices.');
+        }
+        clearTimeout(timeoutId);
       }
     } catch (err) {
+      // Handle any other errors in the outer try block
       setError(err instanceof Error ? err.message : "An unknown error occurred");
-      console.error("Error fetching plan prices:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPrices();
+    void fetchPrices();
   }, []);
 
   // Helper function to get price amount for a specific plan type and billing cycle
@@ -70,7 +96,7 @@ export function PlanPricingProvider({ children }: PlanPricingProviderProps): JSX
     );
     
     // Use the price from API if available, otherwise use fallback
-    return price?.unitAmount || getFallbackPriceAmount(planType, billingCycle);
+    return price?.unitAmount ?? getFallbackPriceAmount(planType, billingCycle);
   };
 
   // Helper function to get price ID for a specific plan type and billing cycle

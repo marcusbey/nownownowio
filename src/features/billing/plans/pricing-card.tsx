@@ -29,13 +29,31 @@ export const PricingCard = (props: PricingCardProps) => {
   const useLiveMode = env.USE_LIVE_MODE === 'true';
   
   // Get the appropriate price based on billing cycle
-  const getPrice = () => {
+  const getPrice = (): number => {
     // If the price is provided in props, use it; otherwise, get it from the context
     if (props.price !== undefined) return Math.round(props.price);
     
     // Use the pricing context to get the price or fall back to the centralized fallback prices
-    const price = getPriceAmount(props.planType, props.billingCycle) || 
-      (props.planType && props.billingCycle ? FALLBACK_PRICES[props.planType][props.billingCycle].amount : 0);
+    let price = 0;
+    
+    if (props.planType && props.billingCycle) {
+      // First try to get price from context
+      price = getPriceAmount(props.planType, props.billingCycle);
+      
+      // If not available, use fallback
+      if (price === 0 && props.planType && props.billingCycle) {
+        // Access fallback prices safely with proper type checking
+        const planType = props.planType as keyof typeof FALLBACK_PRICES;
+        if (planType in FALLBACK_PRICES) {
+          const plan = FALLBACK_PRICES[planType];
+          const billingCycle = props.billingCycle as string;
+          if (billingCycle in plan) {
+            const fallbackPrice = plan[billingCycle as keyof typeof plan];
+            price = fallbackPrice.amount || 0;
+          }
+        }
+      }
+    }
     
     return Math.round(price);
   };
@@ -54,8 +72,31 @@ export const PricingCard = (props: PricingCardProps) => {
     const envVarName = `NEXT_PUBLIC_STRIPE_${modePrefix}_${props.planType}_${props.billingCycle}_PRICE_ID`;
     
     // Access the appropriate environment variable
-    return env[envVarName as keyof typeof env] ?? 
-           FALLBACK_PRICES[props.planType][props.billingCycle].priceId;
+    const envValue = env[envVarName as keyof typeof env];
+    if (envValue) return envValue;
+    
+    // At this point, we know props.planType and props.billingCycle are defined
+    // because we've already checked them in the early return statement above
+    
+    // We've already checked that props.planType and props.billingCycle are defined
+    // in the early return statement above, so we can safely use them here
+    try {
+      const planType = props.planType as keyof typeof FALLBACK_PRICES;
+      
+      if (planType in FALLBACK_PRICES) {
+        const plan = FALLBACK_PRICES[planType];
+        const billingCycle = props.billingCycle as keyof typeof plan;
+        
+        if (billingCycle in plan) {
+          const fallbackPrice = plan[billingCycle];
+          return fallbackPrice.priceId || '';
+        }
+      }
+      return '';
+    } catch {
+      // If any errors occur during access, return empty string
+      return '';
+    }
   };
 
   // Format price to ensure it's always a whole number
@@ -64,12 +105,14 @@ export const PricingCard = (props: PricingCardProps) => {
   };
 
   // Get the appropriate lifetime price for the plan type
-  const getLifetimePrice = () => {
+  const getLifetimePrice = (): number => {
     if (props.planType === "BASIC") {
-      return getPriceAmount("BASIC", "LIFETIME") || FALLBACK_PRICES.BASIC.LIFETIME.amount;
+      const price = getPriceAmount("BASIC", "LIFETIME");
+      return price || FALLBACK_PRICES.BASIC.LIFETIME.amount || 0;
     }
     if (props.planType === "PRO") {
-      return getPriceAmount("PRO", "LIFETIME") || FALLBACK_PRICES.PRO.LIFETIME.amount;
+      const price = getPriceAmount("PRO", "LIFETIME");
+      return price || FALLBACK_PRICES.PRO.LIFETIME.amount || 0;
     }
     return 0;
   };
@@ -119,7 +162,7 @@ export const PricingCard = (props: PricingCardProps) => {
       <div className="p-6">
         <h3 className="text-2xl font-bold text-gray-900">{props.name}</h3>
         <div className="mt-4 flex items-baseline">
-          <span className="text-4xl font-extrabold">${formatPrice(getPrice())}</span>
+          <span className="text-4xl font-extrabold">${formatPrice(getPrice() || 0)}</span>
           <span className="ml-1 text-xl text-gray-500">{getBillingLabel()}</span>
         </div>
         
@@ -131,7 +174,7 @@ export const PricingCard = (props: PricingCardProps) => {
         
         {showLifetime && props.planType !== "FREE" && (
           <div className="mt-3 rounded-md border border-blue-100 bg-blue-50 p-2">
-            <p className="font-medium text-blue-700">Lifetime: ${getLifetimePrice()}</p>
+            <p className="font-medium text-blue-700">Lifetime: ${formatPrice(getLifetimePrice() || 0)}</p>
             <p className="text-xs text-blue-600">One-time payment, lifetime access</p>
           </div>
         )}
