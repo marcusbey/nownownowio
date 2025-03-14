@@ -109,9 +109,13 @@ export default function Post({ post }: PostProps) {
     return user.id === post.user.id;
   }, [user, post.user.id]);
 
-  const displayName = useMemo(() => {
-    return post.user.name ?? "Unknown User";
+  const username = useMemo(() => {
+    return post.user.name ?? "unknown";
   }, [post.user.name]);
+
+  const displayName = useMemo(() => {
+    return post.user.displayName || post.user.name || "Unknown User";
+  }, [post.user.displayName, post.user.name]);
 
   // Process media items
   const mediaItems = useMemo(() => Array.isArray(post.media) ? post.media : [], [post.media]);
@@ -145,9 +149,12 @@ export default function Post({ post }: PostProps) {
                 href={userProfileLink}
                 className="font-semibold decoration-primary/30 hover:underline"
               >
-                {displayName}
+                {username}
               </Link>
             </UserTooltip>
+            <div className="text-sm text-muted-foreground mb-1">
+              @{displayName}
+            </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Link
                 href={`/posts/${post.id}`}

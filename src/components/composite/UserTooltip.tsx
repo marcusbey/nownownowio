@@ -49,7 +49,7 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
             <div className="text-lg font-semibold hover:underline">
               {user.name}
             </div>
-            <div className="text-sm text-muted-foreground">@{user.displayName}</div>
+            <div className="text-sm text-muted-foreground">@{user.displayName || user.name}</div>
           </Link>
         </div>
         {user.bio && (
