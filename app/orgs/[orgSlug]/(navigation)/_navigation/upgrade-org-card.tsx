@@ -45,9 +45,6 @@ export const UpgradeCard = () => {
   // Get organization data
   const orgData = useCurrentOrg();
   
-  // Debug organization data
-  // eslint-disable-next-line no-console
-  console.log('Raw organization data:', orgData);
   
   // Use as unknown first to avoid type compatibility issues
   const org = orgData as unknown as Organization;
@@ -58,14 +55,7 @@ export const UpgradeCard = () => {
     status: 'free'
   });
   
-  // Debug organization data after type casting
-  // eslint-disable-next-line no-console
-  console.log('Organization data after type casting:', {
-    id: org?.id,
-    slug: org?.slug,
-    plan: org?.plan,
-    planChangedAt: org?.planChangedAt
-  });
+
 
   // Add a state to track if the plan is paid based on additional checks
   const [isPaidPlan, setIsPaidPlan] = useState(false);
@@ -73,8 +63,7 @@ export const UpgradeCard = () => {
   useEffect(() => {
     // Skip if no org data is available
     if (!org?.plan?.createdAt) {
-      // eslint-disable-next-line no-console
-      console.log('Missing organization plan data, skipping trial calculation');
+
       return;
     }
     
@@ -98,18 +87,12 @@ export const UpgradeCard = () => {
       if (hasPlanChangedAt) {
         // If planChangedAt exists, this is a confirmed paid plan
         status = 'paid';
-        // eslint-disable-next-line no-console
-        console.log('Paid plan confirmed with planChangedAt:', org.planChangedAt);
       } else if (daysLeft > 0) {
         // If we're in the trial period (days left > 0)
         status = 'active';
-        // eslint-disable-next-line no-console
-        console.log('Trial active, days left:', daysLeft);
       } else {
         // Trial has ended
         status = 'expired';
-        // eslint-disable-next-line no-console
-        console.log('Trial expired');
       }
     }
     
@@ -122,20 +105,6 @@ export const UpgradeCard = () => {
 
   // Only render if organization data is available
   if (!org || !org.id) return null;
-  
-  // Debug the final values used for rendering
-  // eslint-disable-next-line no-console
-  console.log('Values for rendering:', {
-    trialInfo,
-    organizationId: org?.id,
-    organizationSlug: org?.slug,
-    planId: org?.plan?.id,
-    planType: org?.plan?.type,
-    planChangedAt: org?.planChangedAt,
-    currentDate: new Date().toISOString(),
-    isPaidPlan,
-    hasTrialEnded: org?.plan?.createdAt ? !isAfter(addDays(new Date(org?.plan?.createdAt), 7), new Date()) : null
-  });
   
   return (
     <>
