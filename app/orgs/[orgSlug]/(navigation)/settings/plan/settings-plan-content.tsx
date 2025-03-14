@@ -27,7 +27,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   // Initialize billing period based on the organization's plan
   const [billingPeriod, setBillingPeriod] = useState<BillingCycle>(() => {
     // Always use the organization's plan billing cycle if available
-    return organization?.plan?.billingCycle as BillingCycle || "MONTHLY";
+    return (organization?.plan?.billingCycle as BillingCycle) ?? "MONTHLY";
   });
   
   const [trialInfo, setTrialInfo] = useState<{ daysLeft: number; expiryDate: Date | null }>({ 
@@ -96,8 +96,28 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   const isOnTrial = trialInfo.daysLeft > 0;
   
   useEffect(() => {
+    // Check if the organization has a plan and it's not a free plan
     if (organization?.plan?.createdAt && !planId.startsWith('FREE')) {
-      // Use plan creation date as trial start date
+      // Check if the plan has been purchased (look for planChangedAt which is set when a payment is made)
+      // Safely access planChangedAt with optional chaining
+      const hasPurchasedPlan = !!organization.planChangedAt;
+      
+      // If the plan has been purchased, don't show trial info
+      if (hasPurchasedPlan) {
+        setTrialInfo({
+          daysLeft: 0,
+          expiryDate: null
+        });
+        
+        // For debugging
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.log('Plan purchased, no trial period shown');
+        }
+        return;
+      }
+      
+      // Otherwise, calculate trial period as before
       const trialStartDate = new Date(organization.plan.createdAt);
       const trialEndDate = addDays(trialStartDate, TRIAL_PERIOD_DAYS);
       const daysLeft = differenceInDays(trialEndDate, new Date());
@@ -110,7 +130,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
       // For debugging
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.log('Trial info:', { trialStartDate, trialEndDate, daysLeft });
+        console.log('Trial info:', { trialStartDate, trialEndDate, daysLeft, hasPurchasedPlan });
       }
     }
   }, [organization, planId]);
@@ -120,18 +140,28 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
     if (!currentPlanId) return "Free";
     
     const planType = currentPlanId.split('_')[0];
-    const billingCycle = currentPlanId.split('_')[1] || '';
+    const billingCycle = currentPlanId.split('_')[1] ?? '';
     
     // Updated to match database plan types
     let planName = planType === "FREE" ? "Free" : 
+                  planType === "BASIC" ? "Basic" :
+                  planType === "PRO" ? "Pro" :
                   planType === "PREMIUM" ? "Pro" : 
                   planType === "LIFETIME" ? "Lifetime" : 
-                  planType === "FREEBIRD" ? "Free Bird" : "Unknown";
+                  planType === "FREEBIRD" ? "Free Bird" : 
+                  organization?.plan?.type || "Free";
                   
     if (planType !== "FREE" && planType !== "FREEBIRD") {
       planName += billingCycle === "MONTHLY" ? " (Monthly)" : 
-                 billingCycle === "YEARLY" ? " (Yearly)" : 
-                 billingCycle === "LIFETIME" ? " (Lifetime)" : "";
+                 billingCycle === "YEARLY" || billingCycle === "ANNUAL" ? " (Annual)" : 
+                 billingCycle === "LIFETIME" ? " (Lifetime)" : 
+                 organization?.plan?.billingCycle === "LIFETIME" ? " (Lifetime)" : "";
+    }
+    
+    // For debugging
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('Plan display name:', { planName, planType, billingCycle, orgPlan: organization?.plan });
     }
     
     return planName;
