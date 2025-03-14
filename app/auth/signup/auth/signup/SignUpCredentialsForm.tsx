@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { signUpAction } from './signup.action';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/core/button';
 import { Input } from '@/components/core/input';
@@ -36,6 +35,7 @@ export const SignUpCredentialsForm = () => {
     resolver: zodResolver(LoginCredentialsFormScheme),
     defaultValues: {
       name: '',
+      displayName: '',
       email: '',
       password: '',
       verifyPassword: '',
@@ -64,12 +64,14 @@ export const SignUpCredentialsForm = () => {
 
       const result = await signUpAction(values);
 
-      if (result?.error) {
-        setFormState(prev => ({ ...prev, error: result.error.message }));
+      // Handle error from the action result
+      if ('error' in result && result.error) {
+        const errorMessage = result.error instanceof Error ? result.error.message : 'Failed to create account. Please try again.';
+        setFormState(prev => ({ ...prev, error: errorMessage }));
         toast({
           variant: 'destructive',
           title: 'Error creating account',
-          description: result.error.message || 'Failed to create account. Please try again.',
+          description: errorMessage,
         });
         return;
       }
@@ -91,7 +93,8 @@ export const SignUpCredentialsForm = () => {
         title: 'Error',
         description: errorMessage,
       });
-      console.error('Sign up error:', error);
+      // Log error to the server-side logger instead of console
+      setFormState(prev => ({ ...prev, error: errorMessage }));
     } finally {
       setFormState(prev => ({ ...prev, isLoading: false }));
     }
@@ -104,7 +107,7 @@ export const SignUpCredentialsForm = () => {
       <form 
         onSubmit={(e) => {
           e.preventDefault(); // Prevent default form behavior
-          form.handleSubmit(onSubmit)(e);
+          void form.handleSubmit(onSubmit)(e);
         }} 
         className="space-y-4"
       >
@@ -116,13 +119,31 @@ export const SignUpCredentialsForm = () => {
         )}
         <FormField
           control={form.control}
-          name="name"
+          name="displayName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Display Name</FormLabel>
               <FormControl>
                 <Input 
                   placeholder="John Doe" 
+                  {...field} 
+                  value={field.value || ''}
+                  disabled={formState.isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="johndoe" 
                   {...field} 
                   value={field.value || ''}
                   disabled={formState.isLoading}

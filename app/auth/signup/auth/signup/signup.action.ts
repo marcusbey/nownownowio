@@ -20,7 +20,7 @@ import { logger } from "@/lib/logger";
 
 export const signUpAction = action
   .schema(LoginCredentialsFormScheme)
-  .action(async ({ parsedInput: { email, password, name } }) => {
+  .action(async ({ parsedInput: { email, password, name, displayName } }) => {
     if (!validatePassword(password)) {
       throw new ActionError(
         "Invalid new password. Must be at least 8 characters, and contain at least one letter and one number",
@@ -32,6 +32,7 @@ export const signUpAction = action
         email,
         passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
         name,
+        displayName,
       };
 
       const resendContactId = await setupResendCustomer(userData);

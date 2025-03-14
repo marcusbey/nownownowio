@@ -7,8 +7,12 @@ const VALIDATION_MESSAGES = {
     INVALID: 'Please enter a valid email address',
   },
   NAME: {
-    MIN: 'Name must be at least 2 characters',
-    MAX: 'Name cannot be longer than 50 characters',
+    MIN: 'Username must be at least 2 characters',
+    MAX: 'Username cannot be longer than 50 characters',
+  },
+  DISPLAY_NAME: {
+    MIN: 'Display name must be at least 2 characters',
+    MAX: 'Display name cannot be longer than 50 characters',
   },
   PASSWORD: {
     MIN: 'Password must be at least 8 characters',
@@ -25,7 +29,11 @@ export const LoginCredentialsFormScheme = z.object({
     .toLowerCase(),
   name: z.string()
     .min(2, VALIDATION_MESSAGES.NAME.MIN)
-    .max(50, VALIDATION_MESSAGES.NAME.MAX),
+    .max(50, VALIDATION_MESSAGES.NAME.MAX)
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
+  displayName: z.string()
+    .min(2, VALIDATION_MESSAGES.DISPLAY_NAME.MIN)
+    .max(50, VALIDATION_MESSAGES.DISPLAY_NAME.MAX),
   password: z
     .string()
     .min(8, VALIDATION_MESSAGES.PASSWORD.MIN)
