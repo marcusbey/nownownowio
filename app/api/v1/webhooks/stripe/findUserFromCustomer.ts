@@ -48,7 +48,9 @@ export const findOrganizationFromCustomer = async (
       },
     });
     return organization;
-  } catch (_) {
+  } catch (error) {
+    // Log the error but continue with fallback logic
+    logger.debug('Error finding organization by customer ID', { error, stripeCustomerId });
     // In development mode, provide a fallback for testing
     if (process.env.NODE_ENV !== "production") {
       logger.info("Development mode: Using fallback organization for webhook testing");
