@@ -12,8 +12,8 @@ export function Hero() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-900">
       <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-4 border-indigo-500 rounded-full animate-spin border-t-transparent"></div>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
         </div>
       }>
         <ClientHero>

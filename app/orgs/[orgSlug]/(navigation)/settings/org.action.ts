@@ -9,7 +9,7 @@ import { getOrgsMembers } from "@/query/org/get-orgs-members";
 import { addHours } from "date-fns";
 import { nanoid } from "nanoid";
 import { } from "next/server";
-import { CreateEmailResponse } from "resend";
+import type { CreateEmailResponse } from "resend";
 import { z } from "zod";
 import {
   OrgDangerFormSchema,
@@ -83,7 +83,7 @@ Best,
       return currentMember && !currentMember.roles.includes("OWNER");
     });
 
-    const updatedMembers = memberToUpdate.map((member) => {
+    const updatedMembers = memberToUpdate.map(async (member) => {
       return prisma.organizationMembership.update({
         where: {
           organizationId: ctx.org.id,

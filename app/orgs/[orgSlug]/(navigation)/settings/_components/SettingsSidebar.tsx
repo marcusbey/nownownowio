@@ -12,19 +12,19 @@ import {
   Code
 } from "lucide-react";
 
-interface SettingsNavItem {
+type SettingsNavItem = {
   id: string;
   label: string;
   href: string;
   icon: React.ElementType;
 }
 
-interface SettingsNavGroup {
+type SettingsNavGroup = {
   title: string;
   items: SettingsNavItem[];
 }
 
-interface SettingsSidebarProps {
+type SettingsSidebarProps = {
   orgSlug: string;
   className?: string;
 }
@@ -104,7 +104,7 @@ export function SettingsSidebar({ orgSlug, className }: SettingsSidebarProps) {
     <div className={cn("w-64 shrink-0 border-r border-r-accent/10 pr-6", className)}>
       {navGroups.map((group, index) => (
         <div key={index} className="mb-6">
-          <h3 className="mb-2 text-sm font-medium text-muted-foreground/90 tracking-wide">
+          <h3 className="mb-2 text-sm font-medium tracking-wide text-muted-foreground/90">
             {group.title}
           </h3>
           <nav className="space-y-1">

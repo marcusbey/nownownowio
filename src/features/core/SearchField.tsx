@@ -27,8 +27,8 @@ export default function SearchField() {
             supports-[backdrop-filter]:bg-background/60"
         />
         <SearchIcon
-          className="absolute left-3 top-1/2 size-4 -translate-y-1/2 transform text-muted-foreground/50 
-          transition-colors duration-200 group-hover:text-primary/70"
+          className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/50 transition-colors 
+          duration-200 group-hover:text-primary/70"
         />
       </div>
     </form>

@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Bookmarks from "./Bookmarks";
 
 export const metadata: Metadata = {

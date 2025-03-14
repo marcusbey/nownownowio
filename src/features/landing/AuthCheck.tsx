@@ -13,7 +13,7 @@ export function AuthCheck() {
     return (
       <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900/50 p-8 backdrop-blur-xl">
         <div className="flex items-center justify-center">
-          <div className="size-8 border-4 border-indigo-500 rounded-full animate-spin border-t-transparent"></div>
+          <div className="size-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
         </div>
       </div>
     );
@@ -26,7 +26,7 @@ export function AuthCheck() {
     // Show a friendly error with manual sign-out option
     return (
       <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900/50 p-8 backdrop-blur-xl">
-        <div className="p-4 mb-4 text-sm text-amber-800 bg-amber-100 rounded-lg">
+        <div className="mb-4 rounded-lg bg-amber-100 p-4 text-sm text-amber-800">
           <p className="font-medium">Session error detected</p>
           <p className="mt-1">Your session appears to be invalid. This can happen when the database has been reset but your cookie still exists.</p>
         </div>
@@ -71,13 +71,13 @@ export function AuthCheck() {
   }
 
   // Check for sessions that are authenticated but have no user data
-  if (status === "authenticated" && (!session?.user || !session.user?.email)) {
+  if (status === "authenticated" && (!session.user?.email)) {
     // Invalid session detected (authenticated but no user data)
     
     // Show a friendly error with manual sign-out option
     return (
       <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900/50 p-8 backdrop-blur-xl">
-        <div className="p-4 mb-4 text-sm text-amber-800 bg-amber-100 rounded-lg">
+        <div className="mb-4 rounded-lg bg-amber-100 p-4 text-sm text-amber-800">
           <p className="font-medium">Session error detected</p>
           <p className="mt-1">Your session appears to be authenticated but missing user data. This can happen after a server update or when session data is corrupted.</p>
         </div>

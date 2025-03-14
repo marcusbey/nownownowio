@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
 import { createCheckoutSession, getPriceIdByPlan, retrievePrice } from "@/lib/stripe";
-import { BillingCycle, PlanType } from "@/features/billing/plans/plans";
+import type { BillingCycle, PlanType } from "@/features/billing/plans/plans";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { FALLBACK_PRICES } from "@/features/billing/plans/fallback-prices";
@@ -53,7 +53,7 @@ export const buyButtonAction = action
       }
 
       // Create or get Stripe customer ID
-      let stripeCustomerId = org.stripeCustomerId;
+      const stripeCustomerId = org.stripeCustomerId;
       if (!stripeCustomerId) {
         logger.warn("Organization is not set up for billing", { orgId: org.id });
         throw new ActionError(
@@ -76,8 +76,8 @@ export const buyButtonAction = action
       const priceType = price.type;
 
       // Extract plan metadata from price if available
-      const planType = price.metadata?.planType as PlanType | undefined;
-      const billingCycle = price.metadata?.billingCycle as BillingCycle | undefined;
+      const planType = price.metadata.planType as PlanType | undefined;
+      const billingCycle = price.metadata.billingCycle as BillingCycle | undefined;
       
       logger.info("Processing checkout with price", { 
         priceId, 
@@ -162,7 +162,7 @@ export const checkoutPlanAction = action
       }
 
       // Create or get Stripe customer ID
-      let stripeCustomerId = org.stripeCustomerId;
+      const stripeCustomerId = org.stripeCustomerId;
       if (!stripeCustomerId) {
         logger.warn("Organization is not set up for billing", { orgId: org.id });
         throw new ActionError(

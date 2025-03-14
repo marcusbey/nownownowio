@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import { type ComponentPropsWithoutRef } from "react";
 
-interface VisuallyHiddenProps extends ComponentPropsWithoutRef<"span"> {
+type VisuallyHiddenProps = {
   asChild?: boolean;
-}
+} & ComponentPropsWithoutRef<"span">
 
 export function VisuallyHidden({
   asChild,

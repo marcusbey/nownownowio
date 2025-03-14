@@ -79,13 +79,13 @@ export default async function RoutePage(
     <Layout>
       <LayoutContent>
         {showWidgetSetupBanner && (
-          <div className="w-full mb-4">
+          <div className="mb-4 w-full">
             <WidgetSetupBanner orgSlug={orgSlug} />
           </div>
         )}
         <div className="mx-auto w-full max-w-2xl">
           <div className="sticky top-0 z-10 rounded-t-xl border-b border-zinc-800/50 bg-zinc-900 pb-4 pt-6 backdrop-blur-md">
-            <div className="p-4 rounded-t-lg">
+            <div className="rounded-t-lg p-4">
               <PostForm
                 organization={{ id: organization.id, name: organization.name }}
                 userId={user?.id ?? session.user.id}

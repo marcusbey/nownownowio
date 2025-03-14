@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 
-interface PostViews {
+type PostViews = {
   views: number;
 }
 
@@ -16,7 +16,7 @@ async function getPostViews(postId: string): Promise<PostViews> {
 export function usePostViews(postId: string) {
   const { data, isLoading } = useQuery({
     queryKey: ["postViews", postId],
-    queryFn: () => getPostViews(postId),
+    queryFn: async () => getPostViews(postId),
   });
 
   return {

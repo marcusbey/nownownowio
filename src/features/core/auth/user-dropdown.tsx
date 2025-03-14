@@ -73,7 +73,7 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   // Get user data if available
   const user = session.data as SessionUser | undefined;
   
-  interface SessionUser {
+  type SessionUser = {
     name?: string | null;
     email?: string | null;
     image?: string | null;

@@ -185,7 +185,7 @@ export default function Post({ post }: PostProps) {
 
       <HtmlContentWithLinks 
         htmlContent={post.content}
-        className="text-[15px] leading-relaxed text-foreground/90 py-3 px-2 [&_[data-hashtag]]:text-blue-500 [&_[data-hashtag]]:hover:underline [&_[data-hashtag]]:cursor-pointer"
+        className="px-2 py-3 text-[15px] leading-relaxed text-foreground/90 [&_[data-hashtag]]:cursor-pointer [&_[data-hashtag]]:text-blue-500 [&_[data-hashtag]]:hover:underline"
       />
 
       {hasAttachments && (
@@ -325,7 +325,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
   // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
   const commentCount =
     // Check if post._count exists and has comments property
-    post._count?.comments !== undefined
+    post._count.comments !== undefined
       ? post._count.comments
       : // Check user posts API format
         (post as any).commentCount !== undefined

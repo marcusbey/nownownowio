@@ -34,7 +34,7 @@ export function LogoCarousel() {
         </div>
         <div className="relative mt-10">
           <div
-            className="flex animate-scroll items-center justify-center gap-8 transition-transform duration-1000"
+            className="animate-scroll flex items-center justify-center gap-8 transition-transform duration-1000"
             style={{
               transform: `translateX(-${scrollPosition * 100}px)`,
             }}

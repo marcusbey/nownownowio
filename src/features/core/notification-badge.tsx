@@ -3,7 +3,7 @@
 import kyInstance from "@/lib/ky";
 import { useQuery } from "@tanstack/react-query";
 
-interface UnreadNotificationCountResponse {
+type UnreadNotificationCountResponse = {
   unreadCount: number;
 }
 
@@ -22,7 +22,7 @@ export default function NotificationBadge() {
   }
 
   return (
-    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+    <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
       {data.unreadCount > 9 ? "9+" : data.unreadCount}
     </span>
   );

@@ -10,7 +10,7 @@ export async function getFollowerInfo(userId: string): Promise<FollowerInfo> {
 
     // Return default if missing
     return {
-        followers: user?._count?.followers ?? 0,
+        followers: user?._count.followers ?? 0,
         isFollowedByUser: false,
     };
 } 

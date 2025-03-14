@@ -39,7 +39,7 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
   );
   
   // Always use owner's profile image if organization image is not set
-  const defaultImage = organization.image ?? ownerMember?.user?.image ?? null;
+  const defaultImage = organization.image ?? ownerMember?.user.image ?? null;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {

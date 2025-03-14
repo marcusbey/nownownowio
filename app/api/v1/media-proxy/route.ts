@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     // Add UploadThing authentication headers if token is available
     if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+      headers.Authorization = `Bearer ${token}`;
       headers["x-uploadthing-auth"] = token;
       
       // Add uploadthing ID if available

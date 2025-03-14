@@ -25,9 +25,9 @@ export async function organizationDeleteAction(input: { orgSlug: string }) {
           include: { organization: true },
         },
       },
-    }) as { email: string; organizations: Array<{ organization: { id: string; name: string; slug: string } }> } | null;
+    }) as { email: string; organizations: { organization: { id: string; name: string; slug: string } }[] } | null;
 
-    if (!user || !user.organizations[0]?.organization) {
+    if (!user?.organizations[0]?.organization) {
       return { success: false, serverError: "No organization found" };
     }
 

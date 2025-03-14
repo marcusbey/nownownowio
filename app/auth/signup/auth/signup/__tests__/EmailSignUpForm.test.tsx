@@ -85,7 +85,7 @@ describe('EmailSignUpForm', () => {
   describe('UI States', () => {
     it('shows loading state while sending', async () => {
       const mockSignIn = signIn as jest.Mock;
-      mockSignIn.mockImplementationOnce(() => new Promise(() => {})); // Never resolves
+      mockSignIn.mockImplementationOnce(async () => new Promise(() => {})); // Never resolves
 
       const { emailInput, submitButton } = setup();
       await userEvent.type(emailInput, 'test@example.com');
@@ -97,7 +97,7 @@ describe('EmailSignUpForm', () => {
 
     it('disables form during submission', async () => {
       const mockSignIn = signIn as jest.Mock;
-      mockSignIn.mockImplementationOnce(() => new Promise(() => {}));
+      mockSignIn.mockImplementationOnce(async () => new Promise(() => {}));
 
       const { emailInput, submitButton } = setup();
       await userEvent.type(emailInput, 'test@example.com');

@@ -31,7 +31,7 @@ export const useAlertDialogStore = create<AlertDialogStore>((set, get) => ({
           label: dialog.cancel?.label ?? "Cancel",
           onClick: () => {
             if (dialog.cancel && "onClick" in dialog.cancel) {
-              dialog.cancel?.onClick();
+              dialog.cancel.onClick();
               return;
             }
             removeDialog(id);
@@ -40,7 +40,7 @@ export const useAlertDialogStore = create<AlertDialogStore>((set, get) => ({
         action:
           dialog.action && "onClick" in dialog.action
             ? {
-              label: dialog.action?.label ?? "",
+              label: dialog.action.label ?? "",
               onClick: () => {
                 if (dialog.action && "onClick" in dialog.action === false) {
                   logger.error("Invalid dialog action");

@@ -65,7 +65,7 @@ export const signUpAction = action
       process.on('uncaughtException', async (error) => {
         logger.error('Uncaught exception during signup', { 
           error, 
-          userId: user?.id,
+          userId: user.id,
           email 
         });
       });

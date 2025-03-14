@@ -1,7 +1,8 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { getPostDataInclude, PostsPage } from "@/lib/types";
-import { NextRequest } from "next/server";
+import type { PostsPage } from "@/lib/types";
+import { getPostDataInclude } from "@/lib/types";
+import type { NextRequest } from "next/server";
 
 export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {

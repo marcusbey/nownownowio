@@ -18,7 +18,7 @@ export function FollowerCount({ userId, initialState }: FollowerCountProps) {
     <span>
       Followers:{" "}
       <span className="font-semibold">
-        {formatNumber(followerInfo?.followers ?? initialState.followers)}
+        {formatNumber(followerInfo.followers ?? initialState.followers)}
       </span>
     </span>
   );

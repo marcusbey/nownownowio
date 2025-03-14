@@ -26,7 +26,7 @@ export function WidgetShowcase() {
         <div className="w-full lg:w-1/2">
           <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-xl border border-border bg-card p-6 shadow-lg">
             <div className="mb-4 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/10"></div>
+              <div className="size-12 rounded-full bg-primary/10"></div>
               <div>
                 <h3 className="font-semibold">Jane Doe</h3>
                 <p className="text-sm text-muted-foreground">Product designer & developer</p>
@@ -72,13 +72,13 @@ export function WidgetShowcase() {
             <h3 className="text-lg font-semibold">Implementation</h3>
             <Button
               size="icon"
-              className="h-12 w-12 rounded-full bg-primary hover:bg-primary/90"
+              className="size-12 rounded-full bg-primary hover:bg-primary/90"
               onClick={() => {
                 // Add demo functionality here
                 console.log("Demo clicked");
               }}
             >
-              <Play className="h-6 w-6 text-primary-foreground" />
+              <Play className="size-6 text-primary-foreground" />
             </Button>
           </div>
 

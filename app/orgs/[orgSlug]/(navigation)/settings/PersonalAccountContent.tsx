@@ -25,7 +25,7 @@ type PersonalAccountContentProps = {
 
 export function PersonalAccountContent({ user, isEmailVerified }: PersonalAccountContentProps) {
   return (
-    <div className="py-6 max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">Personal Account</h2>
         <p className="text-sm text-muted-foreground">

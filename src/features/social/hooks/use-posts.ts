@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPosts, createPost, deletePost, likePost, bookmarkPost } from "../services/post-service";
-import { PostFormData } from "../types/types";
+import type { PostFormData } from "../types/types";
 
 export function usePosts(orgId: string) {
   const queryClient = useQueryClient();
@@ -11,28 +11,28 @@ export function usePosts(orgId: string) {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: PostFormData) => createPost(data),
+    mutationFn: async (data: PostFormData) => createPost(data),
     onSuccess: () => {
       queryClient.invalidateQueries(["posts", orgId]);
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (postId: string) => deletePost(postId),
+    mutationFn: async (postId: string) => deletePost(postId),
     onSuccess: () => {
       queryClient.invalidateQueries(["posts", orgId]);
     },
   });
 
   const likeMutation = useMutation({
-    mutationFn: (postId: string) => likePost(postId),
+    mutationFn: async (postId: string) => likePost(postId),
     onSuccess: () => {
       queryClient.invalidateQueries(["posts", orgId]);
     },
   });
 
   const bookmarkMutation = useMutation({
-    mutationFn: (postId: string) => bookmarkPost(postId),
+    mutationFn: async (postId: string) => bookmarkPost(postId),
     onSuccess: () => {
       queryClient.invalidateQueries(["posts", orgId]);
     },

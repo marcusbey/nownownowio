@@ -15,10 +15,10 @@ export default function WidgetPage({
   const orgSlug = resolvedParams.orgSlug;
   
   return (
-    <div className="py-6 max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl py-6">
       <div className="mb-8">
         <h2 className="text-2xl font-semibold">Widget Integration</h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="mt-1 text-sm text-muted-foreground">
           Generate and customize your NowNowNow widget integration for your website
         </p>
       </div>

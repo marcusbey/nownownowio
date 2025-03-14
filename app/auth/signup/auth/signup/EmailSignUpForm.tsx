@@ -13,7 +13,7 @@ import { Alert } from '@/components/ui/alert';
 import { emailSchema } from './email.schema';
 import type { EmailSchema } from './email.schema';
 
-interface FormState {
+type FormState = {
   isLoading: boolean;
   emailSent: boolean;
   error: string | null;

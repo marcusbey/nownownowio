@@ -92,7 +92,7 @@ export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod
                 <div className="space-y-6">
                   {/* Toggle or Info Box */}
                   {plan.yearlyPrice && plan.yearlyPriceId ? (
-                    <div className="flex items-center justify-between gap-2 bg-muted/30 rounded-lg p-2">
+                    <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/30 p-2">
                       <div className="flex items-center gap-2">
                         <Label className={cn("text-sm", !isYearly && "text-primary font-medium")}>Monthly</Label>
                         <Switch
@@ -106,9 +106,9 @@ export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod
                         <div className="flex items-center gap-2 text-xs">
                           <span className="text-muted-foreground line-through">${monthlyPrice}/mo</span>
                           <div className="flex items-center gap-1">
-                            <span className="text-primary font-medium">${yearlyMonthlyPrice.toFixed(2)}/mo</span>
+                            <span className="font-medium text-primary">${yearlyMonthlyPrice.toFixed(2)}/mo</span>
                             {isYearly && savings > 0 && (
-                              <Badge variant="secondary" className="bg-green-500/10 text-green-600 text-xs whitespace-nowrap">
+                              <Badge variant="secondary" className="whitespace-nowrap bg-green-500/10 text-xs text-green-600">
                                 Save {savings}%
                               </Badge>
                             )}
@@ -117,9 +117,9 @@ export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between gap-2 bg-muted/30 rounded-lg p-2">
+                    <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/30 p-2">
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 text-xs whitespace-nowrap">
+                        <Badge variant="secondary" className="whitespace-nowrap bg-yellow-500/10 text-xs text-yellow-600">
                           Best value
                         </Badge>
                       </div>
@@ -130,7 +130,7 @@ export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod
                   )}
 
                   {/* Price Display */}
-                  <div className="h-24 flex items-center justify-center">
+                  <div className="flex h-24 items-center justify-center">
                     <div className="flex items-baseline justify-center gap-2">
                       <span className="text-3xl font-medium">$</span>
                       <span className="text-6xl font-extrabold tracking-tight">
@@ -152,7 +152,7 @@ export function Plans({ currentPlan, subscription, organizationId, isTrialPeriod
                 <ul className="flex flex-col gap-3">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <Check className="text-green-500 flex-shrink-0" size={18} />
+                      <Check className="shrink-0 text-green-500" size={18} />
                       <Typography variant="muted" className="flex-1">
                         {feature}
                       </Typography>

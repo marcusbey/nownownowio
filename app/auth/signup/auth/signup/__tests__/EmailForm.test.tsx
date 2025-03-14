@@ -79,7 +79,7 @@ describe('Email Form', () => {
 
   it('shows loading state while sending', async () => {
     const mockSignIn = signIn as jest.Mock;
-    mockSignIn.mockImplementationOnce(() => new Promise(() => {})); // Never resolves
+    mockSignIn.mockImplementationOnce(async () => new Promise(() => {})); // Never resolves
 
     const { emailInput, submitButton } = setup();
     await userEvent.type(emailInput, 'test@example.com');

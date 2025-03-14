@@ -81,7 +81,7 @@ const formatCommands: FormatCommand[] = [
   },
 ];
 
-interface CommandMenuProps {
+type CommandMenuProps = {
   onSelect: (command: FormatCommand) => void;
   isOpen: boolean;
   onClose: () => void;
@@ -102,7 +102,7 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
     for (let i = 0; i < searchWords.length; i++) {
       const word = searchWords[i];
       const matches = formatCommands.some(cmd => {
-        const cmdText = (cmd.command + " " + cmd.label).toLowerCase();
+        const cmdText = (`${cmd.command  } ${  cmd.label}`).toLowerCase();
         return cmdText.includes(word);
       });
       if (matches) {
@@ -117,7 +117,7 @@ export function CommandMenu({ onSelect, isOpen, onClose, filter }: CommandMenuPr
     // Filter commands based on all words from the first matching word
     const relevantWords = searchWords.slice(startIndex);
     return formatCommands.filter(cmd => {
-      const cmdText = (cmd.command + " " + cmd.label).toLowerCase();
+      const cmdText = (`${cmd.command  } ${  cmd.label}`).toLowerCase();
       return relevantWords.every(word => cmdText.includes(word));
     });
   }, [filter]);

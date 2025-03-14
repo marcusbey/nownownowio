@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Notifications from "./Notifications";
 
 export const metadata: Metadata = {

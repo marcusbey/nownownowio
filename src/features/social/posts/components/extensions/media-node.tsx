@@ -14,13 +14,13 @@ const MediaNodeView: React.FC<{
 
   return (
     <NodeViewWrapper
-      className="media-node my-4 relative overflow-hidden rounded-md"
+      className="media-node relative my-4 overflow-hidden rounded-md"
       style={{ aspectRatio: type === "audio" ? "auto" : "16/9" }}
       data-type={type}
       contentEditable={false}
     >
       {type === "image" ? (
-        <div className="relative w-full h-full">
+        <div className="relative size-full">
           <Image
             src={src}
             alt={alt || ""}
@@ -30,10 +30,10 @@ const MediaNodeView: React.FC<{
           />
         </div>
       ) : type === "video" ? (
-        <div className="relative w-full h-full">
+        <div className="relative size-full">
           <video
             src={src}
-            className="w-full h-full object-cover"
+            className="size-full object-cover"
             controls
             draggable={false}
           />
@@ -42,7 +42,7 @@ const MediaNodeView: React.FC<{
           </div>
         </div>
       ) : (
-        <div className="relative w-full p-4 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center">
+        <div className="relative flex w-full items-center rounded-md bg-gray-100 p-4 dark:bg-gray-800">
           <div className="mr-3">
             <Volume2 className="size-6 text-primary" />
           </div>

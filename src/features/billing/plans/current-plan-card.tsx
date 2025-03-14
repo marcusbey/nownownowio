@@ -3,11 +3,12 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
 import { Badge } from "@/components/data-display/badge";
 import { Button } from "@/components/core/button";
-import { BillingCycle, PlanType, formatBillingCycle, formatPlanType, getPlanFeatures } from "@/features/billing/plans/plans";
+import type { BillingCycle, PlanType} from "@/features/billing/plans/plans";
+import { formatBillingCycle, formatPlanType, getPlanFeatures } from "@/features/billing/plans/plans";
 import { Infinity, Check } from "lucide-react";
 import { PlanBuyButton } from "../payments/buy-button";
 
-interface CurrentPlanCardProps {
+type CurrentPlanCardProps = {
   planType: PlanType;
   billingCycle: BillingCycle;
   orgSlug: string;
@@ -70,7 +71,7 @@ export function CurrentPlanCard({
             <h4 className="text-sm font-medium">Plan Limits</h4>
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-sm">
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="size-4 text-primary" />
                 {planFeatures.maximumOrganizations === Infinity ? (
                   <span>Unlimited organizations</span>
                 ) : (
@@ -78,7 +79,7 @@ export function CurrentPlanCard({
                 )}
               </li>
               <li className="flex items-center gap-2 text-sm">
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="size-4 text-primary" />
                 {planFeatures.maximumMembers === Infinity ? (
                   <span>Unlimited members</span>
                 ) : (
@@ -86,7 +87,7 @@ export function CurrentPlanCard({
                 )}
               </li>
               <li className="flex items-center gap-2 text-sm">
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="size-4 text-primary" />
                 {planFeatures.maximumWidgets === Infinity ? (
                   <span>Unlimited widgets</span>
                 ) : (
@@ -94,7 +95,7 @@ export function CurrentPlanCard({
                 )}
               </li>
               <li className="flex items-center gap-2 text-sm">
-                <Check className="h-4 w-4 text-primary" />
+                <Check className="size-4 text-primary" />
                 {planFeatures.monthlyViews === Infinity ? (
                   <span>Unlimited monthly views</span>
                 ) : (

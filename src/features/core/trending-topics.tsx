@@ -102,7 +102,7 @@ export function TrendingTopicsSection() {
   ), [topics]);
 
   return (
-    <div className="rounded-xl px-4 py-3 sticky top-4 space-y-4">
+    <div className="sticky top-4 space-y-4 rounded-xl px-4 py-3">
       <h2 className="mb-3 px-2 text-xl font-bold">Trending Topics</h2>
       <div className="flex flex-col gap-4">
         {isLoading ? (

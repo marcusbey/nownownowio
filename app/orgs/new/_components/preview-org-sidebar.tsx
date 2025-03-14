@@ -78,9 +78,9 @@ const previewNavigation: NavigationGroup[] = [
 
 export function PreviewOrgSidebar() {
   return (
-    <Sidebar variant="inset" className="shrink-0 opacity-80 pointer-events-none">
+    <Sidebar variant="inset" className="pointer-events-none shrink-0 opacity-80">
       <SidebarHeader className="flex flex-col gap-4 px-3 py-4">
-        <div className="h-9 w-full rounded-md bg-accent/50 animate-pulse" />
+        <div className="h-9 w-full animate-pulse rounded-md bg-accent/50" />
         <div className="h-9 w-full rounded-md bg-accent/50" />
       </SidebarHeader>
       <SidebarContent className="flex flex-col px-3">

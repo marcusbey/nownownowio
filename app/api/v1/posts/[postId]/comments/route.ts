@@ -1,7 +1,9 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { CommentsPage, getCommentDataInclude } from "@/lib/types";
-import { NextRequest, NextResponse } from "next/server";
+import type { CommentsPage} from "@/lib/types";
+import { getCommentDataInclude } from "@/lib/types";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,

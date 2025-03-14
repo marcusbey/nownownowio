@@ -118,11 +118,11 @@ export function BannerImageForm({ user }: BannerImageFormProps) {
                 <img
                   src={previewUrl}
                   alt="Banner image"
-                  className="h-full w-full object-cover"
+                  className="size-full object-cover"
                 />
                 <Button
                   variant="destructive"
-                  className="absolute right-2 top-2 h-8 w-8 border border-border bg-background/80 text-foreground hover:bg-background/90"
+                  className="absolute right-2 top-2 size-8 border border-border bg-background/80 text-foreground hover:bg-background/90"
                   onClick={handleRemoveBanner}
                   disabled={isUploading}
                 >
@@ -130,7 +130,7 @@ export function BannerImageForm({ user }: BannerImageFormProps) {
                 </Button>
               </>
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-muted/30">
+              <div className="flex size-full items-center justify-center bg-muted/30">
                 <Image className="size-8 text-muted-foreground" />
               </div>
             )}
@@ -145,7 +145,7 @@ export function BannerImageForm({ user }: BannerImageFormProps) {
               <input
                 type="file"
                 id="banner-upload"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                className="absolute inset-0 size-full cursor-pointer opacity-0"
                 onChange={handleFileChange}
                 accept="image/*"
                 disabled={isUploading}

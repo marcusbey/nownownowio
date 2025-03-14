@@ -113,7 +113,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
   };
 
   return (
-    <Card className="bg-background border-border">
+    <Card className="border-border bg-background">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-4">
           <Avatar className="size-16">
@@ -134,7 +134,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="displayName" className="text-sm font-medium mb-2 block">
+            <label htmlFor="displayName" className="mb-2 block text-sm font-medium">
               Username
             </label>
             <div className="relative">
@@ -232,13 +232,13 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
                 </Button>
               </div>
               {usernameError && (
-                <p className="text-sm text-destructive mt-1">{usernameError}</p>
+                <p className="mt-1 text-sm text-destructive">{usernameError}</p>
               )}
             </div>
           </div>
           
           <div>
-            <label htmlFor="username" className="text-sm font-medium mb-2 block">
+            <label htmlFor="username" className="mb-2 block text-sm font-medium">
               Name
             </label>
             <div className="relative">
@@ -254,7 +254,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
           </div>
           
           <div>
-            <label htmlFor="email" className="text-sm font-medium mb-2 block">
+            <label htmlFor="email" className="mb-2 block text-sm font-medium">
               Email
             </label>
             <div className="relative">
@@ -268,7 +268,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
               />
             </div>
             {!isEmailVerified && !user.emailVerified && user.email && (
-              <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-amber-500/20 text-amber-600 text-sm">
+              <div className="mt-2 flex items-center gap-2 rounded-md bg-amber-500/20 p-2 text-sm text-amber-600">
                 <AlertTriangle className="size-4" />
                 <span>Email not verified. Please verify your email.</span>
                 <Link 
@@ -285,7 +285,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
             <Button 
               type="submit" 
               disabled={!isChanged || isSubmitting}
-              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 w-40"
+              className="flex w-40 items-center justify-center gap-2 bg-primary hover:bg-primary/90"
             >
               <Save className="size-4" />
               Save Changes
@@ -294,7 +294,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
         </form>
 
         <div className="mt-6 border-t pt-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-medium">{hasPasswordSet ? 'Change Password' : 'Set Password'}</h3>
                 <p className="text-sm text-muted-foreground">
@@ -360,7 +360,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
                 }
               }} className="space-y-4">
                 <div>
-                  <label htmlFor="newPassword" className="text-sm font-medium mb-2 block">
+                  <label htmlFor="newPassword" className="mb-2 block text-sm font-medium">
                     New Password
                   </label>
                   <Input
@@ -374,7 +374,7 @@ export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalA
                 </div>
                 
                 <div>
-                  <label htmlFor="confirmPassword" className="text-sm font-medium mb-2 block">
+                  <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium">
                     Confirm Password
                   </label>
                   <Input

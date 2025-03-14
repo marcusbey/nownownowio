@@ -17,19 +17,19 @@ type CustomLayoutStructureProps = {
 
 export function CustomLayoutStructure({ sidebar, children }: CustomLayoutStructureProps) {
   return (
-    <SidebarToggleWrapper className="max-w-[100vw] w-full">
+    <SidebarToggleWrapper className="w-full max-w-[100vw]">
       {/* Left Sidebar - Dark background */}
-      <div className={`h-dvh overflow-y-auto w-full ${SIDEBAR_BG_CLASS}`}>{sidebar}</div>
+      <div className={`h-dvh w-full overflow-y-auto ${SIDEBAR_BG_CLASS}`}>{sidebar}</div>
 
       {/* Main Content - Dark background matching sidebars */}
-      <div className="flex h-dvh min-w-0 overflow-hidden flex-1 flex-col relative">
+      <div className="relative flex h-dvh min-w-0 flex-1 flex-col overflow-hidden">
         {/* Positioned Rotating Logo */}
-        <div className="absolute right-0 bottom-0 z-0">
+        <div className="absolute bottom-0 right-0 z-0">
           <RotatingLogo />
         </div>
         <header className={`sticky top-0 z-20 flex h-16 shrink-0 items-center border-b px-4 shadow-sm ${HEADER_BG_CLASS}`}>
           <div className="flex items-center">
-            <SidebarTrigger className="size-8 transition-colors text-foreground/80 hover:text-foreground" />
+            <SidebarTrigger className="size-8 text-foreground/80 transition-colors hover:text-foreground" />
           </div>
           <div className="flex-1"></div>
         </header>

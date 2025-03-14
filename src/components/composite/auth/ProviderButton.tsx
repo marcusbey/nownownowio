@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 
-interface ProviderButtonProps {
+type ProviderButtonProps = {
   providerId: "google" | "twitter" | "github";
   action: "signin" | "signup";
   className?: string;
@@ -56,7 +56,7 @@ export function ProviderButton({
         alt={`${providerNames[providerId]} logo`}
         width={16}
         height={16}
-        className="h-4 w-4 flex-shrink-0"
+        className="size-4 shrink-0"
       />
       <span className="text-sm">{providerNames[providerId]}</span>
     </Button>

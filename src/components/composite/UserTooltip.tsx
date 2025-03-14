@@ -28,8 +28,8 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
     () => {
       // Calculate followerState inside useMemo to avoid dependency changes
       const followerState: FollowerInfo = {
-        followers: user._count?.followers ?? 0,
-        isFollowedByUser: user.followers?.some(
+        followers: user._count.followers ?? 0,
+        isFollowedByUser: user.followers.some(
           ({ followerId }) => followerId === session?.user?.id,
         ) ?? false,
       };

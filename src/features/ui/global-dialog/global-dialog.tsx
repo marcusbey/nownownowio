@@ -1,10 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { DialogType, useGlobalDialogStore } from "./global-dialog-store";
+import type { DialogType} from "./global-dialog-store";
+import { useGlobalDialogStore } from "./global-dialog-store";
 
 const OrgDialogPlan = dynamic(
-  () => import("./org-plan-dialog").then((mod) => mod.OrgPlanDialog),
+  async () => import("./org-plan-dialog").then((mod) => mod.OrgPlanDialog),
   { ssr: false },
 );
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { VariantProps, cva } from "class-variance-authority";
+import type { VariantProps} from "class-variance-authority";
+import { cva } from "class-variance-authority";
 
 const glowVariants = cva(
   "pointer-events-none absolute -z-10 opacity-75 mix-blend-screen",
@@ -9,14 +10,14 @@ const glowVariants = cva(
       position: {
         top: "-top-[20%] left-1/2 -translate-x-1/2",
         center: "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
-        "top-right": "-top-[20%] -right-[20%]",
-        "top-left": "-top-[20%] -left-[20%]",
+        "top-right": "-right-[20%] -top-[20%]",
+        "top-left": "-left-[20%] -top-[20%]",
       },
       size: {
-        sm: "h-[300px] w-[300px] blur-[60px]",
-        md: "h-[500px] w-[500px] blur-[80px]",
-        lg: "h-[800px] w-[800px] blur-[100px]",
-        xl: "h-[1000px] w-[1000px] blur-[120px]"
+        sm: "size-[300px] blur-[60px]",
+        md: "size-[500px] blur-[80px]",
+        lg: "size-[800px] blur-[100px]",
+        xl: "size-[1000px] blur-[120px]"
       }
     },
     defaultVariants: {
@@ -26,10 +27,10 @@ const glowVariants = cva(
   }
 );
 
-interface GlowProps extends VariantProps<typeof glowVariants> {
+type GlowProps = {
   className?: string;
   color?: string;
-}
+} & VariantProps<typeof glowVariants>
 
 const Glow = React.forwardRef<HTMLDivElement, GlowProps>(
   ({ position, size, className, color, ...props }, ref) => (

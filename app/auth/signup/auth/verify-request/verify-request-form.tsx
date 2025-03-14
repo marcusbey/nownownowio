@@ -20,7 +20,7 @@ type ToastState = 'success' | 'error' | 'loading' | null;
 
 const ANIMATION_DURATION = 2000; // 2 seconds for the success state
 
-interface VerifyRequestFormProps {
+type VerifyRequestFormProps = {
   email: string;
 }
 
@@ -70,11 +70,11 @@ export function VerifyRequestForm({ email }: VerifyRequestFormProps) {
   return (
     <Card className="w-full max-w-md border-2 shadow-lg">
       <CardHeader className="space-y-4 text-center">
-        <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-          <MailCheck className="w-8 h-8 text-primary animate-pulse" />
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
+          <MailCheck className="size-8 animate-pulse text-primary" />
         </div>
         <div className="space-y-2">
-          <CardTitle className="text-2xl font-bold !mt-0">
+          <CardTitle className="!mt-0 text-2xl font-bold">
             Check Your Email!
           </CardTitle>
           <CardDescription className="text-base">
@@ -83,7 +83,7 @@ export function VerifyRequestForm({ email }: VerifyRequestFormProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <Typography variant="p" className="text-sm text-muted-foreground text-center">
+        <Typography variant="p" className="text-center text-sm text-muted-foreground">
           Click the link in the email to verify your account. If you don't see it, check your spam folder.
         </Typography>
       </CardContent>
@@ -97,17 +97,17 @@ export function VerifyRequestForm({ email }: VerifyRequestFormProps) {
           <div className="flex items-center justify-center gap-2">
             {toastState === 'loading' ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
                 Sending...
               </>
             ) : toastState === 'success' ? (
               <>
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="size-4 text-green-500" />
                 Sent!
               </>
             ) : (
               <>
-                <Send className="h-4 w-4" />
+                <Send className="size-4" />
                 Resend verification email
               </>
             )}

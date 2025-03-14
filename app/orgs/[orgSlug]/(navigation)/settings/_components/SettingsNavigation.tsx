@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Settings, Code, Users, CreditCard, Wallet, AlertTriangle, User } from "lucide-react";
 
-interface SettingsLink {
+type SettingsLink = {
   href: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   label: string;
@@ -86,7 +86,7 @@ export function SettingsNavigation({ orgSlug, links }: { orgSlug: string; links:
                   : "hover:bg-muted text-muted-foreground"
               )}
             >
-              <link.icon className="h-4 w-4" />
+              <link.icon className="size-4" />
               {link.label}
             </Link>
           );
@@ -96,7 +96,7 @@ export function SettingsNavigation({ orgSlug, links }: { orgSlug: string; links:
   );
 
   return (
-    <nav className="w-64 flex-shrink-0">
+    <nav className="w-64 shrink-0">
       {renderSection("General", sections.general)}
       {renderSection("Plan and Billing", sections.plan)}
       {renderSection("Account", sections.account)}

@@ -1,6 +1,6 @@
 import { validateRequest } from '@/lib/auth/helper';
 import { prisma } from '@/lib/prisma';
-import { FollowerInfo } from '@/lib/types';
+import type { FollowerInfo } from '@/lib/types';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -120,7 +120,7 @@ export async function POST(
     });
 
     return Response.json({
-      followers: user?._count?.followers ?? 0,
+      followers: user?._count.followers ?? 0,
       isFollowedByUser: true,
     });
   } catch (error) {
@@ -175,7 +175,7 @@ export async function DELETE(
     });
 
     return Response.json({
-      followers: user?._count?.followers ?? 0,
+      followers: user?._count.followers ?? 0,
       isFollowedByUser: false,
     });
   } catch (error) {

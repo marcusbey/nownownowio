@@ -1,4 +1,4 @@
-import { Media } from "@prisma/client";
+import type { Media } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -30,7 +30,7 @@ function getPlaceholderUrl(media: Media): string {
   return `https://picsum.photos/seed/${hash}/800/800`; // 1:1 ratio for images
 }
 
-export interface MediaPreviewProps {
+export type MediaPreviewProps = {
   media: Media;
 }
 
@@ -80,7 +80,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
       <div className="relative overflow-hidden rounded-lg">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
         <Image
@@ -106,7 +106,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
       <div className="relative overflow-hidden rounded-lg">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
         <video
@@ -127,7 +127,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   return <p className="text-destructive">Unsupported media type</p>;
 }
 
-export interface MediaPreviewsProps {
+export type MediaPreviewsProps = {
   attachments: Media[];
 }
 

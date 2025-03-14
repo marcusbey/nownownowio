@@ -12,8 +12,8 @@ export function HeroContent() {
       <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-transparent to-slate-900/90" />
       
       {/* Animated Gradient Orbs */}
-      <div className="absolute -left-40 -top-40 h-80 w-80 animate-pulse rounded-full bg-purple-500 opacity-20 blur-3xl" />
-      <div className="absolute -bottom-40 right-0 h-80 w-80 animate-pulse rounded-full bg-indigo-500 opacity-20 blur-3xl" />
+      <div className="absolute -left-40 -top-40 size-80 animate-pulse rounded-full bg-purple-500 opacity-20 blur-3xl" />
+      <div className="absolute -bottom-40 right-0 size-80 animate-pulse rounded-full bg-indigo-500 opacity-20 blur-3xl" />
 
       <div className="container relative mx-auto grid min-h-screen grid-cols-1 gap-8 px-4 py-20 lg:grid-cols-2 lg:px-6">
         {/* Left Side - Content */}

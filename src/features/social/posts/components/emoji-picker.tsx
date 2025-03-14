@@ -8,14 +8,14 @@ import { Smile } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 
-const EmojiPicker = dynamic(() => import("emoji-picker-react").then(mod => mod.default), {
+const EmojiPicker = dynamic(async () => import("emoji-picker-react").then(mod => mod.default), {
   ssr: false,
   loading: () => (
-    <div className="min-h-[350px] w-full animate-pulse bg-muted rounded-md"></div>
+    <div className="min-h-[350px] w-full animate-pulse rounded-md bg-muted"></div>
   ),
 });
 
-interface EmojiPickerButtonProps {
+type EmojiPickerButtonProps = {
   onEmojiSelect: (emoji: string) => void;
 }
 

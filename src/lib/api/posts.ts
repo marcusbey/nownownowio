@@ -1,13 +1,13 @@
 import kyInstance from "@/lib/ky";
-import { PostData } from "@/lib/types";
+import type { PostData } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-export interface GetPostsResponse {
+export type GetPostsResponse = {
   posts: PostData[];
   nextCursor: string | null;
 }
 
-export interface CreatePostData {
+export type CreatePostData = {
   content: string;
   media?: File[];
   orgSlug?: string;

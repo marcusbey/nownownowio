@@ -6,10 +6,10 @@ const styles = {
   hideScrollbar: "scrollbar-none overflow-y-auto",
 };
 
-interface InfiniteScrollContainerProps extends React.PropsWithChildren {
+type InfiniteScrollContainerProps = {
   onBottomReached: () => void;
   className?: string;
-}
+} & React.PropsWithChildren
 
 export default function InfiniteScrollContainer({
   children,

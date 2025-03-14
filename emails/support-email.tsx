@@ -1,6 +1,6 @@
 import * as React from "react";
 
-interface SupportEmailProps {
+type SupportEmailProps = {
   message: string;
 }
 

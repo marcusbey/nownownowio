@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import { Button, ButtonProps } from "@/components/core/button";
+import type { ButtonProps } from "@/components/core/button";
+import { Button } from "@/components/core/button";
 
-interface LoadingButtonProps extends ButtonProps {
+type LoadingButtonProps = {
   loading: boolean;
-}
+} & ButtonProps
 
 export default function LoadingButton({
   loading,

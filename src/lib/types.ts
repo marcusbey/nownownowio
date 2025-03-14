@@ -1,4 +1,5 @@
-import { OrganizationMembershipRole, OrganizationPlanType, BillingCycle, Prisma } from "@prisma/client";
+import type { OrganizationMembershipRole} from "@prisma/client";
+import { OrganizationPlanType, BillingCycle, Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
   return Prisma.validator<Prisma.UserSelect>()({
@@ -98,7 +99,7 @@ export type PostData = Prisma.PostGetPayload<{
   include: ReturnType<typeof getPostDataInclude>;
 }>;
 
-export interface PostsPage {
+export type PostsPage = {
   posts: PostData[];
   nextCursor: string | null;
 }
@@ -116,7 +117,7 @@ export type CommentData = Prisma.CommentGetPayload<{
   include: ReturnType<typeof getCommentDataInclude>;
 }>;
 
-export interface CommentsPage {
+export type CommentsPage = {
   comments: CommentData[];
   previousCursor: string | null;
 }
@@ -150,30 +151,30 @@ export type NotificationData = Prisma.NotificationGetPayload<{
   include: typeof notificationsInclude;
 }>;
 
-export interface NotificationsPage {
+export type NotificationsPage = {
   notifications: NotificationData[];
   nextCursor: string | null;
 }
 
-export interface FollowerInfo {
+export type FollowerInfo = {
   followers: number;
   isFollowedByUser: boolean;
 }
 
-export interface LikeInfo {
+export type LikeInfo = {
   likes: number;
   isLikedByUser: boolean;
 }
 
-export interface BookmarkInfo {
+export type BookmarkInfo = {
   isBookmarkedByUser: boolean;
 }
 
-export interface NotificationCountInfo {
+export type NotificationCountInfo = {
   unreadCount: number;
 }
 
-export interface MessageCountInfo {
+export type MessageCountInfo = {
   unreadCount: number;
 }
 

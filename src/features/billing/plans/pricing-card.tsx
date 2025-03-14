@@ -8,7 +8,7 @@ import { BuyButton } from "@/features/billing/payments/buy-button";
 import type { Plan, BillingCycle } from "./plans";
 import { usePlanPricing } from "./plan-pricing-context";
 import { FALLBACK_PRICES } from "./fallback-prices";
-import { env } from "@/lib/env";
+// We no longer need the env import since we're passing planType and billingCycle directly to BuyButton
 
 type PricingCardProps = Plan & {
   onSelectBillingCycle?: (billingCycle: BillingCycle) => void;
@@ -25,8 +25,8 @@ export const PricingCard = (props: PricingCardProps) => {
   const [showLifetime, setShowLifetime] = useState(false);
   const { getPriceAmount } = usePlanPricing();
   
-  // Determine if we're using live or test mode
-  const useLiveMode = env.USE_LIVE_MODE === 'true';
+  // We no longer need to determine if we're using live or test mode
+  // since we're passing planType and billingCycle directly to BuyButton
   
   // Get the appropriate price based on billing cycle
   const getPrice = (): number => {
@@ -38,7 +38,16 @@ export const PricingCard = (props: PricingCardProps) => {
     
     if (props.planType && props.billingCycle) {
       // First try to get price from context
-      price = getPriceAmount(props.planType, props.billingCycle);
+      const retrievedPrice = getPriceAmount(props.planType, props.billingCycle);
+      
+      // Handle different types of returned values
+      if (typeof retrievedPrice === 'object' && retrievedPrice !== null && 'amount' in retrievedPrice) {
+        // If it's an object with amount property
+        price = (retrievedPrice as { amount: number }).amount || 0;
+      } else if (typeof retrievedPrice === 'number') {
+        // If it's already a number
+        price = retrievedPrice;
+      }
       
       // If not available, use fallback
       if (price === 0 && props.planType && props.billingCycle) {
@@ -49,7 +58,9 @@ export const PricingCard = (props: PricingCardProps) => {
           const billingCycle = props.billingCycle as string;
           if (billingCycle in plan) {
             const fallbackPrice = plan[billingCycle as keyof typeof plan];
-            price = fallbackPrice.amount || 0;
+            if (fallbackPrice && typeof fallbackPrice === 'object' && 'amount' in fallbackPrice) {
+              price = fallbackPrice.amount || 0;
+            }
           }
         }
       }
@@ -58,46 +69,7 @@ export const PricingCard = (props: PricingCardProps) => {
     return Math.round(price);
   };
   
-  // Get the appropriate price ID based on the plan type and billing cycle
-  const getPriceId = (): string => {
-    // Early return with empty string if we don't have the required properties
-    // This is a safeguard, though props.planType and props.billingCycle should always be defined
-    if (typeof props.planType === 'undefined' || typeof props.billingCycle === 'undefined') return '';
-    
-    // If priceId is explicitly provided in props, use it
-    if (props.priceId) return props.priceId;
-    
-    // Otherwise, determine the price ID based on the environment mode (live/test)
-    const modePrefix = useLiveMode ? 'LIVE' : 'TEST';
-    const envVarName = `NEXT_PUBLIC_STRIPE_${modePrefix}_${props.planType}_${props.billingCycle}_PRICE_ID`;
-    
-    // Access the appropriate environment variable
-    const envValue = env[envVarName as keyof typeof env];
-    if (envValue) return envValue;
-    
-    // At this point, we know props.planType and props.billingCycle are defined
-    // because we've already checked them in the early return statement above
-    
-    // We've already checked that props.planType and props.billingCycle are defined
-    // in the early return statement above, so we can safely use them here
-    try {
-      const planType = props.planType as keyof typeof FALLBACK_PRICES;
-      
-      if (planType in FALLBACK_PRICES) {
-        const plan = FALLBACK_PRICES[planType];
-        const billingCycle = props.billingCycle as keyof typeof plan;
-        
-        if (billingCycle in plan) {
-          const fallbackPrice = plan[billingCycle];
-          return fallbackPrice.priceId || '';
-        }
-      }
-      return '';
-    } catch {
-      // If any errors occur during access, return empty string
-      return '';
-    }
-  };
+  // We no longer need the getPriceId function as we're passing planType and billingCycle directly to BuyButton
 
   // Format price to ensure it's always a whole number
   const formatPrice = (price: number) => {
@@ -149,13 +121,13 @@ export const PricingCard = (props: PricingCardProps) => {
     >
       {props.isRecommended && (
         <div className="bg-blue-500 py-2 text-center">
-          <span className="text-white text-sm font-semibold uppercase tracking-wide">Recommended</span>
+          <span className="text-sm font-semibold uppercase tracking-wide text-white">Recommended</span>
         </div>
       )}
       
       {props.isPopular && (
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 py-2 text-center">
-          <span className="text-white text-sm font-semibold uppercase tracking-wide">Popular</span>
+          <span className="text-sm font-semibold uppercase tracking-wide text-white">Popular</span>
         </div>
       )}
       
@@ -182,7 +154,7 @@ export const PricingCard = (props: PricingCardProps) => {
         <p className="mt-5 text-gray-500">{props.description}</p>
       </div>
       
-      <div className="px-6 pt-6 pb-8">
+      <div className="px-6 pb-8 pt-6">
         <ul className="space-y-4">
           {props.features.map((feature, index) => (
             <PricingItem key={index} included={true}>{feature}</PricingItem>
@@ -216,7 +188,8 @@ export const PricingCard = (props: PricingCardProps) => {
           ) : (
             <BuyButton
               orgSlug={String(organizationSlug)}
-              priceId={getPriceId()}
+              planType={props.planType}
+              billingCycle={props.billingCycle}
               className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
             >
               {showLifetime && props.billingCycle !== "LIFETIME" 
@@ -245,7 +218,7 @@ const PricingItem = ({ included, children }: PricingItemProps) => {
           <X className="size-5 text-gray-400" />
         )}
       </div>
-      <span className={`ml-3 ${included ? 'text-gray-900' : 'line-through text-gray-500'}`}>
+      <span className={`ml-3 ${included ? 'text-gray-900' : 'text-gray-500 line-through'}`}>
         {children}
       </span>
     </li>

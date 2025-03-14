@@ -13,7 +13,7 @@ import { Switch } from "@/components/core/switch";
 import { Label } from "@/components/core/label";
 import { cn } from "@/lib/utils";
 
-interface PlanContentProps {
+type PlanContentProps = {
   orgSlug: string;
 }
 
@@ -73,7 +73,7 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
               <Typography variant="h4" className="mb-4">Available Plans</Typography>
               
               {/* Billing Toggle */}
-              <div className="flex items-center justify-end mb-4">
+              <div className="mb-4 flex items-center justify-end">
                 <div className="flex items-center gap-2">
                   <Label className={cn("text-sm", !isYearly && "text-primary font-medium")}>Monthly</Label>
                   <Switch
@@ -99,7 +99,7 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
                       )}
                     >
                       <CardHeader>
-                        <div className="flex justify-between items-center">
+                        <div className="flex items-center justify-between">
                           <CardTitle>{plan.name}</CardTitle>
                           {isCurrentPlan && (
                             <Badge variant="outline" className="bg-primary/10 text-primary">
@@ -113,16 +113,16 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
                         <div className="mb-4">
                           <div className="flex items-baseline">
                             <span className="text-3xl font-bold">${currentPrice}</span>
-                            <span className="text-sm text-muted-foreground ml-2">
+                            <span className="ml-2 text-sm text-muted-foreground">
                               {plan.type === "recurring" ? (isYearly ? "/year" : "/month") : " one-time"}
                             </span>
                           </div>
                         </div>
                         
-                        <ul className="space-y-2 mb-6">
+                        <ul className="mb-6 space-y-2">
                           {plan.features.map((feature, i) => (
                             <li key={i} className="flex items-center gap-2">
-                              <Check className="h-4 w-4 text-primary" />
+                              <Check className="size-4 text-primary" />
                               <span className="text-sm">{feature}</span>
                             </li>
                           ))}
@@ -159,7 +159,7 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex items-center space-x-4">
-                <CreditCard className="h-6 w-6 text-muted-foreground" />
+                <CreditCard className="size-6 text-muted-foreground" />
                 <div>
                   <h3 className="text-sm font-medium">Payment Methods</h3>
                   <p className="text-xs text-muted-foreground">
@@ -174,7 +174,7 @@ export function PlanContent({ orgSlug }: PlanContentProps) {
             
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex items-center space-x-4">
-                <Receipt className="h-6 w-6 text-muted-foreground" />
+                <Receipt className="size-6 text-muted-foreground" />
                 <div>
                   <h3 className="text-sm font-medium">Billing History</h3>
                   <p className="text-xs text-muted-foreground">

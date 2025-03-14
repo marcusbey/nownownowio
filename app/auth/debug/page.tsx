@@ -22,7 +22,7 @@ export default function SessionDebugPage() {
         </div>
       </div>
       
-      <div className="p-4 bg-white dark:bg-gray-900 border rounded-md shadow-md">
+      <div className="rounded-md border bg-white p-4 shadow-md dark:bg-gray-900">
         <Typography variant="h3" className="mb-4">Instructions</Typography>
         <Typography>
           This page includes the SessionDebug component which helps troubleshoot session-related issues.

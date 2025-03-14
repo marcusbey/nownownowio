@@ -14,8 +14,8 @@ export const SessionDebug = () => {
   }
 
   return (
-    <div className="fixed bottom-0 right-0 m-4 p-4 bg-white dark:bg-gray-900 border rounded-md shadow-lg z-50 max-w-md overflow-auto max-h-[80vh]">
-      <div className="flex justify-between items-center mb-2">
+    <div className="fixed bottom-0 right-0 z-50 m-4 max-h-[80vh] max-w-md overflow-auto rounded-md border bg-white p-4 shadow-lg dark:bg-gray-900">
+      <div className="mb-2 flex items-center justify-between">
         <Typography variant="h4">Session Debug</Typography>
         <Button variant="outline" size="sm" onClick={() => setExpanded(!expanded)}>
           {expanded ? "Collapse" : "Expand"}
@@ -27,7 +27,7 @@ export const SessionDebug = () => {
       {expanded && (
         <div className="mt-4">
           <Typography variant="h5" className="mb-2">Session Data</Typography>
-          <pre className="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded overflow-auto">
+          <pre className="overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">
             {JSON.stringify(session, null, 2)}
           </pre>
         </div>

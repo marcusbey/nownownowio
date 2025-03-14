@@ -108,10 +108,10 @@ export const BuyButton = ({
         }
 
         if (!isActionSuccessful(result)) {
-          throw new Error(result && result.serverError ? result.serverError : "Failed to create checkout session");
+          throw new Error(result?.serverError ? result.serverError : "Failed to create checkout session");
         }
 
-        if (!result.data || !result.data.url) {
+        if (!result.data.url) {
           throw new Error("No checkout URL returned from Stripe");
         }
 

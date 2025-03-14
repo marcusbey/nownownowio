@@ -5,7 +5,7 @@ import Image from "next/image";
 import { SiteConfig } from "@/site-config";
 import { VerifyContent } from "./verify-content";
 
-interface VerifyRequestPageProps {
+type VerifyRequestPageProps = {
   searchParams: { email?: string };
 }
 
@@ -15,7 +15,7 @@ export default async function VerifyRequestPage({
   const email = searchParams.email;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 relative">
+    <div className="relative min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
       <header className="relative flex items-center gap-2 p-6">
         <Image 
@@ -35,11 +35,11 @@ export default async function VerifyRequestPage({
         {!email ? (
           <Card className="w-full max-w-md border-2 shadow-lg">
             <CardHeader className="space-y-4 text-center">
-              <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
-                <MailCheck className="w-8 h-8 text-destructive" />
+              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-destructive/10">
+                <MailCheck className="size-8 text-destructive" />
               </div>
               <div className="space-y-2">
-                <CardTitle className="text-2xl font-bold !mt-0">
+                <CardTitle className="!mt-0 text-2xl font-bold">
                   Error
                 </CardTitle>
                 <CardDescription className="text-base">

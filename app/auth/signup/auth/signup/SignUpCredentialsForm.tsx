@@ -17,7 +17,7 @@ import { PasswordInput } from '@/components/PasswordInput';
 import type { LoginCredentialsFormType } from './signup.schema';
 import { LoginCredentialsFormScheme } from './signup.schema';
 
-interface FormState {
+type FormState = {
   isLoading: boolean;
   error: string | null;
 }
@@ -198,7 +198,7 @@ export const SignUpCredentialsForm = () => {
         >
           {formState.isLoading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 size-4 animate-spin" />
               Creating account...
             </>
           ) : (

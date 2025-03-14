@@ -1,6 +1,7 @@
 import { baseAuth } from "@/lib/auth/auth";
 import { getTopicScoreDetails } from "@/lib/topic-detection";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const detectTopicSchema = z.object({

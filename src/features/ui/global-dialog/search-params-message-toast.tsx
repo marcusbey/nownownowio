@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-interface SearchParamsMessageToastProps {
+type SearchParamsMessageToastProps = {
   messageKey?: string;
   errorKey?: string;
 }

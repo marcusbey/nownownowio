@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
 
-interface FormUnsavedBarProps {
+type FormUnsavedBarProps = {
   className?: string;
 }
 
@@ -13,7 +13,7 @@ export function FormUnsavedBar({ className }: FormUnsavedBarProps) {
         className
       )}
     >
-      <AlertTriangle className="h-4 w-4" />
+      <AlertTriangle className="size-4" />
       <span>You have unsaved changes</span>
     </div>
   );

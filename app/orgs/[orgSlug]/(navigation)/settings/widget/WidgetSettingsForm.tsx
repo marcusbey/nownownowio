@@ -39,15 +39,15 @@ const defaultValues: WidgetSettings = {
   buttonSize: 90,
 };
 
-interface WidgetSettingsFormProps {
+type WidgetSettingsFormProps = {
   settings: WidgetSettings;
   onChange: (settings: WidgetSettings) => void;
 }
 
 export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormProps) {
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
         <div className="space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Theme</label>
@@ -118,7 +118,7 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
 
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Button Color</label>
-            <div className="flex gap-2 items-center">
+            <div className="flex items-center gap-2">
               <Input
                 className="h-9 bg-background"
                 value={settings.buttonColor}
@@ -128,7 +128,7 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
                   
                   // Ensure it starts with # if user types without it
                   if (value && !value.startsWith('#')) {
-                    value = '#' + value;
+                    value = `#${  value}`;
                   }
                   
                   // Update without validation during typing
@@ -140,7 +140,7 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
                   
                   // Ensure it starts with #
                   if (value && !value.startsWith('#')) {
-                    value = '#' + value;
+                    value = `#${  value}`;
                   }
                   
                   // Validate hex color format
@@ -156,7 +156,7 @@ export function WidgetSettingsForm({ settings, onChange }: WidgetSettingsFormPro
               />
               <label 
                 htmlFor="colorPicker" 
-                className="h-9 w-9 rounded border border-input cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center"
+                className="flex size-9 cursor-pointer items-center justify-center rounded border border-input transition-opacity hover:opacity-90"
                 style={{ backgroundColor: settings.buttonColor }}
               >
                 <input

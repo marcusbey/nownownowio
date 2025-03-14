@@ -12,7 +12,7 @@ import { CreditCard, Receipt } from "lucide-react";
 import { useState } from "react";
 import { useOrganization } from "@/query/org/org.query";
 
-interface BillingContentProps {
+type BillingContentProps = {
   orgSlug: string;
 }
 
@@ -50,7 +50,7 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex items-center space-x-4">
-                <Receipt className="h-6 w-6 text-muted-foreground" />
+                <Receipt className="size-6 text-muted-foreground" />
                 <div>
                   <h3 className="text-sm font-medium">Invoices</h3>
                   <p className="text-xs text-muted-foreground">
@@ -69,7 +69,7 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
 
             {/* Invoice list - shows when toggled */}
             {showInvoices && (
-              <div className="p-4 mt-4 border rounded-lg">
+              <div className="mt-4 rounded-lg border p-4">
                 {invoices.length > 0 ? (
                   <div className="space-y-2">
                     {invoices.map((invoice, index) => (
@@ -112,7 +112,7 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
 
             {/* Billing address */}
             <div className="mt-6">
-              <h3 className="text-sm font-medium mb-2">Billing Address</h3>
+              <h3 className="mb-2 text-sm font-medium">Billing Address</h3>
               <div className="rounded-lg border p-4">
                 {organization?.stripeCustomerId ? (
                   <div className="space-y-1">
@@ -132,8 +132,8 @@ export function BillingContent({ orgSlug }: BillingContentProps) {
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground mb-2">
+                  <div className="py-4 text-center">
+                    <p className="mb-2 text-sm text-muted-foreground">
                       No billing address on file
                     </p>
                     <Button variant="outline" size="sm">

@@ -220,7 +220,7 @@ export default function ExplorePage() {
             <Input
               type="text"
               placeholder="Search posts"
-              className="pl-9 rounded-full bg-muted/50 border-none"
+              className="rounded-full border-none bg-muted/50 pl-9"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
@@ -236,38 +236,38 @@ export default function ExplorePage() {
       </div>
       
       <Tabs defaultValue="for-you" className="w-full">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-          <TabsList className="w-full h-12 bg-transparent justify-between p-0">
+        <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm">
+          <TabsList className="h-12 w-full justify-between bg-transparent p-0">
             <TabsTrigger 
               value="for-you" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:rounded-none data-[state=active]:shadow-none h-full rounded-none"
+              className="h-full flex-1 rounded-none data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
             >
               For you
             </TabsTrigger>
             <TabsTrigger 
               value="trending" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:rounded-none data-[state=active]:shadow-none h-full rounded-none"
+              className="h-full flex-1 rounded-none data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
             >
               <Flame className="mr-2 size-4" />
               Trending
             </TabsTrigger>
             <TabsTrigger 
               value="news" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:rounded-none data-[state=active]:shadow-none h-full rounded-none"
+              className="h-full flex-1 rounded-none data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
             >
               <Newspaper className="mr-2 size-4" />
               News
             </TabsTrigger>
             <TabsTrigger 
               value="sports" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:rounded-none data-[state=active]:shadow-none h-full rounded-none"
+              className="h-full flex-1 rounded-none data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
             >
               <Trophy className="mr-2 size-4" />
               Sports
             </TabsTrigger>
             <TabsTrigger 
               value="entertainment" 
-              className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:rounded-none data-[state=active]:shadow-none h-full rounded-none"
+              className="h-full flex-1 rounded-none data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none"
             >
               <Music className="mr-2 size-4" />
               Entertainment
@@ -275,7 +275,7 @@ export default function ExplorePage() {
           </TabsList>
           
           {/* Topic filters - only show on For You tab */}
-          <div className="px-2 py-1 overflow-x-auto scrollbar-hide">
+          <div className="scrollbar-hide overflow-x-auto px-2 py-1">
             <div className="no-scrollbar flex gap-2 overflow-x-auto py-2">
               {isLoadingTopics ? (
                 // Show skeleton loaders while loading topics
@@ -290,7 +290,7 @@ export default function ExplorePage() {
                   <Button
                     key={t.id}
                     variant={topic === t.id ? "default" : "outline"}
-                    className="whitespace-nowrap rounded-full h-8 px-4"
+                    className="h-8 whitespace-nowrap rounded-full px-4"
                     asChild
                   >
                     <Link
@@ -315,7 +315,7 @@ export default function ExplorePage() {
         
         {/* Search results info */}
         {searchQuery && (
-          <div className="border-b border-border px-4 py-2 text-sm bg-muted/30">
+          <div className="border-b border-border bg-muted/30 px-4 py-2 text-sm">
             Showing results for:{" "}
             <span className="font-medium">{searchQuery}</span>
             <Button
@@ -372,7 +372,7 @@ export default function ExplorePage() {
                 <div key={i} className="border-b border-border p-4">
                   <div className="flex items-center justify-between">
                     <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <Skeleton className="size-6 rounded-full" />
                   </div>
                   <Skeleton className="mt-2 h-5 w-36" />
                   <Skeleton className="mt-1 h-4 w-16" />
@@ -384,7 +384,7 @@ export default function ExplorePage() {
                 <div key={topic.id} className="border-b border-border p-4 hover:bg-muted/20">
                   <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">Trending in {topic.id.charAt(0).toUpperCase() + topic.id.slice(1)}</div>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                    <Button variant="ghost" size="icon" className="size-6">
                       <span className="sr-only">More</span>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
                         <circle cx="12" cy="12" r="1" />
@@ -431,7 +431,7 @@ export default function ExplorePage() {
       <div className="border-t border-border p-2 text-center">
         <Link 
           href="./explore/debug" 
-          className="text-xs text-muted-foreground hover:text-primary transition-colors"
+          className="text-xs text-muted-foreground transition-colors hover:text-primary"
         >
           Debug Topics
         </Link>

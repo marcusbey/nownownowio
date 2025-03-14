@@ -49,14 +49,14 @@ export default async function RoutePage(props: PageParams) {
   });
 
   return (
-    <div className="py-6 max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl py-6">
       <div className="mb-8 border-b pb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="bg-amber-500/15 p-2 rounded-full">
+        <div className="mb-2 flex items-center gap-2">
+          <div className="rounded-full bg-amber-500/15 p-2">
             <ShieldAlert className="size-6 text-amber-500" />
           </div>
-          <Typography variant="h2" className="text-foreground font-bold">Advanced Settings</Typography>
-          <Badge variant="outline" className="ml-2 font-medium border-amber-500/50 text-amber-500">Owner Only</Badge>
+          <Typography variant="h2" className="font-bold text-foreground">Advanced Settings</Typography>
+          <Badge variant="outline" className="ml-2 border-amber-500/50 font-medium text-amber-500">Owner Only</Badge>
         </div>
         <Typography className="max-w-2xl text-foreground/80">
           Manage important organization settings that require careful consideration. 
@@ -66,8 +66,8 @@ export default async function RoutePage(props: PageParams) {
       
       <div className="space-y-8">
         {/* Organization Slug Section */}
-        <Card className="border-2 border-amber-500/20 shadow-md hover:border-amber-500/30 transition-colors bg-background">
-          <CardHeader className="pb-2 border-b border-amber-500/10">
+        <Card className="border-2 border-amber-500/20 bg-background shadow-md transition-colors hover:border-amber-500/30">
+          <CardHeader className="border-b border-amber-500/10 pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="size-5 text-amber-500" />
@@ -86,16 +86,16 @@ export default async function RoutePage(props: PageParams) {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <CardDescription className="mt-1 text-muted-foreground font-medium">
+            <CardDescription className="mt-1 font-medium text-muted-foreground">
               Changing your organization's slug will break all existing links
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="bg-muted p-3 rounded-md mb-4 border border-border">
+            <div className="mb-4 rounded-md border border-border bg-muted p-3">
 
-              <Typography variant="small" className="text-foreground/70 font-medium">Current slug:</Typography>
-              <div className="flex items-center gap-2 mt-1">
-                <code className="px-2 py-1 bg-background rounded text-sm font-mono border border-border">{org.slug}</code>
+              <Typography variant="small" className="font-medium text-foreground/70">Current slug:</Typography>
+              <div className="mt-1 flex items-center gap-2">
+                <code className="rounded border border-border bg-background px-2 py-1 font-mono text-sm">{org.slug}</code>
                 <Typography variant="small" className="text-foreground/70">in URL: nownownow.io/orgs/<span className="font-semibold text-foreground">{org.slug}</span>/...</Typography>
               </div>
             </div>
@@ -104,25 +104,25 @@ export default async function RoutePage(props: PageParams) {
         </Card>
         
         {/* Delete Organization Section */}
-        <Card className="border-2 border-amber-500/20 shadow-md hover:border-amber-500/30 transition-colors bg-background">
-          <CardHeader className="pb-2 border-b border-amber-500/10">
+        <Card className="border-2 border-amber-500/20 bg-background shadow-md transition-colors hover:border-amber-500/30">
+          <CardHeader className="border-b border-amber-500/10 pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Trash2 className="size-5 text-amber-500" />
                 <CardTitle className="text-lg font-bold text-foreground">Delete Organization</CardTitle>
               </div>
-              <Badge variant="outline" className="uppercase text-xs font-bold border-amber-500/50 text-amber-500">Irreversible</Badge>
+              <Badge variant="outline" className="border-amber-500/50 text-xs font-bold uppercase text-amber-500">Irreversible</Badge>
             </div>
-            <CardDescription className="mt-1 text-muted-foreground font-medium">
+            <CardDescription className="mt-1 font-medium text-muted-foreground">
               Permanently delete this organization and all its data
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-md p-4 mb-6">
+            <div className="mb-6 rounded-md border border-amber-500/20 bg-amber-500/10 p-4">
               <div className="flex gap-3">
-                <AlertTriangle className="size-5 text-amber-500 shrink-0 mt-0.5" />
+                <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-500" />
                 <div>
-                  <Typography variant="small" className="font-bold text-foreground mb-1">
+                  <Typography variant="small" className="mb-1 font-bold text-foreground">
                     Warning: This action cannot be undone
                   </Typography>
                   <Typography variant="small" className="text-foreground/80">

@@ -91,7 +91,7 @@ export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
   const searchParams = useSearchParams();
 
   const providerAuthMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: async () =>
       signIn(providerId, {
         callbackUrl:
           searchParams.get("callbackUrl") ??

@@ -149,7 +149,7 @@ export function getAvailableTopics(): string[] {
  * Get topic display information
  * @returns Array of topic objects with id and label
  */
-export function getTopicDisplayInfo(): Array<{id: string, label: string}> {
+export function getTopicDisplayInfo(): {id: string, label: string}[] {
   return [
     { id: 'all', label: 'All' },
     ...Object.keys(topicKeywords).map(topic => ({

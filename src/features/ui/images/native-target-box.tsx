@@ -1,7 +1,8 @@
 import { Typography } from "@/components/data-display/typography";
 import { cn } from "@/lib/utils";
+import type {
+  ComponentPropsWithoutRef} from "react";
 import React, {
-  ComponentPropsWithoutRef,
   forwardRef,
   useRef,
   useState,

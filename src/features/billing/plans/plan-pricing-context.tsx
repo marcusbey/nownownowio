@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import type { ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { FALLBACK_PRICES, getFallbackPriceAmount, getFallbackPriceId } from "./fallback-prices";
 
-export interface PlanPrice {
+export type PlanPrice = {
   id: string;
   productId: string;
   productName: string;
@@ -12,7 +13,7 @@ export interface PlanPrice {
   active: boolean;
 }
 
-interface PlanPricingContextType {
+type PlanPricingContextType = {
   prices: PlanPrice[];
   isLoading: boolean;
   error: string | null;
@@ -23,7 +24,7 @@ interface PlanPricingContextType {
 
 const PlanPricingContext = createContext<PlanPricingContextType | undefined>(undefined);
 
-interface PlanPricingProviderProps {
+type PlanPricingProviderProps = {
   children: ReactNode;
 }
 

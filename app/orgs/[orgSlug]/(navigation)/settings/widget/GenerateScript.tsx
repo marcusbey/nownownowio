@@ -5,7 +5,8 @@ import { Input } from "@/components/core/input";
 import { useToast } from "@/components/feedback/use-toast";
 import { Check, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
-import { WidgetSettings, WidgetSettingsForm } from "./WidgetSettingsForm";
+import type { WidgetSettings} from "./WidgetSettingsForm";
+import { WidgetSettingsForm } from "./WidgetSettingsForm";
 import { Label } from "@/components/core/label";
 import { FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/core/form";
 import { useSession } from "next-auth/react";
@@ -283,14 +284,14 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
   };
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto pt-6">
+    <div className="mx-auto max-w-3xl space-y-8 pt-6">
       {/* Website URL Field */}
-      <div className="rounded-lg p-6 bg-card border border-border shadow-sm">
-        <h4 className="text-base font-medium mb-2 flex items-center gap-2">
-          <Globe className="h-4 w-4" />
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h4 className="mb-2 flex items-center gap-2 text-base font-medium">
+          <Globe className="size-4" />
           Website URL
         </h4>
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="mb-4 text-sm text-muted-foreground">
           Enter the website URL where you'll install the widget. The widget will only work on this domain.
         </p>
         
@@ -315,7 +316,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
               className={`w-full bg-background ${urlError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
             {urlError ? (
-              <p className="text-xs text-destructive flex items-center gap-1">
+              <p className="flex items-center gap-1 text-xs text-destructive">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-alert-circle">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="8" x2="12" y2="12"/>
@@ -332,15 +333,15 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
         </div>
       </div>
       
-      <div className="rounded-lg p-6 bg-card border border-border shadow-sm">
-        <h4 className="text-base font-medium mb-2">Widget Settings</h4>
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <h4 className="mb-2 text-base font-medium">Widget Settings</h4>
         <WidgetSettingsForm
           settings={settings}
           onChange={handleSettingsChange}
         />
       </div>
       
-      <div className="mt-8 p-6 bg-card rounded-lg space-y-4 border border-border shadow-sm">
+      <div className="mt-8 space-y-4 rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <h4 className="text-sm font-medium">Widget Script</h4>
           
@@ -350,9 +351,9 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
                 size="sm"
                 variant="outline"
                 onClick={copyToClipboard}
-                className="h-9 flex items-center gap-1"
+                className="flex h-9 items-center gap-1"
               >
-                {copied ? <Check className="h-4 w-4 mr-1" /> : null}
+                {copied ? <Check className="mr-1 size-4" /> : null}
                 {copied ? "Copied!" : "Copy to Clipboard"}
               </Button>
             )}
@@ -361,7 +362,7 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
               size="sm"
               onClick={generateScript}
               disabled={loading || isLoadingOrgData || isSavingWebsiteUrl || !websiteUrl}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="bg-blue-600 font-medium text-white hover:bg-blue-700"
             >
               {loading ? "Generating..." : "Generate Script"}
             </Button>
@@ -370,11 +371,11 @@ export function WidgetScriptGenerator({ orgSlug }: { orgSlug: string }) {
         </div>
 
         {script ? (
-          <pre className="p-3 bg-background border border-border rounded-md text-xs font-mono overflow-x-auto max-h-[200px] overflow-y-auto">
+          <pre className="max-h-[200px] overflow-auto rounded-md border border-border bg-background p-3 font-mono text-xs">
             {script}
           </pre>
         ) : (
-          <div className="text-sm text-muted-foreground text-center py-6">
+          <div className="py-6 text-center text-sm text-muted-foreground">
             Click "Generate Script" to create your widget integration code
           </div>
         )}

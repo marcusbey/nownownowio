@@ -197,7 +197,7 @@ export function MembersManagement({
       {/* Preview section (always visible) */}
       <div className="space-y-3">
         {members.slice(0, 3).map((member) => (
-          <div key={member.id} className="flex items-center justify-between p-3 rounded-md bg-muted/30">
+          <div key={member.id} className="flex items-center justify-between rounded-md bg-muted/30 p-3">
             <div className="flex items-center gap-3">
               <Avatar>
                 {member.user.image ? (
@@ -220,7 +220,7 @@ export function MembersManagement({
         ))}
         
         {members.length > 3 && (
-          <div className="text-sm text-muted-foreground text-center py-2">
+          <div className="py-2 text-center text-sm text-muted-foreground">
             + {members.length - 3} more members
           </div>
         )}
@@ -229,11 +229,11 @@ export function MembersManagement({
       {/* Invited Members Preview */}
       {invitedEmail.length > 0 && !isExpanded && (
         <div className="mt-4">
-          <h4 className="text-sm font-medium mb-2">Pending Invitations</h4>
+          <h4 className="mb-2 text-sm font-medium">Pending Invitations</h4>
           <div className="space-y-2">
             {invitedEmail.map((email, index) => (
               <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4" />
+                <Mail className="size-4" />
                 <span>{email}</span>
                 <Badge variant="secondary" className="ml-auto text-xs">Pending</Badge>
               </div>
@@ -243,7 +243,7 @@ export function MembersManagement({
       )}
       
       {/* Toggle button */}
-      <div className="flex justify-between items-center mt-6">
+      <div className="mt-6 flex items-center justify-between">
         <Button 
           variant="outline" 
           onClick={() => setIsExpanded(!isExpanded)}
@@ -251,12 +251,12 @@ export function MembersManagement({
         >
           {isExpanded ? (
             <>
-              <ChevronUp className="h-4 w-4" />
+              <ChevronUp className="size-4" />
               Hide Management
             </>
           ) : (
             <>
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="size-4" />
               Show Management
             </>
           )}
@@ -266,7 +266,7 @@ export function MembersManagement({
           <span className="text-sm font-medium">{members.length}/{maxMembers}</span>
           <Progress 
             value={(members.length / maxMembers) * 100} 
-            className="w-20 h-2 bg-primary/20" 
+            className="h-2 w-20 bg-primary/20" 
           />
         </div>
       </div>
@@ -278,7 +278,7 @@ export function MembersManagement({
           <div className="space-y-4">
             <h4 className="text-lg font-medium">Current Members</h4>
             
-            <div className="space-y-2 border rounded-md divide-y">
+            <div className="space-y-2 divide-y rounded-md border">
               {members.map((member) => (
                 <div
                   key={member.id}
@@ -337,9 +337,9 @@ export function MembersManagement({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            className="size-8 text-muted-foreground hover:text-destructive"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="size-4" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -376,7 +376,7 @@ export function MembersManagement({
             <div className="space-y-4">
               <h4 className="text-lg font-medium">Pending Invitations</h4>
               
-              <div className="space-y-2 border rounded-md divide-y">
+              <div className="space-y-2 divide-y rounded-md border">
                 {invitedEmail.map((email) => (
                   <div
                     key={email}
@@ -391,10 +391,10 @@ export function MembersManagement({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8"
+                      className="size-8"
                       onClick={() => handleCancelInvite(email)}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="size-4" />
                     </Button>
                   </div>
                 ))}
@@ -433,7 +433,7 @@ export function MembersManagement({
                   loading={inviteMutation.isPending}
                   type="submit" 
                   className="cursor-pointer"
-                  disabled={members.length >= maxMembers || (members.length + (invitedEmail?.length || 0)) >= maxMembers}
+                  disabled={members.length >= maxMembers || (members.length + (invitedEmail.length || 0)) >= maxMembers}
                 >
                   <Plus size={16} className="mr-2" />
                   Invite

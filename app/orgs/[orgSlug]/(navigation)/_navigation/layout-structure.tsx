@@ -30,7 +30,7 @@ export function LayoutStructure({ sidebar, children }: LayoutStructureProps) {
       <div className="flex h-dvh min-w-0 flex-1 flex-col overflow-hidden">
         <header className={`sticky top-0 z-20 flex h-16 shrink-0 items-center border-b px-4 shadow-sm ${HEADER_BG_CLASS}`}>
           <div className="flex items-center">
-            <SidebarTrigger className="size-8 text-foreground/80 hover:text-foreground transition-colors" />
+            <SidebarTrigger className="size-8 text-foreground/80 transition-colors hover:text-foreground" />
           </div>
           <div className="flex-1"></div>
         </header>
@@ -44,7 +44,7 @@ export function LayoutStructure({ sidebar, children }: LayoutStructureProps) {
       {/* Right Sidebar - Matching left sidebar background */}
       {!hideRightSidebar ? (
         <aside className={`h-dvh w-full shrink-0 overflow-y-auto border-l border-accent/10 ${SIDEBAR_BG_CLASS}`}>
-          <div className="sticky top-0 w-full h-full">
+          <div className="sticky top-0 size-full">
             <TrendsSidebar />
           </div>
         </aside>

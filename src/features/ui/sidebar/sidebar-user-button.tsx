@@ -5,14 +5,14 @@ import { UserDropdown } from "@/features/core/auth/user-dropdown";
 import { SignInButton } from "@/features/core/auth/sign-in-button";
 import { useEffect, useState } from "react";
 
-interface CachedUserData {
+type CachedUserData = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
   timestamp: number;
 }
 
-interface SessionUser {
+type SessionUser = {
   name?: string | null;
   email?: string | null;
   image?: string | null;

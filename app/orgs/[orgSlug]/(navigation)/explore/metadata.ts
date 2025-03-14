@@ -1,6 +1,6 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
-interface Props {
+type Props = {
   searchParams: { q?: string };
 }
 

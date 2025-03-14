@@ -4,11 +4,11 @@ import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollCon
 import Post from "@/features/social/posts/post";
 import PostsLoadingSkeleton from "@/features/social/posts/post-skeleton";
 import kyInstance from "@/lib/ky";
-import { PostsPage } from "@/lib/types";
+import type { PostsPage } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-interface SearchResultsProps {
+type SearchResultsProps = {
   query: string;
 }
 
@@ -22,7 +22,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
     status,
   } = useInfiniteQuery({
     queryKey: ["post-feed", "search", query],
-    queryFn: ({ pageParam }) =>
+    queryFn: async ({ pageParam }) =>
       kyInstance
         .get("/api/v1/search", {
           searchParams: {
@@ -61,7 +61,7 @@ export default function SearchResults({ query }: SearchResultsProps) {
   return (
     <InfiniteScrollContainer
       className="space-y-5"
-      onBottomReached={() => hasNextPage && !isFetching && fetchNextPage()}
+      onBottomReached={async () => hasNextPage && !isFetching && fetchNextPage()}
     >
       {posts.map((post) => (
         <Post key={post.id} post={post} />

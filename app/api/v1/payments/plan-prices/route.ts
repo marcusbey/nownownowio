@@ -3,7 +3,7 @@ import { getStripe, listAllPrices, listAllProducts } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { env } from "@/lib/env";
 
-export interface PlanPrice {
+export type PlanPrice = {
   id: string;
   productId: string;
   productName: string;
@@ -63,7 +63,7 @@ export async function GET() {
           
           // Extract plan type and billing cycle from metadata
           const planType = metadata.planType || productMetadata.planType || "UNKNOWN";
-          const billingCycle = metadata.billingCycle || price.recurring?.interval?.toUpperCase() || "UNKNOWN";
+          const billingCycle = metadata.billingCycle || price.recurring?.interval.toUpperCase() || "UNKNOWN";
           
           return {
             id: price.id,

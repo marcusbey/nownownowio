@@ -1,10 +1,11 @@
-import { motion, MotionValue, useTransform } from "framer-motion";
+import type { MotionValue} from "framer-motion";
+import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { SiteConfig } from "../../site-config";
 
-interface HeaderLogoProps {
+type HeaderLogoProps = {
   scrollYBoundedProgressDelayed: MotionValue<number>;
 }
 

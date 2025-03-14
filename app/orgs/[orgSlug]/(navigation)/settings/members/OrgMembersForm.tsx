@@ -54,7 +54,8 @@ import {
 import { Mail } from "lucide-react";
 import { SettingsCard } from "@/components/layout/SettingsLayout";
 import { PlanBuyButton } from "@/features/billing/payments/buy-button";
-import { PLAN_TYPES, PlanType } from "@/features/billing/plans/plans";
+import type { PlanType } from "@/features/billing/plans/plans";
+import { PLAN_TYPES } from "@/features/billing/plans/plans";
 import { ArrowUpCircle } from "lucide-react";
 
 type OrgMembersFormProps = {
@@ -181,7 +182,7 @@ export const OrgMembersForm = ({
     <div className="flex flex-col gap-10">
       {/* Current Members */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between bg-card/50 p-4 rounded-lg">
+        <div className="flex items-center justify-between rounded-lg bg-card/50 p-4">
           <div className="space-y-2">
             <Typography variant="h3" className="text-xl font-semibold tracking-tight">
               Current Members
@@ -195,7 +196,7 @@ export const OrgMembersForm = ({
               </span>
             </div>
           </div>
-          <Progress value={(members.length / maxMembers) * 100} className="w-[120px] h-2" />
+          <Progress value={(members.length / maxMembers) * 100} className="h-2 w-[120px]" />
         </div>
 
         <SettingsCard className="overflow-hidden border shadow-sm">
@@ -203,12 +204,12 @@ export const OrgMembersForm = ({
             {members.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between border-b p-5 last:border-0 hover:bg-muted/20 transition-colors"
+                className="flex items-center justify-between border-b p-5 transition-colors last:border-0 hover:bg-muted/20"
               >
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-10 w-10 border shadow-sm">
+                  <Avatar className="size-10 border shadow-sm">
                     <AvatarImage src={member.image ?? undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                    <AvatarFallback className="bg-primary/10 font-medium text-primary">
                       {member.name?.[0] ?? member.email[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -216,8 +217,8 @@ export const OrgMembersForm = ({
                     <Typography variant="default" className="font-medium">
                       {member.name ?? member.email}
                     </Typography>
-                    <Typography variant="small" className="text-muted-foreground flex items-center gap-1">
-                      <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                    <Typography variant="small" className="flex items-center gap-1 text-muted-foreground">
+                      <span className="inline-block size-2 rounded-full bg-green-500"></span>
                       {member.email}
                     </Typography>
                   </div>
@@ -245,9 +246,9 @@ export const OrgMembersForm = ({
                             (role) => (
                               <SelectItem key={role} value={role} className="text-sm">
                                 <div className="flex items-center gap-2">
-                                  {role === 'OWNER' && <span className="inline-block w-2 h-2 rounded-full bg-yellow-500"></span>}
-                                  {role === 'ADMIN' && <span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>}
-                                  {role === 'MEMBER' && <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>}
+                                  {role === 'OWNER' && <span className="inline-block size-2 rounded-full bg-yellow-500"></span>}
+                                  {role === 'ADMIN' && <span className="inline-block size-2 rounded-full bg-blue-500"></span>}
+                                  {role === 'MEMBER' && <span className="inline-block size-2 rounded-full bg-green-500"></span>}
                                   {role}
                                 </div>
                               </SelectItem>
@@ -266,9 +267,9 @@ export const OrgMembersForm = ({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              className="size-8 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="size-4" />
                             </Button>
                           </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -306,7 +307,7 @@ export const OrgMembersForm = ({
       {/* Pending Invitations */}
       {invitedEmail.length > 0 && (
         <div className="space-y-6">
-          <div className="space-y-2 bg-card/50 p-4 rounded-lg">
+          <div className="space-y-2 rounded-lg bg-card/50 p-4">
             <div className="flex items-center gap-2">
               <Typography variant="h3" className="text-xl font-semibold tracking-tight">
                 Pending Invitations
@@ -325,16 +326,16 @@ export const OrgMembersForm = ({
               {invitedEmail.map((email) => (
                 <div
                   key={email}
-                  className="flex items-center justify-between border-b p-5 last:border-0 hover:bg-muted/20 transition-colors"
+                  className="flex items-center justify-between border-b p-5 transition-colors last:border-0 hover:bg-muted/20"
                 >
                   <div className="flex items-center gap-4">
-                    <Avatar className="h-10 w-10 border shadow-sm">
-                      <AvatarFallback className="bg-amber-100 text-amber-700 font-medium">{email[0]}</AvatarFallback>
+                    <Avatar className="size-10 border shadow-sm">
+                      <AvatarFallback className="bg-amber-100 font-medium text-amber-700">{email[0]}</AvatarFallback>
                     </Avatar>
                     <div>
                       <Typography variant="default" className="font-medium">{email}</Typography>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                        <span className="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="inline-block size-2 rounded-full bg-amber-500"></span>
                         <span>Invitation pending</span>
                       </div>
                     </div>
@@ -345,10 +346,10 @@ export const OrgMembersForm = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                          className="size-8 transition-colors hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => handleCancelInvite(email)}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="size-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="left">
@@ -365,7 +366,7 @@ export const OrgMembersForm = ({
 
       {/* Invite New Members */}
       <div className="space-y-6">
-        <div className="space-y-2 bg-card/50 p-4 rounded-lg">
+        <div className="space-y-2 rounded-lg bg-card/50 p-4">
           <Typography variant="h3" className="text-xl font-semibold tracking-tight">
             Invite New Members
           </Typography>
@@ -374,7 +375,7 @@ export const OrgMembersForm = ({
           </Typography>
           {members.length >= maxMembers && (
             <Alert variant="destructive" className="mt-2">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <Typography variant="default" className="font-medium">
                   You've reached your member limit. Upgrade your plan to add more members.
                 </Typography>
@@ -394,7 +395,7 @@ export const OrgMembersForm = ({
           )}
         </div>
 
-        <SettingsCard className="border shadow-sm overflow-hidden">
+        <SettingsCard className="overflow-hidden border shadow-sm">
           <CardContent className="p-6">
             <OrganizationInviteMemberForm
               invitedEmail={invitedEmail}

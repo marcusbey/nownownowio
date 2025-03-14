@@ -7,7 +7,7 @@ import { useState } from "react";
 import { resendVerificationEmail } from "./resend.action";
 import { SiteConfig } from "@/site-config";
 
-interface VerifyContentProps {
+type VerifyContentProps = {
   email: string;
 }
 
@@ -34,11 +34,11 @@ export function VerifyContent({ email }: VerifyContentProps) {
   return (
     <Card className="w-full max-w-md border-2 shadow-lg">
       <CardHeader className="space-y-4 text-center">
-        <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-          <MailCheck className="w-8 h-8 text-primary animate-pulse" />
+        <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
+          <MailCheck className="size-8 animate-pulse text-primary" />
         </div>
         <div className="space-y-2">
-          <CardTitle className="text-2xl font-bold !mt-0">
+          <CardTitle className="!mt-0 text-2xl font-bold">
             Check Your Email!
           </CardTitle>
           <CardDescription className="text-base">
@@ -47,10 +47,10 @@ export function VerifyContent({ email }: VerifyContentProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="text-center space-y-4">
-        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+      <CardContent className="space-y-4 text-center">
+        <div className="space-y-2 rounded-lg bg-muted/50 p-4">
           <p className="text-sm font-medium">What to do next:</p>
-          <ol className="text-sm text-muted-foreground space-y-2 text-left list-decimal list-inside">
+          <ol className="list-inside list-decimal space-y-2 text-left text-sm text-muted-foreground">
             <li>Open your email inbox</li>
             <li>Look for an email from {SiteConfig.title}</li>
             <li>Click the verification link in the email</li>
@@ -60,13 +60,13 @@ export function VerifyContent({ email }: VerifyContentProps) {
 
         {toastState === 'success' && (
           <div className="flex items-center justify-center gap-2 text-sm text-primary">
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="size-4" />
             <span>New verification email sent!</span>
           </div>
         )}
         {toastState === 'error' && (
           <div className="flex items-center justify-center gap-2 text-sm text-destructive">
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="size-4" />
             <span>Failed to send email. Please try again.</span>
           </div>
         )}
@@ -75,19 +75,19 @@ export function VerifyContent({ email }: VerifyContentProps) {
       <CardFooter className="flex flex-col gap-4">
         <Button
           variant="outline"
-          className={`w-full relative overflow-hidden transition-all duration-200 ${toastState === 'success' ? 'bg-green-500 hover:bg-green-600 text-white ring-0 ring-offset-0 border-0' : ''}`}
+          className={`relative w-full overflow-hidden transition-all duration-200 ${toastState === 'success' ? 'border-0 bg-green-500 text-white ring-0 ring-offset-0 hover:bg-green-600' : ''}`}
           onClick={handleResendEmail}
           disabled={isResending}
         >
-          <div className={`flex items-center justify-center w-full gap-2 transition-transform duration-200 ${toastState === 'success' ? 'scale-0' : 'scale-100'}`}>
+          <div className={`flex w-full items-center justify-center gap-2 transition-transform duration-200 ${toastState === 'success' ? 'scale-0' : 'scale-100'}`}>
             {isResending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
                 <span>Sending verification email...</span>
               </>
             ) : (
               <>
-                <Send className="h-4 w-4" />
+                <Send className="size-4" />
                 <span>Resend verification email</span>
               </>
             )}
@@ -101,7 +101,7 @@ export function VerifyContent({ email }: VerifyContentProps) {
               ${toastState === 'success' ? 'scale-100' : 'scale-0'}
             `}
           >
-            <CheckCircle2 className="h-4 w-4" />
+            <CheckCircle2 className="size-4" />
             <span>Email sent successfully!</span>
           </div>
 
@@ -118,7 +118,7 @@ export function VerifyContent({ email }: VerifyContentProps) {
             }}
           />
         </Button>
-        <p className="text-xs text-center text-muted-foreground px-6">
+        <p className="px-6 text-center text-xs text-muted-foreground">
           Can't find the email? Check your spam folder or click above to resend.
           The verification link will expire in 24 hours.
         </p>

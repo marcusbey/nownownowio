@@ -50,8 +50,8 @@ export function PostCard({ post, className }: PostCardProps) {
               {formatDistanceToNow(post.createdAt, { addSuffix: true })}
             </span>
           </div>
-          <p className="whitespace-pre-wrap text-sm text-card-foreground py-2">{post.content}</p>
-          <div className="flex gap-4 pt-3 border-t mt-2">
+          <p className="whitespace-pre-wrap py-2 text-sm text-card-foreground">{post.content}</p>
+          <div className="mt-2 flex gap-4 border-t pt-3">
             <Button variant="ghost" size="sm" className="gap-1">
               <Heart className="size-4" />
               {post._count.likes}

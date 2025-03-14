@@ -4,7 +4,7 @@ import { Button } from "@/components/core/button";
 import { Newspaper, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
-interface EmptyFeedProps {
+type EmptyFeedProps = {
   context?: 'following' | 'profile' | 'default';
 }
 
@@ -34,13 +34,13 @@ export function EmptyFeed({ context = 'default' }: EmptyFeedProps) {
   const { title, description, action, icon: Icon = Newspaper } = messages[context];
 
   return (
-    <div className="flex flex-col items-center justify-center py-24 px-4">
-      <div className="p-5 rounded-full bg-muted/60 mb-6">
-        <Icon className="h-8 w-8 text-muted-foreground/80" />
+    <div className="flex flex-col items-center justify-center px-4 py-24">
+      <div className="mb-6 rounded-full bg-muted/60 p-5">
+        <Icon className="size-8 text-muted-foreground/80" />
       </div>
-      <div className="text-center space-y-2 mb-8">
-        <h3 className="font-medium text-lg text-foreground/80">{title}</h3>
-        <p className="text-sm text-muted-foreground/80 max-w-[320px] mx-auto leading-relaxed">
+      <div className="mb-8 space-y-2 text-center">
+        <h3 className="text-lg font-medium text-foreground/80">{title}</h3>
+        <p className="mx-auto max-w-[320px] text-sm leading-relaxed text-muted-foreground/80">
           {description}
         </p>
       </div>

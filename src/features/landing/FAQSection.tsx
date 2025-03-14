@@ -9,12 +9,12 @@ import {
 import { Typography } from "@/components/data-display/typography";
 import { motion } from "framer-motion";
 
-interface FAQ {
+type FAQ = {
   question: string;
   answer: string;
 }
 
-interface FaqSectionProps {
+type FaqSectionProps = {
   faq: FAQ[];
 }
 

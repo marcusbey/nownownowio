@@ -19,20 +19,22 @@ import {
 import { Input } from "@/components/core/input";
 import { Label } from "@/components/core/label";
 import { Textarea } from "@/components/core/textarea";
-import { UserData } from "@/lib/types";
+import type { UserData } from "@/lib/types";
+import type {
+  UpdateUserProfileValues} from "@/lib/validation";
 import {
-  updateUserProfileSchema,
-  UpdateUserProfileValues,
+  updateUserProfileSchema
 } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera } from "lucide-react";
-import Image, { StaticImageData } from "next/image";
+import type { StaticImageData } from "next/image";
+import Image from "next/image";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import Resizer from "react-image-file-resizer";
 import { useUpdateProfileMutation } from "./mutations";
 
-interface EditProfileDialogProps {
+type EditProfileDialogProps = {
   user: UserData;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -135,7 +137,7 @@ export default function EditProfileDialog({
   );
 }
 
-interface AvatarInputProps {
+type AvatarInputProps = {
   src: string | StaticImageData;
   onImageCropped: (blob: Blob | null) => void;
 }

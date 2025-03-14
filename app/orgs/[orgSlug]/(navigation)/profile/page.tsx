@@ -1,14 +1,14 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { getUserDataSelect, UserData } from "@/lib/types";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { cache } from "react";
 import UserPosts from "./UserPosts";
 import { getCurrentOrgCache } from "@/lib/react/cache";
 import ProfileHeader from "./ProfileHeader";
 import ClientProfile from "./ClientProfile";
 
-interface PageProps {
+type PageProps = {
   params: Promise<{ orgSlug: string }>;
 }
 

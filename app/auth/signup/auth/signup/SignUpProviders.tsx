@@ -16,7 +16,7 @@ export const SignUpProviders = () => {
     isPending,
     error,
   } = useQuery({
-    queryFn: () => fetch(`/api/auth/providers`).then((res) => res.json()),
+    queryFn: async () => fetch(`/api/auth/providers`).then(async (res) => res.json()),
     queryKey: ["providers"],
   });
 

@@ -22,8 +22,8 @@ export default function LandingPage() {
 
       {/* 1. Hero with communities banner */}
       <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-4 border-indigo-500 rounded-full animate-spin border-t-transparent"></div>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
         </div>
       }>
         <Hero />

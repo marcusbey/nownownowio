@@ -1,6 +1,6 @@
-import { Media, User } from "@prisma/client";
+import type { Media, User } from "@prisma/client";
 
-export interface PostData {
+export type PostData = {
   id: string;
   content: string;
   createdAt: Date;
@@ -13,7 +13,7 @@ export interface PostData {
   views?: number;
 }
 
-export interface PostFormData {
+export type PostFormData = {
   content: string;
   media?: File[];
 }

@@ -62,7 +62,7 @@ export default async function RouteLayout(
         <LayoutContent className="mt-4 w-full">
           <div className="flex gap-8">
             <SettingsSidebar orgSlug={orgSlug} />
-            <div className="flex-1 max-w-3xl">{props.children}</div>
+            <div className="max-w-3xl flex-1">{props.children}</div>
           </div>
         </LayoutContent>
       </Layout>

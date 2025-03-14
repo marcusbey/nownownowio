@@ -2,7 +2,7 @@
 
 import { PricingCards } from "@/features/billing/plans/pricing-section";
 
-interface PricingProps {
+type PricingProps = {
   userId?: string;
   userEmail?: string;
   organizationId?: string;

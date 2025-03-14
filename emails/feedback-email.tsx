@@ -1,6 +1,6 @@
 import * as React from "react";
 
-interface FeedbackEmailProps {
+type FeedbackEmailProps = {
   review: number;
   message: string;
 }

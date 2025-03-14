@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import { notificationsInclude } from "@/lib/types";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {

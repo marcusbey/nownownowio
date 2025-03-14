@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-interface UserLinkWithTooltipProps {
+type UserLinkWithTooltipProps = {
   username: string;
   children: React.ReactNode;
 }

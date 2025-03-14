@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { cn } from "@/lib/utils";
 
-interface SettingsPageProps {
+type SettingsPageProps = {
   children: React.ReactNode;
   className?: string;
 }
@@ -14,7 +14,7 @@ export function SettingsPage({ children, className }: SettingsPageProps) {
   );
 }
 
-interface SettingsCardProps {
+type SettingsCardProps = {
   children: React.ReactNode;
   className?: string;
   title?: string;
@@ -35,7 +35,7 @@ export function SettingsCard({ children, className, title, description }: Settin
   );
 }
 
-interface SettingsSectionProps {
+type SettingsSectionProps = {
   children: React.ReactNode;
   className?: string;
 }

@@ -5,13 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Settings, CreditCard, User } from "lucide-react";
 
-interface SettingsTab {
+type SettingsTab = {
   id: string;
   label: string;
   href: string;
 }
 
-interface SettingsTabsProps {
+type SettingsTabsProps = {
   orgSlug: string;
   tabs: SettingsTab[];
 }
@@ -64,7 +64,7 @@ export function SettingsTabs({ orgSlug, tabs }: SettingsTabsProps) {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="size-4" />
               {tab.label}
             </Link>
           );

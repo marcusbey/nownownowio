@@ -3,7 +3,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { Button } from "@/components/core/button";
 import { CheckCircle2, XCircle } from "lucide-react";
-import Link from "next/link";
 import { useOrganization } from "@/query/org/org.query";
 import { PLANS } from "@/features/billing/plans/plans";
 import type { BillingCycle, PlanType } from "@/features/billing/plans/plans";
@@ -386,7 +385,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                       {/* Plan Name and Price */}
                       <h3 className="text-xl font-semibold">{plan.name}</h3>
                       <div className="mt-2">
-                        <span className="text-3xl font-bold">${price}</span>
+                        <span className="text-3xl font-bold">${typeof price === 'object' && 'amount' in price ? price.amount : (price || 0)}</span>
                         <span className="ml-1 text-muted-foreground">{priceSuffix}</span>
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">
@@ -443,7 +442,7 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                             return (
                               <Button 
                                 variant="outline"
-                                className="w-full border-2 border-primary/50 text-primary font-medium hover:bg-primary/10"
+                                className="w-full border-2 border-primary/50 font-medium text-primary hover:bg-primary/10"
                                 disabled
                               >
                                 Current Plan

@@ -12,7 +12,8 @@ import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { cn } from "@/lib/utils";
 import { SiteConfig } from "@/site-config";
 import { useMutation } from "@tanstack/react-query";
-import { PropsWithChildren, useState } from "react";
+import type { PropsWithChildren} from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { LoadingButton } from "../form/submit-button";
 import { NativeTargetBox } from "./native-target-box";
@@ -41,13 +42,13 @@ export const ImageFormItem = ({
       {currentImage ? (
         <img
           src={currentImage}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 size-full object-cover"
           alt="Organization logo"
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
           <svg
-            className="h-12 w-12"
+            className="size-12"
             fill="none"
             height="24"
             stroke="currentColor"

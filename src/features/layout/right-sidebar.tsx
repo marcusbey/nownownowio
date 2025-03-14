@@ -29,11 +29,11 @@ export function TrendsSidebar() {
   const isAuthenticated = mounted && status === "authenticated";
 
   return (
-    <div className="sticky top-0 size-full overflow-y-auto px-4 py-6 bg-transparent">
+    <div className="sticky top-0 size-full overflow-y-auto bg-transparent px-4 py-6">
       {/* Search and Filters Section */}
       <div
-        className="space-y-4 rounded-xl p-4
-        shadow-sm ring-1 ring-primary/5 backdrop-blur-sm bg-background/20"
+        className="space-y-4 rounded-xl bg-background/20
+        p-4 shadow-sm ring-1 ring-primary/5 backdrop-blur-sm"
       >
         <SearchField />
       </div>

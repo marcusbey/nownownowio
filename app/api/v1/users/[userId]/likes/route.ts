@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { validateRequest } from "@/lib/auth/helper";
 import { PrismaClient } from "@prisma/client";
-import { PostsPage } from "@/lib/types";
+import type { PostsPage } from "@/lib/types";
 import { getPostsWithUserData } from "@/lib/api/posts";
 
 const prisma = new PrismaClient();

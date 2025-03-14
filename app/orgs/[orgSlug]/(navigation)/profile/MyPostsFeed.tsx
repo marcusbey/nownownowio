@@ -4,11 +4,11 @@ import InfiniteScrollContainer from "@/components/data-display/InfiniteScrollCon
 import Post from "@/features/social/posts/post";
 import PostsLoadingSkeleton from "@/features/social/posts/post-skeleton";
 import kyInstance from "@/lib/ky";
-import { PostsPage } from "@/lib/types";
+import type { PostsPage } from "@/lib/types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-interface MyPostsFeedProps {
+type MyPostsFeedProps = {
   userId: string;
 }
 
@@ -42,8 +42,8 @@ export default function MyPostsFeed({ userId }: MyPostsFeedProps) {
 
   return (
     <InfiniteScrollContainer
-      className="no-scrollbar h-full overflow-y-auto space-y-6 p-4"
-      onBottomReached={() =>
+      className="no-scrollbar h-full space-y-6 overflow-y-auto p-4"
+      onBottomReached={async () =>
         hasNextPage && !isFetchingNextPage && fetchNextPage()
       }
     >

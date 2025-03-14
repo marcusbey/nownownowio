@@ -3,7 +3,8 @@ import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { hashStringWithSalt } from "@/lib/auth/credentials-provider";
 import { env } from "@/lib/env";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // Schema for password validation

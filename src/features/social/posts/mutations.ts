@@ -40,7 +40,7 @@ export function useDeletePostMutation() {
 
       // Cancel all relevant queries
       await Promise.all(
-        queryKeys.map(key => 
+        queryKeys.map(async key => 
           queryClient.cancelQueries({ queryKey: key, exact: false })
         )
       );
@@ -65,7 +65,7 @@ export function useDeletePostMutation() {
 
       // Invalidate queries to trigger refetch if needed
       await Promise.all(
-        queryKeys.map(key => 
+        queryKeys.map(async key => 
           queryClient.invalidateQueries({ queryKey: key, exact: false })
         )
       );
@@ -121,7 +121,7 @@ export function useTogglePinPostMutation(): ReturnType<typeof useMutation> {
 
       // Cancel all relevant queries
       await Promise.all(
-        queryKeys.map(key => 
+        queryKeys.map(async key => 
           queryClient.cancelQueries({ queryKey: key, exact: false })
         )
       );
@@ -148,7 +148,7 @@ export function useTogglePinPostMutation(): ReturnType<typeof useMutation> {
 
       // Invalidate queries to trigger refetch if needed
       await Promise.all(
-        queryKeys.map(key => 
+        queryKeys.map(async key => 
           queryClient.invalidateQueries({ queryKey: key, exact: false })
         )
       );
