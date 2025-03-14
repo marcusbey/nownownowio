@@ -33,6 +33,7 @@ type OrganizationResponse = {
     image: string | null;
     websiteUrl: string | null;
     stripeCustomerId: string | null;
+    planChangedAt: string | null;
     roles: string[];
   };
 }

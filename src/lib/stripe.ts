@@ -3,21 +3,39 @@
 import { env } from "@/lib/env";
 import Stripe from "stripe";
 import { logger } from "./logger";
+import { getStripeEnvVar } from "./stripe-env";
 
+// This function initializes and returns a Stripe instance
+// It's exported for use in API routes that need direct access
 export async function getStripeInstance(): Promise<Stripe> {
-  const stripeKey =
-    env.NODE_ENV === "production"
-      ? env.STRIPE_SECRET_KEY
-      : env.STRIPE_SECRET_KEY_TEST;
+  // Always try to get the key from .env.stripe first for test environment
+  const stripeKeyEnv = env.NODE_ENV === "production" ? "STRIPE_SECRET_KEY" : "STRIPE_SECRET_KEY_TEST";
+  
+  // First try to get from .env.stripe file
+  let stripeKey = await getStripeEnvVar(stripeKeyEnv);
+  
+  // Log the source of the key
+  if (stripeKey) {
+    logger.info(`Using Stripe key from .env.stripe file (${stripeKeyEnv})`);
+  } else {
+    // Fall back to regular env variables only if not found in .env.stripe
+    stripeKey = env.NODE_ENV === "production" ? env.STRIPE_SECRET_KEY : env.STRIPE_SECRET_KEY_TEST;
+    if (stripeKey) {
+      logger.info(`Using Stripe key from regular env variables (${stripeKeyEnv})`);
+    } else {
+      logger.warn(`No Stripe key found in either .env.stripe or regular env variables (${stripeKeyEnv})`);
+    }
+  }
 
-  if (!stripeKey) {
-    const message = `Missing Stripe secret key for ${env.NODE_ENV} environment`;
+  // Check for missing or malformed API key
+  if (!stripeKey || stripeKey.trim() === "" || !stripeKey.startsWith("sk_")) {
+    const message = `Missing or invalid Stripe secret key for ${env.NODE_ENV} environment`;
     logger.error(message);
     
-    // In development, we can use a dummy key for testing UI without actual API calls
-    if (env.NODE_ENV === "development") {
-      logger.warn("Using dummy Stripe instance for development. API calls will fail gracefully.");
-      return Promise.resolve(new Stripe("sk_test_dummy_key_for_development", {
+    // In development or test, we can use a dummy key for testing UI without actual API calls
+    if (env.NODE_ENV !== "production") {
+      logger.warn("Using dummy Stripe instance for non-production environment. API calls will fail gracefully.");
+      return Promise.resolve(new Stripe("sk_test_51MxDummyKeyForDevelopmentEnvironment", {
         apiVersion: "2024-12-18.acacia",
         typescript: true,
         telemetry: false,
@@ -27,16 +45,38 @@ export async function getStripeInstance(): Promise<Stripe> {
     throw new Error(message);
   }
 
-  const stripe = new Stripe(stripeKey, {
-    apiVersion: "2024-12-18.acacia",
-    typescript: true,
-    telemetry: false,
-  });
-  return Promise.resolve(stripe);
+  try {
+    const stripe = new Stripe(stripeKey, {
+      apiVersion: "2024-12-18.acacia",
+      typescript: true,
+      telemetry: false,
+    });
+    return Promise.resolve(stripe);
+  } catch (error) {
+    logger.error("Error initializing Stripe client", { error });
+    
+    // In development or test, use dummy instance as fallback
+    if (env.NODE_ENV !== "production") {
+      logger.warn("Falling back to dummy Stripe instance due to initialization error");
+      return Promise.resolve(new Stripe("sk_test_51MxDummyKeyForDevelopmentEnvironment", {
+        apiVersion: "2024-12-18.acacia",
+        typescript: true,
+        telemetry: false,
+      }));
+    }
+    
+    throw error;
+  }
 }
 
+// Cached instance for client components
 let _stripe: Stripe | null = null;
 
+// Export a function that returns the Stripe instance for API routes
+// This avoids top-level await which isn't supported in the current TypeScript config
+export const getServerStripe = getStripeInstance;
+
+// This function is for client components that need to get the Stripe instance
 export async function getStripe(): Promise<Stripe> {
   if (!_stripe) {
     _stripe = await getStripeInstance();

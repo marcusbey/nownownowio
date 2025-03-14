@@ -106,7 +106,7 @@ export const buyButtonAction = action
           priceId,
         },
         success_url: createSearchParamsMessageUrl(
-          `${getServerUrl()}/orgs/${orgSlug}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
+          `${getServerUrl()}/orgs/${orgSlug}/settings/plan?session_id={CHECKOUT_SESSION_ID}`,
           "Your payment has been successful",
           "success"
         ),
@@ -228,7 +228,7 @@ export const checkoutPlanAction = action
           priceId,
         },
         success_url: createSearchParamsMessageUrl(
-          `${getServerUrl()}/orgs/${orgSlug}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
+          `${getServerUrl()}/orgs/${orgSlug}/settings/plan?session_id={CHECKOUT_SESSION_ID}`,
           "Your payment has been successful",
           "success"
         ),

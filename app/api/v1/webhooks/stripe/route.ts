@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/switch-exhaustiveness-check */
 import { logger } from "@/lib/logger";
-import { stripe } from "@/lib/stripe";
+import { getServerStripe } from "@/lib/stripe";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -75,6 +75,7 @@ async function onCheckoutSessionCompleted(object: Stripe.Checkout.Session) {
   // ✅ Grant access to your service
   const organization = await findOrganizationFromCustomer(object.customer);
 
+  const stripe = await getServerStripe();
   const lineItems = await stripe.checkout.sessions.listLineItems(object.id, {
     limit: 1,
   });

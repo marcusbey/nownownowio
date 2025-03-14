@@ -41,6 +41,7 @@ export const OrgSelectQuery = (userId: string) =>
     image: true,
     websiteUrl: true,
     stripeCustomerId: true,
+    planChangedAt: true,
     members: {
       where: {
         userId: userId,

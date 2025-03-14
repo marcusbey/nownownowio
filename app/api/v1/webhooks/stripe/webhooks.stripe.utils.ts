@@ -1,6 +1,6 @@
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
-import { stripe } from "@/lib/stripe";
+import { getServerStripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 import type { Stripe } from "stripe";
 
@@ -13,11 +13,12 @@ export async function constructStripeEvent(
 
   const isProduction = process.env.NODE_ENV === "production";
   const webhookSecret = isProduction
-    ? env.STRIPE_WEBHOOK_SECRET_LIVE
-    : env.STRIPE_WEBHOOK_SECRET_TEST;
+    ? env.STRIPE_WEBHOOK_SECRET_LIVE ?? ''
+    : env.STRIPE_WEBHOOK_SECRET_TEST ?? '';
 
   let event: Stripe.Event | null = null;
   try {
+    const stripe = await getServerStripe();
     event = stripe.webhooks.constructEvent(
       body,
       stripeSignature ?? "",
