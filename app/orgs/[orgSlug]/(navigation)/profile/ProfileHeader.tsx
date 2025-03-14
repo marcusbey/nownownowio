@@ -86,9 +86,9 @@ export default function ProfileHeader({ user, orgSlug }: ProfileHeaderProps) {
           <div className="space-y-4">
             <div>
               <h1 className="text-2xl font-bold">
-                {user.displayName || user.name}
+                {user.name}
               </h1>
-              <p className="text-muted-foreground">@{user.name}</p>
+              <p className="text-muted-foreground">@{user.displayName}</p>
             </div>
 
             {user.bio && (
