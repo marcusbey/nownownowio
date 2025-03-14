@@ -25,33 +25,34 @@ export async function POST(request: Request) {
     const email = body.email.toLowerCase().trim();
     logger.info('Calling resendVerificationEmail', { email });
     
-    const result = await resendVerificationEmail({ 
-      input: { 
-        email
-      } 
-    });
-    
-    if (!result.success && result.serverError) {
-      logger.error('Server error', { error: result.serverError });
+    try {
+      const result = await resendVerificationEmail({ 
+        input: { 
+          email
+        } 
+      });
+      
+      logger.info('Action result', { result });
+      
       return NextResponse.json({ 
-        error: result.serverError 
-      }, { status: 500 });
+        success: true, 
+        message: "Verification email sent",
+        result
+      });
+    } catch (error) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        logger.error('Action returned error', { error });
+        return NextResponse.json({ 
+          error: error.message,
+          details: error
+        }, { status: 400 });
+      }
     }
-    logger.info('Action result', { result });
     
-    if (result.error) {
-      logger.error('Action returned error', { error: result.error });
-      return NextResponse.json({ 
-        error: result.error.message,
-        details: result.error
-      }, { status: 400 });
-    }
-    
+    // If we reach here, there was an unknown error
     return NextResponse.json({ 
-      success: true, 
-      message: "Verification email sent",
-      result: result
-    });
+      error: "An unknown error occurred"
+    }, { status: 500 });
   } catch (error) {
     logger.error('Failed to process request', {
       error,

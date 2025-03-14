@@ -178,6 +178,58 @@ export async function createBillingPortalSession(params: Stripe.BillingPortal.Se
   return stripe.billingPortal.sessions.create(params);
 }
 
+// Promotion code management
+export async function createBulkPromotionCode(params: {
+  couponId: string;
+  count: number;
+  prefix?: string;
+}): Promise<Stripe.PromotionCode[]> {
+  const { couponId, count, prefix } = params;
+  const stripe = await getStripeInstance();
+  const codes: Stripe.PromotionCode[] = [];
+  
+  try {
+    // Create multiple promotion codes with the same coupon
+    // Use Promise.all to avoid await in loop
+    const codePromises = Array.from({ length: count }, async () => {
+      return stripe.promotionCodes.create({
+        coupon: couponId,
+        code: `${prefix ?? ''}${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+        max_redemptions: 1,
+      });
+    });
+    
+    const results = await Promise.all(codePromises);
+    codes.push(...results);
+    
+    return codes;
+  } catch (error) {
+    logger.error('Error creating bulk promotion codes:', error);
+    throw error;
+  }
+}
+
+export async function getPromotionCodeStats(codeId: string): Promise<{
+  totalRedemptions: number;
+  isActive: boolean;
+  maxRedemptions: number | null;
+}> {
+  const stripe = await getStripeInstance();
+  
+  try {
+    const promotionCode = await stripe.promotionCodes.retrieve(codeId);
+    
+    return {
+      totalRedemptions: promotionCode.times_redeemed || 0,
+      isActive: promotionCode.active,
+      maxRedemptions: promotionCode.max_redemptions,
+    };
+  } catch (error) {
+    logger.error('Error getting promotion code stats:', error);
+    throw error;
+  }
+}
+
 // Helper function to get price ID by plan type and billing cycle
 export async function getPriceIdByPlan(planType: string, billingCycle: string): Promise<string> {
   // Determine if we're using live mode or test mode

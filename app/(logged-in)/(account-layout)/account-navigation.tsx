@@ -35,8 +35,7 @@ export async function AccountNavigation({
                   Email not verified. Please verify your email.
                 </AlertTitle>
                 <VerifyEmailButton
-                  variant="invert"
-                  className="ml-auto flex h-6 w-fit items-center gap-1 rounded-md px-3 text-sm"
+                  variant="invert"                  className="ml-auto flex h-6 w-fit items-center gap-1 rounded-md px-3 text-sm"
                 />
               </Alert>
             </Layout>

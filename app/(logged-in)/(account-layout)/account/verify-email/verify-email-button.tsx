@@ -7,7 +7,7 @@ import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { createVerifyEmailAction } from "./verify-email.action";
 
-export const VerifyEmailButton = (props: ButtonProps) => {
+export const VerifyEmailButton = (props: Omit<ButtonProps, 'onClick'> & { variant?: string }) => {
   const mutation = useMutation({
     mutationFn: async () => {
       const result = await createVerifyEmailAction();
@@ -24,9 +24,9 @@ export const VerifyEmailButton = (props: ButtonProps) => {
   return (
     <LoadingButton
       loading={mutation.isPending}
-      variant="invert"
+      variant={props.variant ?? "secondary"}
       size="sm"
-      onClick={() => mutation.mutate()}
+      onClick={() => { mutation.mutate(); }}
       {...props}
     >
       {mutation.isError ? <X size={16} className="mr-2" /> : null}

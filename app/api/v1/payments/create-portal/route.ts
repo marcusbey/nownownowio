@@ -1,12 +1,13 @@
 import { env } from "@/lib/env";
-import { getStripe } from "@/lib/stripe";
+import { getStripeInstance } from "@/lib/stripe";
+import { logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth/helper";
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await auth();
+    if (!user) {
       return new Response("Unauthorized", { status: 401 });
     }
 
@@ -25,14 +26,15 @@ export async function POST(req: Request) {
     }
 
     // Create Stripe billing portal session
+    const stripe = await getStripeInstance();
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: organization.stripeCustomerId,
-      return_url: `${env.NEXT_PUBLIC_APP_URL}/orgs/${organization.slug}/settings/billing`,
+      return_url: `${env.NEXT_PUBLIC_BASE_URL}/orgs/${organization.slug}/settings/billing`,
     });
 
     return new Response(JSON.stringify({ url: portalSession.url }));
   } catch (error) {
-    console.error("Stripe portal error:", error);
+    logger.error("Stripe portal error:", { error });
     return new Response("Internal server error", { status: 500 });
   }
 }

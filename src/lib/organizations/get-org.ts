@@ -96,6 +96,7 @@ export async function getCurrentOrgBySlug(orgSlug: string, roles?: OrganizationM
       image: true,
       websiteUrl: true,
       stripeCustomerId: true,
+      planChangedAt: true,
       members: {
         where: {
           userId: userId

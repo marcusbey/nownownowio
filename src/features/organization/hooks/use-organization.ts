@@ -17,6 +17,12 @@ export function useOrganization() {
                     name: string;
                     slug: string;
                     image: string | null;
+                    planChangedAt: string | null;
+                    plan?: {
+                        id: string;
+                        type: string;
+                        createdAt: string;
+                    };
                 }>();
             return response;
         },

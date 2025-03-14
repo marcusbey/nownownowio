@@ -2,6 +2,9 @@ import { z } from "zod";
 import { PLAN_TYPES, BILLING_CYCLES, FALLBACK_PRICES } from "./fallback-prices";
 import { env } from "@/lib/env";
 
+// Re-export constants from fallback-prices
+export { PLAN_TYPES, BILLING_CYCLES } from "./fallback-prices";
+
 // Import types from Prisma schema
 // These are the enum values defined in the Prisma schema
 

@@ -9,7 +9,7 @@ import {
 import { ContactSupportDialog } from "@/features/communication/contact/support/contact-support-dialog";
 import { requiredAuth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";
-import * as resend from "@/lib/mail/resend";
+import { getContactWrapper } from "@/lib/mail/resend";
 import { combineWithParentMetadata } from "@/lib/metadata";
 import { ToggleEmailCheckbox } from "./toggle-email-checkbox";
 
@@ -29,7 +29,7 @@ export default async function MailProfilePage() {
     return <ErrorComponent />;
   }
 
-  const { data: resendUser } = await resend.contacts.get({
+  const { data: resendUser } = await getContactWrapper({
     audienceId: env.RESEND_AUDIENCE_ID,
     id: user.resendContactId,
   });

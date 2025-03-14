@@ -58,10 +58,7 @@ export async function middleware(req: NextRequest) {
     pathname === route || pathname.startsWith(`${route}/`)
   );
 
-  console.log(`Is protected route: ${isProtectedRoute}`);
-
   if (isProtectedRoute && !authCookie) {
-    console.log(`Redirecting unauthenticated user to landing page from ${pathname}`);
     // Redirect unauthenticated users to the landing page (root URL)
     const url = new URL('/', req.url);
     return NextResponse.redirect(url.toString());
@@ -74,7 +71,6 @@ export async function middleware(req: NextRequest) {
     SiteConfig.features.enableLandingRedirection
   ) {
     if (authCookie) {
-      console.log('Authenticated user on landing page, trying to redirect to org');
       // Get user's first organization from the database
       try {
         const response = await fetch(`${req.nextUrl.origin}${ENDPOINTS.ORGANIZATION_FIRST}`, {

@@ -1,27 +1,22 @@
 "use server";
 
 import { NextResponse } from "next/server";
-import { authAction } from "@/lib/actions/safe-actions";
 import { createBulkPromotionCode, getPromotionCodeStats } from "@/lib/stripe";
 import { z } from "zod";
 
-const PromotionCodeSchema = z.object({
-  campaignName: z.string(),
-  maxRedemptions: z.number().min(1).optional(),
+export type PromotionCodeInput = z.object({
+  couponId: z.string(),
+  count: z.number().min(1),
+  prefix: z.string().optional(),
   expiresInDays: z.number().optional(),
-});
-
-export type PromotionCodeInput = z.infer<typeof PromotionCodeSchema>;
+}).infer;
 
 async function createPromotionCode(input: PromotionCodeInput) {
-  const expiresAt = input.expiresInDays
-    ? Math.floor(Date.now() / 1000) + input.expiresInDays * 24 * 60 * 60
-    : undefined;
 
   const promotionCode = await createBulkPromotionCode({
-    campaignName: input.campaignName,
-    maxRedemptions: input.maxRedemptions,
-    expiresAt,
+    couponId: input.couponId,
+    count: input.count,
+    prefix: input.prefix,
   });
 
   return promotionCode;

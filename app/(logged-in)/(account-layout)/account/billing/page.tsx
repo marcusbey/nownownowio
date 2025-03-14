@@ -21,5 +21,9 @@ export default async function RoutePage() {
     notFound();
   }
 
-  return <BillingPage params={{ orgSlug: org.slug }} />;
+  // In Next.js 15, both params and searchParams are required and must be Promises
+  return <BillingPage 
+    params={Promise.resolve({ orgSlug: org.slug })} 
+    searchParams={Promise.resolve({})} 
+  />;
 }

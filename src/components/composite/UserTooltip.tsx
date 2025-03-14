@@ -15,7 +15,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import type { PropsWithChildren } from "react";
 import { useMemo } from "react";
-import type { Session } from "next-auth";
+
 
 type UserTooltipProps = {
   user: UserData;
@@ -28,10 +28,10 @@ export default function UserTooltip({ children, user }: UserTooltipProps) {
     () => {
       // Calculate followerState inside useMemo to avoid dependency changes
       const followerState: FollowerInfo = {
-        followers: user._count.followers ?? 0,
-        isFollowedByUser: user.followers.some(
-          ({ followerId }) => followerId === session?.user?.id,
-        ) ?? false,
+        followers: user._count?.followers || 0,
+        isFollowedByUser: Boolean(user.followers?.some(
+          ({ followerId }) => followerId === session?.user?.id
+        )),
       };
       
       return (

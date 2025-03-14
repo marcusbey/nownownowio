@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { Button } from "@/components/core/button";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { useOrganization } from "@/query/org/org.query";
 import { PLANS } from "@/features/billing/plans/plans";
 import type { BillingCycle, PlanType } from "@/features/billing/plans/plans";
@@ -38,16 +38,6 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   // Use the plan pricing context
   const { isLoading: isPricesLoading, getPriceAmount } = usePlanPricing();
   
-  // Debug information is shown in the UI for development mode only
-
-  // Debug information is shown in the UI for development mode only
-
-  // Log the organization object to debug
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('Organization object:', organization);
-  }
-
   // The organization has a nested plan object with all the plan details
   // Extract the plan details directly from the organization.plan object using optional chaining
   const planId = organization?.plan?.id ?? 'FREE';
@@ -83,12 +73,6 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
   useEffect(() => {
     // Set the billing period based on the plan billing cycle
     setBillingPeriod(planBillingCycle);
-    
-    // For debugging
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('Setting billing period to:', planBillingCycle);
-    }
   }, [planBillingCycle]);
   
   // Calculate trial period information and determine if user is on trial
@@ -109,11 +93,6 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
           expiryDate: null
         });
         
-        // For debugging
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.log('Plan purchased, no trial period shown');
-        }
         return;
       }
       
@@ -126,12 +105,6 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
         daysLeft: Math.max(0, daysLeft),
         expiryDate: trialEndDate
       });
-      
-      // For debugging
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('Trial info:', { trialStartDate, trialEndDate, daysLeft, hasPurchasedPlan });
-      }
     }
   }, [organization, planId]);
   
@@ -156,12 +129,6 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                  billingCycle === "YEARLY" || billingCycle === "ANNUAL" ? " (Annual)" : 
                  billingCycle === "LIFETIME" ? " (Lifetime)" : 
                  organization?.plan?.billingCycle === "LIFETIME" ? " (Lifetime)" : "";
-    }
-    
-    // For debugging
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('Plan display name:', { planName, planType, billingCycle, orgPlan: organization?.plan });
     }
     
     return planName;
@@ -217,15 +184,37 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
                   Free Bird
                 </Badge>
               )}
-              {/* Show trial badge if plan is not FREE */}
+              
+              {/* Show appropriate badge based on plan status */}
               {currentPlanId && !currentPlanId.startsWith('FREE') && (
-                <Badge variant="outline" className="bg-green-100 text-green-800">
-                  7-day Trial
-                </Badge>
+                <>
+                  {/* Trial active */}
+                  {trialInfo.daysLeft > 0 && !organization?.planChangedAt && (
+                    <Badge variant="outline" className="bg-green-100 text-green-800">
+                      Trial Active
+                    </Badge>
+                  )}
+                  
+                  {/* Trial expired */}
+                  {trialInfo.daysLeft === 0 && !organization?.planChangedAt && (
+                    <Badge variant="outline" className="bg-amber-100 text-amber-800">
+                      Trial Expired
+                    </Badge>
+                  )}
+                  
+                  {/* Paid plan */}
+                  {organization?.planChangedAt && (
+                    <Badge variant="outline" className="bg-primary/10 text-primary">
+                      Paid Plan
+                    </Badge>
+                  )}
+                </>
               )}
-              {currentPlan && (
-                <Badge variant="outline" className="bg-primary/10 text-primary">
-                  Active Plan
+              
+              {/* Free plan */}
+              {currentPlanId && currentPlanId.startsWith('FREE') && (
+                <Badge variant="outline" className="bg-slate-100 text-slate-800">
+                  Free Plan
                 </Badge>
               )}
             </div>
@@ -235,32 +224,128 @@ export function SettingsPlanContent({ orgSlug }: SettingsPlanContentProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Show trial info if on a paid plan */}
+          {/* Plan status information box */}
           {currentPlanId && !currentPlanId.startsWith('FREE') && (
-            <div className="rounded-md bg-primary/5 p-3 text-sm">
-              <p className="font-medium">
-                {trialInfo.daysLeft > 0 
-                  ? `Your 7-day free trial is active - ${trialInfo.daysLeft} ${trialInfo.daysLeft === 1 ? 'day' : 'days'} remaining` 
-                  : 'Your trial period has ended'}
-              </p>
-              <p className="mt-1 text-muted-foreground">
-                {trialInfo.daysLeft > 0 
-                  ? `You'll have full access to all features until ${trialInfo.expiryDate ? format(trialInfo.expiryDate, 'MMMM d, yyyy') : ''}. No credit card required.`
-                  : 'Please upgrade your plan to continue using premium features.'}
-              </p>
-              {trialInfo.daysLeft <= 2 && trialInfo.daysLeft > 0 && (
-                <div className="mt-2">
-                  <BuyButton
-                    planType={planType as PlanType}
-                    billingCycle={planBillingCycle as BillingCycle}
-                    orgSlug={orgSlug}
-                    size="sm"
-                    variant="default"
-                  >
-                    Upgrade Now
-                  </BuyButton>
+            <>
+              {/* SCENARIO 1: Trial is active */}
+              {trialInfo.daysLeft > 0 && !organization?.planChangedAt && (
+                <div className="border rounded-md border-green-100 bg-green-50 p-3 text-xs">
+                  <div className="flex items-center">
+                    <div className="mr-2 rounded-full bg-green-100 p-1">
+                      <Clock className="size-3 text-green-600" />
+                    </div>
+                    <p className="font-medium text-green-800">
+                      Your 7-day free trial is active
+                    </p>
+                  </div>
+                  <div className="mt-2 pl-6">
+                    <p className="text-green-700">
+                      {`${trialInfo.daysLeft} ${trialInfo.daysLeft === 1 ? 'day' : 'days'} remaining - expires on ${trialInfo.expiryDate ? format(trialInfo.expiryDate, 'MMMM d, yyyy') : ''}`}
+                    </p>
+                    <p className="mt-1 text-green-600">
+                      You have full access to all premium features during your trial. No credit card required.
+                    </p>
+                    {trialInfo.daysLeft <= 2 && (
+                      <div className="mt-3">
+                        <BuyButton
+                          planType={planType as PlanType}
+                          billingCycle={planBillingCycle as BillingCycle}
+                          orgSlug={orgSlug}
+                          size="sm"
+                          variant="default"
+                          className="w-full bg-green-600 hover:bg-green-700"
+                        >
+                          Upgrade Now
+                        </BuyButton>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
+              
+              {/* SCENARIO 2: Trial has expired */}
+              {trialInfo.daysLeft === 0 && !organization?.planChangedAt && (
+                <div className="border rounded-md border-amber-100 bg-amber-50 p-3 text-xs">
+                  <div className="flex items-center">
+                    <div className="mr-2 rounded-full bg-amber-100 p-1">
+                      <XCircle className="size-3 text-amber-600" />
+                    </div>
+                    <p className="font-medium text-amber-800">
+                      Your trial period has ended
+                    </p>
+                  </div>
+                  <div className="mt-2 pl-6">
+                    <p className="text-amber-700">
+                      Your access to premium features has been limited. Upgrade now to restore full functionality.
+                    </p>
+                    <div className="mt-3">
+                      <BuyButton
+                        planType={planType as PlanType}
+                        billingCycle={planBillingCycle as BillingCycle}
+                        orgSlug={orgSlug}
+                        size="sm"
+                        variant="default"
+                        className="w-full bg-amber-600 hover:bg-amber-700"
+                      >
+                        Upgrade Now
+                      </BuyButton>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* SCENARIO 3: Paid plan is active */}
+              {organization?.planChangedAt && (
+                <div className="border rounded-md border-primary/10 bg-primary/5 p-3 text-xs">
+                  <div className="flex items-center">
+                    <div className="mr-2 rounded-full bg-primary/10 p-1">
+                      <CheckCircle2 className="size-3 text-primary" />
+                    </div>
+                    <p className="font-medium text-primary">
+                      Your plan is active
+                    </p>
+                  </div>
+                  <div className="mt-2 pl-6">
+                    <p className="text-muted-foreground">
+                      {`Activated on ${organization.planChangedAt ? format(new Date(organization.planChangedAt), 'MMMM d, yyyy') : ''}`}
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                      You have full access to all premium features included in your plan.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          
+          {/* Free plan info */}
+          {currentPlanId && currentPlanId.startsWith('FREE') && (
+            <div className="border rounded-md border-slate-100 bg-slate-50 p-3 text-xs">
+              <div className="flex items-center">
+                <div className="mr-2 rounded-full bg-slate-100 p-1">
+                  <CheckCircle2 className="size-3 text-slate-600" />
+                </div>
+                <p className="font-medium text-slate-800">
+                  Free Plan
+                </p>
+              </div>
+              <div className="mt-2 pl-6">
+                <p className="text-slate-600">
+                  You're currently on the free plan with limited features.
+                </p>
+                <div className="mt-3">
+                  <BuyButton
+                    planType="BASIC"
+                    billingCycle={effectiveBillingPeriod as BillingCycle}
+                    orgSlug={orgSlug}
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Explore Premium Plans
+                  </BuyButton>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

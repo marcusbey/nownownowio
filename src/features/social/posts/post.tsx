@@ -325,7 +325,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
   // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
   const commentCount =
     // Check if post._count exists and has comments property
-    post._count.comments !== undefined
+    post._count && post._count.comments !== undefined
       ? post._count.comments
       : // Check user posts API format
         (post as any).commentCount !== undefined

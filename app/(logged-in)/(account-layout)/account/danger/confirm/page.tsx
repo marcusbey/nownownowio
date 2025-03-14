@@ -68,16 +68,14 @@ export default async function RoutePage(props: PageParams) {
         >
           Cancel
         </Link>
-        <form>
-          <SubmitButton
-            formAction={async () => {
-              "use server";
-
-              await orgConfirmDeletionAction({
-                token: String(token),
-              });
-            }}
-          >
+        <form action={async () => {
+            "use server";
+            
+            await orgConfirmDeletionAction({
+              token: String(token),
+            });
+          }}>
+          <SubmitButton>
             Delete account
           </SubmitButton>
         </form>

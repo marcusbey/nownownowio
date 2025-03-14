@@ -13,24 +13,37 @@ type SubmitButtonProps = {
     | "outline"
     | "secondary"
     | "ghost"
-    | "link";
+    | "link"
+    | "invert"
+    | "success"
+    | "warning";
+  loading?: boolean;
+  type?: "submit" | "button" | "reset";
+  onClick?: () => void | Promise<void>;
+  disabled?: boolean;
 };
 
 export function SubmitButton({
   children,
   className,
   variant = "default",
+  loading,
+  type = "submit",
+  onClick,
+  disabled,
 }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
+  const { pending: formPending } = useFormStatus();
+  const isPending = loading ?? formPending;
 
   return (
     <Button
-      type="submit"
+      type={type}
       className={className}
       variant={variant}
-      disabled={pending}
+      onClick={onClick}
+      disabled={disabled ?? isPending}
     >
-      {pending && <Loader2 className="mr-2 size-4 animate-spin" />}
+      {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
       {children}
     </Button>
   );

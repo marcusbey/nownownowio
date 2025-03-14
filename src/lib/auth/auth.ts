@@ -228,3 +228,6 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   },
   jwt: credentialsOverrideJwt,
 }));
+
+// Re-export baseAuth as auth to maintain compatibility with imports
+export const auth = baseAuth;

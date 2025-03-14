@@ -24,7 +24,7 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { InlineTooltip } from "@/components/data-display/tooltip";
+import { InlineTooltip, TooltipTrigger, TooltipContent } from "@/components/data-display/tooltip";
 import { Typography } from "@/components/data-display/typography";
 import { LoadingButton } from "@/features/ui/form/submit-button";
 import { ImageFormItem } from "@/features/ui/images/image-form-item";
@@ -182,8 +182,13 @@ export const EditProfileCardForm = ({
                   <FormLabel className="flex items-center gap-1">
                     <span>Email</span>
                     {defaultValues.emailVerified ? (
-                      <InlineTooltip title="Email verified. If you change your email, you will need to verify it again.">
-                        <BadgeCheck size={16} />
+                      <InlineTooltip>
+                        <TooltipTrigger>
+                          <BadgeCheck size={16} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Email verified. If you change your email, you will need to verify it again.
+                        </TooltipContent>
                       </InlineTooltip>
                     ) : null}
                   </FormLabel>

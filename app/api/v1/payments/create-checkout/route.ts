@@ -14,14 +14,16 @@ function getFallbackAmount(planType: string, billingCycle: string): number {
     const planKey = planType as keyof typeof FALLBACK_PRICES;
     const plan = FALLBACK_PRICES[planKey];
     
-    // For runtime safety, check if plan exists
+    // We're asserting planKey as a valid key, but we should still handle the case
+    // where the plan might not exist at runtime for better error messages
     if (!plan) {
+      // This condition might be unreachable with proper type assertions, but keeping it for runtime safety
       throw new Error(`Plan ${planType} not found in FALLBACK_PRICES`);
     }
     
     // Get the cycle from the plan
     const cycleKey = billingCycle as keyof typeof plan;
-    const cycle = plan[cycleKey];
+    const cycle = plan[cycleKey] as { amount: number; priceId: string } | undefined;
     
     // Check if cycle exists and has a valid amount
     if (!cycle || typeof cycle.amount !== 'number') {
