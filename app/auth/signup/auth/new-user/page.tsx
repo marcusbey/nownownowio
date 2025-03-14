@@ -1,5 +1,5 @@
-import { buttonVariants } from "@/components/ui/button";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { buttonVariants } from "@/components/core/button";
+import { TooltipProvider } from "@/components/data-display/tooltip";
 import { Header } from "@/features/layout/Header";
 import {
   Layout,

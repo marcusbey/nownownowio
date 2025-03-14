@@ -1,18 +1,19 @@
-import { resendVerificationEmail } from "@/app/auth/verify-request/resend.action";
+import { resendVerificationEmail } from "@/lib/auth/resend-verification";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    console.log('Received request to resend verification email');
+    logger.info('Received request to resend verification email');
     const body = await request.json();
-    console.log('Request body:', body);
+    logger.info('Request body', { body });
 
     if (!body.email) {
-      console.error('No email provided in request');
+      logger.error('No email provided in request');
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    console.log('Calling resendVerificationEmail action with:', { email: body.email });
+    logger.info('Calling resendVerificationEmail action', { email: body.email });
     // Validate email before passing to action
     if (!body.email || typeof body.email !== 'string' || !body.email.includes('@')) {
       return NextResponse.json({ 
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     const email = body.email.toLowerCase().trim();
-    console.log('Calling resendVerificationEmail with:', { email });
+    logger.info('Calling resendVerificationEmail', { email });
     
     const result = await resendVerificationEmail({ 
       input: { 
@@ -31,15 +32,15 @@ export async function POST(request: Request) {
     });
     
     if (!result.success && result.serverError) {
-      console.error('Server error:', result.serverError);
+      logger.error('Server error', { error: result.serverError });
       return NextResponse.json({ 
         error: result.serverError 
       }, { status: 500 });
     }
-    console.log('Action result:', JSON.stringify(result, null, 2));
+    logger.info('Action result', { result });
     
     if (result.error) {
-      console.error('Action returned error:', result.error);
+      logger.error('Action returned error', { error: result.error });
       return NextResponse.json({ 
         error: result.error.message,
         details: result.error
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
       result: result
     });
   } catch (error) {
-    console.error('Failed to process request:', {
+    logger.error('Failed to process request', {
       error,
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined

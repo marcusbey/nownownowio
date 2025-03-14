@@ -5,9 +5,9 @@ import {
   FormItem,
   FormMessage,
   useZodForm,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { LoadingButton } from "@/features/form/SubmitButton";
+} from "@/components/core/form";
+import { Input } from "@/components/core/input";
+import { LoadingButton } from "@/features/ui/form/submit-button";
 import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";
 import { signIn } from "next-auth/react";
@@ -55,8 +55,8 @@ export const MagicLinkForm = () => {
             </FormItem>
           )}
         />
-        <LoadingButton loading={mutation.isPending} type="submit" size="sm">
-          Sign in
+        <LoadingButton className="h-8 rounded-md px-3 text-xs">
+          {mutation.isPending ? "Signing in..." : "Sign in"}
         </LoadingButton>
       </Form>
     </>

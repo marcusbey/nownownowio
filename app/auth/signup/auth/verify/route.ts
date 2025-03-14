@@ -1,6 +1,7 @@
-import { db } from "@/lib/db";
+import { prisma as db } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
     // Update user and delete token
     await db.$transaction([
       db.user.update({
-        where: { id: verificationToken.userId },
+        where: { id: verificationToken.user.id },
         data: { emailVerified: new Date() },
       }),
       db.verificationToken.delete({ where: { token } }),
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
     // Redirect to success page
     return NextResponse.redirect(`${env.NEXTAUTH_URL}/auth/signin?verified=true`);
   } catch (error) {
-    console.error("Error verifying email:", error);
+    logger.error("Error verifying email", { error });
     return NextResponse.redirect(`${env.NEXTAUTH_URL}/auth/signin?error=VerificationFailed`);
   }
 }

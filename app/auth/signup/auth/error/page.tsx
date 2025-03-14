@@ -1,13 +1,12 @@
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/core/button";
 import {
   Card,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { ContactSupportDialog } from "@/features/contact/support/ContactSupportDialog";
-import { HeaderBase } from "@/features/layout/HeaderBase";
+} from "@/components/data-display/card";
+import { HeaderBase } from "@/features/layout/header-base";
 import {
   Layout,
   LayoutContent,
@@ -38,7 +37,6 @@ export default async function AuthErrorPage(props: PageParams) {
               <Link href="/" className={buttonVariants({ size: "sm" })}>
                 Home
               </Link>
-              <ContactSupportDialog />
             </CardFooter>
           </Card>
         </LayoutContent>

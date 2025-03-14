@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
+import { Button } from "@/components/core/button";
 import { CheckCircle2, Loader2, MailCheck, Send, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { resendVerificationEmail } from "./resend.action";

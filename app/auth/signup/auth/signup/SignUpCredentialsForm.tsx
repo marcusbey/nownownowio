@@ -6,14 +6,13 @@ import { signUpAction } from './signup.action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/core/button';
+import { Input } from '@/components/core/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/feedback/alert';
 import { Loader2 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Toaster } from '@/components/ui/toaster';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { PasswordInput } from '@/components/PasswordInput';
+import { useToast } from '@/components/feedback/use-toast';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/core/form';
+import { PasswordInput } from '@/components/core/PasswordInput';
 import type { LoginCredentialsFormType } from './signup.schema';
 import { LoginCredentialsFormScheme } from './signup.schema';
 
@@ -102,7 +101,6 @@ export const SignUpCredentialsForm = () => {
 
   return (
     <FormProvider {...form}>
-      <Toaster />
       <form 
         onSubmit={(e) => {
           e.preventDefault(); // Prevent default form behavior

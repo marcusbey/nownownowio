@@ -6,12 +6,10 @@ import {
   LayoutHeader,
   LayoutTitle,
 } from "@/features/page/layout";
-import { isInRoles } from "@/lib/organizations/isInRoles";
+import { isInRoles } from "@/lib/organizations/is-in-roles";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import Link from "next/link";
-import InformationCards from "../../../InformationCards";
-import { SubscribersChart } from "../../../subscribers-charts";
 
 export default async function RoutePage(
   props: PageParams<{
@@ -38,8 +36,8 @@ export default async function RoutePage(
         ) : null}
       </LayoutActions>
       <LayoutContent className="flex flex-col gap-4 lg:gap-8">
-        <InformationCards />
-        <SubscribersChart />
+        {/* Information cards will be added here */}
+        {/* Subscribers chart will be added here */}
       </LayoutContent>
     </Layout>
   );

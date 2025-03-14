@@ -1,5 +1,5 @@
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Typography } from "@/components/ui/typography";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
+import { Typography } from "@/components/data-display/typography";
 import { MailCheck } from "lucide-react";
 import Image from "next/image";
 import { SiteConfig } from "@/site-config";
