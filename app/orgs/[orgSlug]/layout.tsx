@@ -32,6 +32,7 @@ export default async function Layout({
         name: org.name,
         image: org.image,
         plan: org.plan,
+        planChangedAt: org.planChangedAt ? org.planChangedAt.toISOString() : null,
       }
     : undefined;
 

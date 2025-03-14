@@ -67,6 +67,9 @@ export const UpgradeCard = () => {
     planChangedAt: org?.planChangedAt
   });
 
+  // Add a state to track if the plan is paid based on additional checks
+  const [isPaidPlan, setIsPaidPlan] = useState(false);
+
   useEffect(() => {
     // Skip if no org data is available
     if (!org?.plan?.createdAt) {
@@ -81,25 +84,32 @@ export const UpgradeCard = () => {
     const now = new Date();
     const daysLeft = Math.max(0, differenceInDays(trialEndDate, now));
     
+    // Check if this is a paid plan based on multiple indicators
+    const hasPaidPlanType = org?.plan?.type === 'BASIC' || org?.plan?.type === 'PRO';
+    const hasPlanChangedAt = Boolean(org?.planChangedAt);
+    
+    // Set the paid plan state for use in other parts of the component
+    setIsPaidPlan(hasPaidPlanType);
+    
     // Determine plan status
     let status: TrialStatus = 'free';
     
-    if (org?.plan?.type !== 'FREE') {
-      // Check if the plan type is a paid plan (not FREE)
-      // BASIC and PRO are the premium plan types
-      if (org?.plan?.type === 'BASIC' || org?.plan?.type === 'PRO') {
-        // For BASIC or PRO plans, we consider them paid regardless of planChangedAt
-        // This handles cases where the plan was set directly in the database
+    if (hasPaidPlanType) {
+      if (hasPlanChangedAt) {
+        // If planChangedAt exists, this is a confirmed paid plan
         status = 'paid';
-        
-        // Log different scenarios for debugging
-        if (org?.planChangedAt) {
-          // eslint-disable-next-line no-console
-          console.log('Paid plan detected with planChangedAt:', org.planChangedAt);
-        } else {
-          // eslint-disable-next-line no-console
-          console.log('Paid plan detected without planChangedAt - assuming paid status');
-        }
+        // eslint-disable-next-line no-console
+        console.log('Paid plan confirmed with planChangedAt:', org.planChangedAt);
+      } else if (daysLeft > 0) {
+        // If we're in the trial period (days left > 0)
+        status = 'active';
+        // eslint-disable-next-line no-console
+        console.log('Trial active, days left:', daysLeft);
+      } else {
+        // Trial has ended
+        status = 'expired';
+        // eslint-disable-next-line no-console
+        console.log('Trial expired');
       }
     }
     
@@ -123,7 +133,7 @@ export const UpgradeCard = () => {
     planType: org?.plan?.type,
     planChangedAt: org?.planChangedAt,
     currentDate: new Date().toISOString(),
-    isPaidPlan: org?.plan?.type === 'BASIC' || org?.plan?.type === 'PRO',
+    isPaidPlan,
     hasTrialEnded: org?.plan?.createdAt ? !isAfter(addDays(new Date(org?.plan?.createdAt), 7), new Date()) : null
   });
   
@@ -134,48 +144,47 @@ export const UpgradeCard = () => {
           <Sparkles className="size-full text-primary" />
         </div>
         
-        {/* Status badge */}
+        {/* Status badge - Only show here for expired and free plans */}
         <div className="absolute right-2 top-2">
-          {trialInfo.status === 'active' && (
+          {trialInfo.status === 'expired' && (
             <Badge 
               variant="outline" 
-              className="flex items-center gap-1 border-green-200 bg-green-100 text-green-800"
+              className="flex items-center gap-1 border-amber-200 bg-amber-100 text-amber-800"
             >
-              <Clock className="size-3" />
-              <span>{trialInfo.daysLeft} {trialInfo.daysLeft === 1 ? 'day' : 'days'} left</span>
+              <XCircle className="size-3" />
+              <span>Trial Expired</span>
+            </Badge>
+          )}
+          
+          {trialInfo.status === 'free' && (
+            <Badge 
+              variant="outline" 
+              className="flex items-center gap-1 border-slate-200 bg-slate-100 text-slate-800"
+            >
+              <CheckCircle2 className="size-3" />
+              <span>Free Plan</span>
             </Badge>
           )}
         
-        {trialInfo.status === 'expired' && (
-          <Badge 
-            variant="outline" 
-            className="flex items-center gap-1 border-amber-200 bg-amber-100 text-amber-800"
-          >
-            <XCircle className="size-3" />
-            <span>Trial Expired</span>
-          </Badge>
-        )}
-        
-        {/* Badge for paid plans is now shown inline with the title */}
-        
-        {trialInfo.status === 'free' && (
-          <Badge 
-            variant="outline" 
-            className="flex items-center gap-1 border-slate-200 bg-slate-100 text-slate-800"
-          >
-            <CheckCircle2 className="size-3" />
-            <span>Free Plan</span>
-          </Badge>
-        )}
+        {/* Badges for paid and active trial plans are shown inline with the title */}
       </div>
       
       <CardHeader className="p-4 pb-2">
         {/* SCENARIO 1: Trial is active */}
         {trialInfo.status === 'active' && (
           <>
-            <div className="flex items-center space-x-2">
-              <Clock className="size-5 text-green-600" />
-              <CardTitle className="text-lg">Trial Active</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Clock className="size-5 text-green-600" />
+                <CardTitle className="text-lg">Trial Active</CardTitle>
+              </div>
+              <Badge 
+                variant="outline" 
+                className="flex items-center gap-1 border-green-200 bg-green-100 text-green-800"
+              >
+                <Clock className="size-3" />
+                <span>{trialInfo.daysLeft} {trialInfo.daysLeft === 1 ? 'day' : 'days'} left</span>
+              </Badge>
             </div>
             <CardDescription className="mt-2 text-sm">
               Your basic plan trial ends on {trialInfo.expiryDate ? format(trialInfo.expiryDate, 'MMMM d, yyyy') : ''}. Enjoy premium features during your trial period!

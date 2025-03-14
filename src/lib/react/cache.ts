@@ -88,6 +88,7 @@ export const getCurrentOrgCache = cache(async (orgSlug?: string) => {
                 image: true,
                 websiteUrl: true,
                 stripeCustomerId: true,
+                planChangedAt: true,
                 plan: true,
                 members: {
                     where: {

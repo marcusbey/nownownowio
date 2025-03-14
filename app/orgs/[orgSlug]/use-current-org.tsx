@@ -11,6 +11,7 @@ type CurrentOrgStore = {
   name: string;
   image: string | null;
   plan: OrganizationPlan;
+  planChangedAt: string | null;
 };
 
 /**
@@ -35,7 +36,9 @@ export const useCurrentOrg = create<CurrentOrgStore | null>(() => null);
 
 export const InjectCurrentOrgStore = (
   props: PropsWithChildren<{
-    org?: CurrentOrgStore;
+    org?: CurrentOrgStore & {
+      planChangedAt?: string | null;
+    };
   }>,
 ) => {
   if (!props.org) return props.children;
@@ -48,6 +51,7 @@ export const InjectCurrentOrgStore = (
     name: props.org.name,
     image: props.org.image,
     plan: props.org.plan,
+    planChangedAt: props.org.planChangedAt ?? null,
   });
   return props.children;
 };
