@@ -273,7 +273,7 @@ const RichTextEditor = React.forwardRef<
           if (!node || !editor) return "";
 
           // Get the node type name safely
-          const typeName = node.type.name;
+          const typeName = node.type?.name;
           if (!typeName) return "";
 
           // Check if this is a paragraph and if it's the first node
@@ -282,7 +282,7 @@ const RichTextEditor = React.forwardRef<
           const isFirstNode = doc.firstChild === node;
 
           if (isParagraph && isFirstNode) {
-            return 'Press "/" for commands...';
+            return 'What do you have in mind? Type "/" for commands...';
           }
 
           switch (node.type.name) {
@@ -306,9 +306,9 @@ const RichTextEditor = React.forwardRef<
             case "codeBlock":
               return "Code";
             case "paragraph":
-              return "Write, type '/' for formatting...";
+              return "Write something, Press '/' for commands...";
             default:
-              return "Write, type '/' for formatting...";
+              return "Write, Type '/' for commands...";
           }
         },
         showOnlyWhenEditable: true,
@@ -324,9 +324,13 @@ const RichTextEditor = React.forwardRef<
       onChange?.(html);
     },
     onFocus: ({ editor }) => {
-      // If content is empty, move cursor to start
-      if (editor.isEmpty) {
-        editor.commands.setTextSelection(0);
+      // Always move cursor to start when editor is empty or only contains placeholder
+      if (editor.isEmpty || editor.getText().trim() === '') {
+        // Use setTimeout to ensure this happens after the browser's focus handling
+        setTimeout(() => {
+          // Use the focus command with 'start' position to ensure cursor is at beginning
+          editor.commands.focus('start');
+        }, 0);
       }
     },
     editorProps: {
@@ -671,55 +675,86 @@ const RichTextEditor = React.forwardRef<
         editor.chain().focus().clearNodes().setParagraph().run();
         break;
       case "h1":
-        editor.chain().focus().clearNodes().setHeading({ level: 1 }).run();
+        // First clear any existing content
+        editor.commands.clearContent();
+        // Then create a heading with empty content
+        editor.commands.setHeading({ level: 1 });
+        // Force cursor to beginning by explicitly setting selection
+        editor.commands.focus('start');
         break;
       case "h2":
-        editor.chain().focus().clearNodes().setHeading({ level: 2 }).run();
+        // First clear any existing content
+        editor.commands.clearContent();
+        // Then create a heading with empty content
+        editor.commands.setHeading({ level: 2 });
+        // Force cursor to beginning by explicitly setting selection
+        editor.commands.focus('start');
         break;
       case "h3":
-        editor.chain().focus().clearNodes().setHeading({ level: 3 }).run();
+        // First clear any existing content
+        editor.commands.clearContent();
+        // Then create a heading with empty content
+        editor.commands.setHeading({ level: 3 });
+        // Force cursor to beginning by explicitly setting selection
+        editor.commands.focus('start');
         break;
       case "bullet":
         if (editor.isActive("bulletList")) {
-          editor.chain().focus().liftListItem("listItem").run();
+          // If already in a bullet list, lift the list item
+          editor.commands.liftListItem("listItem");
         } else {
-          editor.chain().focus().clearNodes().wrapInList("bulletList").run();
+          // First clear any existing content
+          editor.commands.clearContent();
+          // Then create a bullet list with empty content
+          editor.commands.wrapInList("bulletList");
+          // Force cursor to beginning by explicitly setting selection
+          editor.commands.focus('start');
         }
         break;
       case "numbered":
         if (editor.isActive("orderedList")) {
-          editor.chain().focus().liftListItem("listItem").run();
+          // If already in a numbered list, lift the list item
+          editor.commands.liftListItem("listItem");
         } else {
-          editor.chain().focus().clearNodes().wrapInList("orderedList").run();
+          // First clear any existing content
+          editor.commands.clearContent();
+          // Then create a numbered list with empty content
+          editor.commands.wrapInList("orderedList");
+          // Force cursor to beginning by explicitly setting selection
+          editor.commands.focus('start');
         }
         break;
       case "quote":
         // Set blockquote with italic styling
-        editor
-          .chain()
-          .focus()
-          .clearNodes()
-          .setBlockquote()
-          .setMark("italic")
-          .run();
+        // First clear any existing content
+        editor.commands.clearContent();
+        // Then create a blockquote with empty content
+        editor.commands.setBlockquote();
+        editor.commands.setMark("italic");
+        // Force cursor to beginning by explicitly setting selection
+        editor.commands.focus('start');
         break;
       case "code":
-        editor.chain().focus().clearNodes().setCodeBlock().run();
+        // First clear any existing content
+        editor.commands.clearContent();
+        // Then create a code block with empty content
+        editor.commands.setCodeBlock();
+        // Force cursor to beginning by explicitly setting selection
+        editor.commands.focus('start');
         break;
       case "divider":
         // Insert a horizontal rule that spans the full width
-        editor
-          .chain()
-          .focus()
-          .setHorizontalRule()
-          // Add an empty paragraph after to ensure there's a valid cursor position
-          .insertContent("<p></p>")
-          .run();
+        editor.commands.setHorizontalRule();
+        // Add an empty paragraph after to ensure there's a valid cursor position
+        editor.commands.insertContent("<p></p>");
+        // Position cursor after the divider
+        editor.commands.focus('end');
         break;
       case "link":
+        // Show link prompt and exit function completely
         setLinkUrl("");
         setShowLinkPrompt(true);
-        return;
+        return; // This return prevents further execution
       case "image":
         setMediaType("image");
         setMediaTab("upload");
@@ -739,8 +774,9 @@ const RichTextEditor = React.forwardRef<
 
     // Move cursor to start if current node is empty or if switching to a new block type
     // Skip this for divider which doesn't need cursor positioning
+    // Also skip for link, image, video, and audio which have their own handling
     if (
-      command.id !== "divider" &&
+      !['divider', 'link', 'image', 'video', 'audio'].includes(command.id) &&
       (isEmpty ||
         node.type.name !== editor.state.selection.$head.parent.type.name)
     ) {
