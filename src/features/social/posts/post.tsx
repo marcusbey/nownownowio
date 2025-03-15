@@ -23,6 +23,10 @@ import LikeButton from "./like-button";
 import { useDeletePostMutation, useTogglePinPostMutation } from "./mutations";
 import { BookmarkButton, PostMoreButton } from "./post-actions";
 
+// Import the MediaPreview component directly
+import { MediaPreview } from "./media-preview";
+
+// Keep the lazy import for backward compatibility
 const LazyMediaPreviews = lazy(async () =>
   import("../components/media-preview").then((mod) => ({
     default: mod.MediaPreviews,
@@ -124,10 +128,12 @@ export default function Post({ post }: PostProps) {
   }, [post.user]);
 
   // Process media items
-  const mediaItems = useMemo(
-    () => (Array.isArray(post.media) ? post.media : []),
-    [post.media],
-  );
+  const mediaItems = useMemo(() => {
+    // Process media items from the post
+    const items = Array.isArray(post.media) ? post.media : [];
+    return items;
+  }, [post.media]);
+  
   const hasAttachments = mediaItems.length > 0;
 
   return (
@@ -211,7 +217,14 @@ export default function Post({ post }: PostProps) {
               <div className="h-48 animate-pulse rounded-lg bg-muted" />
             }
           >
-            <LazyMediaPreviews attachments={mediaItems} />
+            {/* Render media items directly */}
+            <div className="flex flex-col gap-2">
+              {mediaItems.map((media) => (
+                <div key={media.id} className="overflow-hidden rounded-lg">
+                  <MediaPreview media={media} />
+                </div>
+              ))}
+            </div>
           </Suspense>
         </div>
       )}

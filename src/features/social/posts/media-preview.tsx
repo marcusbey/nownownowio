@@ -41,6 +41,13 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   
   // Set up the media URL with development mode handling
   useEffect(() => {
+    // Safety check - if URL is empty or undefined, use a placeholder
+    if (!media.url || media.url === "") {
+      // Use a placeholder instead of empty string
+      setMediaUrl(getPlaceholderUrl(media));
+      return;
+    }
+
     // In development mode with test data, use placeholder images instead of real URLs
     if (isDevelopment && media.url.includes("utfs.io/p/32NrzzTW2")) {
       setMediaUrl(getPlaceholderUrl(media));
@@ -49,11 +56,10 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     
     // For real media or production, use the proxied URL
     setMediaUrl(getProxiedMediaUrl(media.url));
-  }, [media.url, media.id]);
+  }, [media]);
   
   // Error handler for media loading failures
   const handleError = () => {
-    console.error(`Failed to load media: ${media.id}`);
     // In case of error, try to use a placeholder
     setMediaUrl(getPlaceholderUrl(media));
     setHasError(true);
@@ -65,8 +71,8 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     setIsLoading(false);
   };
   
-  // If there was an error loading the media and we couldn't load a placeholder, show a fallback
-  if (hasError && !mediaUrl) {
+  // If there was an error loading the media, show a fallback
+  if (hasError) {
     return (
       <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
         <p className="text-sm text-muted-foreground">Media unavailable</p>
@@ -83,25 +89,32 @@ export function MediaPreview({ media }: MediaPreviewProps) {
             <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
-        <Image
-          src={mediaUrl}
-          alt="Media preview"
-          width={500}
-          height={500}
-          className={cn(
-            "mx-auto size-fit max-h-[30rem] rounded-lg object-cover",
-            isLoading && "opacity-0"
-          )}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onError={handleError}
-          onLoad={handleLoad}
-          priority={true}
-        />
+        {mediaUrl ? (
+          <Image
+            src={mediaUrl}
+            alt="Media preview"
+            width={500}
+            height={500}
+            className={cn(
+              "mx-auto size-fit max-h-[30rem] rounded-lg object-cover",
+              isLoading && "opacity-0"
+            )}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onError={handleError}
+            onLoad={handleLoad}
+            priority={true}
+          />
+        ) : (
+          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
+            <p className="text-sm text-muted-foreground">Media unavailable</p>
+          </div>
+        )}
       </div>
     );
   }
 
-  if (media.type === "VIDEO") {
+  // Handle video media type
+  if (media.type === "VIDEO" && mediaUrl) {
     return (
       <div className="relative overflow-hidden rounded-lg">
         {isLoading && (
