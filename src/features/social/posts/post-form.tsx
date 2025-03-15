@@ -159,12 +159,19 @@ export function PostForm({
 
   const validatePost = () => {
     try {
+      // Prevent completely empty posts (no content and no media)
       if (!content.trim() && mediaFiles.length === 0) {
         return "Please enter some content or add media to your post";
       }
 
-      if (content.length > 1000) {
-        return "Post content is too long (maximum 1000 characters)";
+      // Prevent posts with only whitespace
+      if (content.trim().length === 0 && mediaFiles.length === 0) {
+        return "Post cannot be empty. Please add some text or media.";
+      }
+
+      // Check for maximum length (using the rich text editor's limit)
+      if (content.length > 860) {
+        return "Post content is too long (maximum 860 characters)";
       }
 
       return null;

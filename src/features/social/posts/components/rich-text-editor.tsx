@@ -37,12 +37,14 @@ type RichTextEditorProps = {
   onChange?: (content: string) => void;
   onEmojiSelect?: (emoji: string) => void;
   onMediaSelect?: (files: File[]) => void;
+  maxLength?: number;
 };
 
 const RichTextEditor = React.forwardRef<
   { clearEditor: () => void },
   RichTextEditorProps
->(({ onChange, onMediaSelect }, ref) => {
+>(({ onChange, onMediaSelect, maxLength = 860 }, ref) => {
+  const [charCount, setCharCount] = useState(0);
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const [selectedIndex, setSelectedIndex] = React.useState(0);
   const [commandSearch, setCommandSearch] = React.useState("");
@@ -316,7 +318,10 @@ const RichTextEditor = React.forwardRef<
       }),
     ],
     onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML());
+      const html = editor.getHTML();
+      const textContent = editor.getText();
+      setCharCount(textContent.length);
+      onChange?.(html);
     },
     onFocus: ({ editor }) => {
       // If content is empty, move cursor to start
@@ -330,6 +335,14 @@ const RichTextEditor = React.forwardRef<
           "prose-base focus:outline-none leading-relaxed [&_p]:text-base [&_blockquote]:italic [&_*]:!text-foreground [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1,&_h2,&_h3]:font-medium",
       },
       handleKeyDown: (view, event) => {
+        // Prevent typing if character limit is exceeded
+        if (charCount >= maxLength && 
+            !event.metaKey && !event.ctrlKey && 
+            event.key.length === 1 && 
+            !event.key.match(/^[\b\x7F\s]$/)) {
+          return true; // Prevent the key from being processed
+        }
+        
         // Restore slash-command menu navigation:
         if (showCommandMenu) {
           if (event.key === "ArrowUp") {
@@ -776,6 +789,13 @@ const RichTextEditor = React.forwardRef<
   return (
     <div className="w-full">
       <div className="relative">
+        {/* Character counter */}
+        <div className={cn(
+          "text-xs text-right mb-1",
+          charCount > maxLength ? "text-destructive font-medium" : "text-muted-foreground"
+        )}>
+          {charCount}/{maxLength} characters
+        </div>
         <div className="relative grow">
           <EditorContent
             editor={editor}
@@ -784,6 +804,8 @@ const RichTextEditor = React.forwardRef<
               "focus-within:outline-none",
               "rounded-lg",
               "prose prose-sm dark:prose-invert max-w-none",
+              // Add border color based on character count
+              charCount > maxLength ? "border-2 border-destructive" : "",
               // Unified text color
               "[--tw-prose-body:var(--foreground)]",
               "[--tw-prose-headings:var(--foreground)]",

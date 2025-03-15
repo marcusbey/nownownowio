@@ -15,19 +15,18 @@ function getProxiedMediaUrl(url: string): string {
   return `/api/v1/media-proxy?url=${encodeURIComponent(url)}&t=${timestamp}`;
 }
 
-// Helper to check if we're in development mode
-const isDevelopment = process.env.NODE_ENV === "development";
+// This comment is intentionally left empty to maintain line numbers
 
-// Generate a placeholder image URL based on media type
+// Generate a placeholder image URL based on media type and ID
 function getPlaceholderUrl(media: Media): string {
-  // Use a consistent placeholder instead of random images
+  // Use a consistent hash from the media ID to get the same placeholder for the same media
+  const hash = media.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 1000;
+  
   if (media.type === "VIDEO") {
-    // Use a fixed placeholder for videos (16:9 ratio)
-    return `/placeholder-video.jpg`;
+    return `https://picsum.photos/seed/${hash}/800/450`; // 16:9 ratio for videos
   }
   
-  // Use a fixed placeholder for images (1:1 ratio)
-  return `/placeholder-image.jpg`;
+  return `https://picsum.photos/seed/${hash}/800/800`; // 1:1 ratio for images
 }
 
 export type MediaPreviewProps = {
@@ -45,14 +44,6 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     if (!media.url || media.url === "") {
       // Use a placeholder instead of empty string
       setMediaUrl(getPlaceholderUrl(media));
-      return;
-    }
-
-    // Don't use random placeholder images for development mode
-    // as they cause confusion with actual uploaded media
-    if (isDevelopment && media.url.includes("utfs.io")) {
-      // Use the actual URL instead of a placeholder
-      setMediaUrl(getProxiedMediaUrl(media.url));
       return;
     }
     
@@ -116,7 +107,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   }
 
   // Handle video media type
-  if (media.type === "VIDEO" && mediaUrl) {
+  if (media.type === "VIDEO") {
     return (
       <div className="relative overflow-hidden rounded-lg">
         {isLoading && (
@@ -124,16 +115,22 @@ export function MediaPreview({ media }: MediaPreviewProps) {
             <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
-        <video
-          src={mediaUrl}
-          controls
-          className={cn(
-            "mx-auto size-fit max-h-[30rem] rounded-lg",
-            isLoading && "opacity-0"
-          )}
-          onError={handleError}
-          onLoadedData={handleLoad}
-        />
+        {mediaUrl ? (
+          <video
+            src={mediaUrl}
+            controls
+            className={cn(
+              "mx-auto size-fit max-h-[30rem] rounded-lg",
+              isLoading && "opacity-0"
+            )}
+            onError={handleError}
+            onLoadedData={handleLoad}
+          />
+        ) : (
+          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
+            <p className="text-sm text-muted-foreground">Video unavailable</p>
+          </div>
+        )}
       </div>
     );
   }
