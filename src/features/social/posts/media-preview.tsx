@@ -18,16 +18,16 @@ function getProxiedMediaUrl(url: string): string {
 // Helper to check if we're in development mode
 const isDevelopment = process.env.NODE_ENV === "development";
 
-// Generate a placeholder image URL based on media type and ID
+// Generate a placeholder image URL based on media type
 function getPlaceholderUrl(media: Media): string {
-  // Use a consistent hash from the media ID to get the same placeholder for the same media
-  const hash = media.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % 1000;
-  
+  // Use a consistent placeholder instead of random images
   if (media.type === "VIDEO") {
-    return `https://picsum.photos/seed/${hash}/800/450`; // 16:9 ratio for videos
+    // Use a fixed placeholder for videos (16:9 ratio)
+    return `/placeholder-video.jpg`;
   }
   
-  return `https://picsum.photos/seed/${hash}/800/800`; // 1:1 ratio for images
+  // Use a fixed placeholder for images (1:1 ratio)
+  return `/placeholder-image.jpg`;
 }
 
 export type MediaPreviewProps = {
@@ -48,9 +48,11 @@ export function MediaPreview({ media }: MediaPreviewProps) {
       return;
     }
 
-    // In development mode with test data, use placeholder images instead of real URLs
-    if (isDevelopment && media.url.includes("utfs.io/p/32NrzzTW2")) {
-      setMediaUrl(getPlaceholderUrl(media));
+    // Don't use random placeholder images for development mode
+    // as they cause confusion with actual uploaded media
+    if (isDevelopment && media.url.includes("utfs.io")) {
+      // Use the actual URL instead of a placeholder
+      setMediaUrl(getProxiedMediaUrl(media.url));
       return;
     }
     
