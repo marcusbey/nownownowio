@@ -9,8 +9,10 @@ import { useToast } from "@/components/feedback/use-toast";
 import { EmojiPickerButton } from "@/features/social/posts/components/emoji-picker";
 import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
+import type { PostsPage } from "@/lib/types";
 import { useUploadThing } from "@/lib/uploadthing-client";
 import { cn } from "@/lib/utils";
+import type { InfiniteData } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -28,6 +30,14 @@ type UploadThingResponse = {
   name: string;
   size: number;
   key: string;
+};
+
+// Type for post data
+type PostFormData = {
+  content: string;
+  orgSlug: string | string[];
+  mediaUrls?: string[];
+  mediaIds?: string[];
 };
 
 type PostFormProps = {
@@ -217,7 +227,7 @@ export function PostForm({
       let postData = {
         content: content.trim(),
         orgSlug,
-      };
+      } as PostFormData;
 
       // Handle media files if present
       if (mediaFiles.length > 0) {
@@ -278,10 +288,10 @@ export function PostForm({
 
             // Add media data to post data
             if (mediaUrls.length > 0) {
-              postData = { ...postData, mediaUrls };
+              postData = { ...postData, mediaUrls: mediaUrls as string[] };
             }
             if (mediaIds.length > 0) {
-              postData = { ...postData, mediaIds };
+              postData = { ...postData, mediaIds: mediaIds as string[] };
             }
           }
         } catch (error) {
@@ -308,6 +318,24 @@ export function PostForm({
         throw new Error(error.error || "Failed to create post");
       }
 
+      // Get the created post data
+      let createdPost;
+      try {
+        const responseData = await response.json();
+        // The API returns { post: { ... } } structure
+        createdPost = responseData.post || responseData;
+        
+        // Log the response structure to debug
+        console.log("Post creation response:", JSON.stringify(responseData, null, 2));
+      } catch (error) {
+        console.error("Error parsing response:", error);
+        toast({
+          title: "Post created",
+          description: "Post was created but couldn't load the details",
+        });
+        return;
+      }
+
       // Reset form
       setContent("");
       editorRef.current?.clearEditor();
@@ -316,8 +344,107 @@ export function PostForm({
         return [];
       });
 
-      // Refresh posts
-      void queryClient.invalidateQueries({ queryKey: ["post-feed"] });
+      // Ensure the created post has complete user data before updating the cache
+      const currentUserData = session?.user;
+      
+      // Enhance the createdPost with complete user data if it's missing
+      const enhancedPost = {
+        ...createdPost,
+        user: createdPost.user && Object.keys(createdPost.user).length > 0 
+          ? {
+              ...createdPost.user,
+              // Ensure all required user fields are present
+              id: createdPost.user.id || currentUser,
+              name: createdPost.user.name || currentUserData?.name || session?.user?.name || "unknown",
+              displayName: createdPost.user.displayName || currentUserData?.name || session?.user?.name || "Unknown User",
+              image: createdPost.user.image || avatarUrl || currentUserData?.image || "",
+              email: createdPost.user.email || currentUserData?.email || session?.user?.email || ""
+            }
+          : {
+              id: currentUser,
+              name: currentUserData?.name || session?.user?.name || "unknown",
+              image: avatarUrl || currentUserData?.image || "",
+              displayName: currentUserData?.name || session?.user?.name || "Unknown User",
+              email: currentUserData?.email || session?.user?.email || ""
+            },
+        _count: createdPost._count || { likes: 0, comments: 0 },
+        likes: createdPost.likes || [],
+        comments: createdPost.comments || [],
+      };
+      
+      // Log the enhanced post to verify user data is complete
+      console.log("Enhanced post with user data:", JSON.stringify({
+        id: enhancedPost.id,
+        user: enhancedPost.user,
+        _count: enhancedPost._count
+      }, null, 2));
+      
+      // Update the cache directly with the enhanced post
+      const queryFilter = {
+        queryKey: ["post-feed", "for-you"],
+        exact: true,
+      };
+
+      // Cancel any in-flight queries
+      await queryClient.cancelQueries(queryFilter);
+
+      // Update the cache to add the new post at the beginning
+      try {
+        queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+          queryFilter,
+          (oldData) => {
+            if (!oldData?.pages || oldData.pages.length === 0) {
+              // If there's no existing data, create a new structure
+              return {
+                pages: [{ posts: [enhancedPost], nextCursor: null }],
+                pageParams: [null],
+              };
+            }
+
+            // Add the new post to the beginning of the first page
+            const newPages = [...oldData.pages];
+            newPages[0] = {
+              ...newPages[0],
+              posts: [enhancedPost, ...(newPages[0]?.posts || [])],
+            };
+
+            return {
+              ...oldData,
+              pages: newPages,
+            };
+          },
+        );
+        
+        // Also update the following feed if it exists
+        const followingQueryFilter = {
+          queryKey: ["post-feed", "following"],
+          exact: true,
+        };
+        
+        queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+          followingQueryFilter,
+          (oldData) => {
+            if (!oldData?.pages || oldData.pages.length === 0) return oldData;
+            
+            // Add the new post to the beginning of the first page
+            const newPages = [...oldData.pages];
+            newPages[0] = {
+              ...newPages[0],
+              posts: [enhancedPost, ...(newPages[0]?.posts || [])],
+            };
+            
+            return {
+              ...oldData,
+              pages: newPages,
+            };
+          },
+        );
+      } catch (error) {
+        console.error("Error updating cache:", error);
+        // If cache update fails, invalidate the query to force a refetch
+        void queryClient.invalidateQueries(queryFilter);
+      }
+
       toast({ title: "Post created successfully" });
       onSubmit?.();
     } catch (error) {
@@ -343,9 +470,9 @@ export function PostForm({
           />
         </div>
         <div className="relative flex-1 space-y-3">
-          <RichTextEditor 
-            onChange={setContent} 
-            ref={editorRef} 
+          <RichTextEditor
+            onChange={setContent}
+            ref={editorRef}
             onMediaSelect={(files) => {
               // Process the files selected from the rich text editor
               onDrop(files);

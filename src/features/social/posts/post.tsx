@@ -2,13 +2,12 @@
 
 import UserAvatar from "@/components/composite/UserAvatar";
 import UserTooltip from "@/components/composite/UserTooltip";
-import Linkify from "@/components/data-display/Linkify";
 import { HtmlContentWithLinks } from "@/components/data-display/HtmlContentWithLinks";
 import { usePostViews } from "@/hooks/use-post-views";
 import type { PostData } from "@/lib/types";
 import { cn, extractUserFromSession, formatRelativeDate } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, MotionProps } from "framer-motion";
 import { Eye, MessageSquare, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -90,13 +89,18 @@ export default function Post({ post }: PostProps) {
   );
 
   const userProfileLink = useMemo(() => {
-    if (user?.email && post.user.id === user.id) {
+    // First check if post.user exists
+    if (!post.user) {
+      return "/";
+    }
+
+    if (user?.id && user?.email && post.user.id === user.id) {
       const userMemberships = Array.isArray(post.user.memberships)
         ? post.user.memberships
         : [];
       const orgSlug =
         userMemberships.length > 0
-          ? userMemberships[0].organization.slug
+          ? userMemberships[0]?.organization?.slug
           : undefined;
 
       return `/orgs/${orgSlug ?? ""}/profile`;
@@ -105,24 +109,29 @@ export default function Post({ post }: PostProps) {
   }, [user, post.user]);
 
   const isOwnPost = useMemo(() => {
-    if (!user) return false;
+    if (!user || !post.user) return false;
     return user.id === post.user.id;
-  }, [user, post.user.id]);
-
-  const username = useMemo(() => {
-    return post.user.name ?? "unknown";
-  }, [post.user.name]);
+  }, [user, post.user]);
 
   const displayName = useMemo(() => {
-    return post.user.displayName || post.user.name || "Unknown User";
-  }, [post.user.displayName, post.user.name]);
+    if (!post.user) return "Unknown User";
+    return post.user.displayName ?? post.user.name ?? "Unknown User";
+  }, [post.user]);
+
+  const username = useMemo(() => {
+    if (!post.user) return "unknown";
+    return post.user.name ?? "unknown";
+  }, [post.user]);
 
   // Process media items
-  const mediaItems = useMemo(() => Array.isArray(post.media) ? post.media : [], [post.media]);
+  const mediaItems = useMemo(
+    () => (Array.isArray(post.media) ? post.media : []),
+    [post.media],
+  );
   const hasAttachments = mediaItems.length > 0;
 
   return (
-    <motion.article
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="group/post mb-4 space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/80 p-5 shadow-sm backdrop-blur-sm transition-colors duration-200 hover:bg-zinc-800/90"
@@ -135,16 +144,16 @@ export default function Post({ post }: PostProps) {
     >
       <div className="flex justify-between gap-3">
         <div className="flex items-start gap-3">
-          <UserTooltip user={post.user}>
+          <UserTooltip user={post.user ?? { id: '', name: 'Unknown User' }}>
             <Link href={userProfileLink} className="shrink-0">
               <UserAvatar
-                avatarUrl={post.user.image}
+                avatarUrl={post.user?.image ?? ''}
                 className="size-10 ring-1 ring-primary/10 ring-offset-2 transition-all duration-200 hover:ring-primary/30"
               />
             </Link>
           </UserTooltip>
           <div className="flex min-w-0 flex-1 flex-col">
-            <UserTooltip user={post.user}>
+            <UserTooltip user={post.user ?? { id: '', name: 'Unknown User' }}>
               <Link
                 href={userProfileLink}
                 className="font-semibold decoration-primary/30 hover:underline"
@@ -152,7 +161,7 @@ export default function Post({ post }: PostProps) {
                 {username}
               </Link>
             </UserTooltip>
-            <div className="text-sm text-muted-foreground mb-1">
+            <div className="mb-1 text-sm text-muted-foreground">
               @{displayName}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -190,7 +199,7 @@ export default function Post({ post }: PostProps) {
         )}
       </div>
 
-      <HtmlContentWithLinks 
+      <HtmlContentWithLinks
         htmlContent={post.content}
         className="px-2 py-3 text-[15px] leading-relaxed text-foreground/90 [&_[data-hashtag]]:cursor-pointer [&_[data-hashtag]]:text-blue-500 [&_[data-hashtag]]:hover:underline"
       />
@@ -227,11 +236,12 @@ export default function Post({ post }: PostProps) {
           <LikeButton
             postId={post.id}
             initialState={{
-              likes: (post._count && post._count.likes) || 0,
-              isLikedByUser:
+              likes: post._count?.likes ?? 0,
+              isLikedByUser: Boolean(
                 post.likes &&
                 Array.isArray(post.likes) &&
-                post.likes.some((like) => like.userId === user?.id),
+                post.likes.some((like) => like?.userId === user?.id)
+              ),
             }}
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -248,7 +258,7 @@ export default function Post({ post }: PostProps) {
               navigator
                 .share({
                   url: `${window.location.origin}/posts/${post.id}`,
-                  title: `Post by ${post.user.displayName ?? post.user.name}`,
+                  title: `Post by ${post.user?.displayName ?? post.user?.name ?? "Unknown User"}`,
                   text: post.content,
                 })
                 .catch((error) => console.error("Share failed:", error));
@@ -264,7 +274,7 @@ export default function Post({ post }: PostProps) {
                 navigator
                   .share({
                     url: `${window.location.origin}/posts/${post.id}`,
-                    title: `Post by ${post.user.displayName ?? post.user.name}`,
+                    title: `Post by ${post.user?.displayName ?? post.user?.name ?? "Unknown User"}`,
                     text: post.content,
                   })
                   .catch((error) => console.error("Share failed:", error));
@@ -289,8 +299,9 @@ export default function Post({ post }: PostProps) {
           <BookmarkButton
             postId={post.id}
             initialState={{
-              isBookmarkedByUser: Array.isArray(post.bookmarks) &&
-                post.bookmarks.some((bookmark) => bookmark.userId === user?.id)
+              isBookmarkedByUser:
+                Array.isArray(post.bookmarks) &&
+                post.bookmarks.some((bookmark) => bookmark.userId === user?.id),
             }}
             className="text-muted-foreground transition-colors duration-200 hover:text-primary"
           />
@@ -319,7 +330,7 @@ export default function Post({ post }: PostProps) {
           </div>
         )}
       </div>
-    </motion.article>
+    </motion.div>
   );
 }
 
@@ -329,19 +340,9 @@ type CommentButtonProps = {
 };
 
 function CommentButton({ post, onClick }: CommentButtonProps) {
-  // Handle both post._count.comments (from standard API) and post.commentCount (from user posts API)
-  const commentCount =
-    // Check if post._count exists and has comments property
-    post._count && post._count.comments !== undefined
-      ? post._count.comments
-      : // Check user posts API format
-        (post as any).commentCount !== undefined
-        ? (post as any).commentCount
-        : // Fallback
-          0;
-
-  // Use the count directly from post data for simplicity
-  const totalComments = commentCount;
+  // Handle both post._count.comments post._count?.comments !== undefinedser posts API)
+  const commentCount = post._count?.comments ?? 
+                      ((post as any).commentCount ?? 0);
 
   // Simple click handler that just calls the onClick prop
   const handleClick = (e: React.MouseEvent) => {
@@ -357,7 +358,7 @@ function CommentButton({ post, onClick }: CommentButtonProps) {
       className="-ml-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-3 text-xs text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-primary"
     >
       <MessageSquare className="size-4" />
-      <span className="text-xs font-medium">{totalComments}</span>
+      <span className="text-xs font-medium">{commentCount}</span>
     </button>
   );
 }
