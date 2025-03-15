@@ -117,14 +117,18 @@ export default function Post({ post }: PostProps) {
     return user.id === post.user.id;
   }, [user, post.user]);
 
+  // Display name should be the user's full name (Romain BOBOE)
   const displayName = useMemo(() => {
     if (!post.user) return "Unknown User";
-    return post.user.displayName ?? post.user.name ?? "Unknown User";
+    // For display name, prefer name over displayName as it's the full name
+    return post.user.name ?? post.user.displayName ?? "Unknown User";
   }, [post.user]);
 
+  // Username should be the handle (romain671)
   const username = useMemo(() => {
     if (!post.user) return "unknown";
-    return post.user.name ?? "unknown";
+    // For username, prefer displayName as it's the handle/username
+    return post.user.displayName ?? post.user.name ?? "unknown";
   }, [post.user]);
 
   // Process media items
@@ -164,11 +168,11 @@ export default function Post({ post }: PostProps) {
                 href={userProfileLink}
                 className="font-semibold decoration-primary/30 hover:underline"
               >
-                {username}
+                {displayName}
               </Link>
             </UserTooltip>
             <div className="mb-1 text-sm text-muted-foreground">
-              @{displayName}
+              @{username}
             </div>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Link

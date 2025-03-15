@@ -15,7 +15,8 @@ function getProxiedMediaUrl(url: string): string {
   return `/api/v1/media-proxy?url=${encodeURIComponent(url)}&t=${timestamp}`;
 }
 
-// This comment is intentionally left empty to maintain line numbers
+// Helper to check if we're in development mode
+const isDevelopment = process.env.NODE_ENV === "development";
 
 // Generate a placeholder image URL based on media type and ID
 function getPlaceholderUrl(media: Media): string {
@@ -43,6 +44,12 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     // Safety check - if URL is empty or undefined, use a placeholder
     if (!media.url || media.url === "") {
       // Use a placeholder instead of empty string
+      setMediaUrl(getPlaceholderUrl(media));
+      return;
+    }
+
+    // In development mode with test data, use placeholder images instead of real URLs
+    if (isDevelopment && media.url.includes("utfs.io/p/32NrzzTW2")) {
       setMediaUrl(getPlaceholderUrl(media));
       return;
     }
@@ -107,7 +114,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   }
 
   // Handle video media type
-  if (media.type === "VIDEO") {
+  if (media.type === "VIDEO" && mediaUrl) {
     return (
       <div className="relative overflow-hidden rounded-lg">
         {isLoading && (
@@ -115,22 +122,16 @@ export function MediaPreview({ media }: MediaPreviewProps) {
             <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
-        {mediaUrl ? (
-          <video
-            src={mediaUrl}
-            controls
-            className={cn(
-              "mx-auto size-fit max-h-[30rem] rounded-lg",
-              isLoading && "opacity-0"
-            )}
-            onError={handleError}
-            onLoadedData={handleLoad}
-          />
-        ) : (
-          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
-            <p className="text-sm text-muted-foreground">Video unavailable</p>
-          </div>
-        )}
+        <video
+          src={mediaUrl}
+          controls
+          className={cn(
+            "mx-auto size-fit max-h-[30rem] rounded-lg",
+            isLoading && "opacity-0"
+          )}
+          onError={handleError}
+          onLoadedData={handleLoad}
+        />
       </div>
     );
   }

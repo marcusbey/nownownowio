@@ -14,8 +14,9 @@ export async function GET(req: NextRequest) {
   };
 
   try {
-    const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
-    const topic = req.nextUrl.searchParams.get("topic");
+    const cursor = req.nextUrl.searchParams.get("cursor") ?? undefined;
+    // Topic filtering is not implemented yet
+    const _topic = req.nextUrl.searchParams.get("topic");
     const pageSize = 10;
 
     const session = await baseAuth();
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
             select: {
               id: true,
               name: true,
+              displayName: true,
               image: true,
               memberships: {
                 select: {
@@ -85,7 +87,8 @@ export async function GET(req: NextRequest) {
     let nextCursor: typeof cursor = undefined;
     if (posts.length > pageSize) {
       const nextItem = posts.pop();
-      nextCursor = nextItem!.id;
+      // We know nextItem exists since we checked posts.length > pageSize
+      nextCursor = nextItem?.id ?? undefined;
     }
 
     return NextResponse.json({
@@ -93,7 +96,11 @@ export async function GET(req: NextRequest) {
       nextCursor,
     }, { headers });
   } catch (error) {
-    console.error("[GET /api/v1/posts/for-you]", error);
+    // Log error to server logs only in development
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error("[GET /api/v1/posts/for-you]", error);
+    }
     return NextResponse.json(
       { error: "Failed to fetch posts" },
       { status: 500, headers }

@@ -83,23 +83,23 @@ export async function middleware(req: NextRequest) {
           const { slug } = await response.json();
           const url = new URL(req.url);
           url.pathname = `/orgs/${slug}`;
-          console.log(`Redirecting to org: ${url.pathname}`);
+          // Redirect to organization page
           return NextResponse.redirect(url.toString());
         }
 
         // Fallback to orgs page if no organization found
         const url = new URL(req.url);
         url.pathname = "/orgs";
-        console.log(`No org found, redirecting to: ${url.pathname}`);
+        // Redirect to orgs page if no specific organization found
         return NextResponse.redirect(url.toString());
       } catch (error) {
-        console.error("Error redirecting authenticated user:", error);
+        // Silently handle error
         // Continue to the page if there's an error fetching the organization
       }
     }
   }
 
-  console.log('Middleware complete, continuing to page');
+  // Proceed to the requested page
   return NextResponse.next({
     request: {
       headers: requestHeaders,
