@@ -6,15 +6,28 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatRelativeDate(from: Date) {
+export function formatRelativeDate(from: Date | string | null | undefined): string {
+  // Handle null, undefined, or invalid date
+  if (!from) {
+    return 'Unknown date';
+  }
+  
+  // Convert string to Date if needed
+  const fromDate = typeof from === 'string' ? new Date(from) : from;
+  
+  // Check if date is valid
+  if (!(fromDate instanceof Date) || isNaN(fromDate.getTime())) {
+    return 'Invalid date';
+  }
+  
   const currentDate = new Date();
-  if (currentDate.getTime() - from.getTime() < 24 * 60 * 60 * 1000) {
-    return formatDistanceToNowStrict(from, { addSuffix: true });
+  if (currentDate.getTime() - fromDate.getTime() < 24 * 60 * 60 * 1000) {
+    return formatDistanceToNowStrict(fromDate, { addSuffix: true });
   } else {
-    if (currentDate.getFullYear() === from.getFullYear()) {
-      return formatDate(from, "MMM d");
+    if (currentDate.getFullYear() === fromDate.getFullYear()) {
+      return formatDate(fromDate, "MMM d");
     } else {
-      return formatDate(from, "MMM d, yyyy");
+      return formatDate(fromDate, "MMM d, yyyy");
     }
   }
 }

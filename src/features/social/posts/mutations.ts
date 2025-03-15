@@ -1,8 +1,7 @@
 import { useToast } from "@/components/feedback/use-toast";
 import type { PostsPage } from "@/lib/types";
 import type {
-  InfiniteData,
-  QueryFilters
+  InfiniteData
 } from "@tanstack/react-query";
 import {
   useMutation,
@@ -13,66 +12,81 @@ import { deletePost, togglePinPost } from "./actions";
 
 export function useDeletePostMutation() {
   const { toast } = useToast();
-
   const queryClient = useQueryClient();
-
   const router = useRouter();
   const pathname = usePathname();
 
   const mutation = useMutation({
     mutationFn: deletePost,
     onSuccess: async (deletedPost) => {
-      // Define all query keys that need to be updated
-      const queryKeys = [
-        // Main feed
-        ["post-feed"],
-        // User-specific feeds
-        ["user-posts", deletedPost.userId],
-        // For You feed
-        ["for-you-posts"],
-        // Following feed
-        ["following-posts"],
-        // Explore feed
-        ["explore-posts"],
-        // Bookmarked posts
-        ["bookmarked-posts"]
-      ];
+      // First, handle the main feed query
+      const mainQueryFilter = {
+        queryKey: ["post-feed", "for-you"],
+        exact: true,
+      };
 
-      // Cancel all relevant queries
-      await Promise.all(
-        queryKeys.map(async key => 
-          queryClient.cancelQueries({ queryKey: key, exact: false })
-        )
+      // Cancel any in-flight queries
+      await queryClient.cancelQueries(mainQueryFilter);
+
+      // Update the cache directly to remove the deleted post
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        mainQueryFilter,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            pageParams: oldData.pageParams,
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.filter((p) => p.id !== deletedPost.id) || [],
+            })),
+          };
+        }
       );
 
-      // Update all relevant query caches
-      queryKeys.forEach(key => {
-        queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
-          { queryKey: key, exact: false },
-          (oldData) => {
-            if (!oldData) return oldData;
+      // Also update the following feed if it exists
+      const followingQueryFilter = {
+        queryKey: ["post-feed", "following"],
+        exact: true,
+      };
 
-            return {
-              pageParams: oldData.pageParams,
-              pages: oldData.pages.map((page) => ({
-                nextCursor: page.nextCursor,
-                posts: page.posts.filter((p) => p.id !== deletedPost.id),
-              })),
-            };
-          }
-        );
-      });
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        followingQueryFilter,
+        (oldData) => {
+          if (!oldData) return oldData;
 
-      // Invalidate queries to trigger refetch if needed
-      await Promise.all(
-        queryKeys.map(async key => 
-          queryClient.invalidateQueries({ queryKey: key, exact: false })
-        )
+          return {
+            pageParams: oldData.pageParams,
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.filter((p) => p.id !== deletedPost.id) || [],
+            })),
+          };
+        }
       );
 
-      // Force a refresh
-      router.refresh();
+      // Update user-specific feeds
+      const userQueryFilter = {
+        queryKey: ["user-posts", deletedPost.userId],
+        exact: true,
+      };
 
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        userQueryFilter,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            pageParams: oldData.pageParams,
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.filter((p) => p.id !== deletedPost.id) || [],
+            })),
+          };
+        }
+      );
+
+      // Show success toast
       toast({
         description: "Post deleted",
         variant: "default"
@@ -95,7 +109,7 @@ export function useDeletePostMutation() {
   return mutation;
 }
 
-export function useTogglePinPostMutation(): ReturnType<typeof useMutation> {
+export function useTogglePinPostMutation() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -103,59 +117,80 @@ export function useTogglePinPostMutation(): ReturnType<typeof useMutation> {
   const mutation = useMutation({
     mutationFn: togglePinPost,
     onSuccess: async (updatedPost) => {
-      // Define all query keys that need to be updated
-      const queryKeys = [
-        // Main feed
-        ["post-feed"],
-        // User-specific feeds
-        ["user-posts", updatedPost.userId],
-        // For You feed
-        ["for-you-posts"],
-        // Following feed
-        ["following-posts"],
-        // Explore feed
-        ["explore-posts"],
-        // Bookmarked posts
-        ["bookmarked-posts"]
-      ];
+      // First, handle the main feed query
+      const mainQueryFilter = {
+        queryKey: ["post-feed", "for-you"],
+        exact: true,
+      };
 
-      // Cancel all relevant queries
-      await Promise.all(
-        queryKeys.map(async key => 
-          queryClient.cancelQueries({ queryKey: key, exact: false })
-        )
+      // Cancel any in-flight queries
+      await queryClient.cancelQueries(mainQueryFilter);
+
+      // Update the cache directly to update the pinned post
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        mainQueryFilter,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            pageParams: oldData.pageParams,
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.map((p) =>
+                p.id === updatedPost.id ? updatedPost : p
+              ) || [],
+            })),
+          };
+        }
       );
 
-      // Update all relevant query caches
-      queryKeys.forEach(key => {
-        queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
-          { queryKey: key, exact: false },
-          (oldData) => {
-            if (!oldData) return oldData;
+      // Also update the following feed if it exists
+      const followingQueryFilter = {
+        queryKey: ["post-feed", "following"],
+        exact: true,
+      };
 
-            return {
-              pageParams: oldData.pageParams,
-              pages: oldData.pages.map((page) => ({
-                nextCursor: page.nextCursor,
-                posts: page.posts.map((p) => 
-                  p.id === updatedPost.id ? updatedPost : p
-                ),
-              })),
-            };
-          }
-        );
-      });
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        followingQueryFilter,
+        (oldData) => {
+          if (!oldData) return oldData;
 
-      // Invalidate queries to trigger refetch if needed
-      await Promise.all(
-        queryKeys.map(async key => 
-          queryClient.invalidateQueries({ queryKey: key, exact: false })
-        )
+          return {
+            pageParams: oldData.pageParams,
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.map((p) =>
+                p.id === updatedPost.id ? updatedPost : p
+              ) || [],
+            })),
+          };
+        }
       );
 
-      // Force a refresh
-      router.refresh();
+      // Update user-specific feeds
+      const userQueryFilter = {
+        queryKey: ["user-posts", updatedPost.userId],
+        exact: true,
+      };
 
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        userQueryFilter,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            pageParams: oldData.pageParams,
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.map((p) =>
+                p.id === updatedPost.id ? updatedPost : p
+              ) || [],
+            })),
+          };
+        }
+      );
+
+      // Show success toast
       toast({
         description: updatedPost.isPinned ? "Post pinned" : "Post unpinned",
         variant: "default"

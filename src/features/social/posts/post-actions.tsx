@@ -94,12 +94,17 @@ export function BookmarkButton({
     queryKey,
     queryFn: async () => {
       try {
+        // Use a simple timeout option instead of AbortController to avoid signal abort errors
         const response = await kyInstance
-          .get(`/api/v1/posts/${postId}/bookmark`)
+          .get(`/api/v1/posts/${postId}/bookmark`, {
+            retry: { limit: 2, methods: ['get'] },
+            timeout: 5000 // 5 second timeout
+          })
           .json<{ isBookmarkedByUser: boolean }>();
         return response;
       } catch (error) {
         console.error("Failed to fetch bookmark status:", error);
+        // Don't show error toast for timeout/network errors to avoid spamming the user
         return { isBookmarkedByUser: initialState.isBookmarkedByUser };
       }
     },
@@ -112,12 +117,28 @@ export function BookmarkButton({
   // Handle bookmark toggle with API call
   const { mutate: toggleBookmark } = useMutation({
     mutationFn: async () => {
-      if (data.isBookmarkedByUser) {
-        await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`);
-        return { isBookmarkedByUser: false };
-      } else {
-        await kyInstance.post(`/api/v1/posts/${postId}/bookmark`);
-        return { isBookmarkedByUser: true };
+      // Ensure data exists with default fallback
+      const bookmarkStatus = data?.isBookmarkedByUser ?? false;
+      
+      try {
+        if (bookmarkStatus) {
+          // Use timeout option instead of AbortController
+          await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`, {
+            retry: { limit: 2, methods: ['delete'] },
+            timeout: 5000 // 5 second timeout
+          });
+          return { isBookmarkedByUser: false };
+        } else {
+          await kyInstance.post(`/api/v1/posts/${postId}/bookmark`, {
+            retry: { limit: 2, methods: ['post'] },
+            timeout: 5000 // 5 second timeout
+          });
+          return { isBookmarkedByUser: true };
+        }
+      } catch (error) {
+        console.error('Error toggling bookmark:', error);
+        // Return the opposite of current state as fallback
+        return { isBookmarkedByUser: !bookmarkStatus };
       }
     },
     onMutate: async () => {

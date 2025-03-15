@@ -32,7 +32,8 @@ export default function ForYouFeed() {
           )
           .json<PostsPage>();
       } catch (error: unknown) {
-        const status = (error as { response?: { status?: number } }).response?.status;
+        const status = (error as { response?: { status?: number } }).response
+          ?.status;
         if (status === 404 || status === 401) {
           return { posts: [], nextCursor: null } as PostsPage;
         }
@@ -44,7 +45,7 @@ export default function ForYouFeed() {
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: true,      // Only fetch once on mount
+    refetchOnMount: true, // Only fetch once on mount
     refetchOnReconnect: false,
     retry: 1,
     networkMode: "offlineFirst",
@@ -96,8 +97,8 @@ export default function ForYouFeed() {
       }}
       className="no-scrollbar h-full space-y-6 overflow-y-auto"
     >
-      {posts.map((post) => (
-        <Post key={post.id} post={post} />
+      {posts.map((post, index) => (
+        <Post key={post.id || `post-${index}`} post={post} />
       ))}
       {isFetchingNextPage && (
         <div className="flex justify-center py-4">
