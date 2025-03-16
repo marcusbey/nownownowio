@@ -1,16 +1,17 @@
 import { mergeAttributes, Node } from "@tiptap/core";
-import { ReactNodeViewRenderer, NodeViewWrapper } from "@tiptap/react";
+import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { FilmIcon, Volume2 } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
 // React component for rendering the media node
-const MediaNodeView: React.FC<{
-  node: { attrs: { src: string; alt?: string; type: "image" | "video" | "audio" } };
-  updateAttributes: (attrs: Record<string, any>) => void;
-  extension: any;
-}> = ({ node, updateAttributes }) => {
-  const { src, alt, type } = node.attrs;
+const MediaNodeView: React.FC<NodeViewProps> = (props) => {
+  // Cast the node attrs to the expected type
+  const { src, alt, type } = props.node.attrs as { 
+    src: string; 
+    alt?: string; 
+    type: "image" | "video" | "audio" 
+  };
 
   return (
     <NodeViewWrapper

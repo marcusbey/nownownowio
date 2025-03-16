@@ -26,58 +26,69 @@ export function useCommandSearch({ formatCommands }: UseCommandSearchProps): Use
     const searchTerm = commandSearch;
     const trimmedSearch = searchTerm.trim().toLowerCase();
     if (!trimmedSearch) return commands;
-
-    // First prioritize exact matches for the command ID
-    const exactIdMatches = commands.filter(
-      (cmd) => cmd.id.toLowerCase() === trimmedSearch,
-    );
-
-    // Then prioritize commands that start with the search term
-    const startsWithMatches = commands.filter((cmd) => {
-      // Skip exact matches we already included
-      if (exactIdMatches.some((m) => m.id === cmd.id)) return false;
-
-      // Check if command ID or label starts with search term
-      const idStartsWithTerm = cmd.id.toLowerCase().startsWith(trimmedSearch);
-      const labelStartsWithTerm = cmd.label
-        .toLowerCase()
-        .startsWith(trimmedSearch);
-
-      // Check if any keyword starts with search term
-      let keywordStartsWithTerm = false;
-      if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
-        keywordStartsWithTerm = cmd.keywords.some((k) =>
-          k.toLowerCase().startsWith(trimmedSearch),
-        );
+    
+    // Calculate a score for each command based on how well it matches the search
+    const scoredCommands = commands.map(cmd => {
+      let score = 0;
+      
+      // Highest priority: exact ID match (score: 100)
+      if (cmd.id.toLowerCase() === trimmedSearch) {
+        score = 100;
+        return { cmd, score };
       }
-
-      return idStartsWithTerm || labelStartsWithTerm || keywordStartsWithTerm;
-    });
-
-    // Finally include commands that contain the search term anywhere
-    const containsMatches = commands.filter((cmd) => {
-      // Skip commands we already included
-      if (
-        exactIdMatches.some((m) => m.id === cmd.id) ||
-        startsWithMatches.some((m) => m.id === cmd.id)
-      )
-        return false;
-
-      const cmdText = `${cmd.id} ${cmd.label}`.toLowerCase();
-      if (cmdText.includes(trimmedSearch)) return true;
-
-      // Check if any keyword contains the search term
-      if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
-        return cmd.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(trimmedSearch),
-        );
+      
+      // High priority: exact keyword match (score: 90)
+      if (Array.isArray(cmd.keywords) && cmd.keywords.some(k => k.toLowerCase() === trimmedSearch)) {
+        score = 90;
+        return { cmd, score };
       }
-
-      return false;
+      
+      // Medium-high priority: ID starts with search term (score: 80)
+      if (cmd.id.toLowerCase().startsWith(trimmedSearch)) {
+        score = 80;
+        return { cmd, score };
+      }
+      
+      // Medium priority: label starts with search term (score: 70)
+      if (cmd.label.toLowerCase().startsWith(trimmedSearch)) {
+        score = 70;
+        return { cmd, score };
+      }
+      
+      // Medium-low priority: keyword starts with search term (score: 60)
+      if (Array.isArray(cmd.keywords) && cmd.keywords.some(k => k.toLowerCase().startsWith(trimmedSearch))) {
+        score = 60;
+        return { cmd, score };
+      }
+      
+      // Low priority: ID or label contains search term (score: 40-50)
+      if (cmd.id.toLowerCase().includes(trimmedSearch)) {
+        score = 50;
+        return { cmd, score };
+      }
+      
+      if (cmd.label.toLowerCase().includes(trimmedSearch)) {
+        score = 45;
+        return { cmd, score };
+      }
+      
+      // Lowest priority: keyword contains search term (score: 30)
+      if (Array.isArray(cmd.keywords) && cmd.keywords.some(k => k.toLowerCase().includes(trimmedSearch))) {
+        score = 30;
+        return { cmd, score };
+      }
+      
+      // No match
+      return { cmd, score };
     });
-
-    // Combine all matches in priority order
-    return [...exactIdMatches, ...startsWithMatches, ...containsMatches];
+    
+    // Filter out non-matches and sort by score (highest first)
+    const filteredAndSorted = scoredCommands
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+    
+    // Return just the commands in order
+    return filteredAndSorted.map(item => item.cmd);
   }, [formatCommands, commandSearch]);
   
   return {

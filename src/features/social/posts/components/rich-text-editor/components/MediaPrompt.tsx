@@ -3,7 +3,7 @@ import { Progress } from "@/components/feedback/progress";
 import { cn } from "@/lib/utils";
 import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 // We don't need to import useDropzone here as we're receiving props from parent
 import type { DropzoneRootProps } from "react-dropzone";
 import type { MediaFile } from "../types";
@@ -28,6 +28,7 @@ type MediaPromptProps = {
   isDragActive: boolean;
   confirmMediaSelection: () => void;
   cancelMediaSelection: () => void;
+  handleMediaInsert?: (url: string) => void;
 };
 
 export function MediaPrompt({
@@ -46,17 +47,51 @@ export function MediaPrompt({
   getRootProps,
   getInputProps,
   isDragActive,
+  handleMediaInsert,
 }: MediaPromptProps) {
+  // Add useEffect for handling Escape key globally
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        cancelMediaSelection();
+      }
+    };
+    
+    // Add event listener
+    document.addEventListener("keydown", handleKeyDown);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [cancelMediaSelection]);
+
+  // Handle click outside
+  const dialogRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
+        cancelMediaSelection();
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [cancelMediaSelection]);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          cancelMediaSelection();
-        }
-      }}
+      tabIndex={-1}
     >
-      <div className="w-[500px] max-w-[90vw] rounded-lg border bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+      <div 
+        ref={dialogRef}
+        className="w-[500px] max-w-[90vw] rounded-lg border bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+      >
         <h3 className="mb-3 text-lg font-medium">
           {mediaType === "image"
             ? "Add Image"
@@ -254,7 +289,17 @@ export function MediaPrompt({
             Cancel
           </Button>
           <Button
-            onClick={confirmMediaSelection}
+            onClick={() => {
+              if (mediaTab === "upload") {
+                confirmMediaSelection();
+              } else if (embedUrl.trim() && handleMediaInsert) {
+                // Use handleMediaInsert for embed URLs
+                handleMediaInsert(embedUrl.trim());
+                cancelMediaSelection();
+              } else {
+                confirmMediaSelection();
+              }
+            }}
             disabled={
               (mediaTab === "upload" && mediaFiles.length === 0) ||
               (mediaTab === "embed" && !embedUrl.trim())

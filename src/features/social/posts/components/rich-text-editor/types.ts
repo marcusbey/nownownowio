@@ -31,6 +31,7 @@ export type RichTextEditorProps = {
   maxLength?: number;
   initialContent?: string;
   placeholder?: string;
+  autofocus?: boolean;
   children?: ReactNode;
 };
 

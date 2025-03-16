@@ -2,6 +2,7 @@ import { useToast } from "@/components/feedback/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import CharacterCount from "@tiptap/extension-character-count";
 import type { Editor } from "@tiptap/react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -23,7 +24,7 @@ import type { FormatCommand, MenuPosition, RichTextEditorProps } from "./types";
 const RichTextEditor = React.forwardRef<
   { clearEditor: () => void; insertEmoji: (emoji: string) => void },
   RichTextEditorProps
->(({ onChange, onMediaSelect, maxLength = 860 }, ref) => {
+>(({ onChange, onMediaSelect, maxLength = 860, placeholder, initialContent = "", autofocus = false }, ref) => {
   const [charCount, setCharCount] = useState(0);
   const [menuPosition, setMenuPosition] = useState<MenuPosition>({ x: 0, y: 0 });
   const [showCommandMenu, setShowCommandMenu] = useState(false);
@@ -42,23 +43,71 @@ const RichTextEditor = React.forwardRef<
         },
       }),
       Placeholder.configure({
-        placeholder: EDITOR_PLACEHOLDER,
+        placeholder: ({ node, editor }) => {
+          // Get the node type name safely
+          const typeName = node.type.name;
+
+          // Check if this is a paragraph and if it's the first node
+          const isParagraph = typeName === "paragraph";
+          const doc = editor.state.doc;
+          const isFirstNode = doc.firstChild === node;
+
+          if (isParagraph && isFirstNode) {
+            return placeholder ?? EDITOR_PLACEHOLDER;
+          }
+
+          // Get the node type name for switch case
+          const nodeTypeName = node.type.name;
+          
+          // Handle different node types with appropriate placeholder text
+          switch (nodeTypeName) {
+            case "heading": {
+              // Use a more concise approach for heading levels
+              const level = node.attrs.level;
+              return level >= 1 && level <= 3 
+                ? `Heading ${level}...` 
+                : "Heading";
+            }
+            case "bulletList":
+              return "List item";
+            case "orderedList":
+              return "1. List item";
+            case "blockquote":
+              return "Type a quote...";
+            case "codeBlock":
+              return "Code";
+            case "paragraph":
+              return "Write something, Press '/' for commands...";
+            default:
+              return "Write, Type '/' for commands...";
+          }
+        },
         showOnlyWhenEditable: true,
+      }),
+      CharacterCount.configure({
+        limit: maxLength,
       }),
       Link.configure({
         openOnClick: false,
+        HTMLAttributes: {
+          class: "cursor-pointer text-primary underline",
+        },
       }),
+      // Custom node for media (images, videos, audio)
       MediaNode,
     ],
+    content: initialContent,
+    editable: true,
+    autofocus: autofocus ? "end" : false,
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
+      onChange?.(editor.getHTML());
       setCharCount(editor.storage.characterCount.characters());
-      onChange?.(html);
     },
-    onFocus: ({ editor }) => {
-      if (editor.isEmpty) {
-        editor.commands.focus('start');
-      }
+    onSelectionUpdate: ({ editor }) => {
+      // Update menu position when selection changes
+      const position = updateMenuPosition(editor);
+      // Set the menu position with the calculated position
+      setMenuPosition(position);
     },
     editorProps: {
       attributes: {
@@ -135,7 +184,7 @@ const RichTextEditor = React.forwardRef<
     openLinkPrompt, 
     closeLinkPrompt, 
     confirmLink 
-  } = useLinkInsertion({ editor });
+  } = useLinkInsertion({ editor: editor ?? null });
 
   // Handle media upload
   const {
@@ -156,9 +205,22 @@ const RichTextEditor = React.forwardRef<
     confirmMediaSelection,
     cancelMediaSelection,
   } = useMediaUpload({ 
-    editor, 
+    editor: editor ?? null, 
     onMediaSelect
   });
+  
+  // Handle media insertion from URL - using the insertMediaToEditor function from useMediaUpload
+  const handleMediaInsert = useCallback((url: string) => {
+    if (!url) return;
+    
+    try {
+      // Use the insertMediaToEditor function from useMediaUpload
+      _insertMediaToEditor(url, mediaType);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      window.console.warn("Error inserting media:", errorMessage);
+    }
+  }, [_insertMediaToEditor, mediaType]);
 
   // Dropzone configuration
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -350,6 +412,7 @@ const RichTextEditor = React.forwardRef<
             getRootProps={getRootProps}
             getInputProps={getInputProps}
             isDragActive={isDragActive}
+            handleMediaInsert={handleMediaInsert}
           />
         )}
       </div>
