@@ -66,6 +66,7 @@ export function useDeletePostMutation() {
       );
 
       // Update user-specific feeds
+      // First, update the user-posts query with the old key format
       const userQueryFilter = {
         queryKey: ["user-posts", deletedPost.userId],
         exact: true,
@@ -73,6 +74,27 @@ export function useDeletePostMutation() {
 
       queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
         userQueryFilter,
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          return {
+            pageParams: oldData.pageParams,
+            pages: oldData.pages.map((page) => ({
+              nextCursor: page.nextCursor,
+              posts: page.posts.filter((p) => p.id !== deletedPost.id) || [],
+            })),
+          };
+        }
+      );
+      
+      // Also update the post-feed user-posts query format used in the profile page
+      const profileQueryFilter = {
+        queryKey: ["post-feed", "user-posts", deletedPost.userId],
+        exact: true,
+      };
+
+      queryClient.setQueriesData<InfiniteData<PostsPage, string | null>>(
+        profileQueryFilter,
         (oldData) => {
           if (!oldData) return oldData;
 
