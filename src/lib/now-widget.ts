@@ -14,29 +14,42 @@ export type WidgetSettings = {
 /**
  * Generates a token for widget authentication
  * @param orgId Organization ID to include in the token
+ * @param websiteUrl Optional website URL to include in the token for domain validation
  * @returns Generated token string
  */
-export function generateWidgetToken(orgId: string): string {
+export function generateWidgetToken(orgId: string, websiteUrl?: string): string {
     if (!orgId) {
         throw new Error('Organization ID is required to generate widget token');
     }
     
-    // Use a more secure implementation with timestamp and a secret
+    // Extract domain from website URL if provided
+    let domain = '';
+    if (websiteUrl) {
+        try {
+            domain = new URL(websiteUrl).hostname;
+        } catch (error) {
+            logger.warn('Invalid website URL provided for token generation', { websiteUrl, error });
+            // Continue without domain if URL is invalid
+        }
+    }
+    
+    // Use a more secure implementation with timestamp, domain and a secret
     const timestamp = Date.now();
     const secret = process.env.WIDGET_TOKEN_SECRET ?? 'default-widget-secret';
-    const tokenParts = [orgId, timestamp.toString(), secret];
+    const tokenParts = [orgId, timestamp.toString(), domain, secret];
 
     // In a production app, you'd use a proper JWT library
     return Buffer.from(tokenParts.join('.')).toString('base64');
 }
 
 /**
- * Verifies a widget token against an organization ID
+ * Verifies a widget token against an organization ID and optionally a domain
  * @param token Token to verify
  * @param orgId Organization ID to check against
+ * @param requestOrigin Optional request origin to validate against the token's domain
  * @returns Boolean indicating if token is valid
  */
-export function verifyWidgetToken(token: string, orgId: string): boolean {
+export function verifyWidgetToken(token: string, orgId: string, requestOrigin?: string | null): boolean {
     if (!token || !orgId) {
         logger.warn('Widget authentication failed: Missing token or organization ID');
         return false;
@@ -45,7 +58,7 @@ export function verifyWidgetToken(token: string, orgId: string): boolean {
     try {
         // Decode the token
         const decoded = Buffer.from(token, 'base64').toString();
-        const [tokenOrgId, timestampStr] = decoded.split('.');
+        const [tokenOrgId, timestampStr, tokenDomain] = decoded.split('.');
         
         // Check if organization ID matches
         if (tokenOrgId !== orgId) {
@@ -67,6 +80,30 @@ export function verifyWidgetToken(token: string, orgId: string): boolean {
                 maxAge
             });
             return false;
+        }
+        
+        // If request origin is provided and token has a domain, validate the origin
+        if (requestOrigin && tokenDomain) {
+            try {
+                const originUrl = new URL(requestOrigin);
+                const originDomain = originUrl.hostname.toLowerCase();
+                const storedDomain = tokenDomain.toLowerCase();
+                
+                // Check if domains match or if origin is a subdomain of the allowed domain
+                const isValidDomain = originDomain === storedDomain || 
+                                     originDomain.endsWith(`.${storedDomain}`);
+                
+                if (!isValidDomain) {
+                    logger.warn('Widget authentication failed: Domain mismatch', {
+                        tokenDomain: storedDomain,
+                        requestDomain: originDomain
+                    });
+                    return false;
+                }
+            } catch (error) {
+                logger.error('Error validating request origin', { error, requestOrigin });
+                return false;
+            }
         }
         
         return true;

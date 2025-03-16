@@ -96,8 +96,8 @@ export async function POST(request: Request) {
 
         // Store the widget token for this organization
         try {
-            // Generate the widget token using organization ID
-            const token = generateWidgetToken(org.id);
+            // Generate the widget token using organization ID and website URL
+            const token = generateWidgetToken(org.id, org.websiteUrl);
             
             // Create or update the widget for this organization
             // Ensure settings is properly serialized for Prisma's Json field

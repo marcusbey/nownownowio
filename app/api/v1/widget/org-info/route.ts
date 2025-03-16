@@ -93,21 +93,23 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        // Verify the widget token against the organization
-        const isTokenValid = verifyWidgetToken(token, orgId);
+        // Verify the widget token against the organization and origin
+        // This now handles both token validation and origin validation in one step
+        const isTokenValid = verifyWidgetToken(token, orgId, origin);
         if (!isTokenValid) {
-            logger.warn('Invalid widget token', { orgId, origin });
+            logger.warn('Invalid widget token or origin', { orgId, origin });
             return NextResponse.json(
-                { error: 'Invalid token', message: 'The provided authorization token is invalid' },
+                { error: 'Invalid token', message: 'The provided authorization token is invalid or the origin is not allowed' },
                 { status: 401, headers }
             );
         }
-
-        // If we have an origin and allowed domain, validate the origin
-        if (origin && allowedDomain) {
+        
+        // Note: We no longer need the separate origin validation since it's included in verifyWidgetToken
+        // But we'll keep a fallback validation for backward compatibility with existing tokens
+        if (origin && allowedDomain && !origin.includes('localhost')) {
             const isOriginValid = validateWidgetOrigin(origin, allowedDomain);
             if (!isOriginValid) {
-                logger.warn('Invalid widget origin', { 
+                logger.warn('Invalid widget origin (fallback check)', { 
                     orgId, 
                     origin,
                     allowedDomain 
