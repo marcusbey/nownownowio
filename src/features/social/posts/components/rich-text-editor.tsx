@@ -16,11 +16,13 @@ import CharacterCount from "@tiptap/extension-character-count";
 import { EditorContent, useEditor } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
+import { FilmIcon, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
-import MediaNode from "./extensions/media-node";
+import MediaNode from "./rich-text-editor/extensions/media-node";
+
+// Import the externalized DropzoneArea component
+import DropzoneArea from "./rich-text-editor/components/DropzoneArea";
 
 // Import utility functions from refactored modules
 import { 
@@ -76,6 +78,8 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
     
     // Initialize editor with proper configuration
     const editor = useEditor({
+      // Setting immediatelyRender to false prevents SSR hydration warnings
+      immediatelyRender: false,
       extensions: [
         StarterKit.configure({
           heading: {
@@ -145,14 +149,10 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
         setCharCount(editor.storage.characterCount.characters());
       },
       onSelectionUpdate: ({ editor }) => {
-        // Update menu position when selection changes
-        const position = updateMenuPosition(editor);
-        // Only update position if we got a valid result
-        if (position) {
-          setMenuPosition(position);
-        }
+        // Update menu position when selection changes and set it
+        setMenuPosition(updateMenuPosition(editor));
       },
-      immediatelyRender: false,
+      // Editor props configuration
       editorProps: {
         attributes: {
           class:
@@ -185,14 +185,14 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
             }
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
-              const selectedCommand = filteredCommands[selectedIndex];
-              if (selectedCommand && editor) {
-                applyFormat(selectedCommand);
-                // Ensure we focus the editor after applying format
-                setTimeout(() => {
-                  editor.commands.focus();
-                }, 10);
-              }
+              // Apply the selected format command
+              applyFormat(filteredCommands[selectedIndex]);
+              // Ensure we focus the editor after applying format
+              setTimeout(() => {
+                // Type assertion to handle the Editor type
+                const safeEditor = editor as Editor;
+                safeEditor.commands.focus();
+              }, 10);
               setShowCommandMenu(false);
               return true;
             }
@@ -228,17 +228,21 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
           if (node.type.name === "listItem") {
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
-              if ($from.parent.textContent.trim() === "" && editor) {
-                editor.chain().focus().liftListItem("listItem").run();
-              } else if (editor) {
-                editor.chain().focus().splitListItem("listItem").run();
+              // Editor is guaranteed to exist here
+              const safeEditor = editor as Editor;
+              if ($from.parent.textContent.trim() === "") {
+                safeEditor.chain().focus().liftListItem("listItem").run();
+              } else {
+                safeEditor.chain().focus().splitListItem("listItem").run();
               }
               return true;
             }
             if (["Backspace", "Escape"].includes(event.key)) {
-              if ($from.parent.textContent.trim() === "" && editor) {
+              if ($from.parent.textContent.trim() === "") {
                 event.preventDefault();
-                editor.chain().focus().liftListItem("listItem").run();
+                // Editor is guaranteed to exist here
+                const safeEditor = editor as Editor;
+                safeEditor.chain().focus().liftListItem("listItem").run();
                 return true;
               }
             }
@@ -325,27 +329,10 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
       }
     }, [editor]);
   
-  // Use the dropzone hook with the onDrop callback from useMediaUpload
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept:
-      mediaType === "image"
-        ? {
-            "image/*": [".png", ".jpg", ".jpeg", ".gif"],
-          }
-        : mediaType === "video"
-          ? {
-              "video/*": [".mp4", ".webm", ".mov"],
-            }
-          : {
-              "audio/*": [".mp3", ".wav", ".ogg", ".m4a"],
-            },
-    maxFiles: 4,
-    multiple: true,
-  });
+  // Use the externalized DropzoneArea component instead of inline implementation
 
   // Use the link insertion hook
-  // Using null-check to ensure editor is defined when passing to hook
+  // Using type assertion to ensure editor is properly typed when passing to hook
   const {
     showLinkPrompt,
     initialUrl: linkUrl,
@@ -353,19 +340,21 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
     openLinkPrompt,
     closeLinkPrompt: cancelLink,
     confirmLink: handleConfirmLink,
-  } = useLinkInsertion({ editor: editor ?? {} as Editor });
+  } = useLinkInsertion({ editor: editor as Editor });
 
   const confirmLink = useCallback(() => {
-    if (!editor || !linkUrl.trim()) {
+    if (!linkUrl.trim()) {
       return;
     }
+    // Editor is guaranteed to exist here
     // Pass the required arguments according to the hook's function signature
     handleConfirmLink(linkUrl.trim(), '', false);
-  }, [editor, linkUrl, handleConfirmLink]);
+  }, [linkUrl, handleConfirmLink]);
 
   const applyFormat = useCallback((command: FormatCommand): void => {
-    if (!editor) return;
-
+    // Editor is guaranteed to exist here
+    const safeEditor = editor as Editor;
+    
     // Process the command based on its ID
     const commandId = command.id;
     
@@ -381,51 +370,51 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
     }
     
     // Handle all formatting commands directly for consistency
-    editor.commands.focus();
+    safeEditor.commands.focus();
     
     switch (commandId) {
       case "text":
-        editor.chain().focus().clearNodes().setParagraph().run();
+        safeEditor.chain().focus().clearNodes().setParagraph().run();
         break;
       case "h1":
-        editor.chain().focus().toggleHeading({ level: 1 }).run();
+        safeEditor.chain().focus().toggleHeading({ level: 1 }).run();
         break;
       case "h2":
-        editor.chain().focus().toggleHeading({ level: 2 }).run();
+        safeEditor.chain().focus().toggleHeading({ level: 2 }).run();
         break;
       case "h3":
-        editor.chain().focus().toggleHeading({ level: 3 }).run();
+        safeEditor.chain().focus().toggleHeading({ level: 3 }).run();
         break;
       case "bullet":
-        editor.chain().focus().toggleBulletList().run();
+        safeEditor.chain().focus().toggleBulletList().run();
         break;
       case "numbered":
-        editor.chain().focus().toggleOrderedList().run();
+        safeEditor.chain().focus().toggleOrderedList().run();
         break;
       case "quote":
-        editor.chain().focus().toggleBlockquote().run();
+        safeEditor.chain().focus().toggleBlockquote().run();
         break;
       case "code":
-        editor.chain().focus().toggleCodeBlock().run();
+        safeEditor.chain().focus().toggleCodeBlock().run();
         break;
       case "bold":
-        editor.chain().focus().toggleBold().run();
+        safeEditor.chain().focus().toggleBold().run();
         break;
       case "italic":
-        editor.chain().focus().toggleItalic().run();
+        safeEditor.chain().focus().toggleItalic().run();
         break;
       case "underline":
         // Use setMark instead of toggleUnderline as it might not be available in this Tiptap version
-        editor.chain().focus().toggleMark('underline').run();
+        safeEditor.chain().focus().toggleMark('underline').run();
         break;
       case "strike":
-        editor.chain().focus().toggleStrike().run();
+        safeEditor.chain().focus().toggleStrike().run();
         break;
       case "divider":
         // Insert a horizontal rule that spans the full width
-        editor.commands.setHorizontalRule();
+        safeEditor.commands.setHorizontalRule();
         // Add an empty paragraph after to ensure there's a valid cursor position
-        editor.commands.insertContent("<p></p>");
+        safeEditor.commands.insertContent("<p></p>");
         break;
       default:
         // For any unhandled commands, do nothing
@@ -788,34 +777,12 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
                     </div>
                   )}
 
-                  {/* Dropzone Area */}
+                  {/* Externalized Dropzone Area Component */}
                   {mediaFiles.length < 4 && !isUploading && (
-                    <div
-                      {...getRootProps()}
-                      className={cn(
-                        "mb-4 cursor-pointer rounded-md border-2 border-dashed p-4 transition-colors",
-                        isDragActive
-                          ? "border-primary bg-primary/5"
-                          : "border-muted-foreground/20 hover:border-muted-foreground/50",
-                      )}
-                    >
-                      <input {...getInputProps()} />
-                      <div className="flex flex-col items-center justify-center text-sm text-muted-foreground">
-                        <ImagePlus className="mb-2 size-6" />
-                        <p>
-                          {isDragActive
-                            ? "Drop files here"
-                            : `Drag & drop or click to add ${mediaType === "image" ? "images" : mediaType === "video" ? "videos" : "audio files"}`}
-                        </p>
-                        <p className="mt-1 text-xs">
-                          {mediaType === "image"
-                            ? "Up to 4 files (4MB per image)"
-                            : mediaType === "video"
-                              ? "Up to 4 files (64MB per video)"
-                              : "Up to 4 files (16MB per audio file)"}
-                        </p>
-                      </div>
-                    </div>
+                    <DropzoneArea 
+                      onDrop={onDrop}
+                      mediaType={mediaType}
+                    />
                   )}
                 </>
               ) : (

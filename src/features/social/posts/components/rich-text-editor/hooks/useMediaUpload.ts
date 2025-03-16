@@ -149,8 +149,12 @@ export function useMediaUpload({
     (src: string, type: "image" | "video" | "audio") => {
       if (!editor?.isEditable) return;
 
+      // We've already checked that editor exists and is editable above
+      // TypeScript needs assurance that editor is not null here
+      const safeEditor = editor as Editor;
+      
       // Insert at current cursor position
-      editor.commands.focus();
+      safeEditor.commands.focus();
 
       if (type === "image") {
         editor.commands.insertContent({
@@ -206,6 +210,7 @@ export function useMediaUpload({
     setMediaFiles([]);
     setEmbedUrl("");
     setIsUploading(false);
+    setShowMediaPrompt(false); // Close the media prompt
   }, [mediaFiles]);
   
   /**
