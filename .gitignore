@@ -42,3 +42,4 @@ pnpm-lock.yaml
 
 # .env
 prisma/combined/
+src/features/social/posts/components/rich-text-editor copy.md
