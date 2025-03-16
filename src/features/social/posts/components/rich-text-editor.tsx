@@ -12,207 +12,427 @@ import { useToast } from "@/components/feedback/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import type { Editor } from "@tiptap/react";
+import CharacterCount from "@tiptap/extension-character-count";
 import { EditorContent, useEditor } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-// We'll use TipTap's built-in commands for cursor positioning
-import type { Node } from "@tiptap/core";
 import { FilmIcon, ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import MediaNode from "./extensions/media-node";
 
-type MediaFile = {
-  file: File;
-  id?: string;
-  previewUrl: string;
-  type: "image" | "video";
-  uploading: boolean;
-  progress: number;
-  error?: string;
-};
+// Import utility functions from refactored modules
+import { 
+  clearEditor as clearEditorUtil, 
+  insertEmoji as insertEmojiUtil, 
+  updateMenuPosition
+} from "./rich-text-editor/utils";
+
+// Import constants and types
+import { FORMAT_COMMANDS } from "./rich-text-editor/constants";
+import type { FormatCommand, MenuPosition } from "./rich-text-editor/types";
+
+// Import hooks
+import { useCommandSearch } from "./rich-text-editor/hooks/useCommandSearch";
+import { useLinkInsertion } from "./rich-text-editor/hooks/useLinkInsertion";
+import { useMediaUpload } from "./rich-text-editor/hooks/useMediaUpload";
 
 type RichTextEditorProps = {
   onChange?: (content: string) => void;
   onEmojiSelect?: (emoji: string) => void;
   onMediaSelect?: (files: File[]) => void;
   maxLength?: number;
+  placeholder?: string;
+  initialContent?: string;
+  autofocus?: boolean;
+}
+
+type RichTextEditorRef = {
+  clearEditor: () => void;
+  insertEmoji: (emoji: string) => void;
 };
 
-const RichTextEditor = React.forwardRef<
-  { clearEditor: () => void },
-  RichTextEditorProps
->(({ onChange, onMediaSelect, maxLength = 860 }, ref) => {
-  const [charCount, setCharCount] = useState(0);
-  const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const [commandSearch, setCommandSearch] = React.useState("");
-  const menuRef = React.useRef<HTMLDivElement>(null);
-  // Define format commands outside of render to avoid re-creating on each render
-  const formatCommands = React.useMemo(
-    () => [
-      { id: "text", label: "Text", icon: "¶", keywords: ["text", "paragraph"] },
-      {
-        id: "h1",
-        label: "Heading 1",
-        icon: "H1",
-        keywords: ["heading", "title", "h1"],
-      },
-      {
-        id: "h2",
-        label: "Heading 2",
-        icon: "H2",
-        keywords: ["heading", "subtitle", "h2"],
-      },
-      {
-        id: "h3",
-        label: "Heading 3",
-        icon: "H3",
-        keywords: ["heading", "subtitle", "h3"],
-      },
-      {
-        id: "divider",
-        label: "Divider",
-        icon: "---",
-        keywords: ["divider", "separator", "line", "hr"],
-      },
-      {
-        id: "bullet",
-        label: "Bullet List",
-        icon: "•",
-        keywords: ["bullet", "list", "unordered"],
-      },
-      {
-        id: "numbered",
-        label: "Numbered List",
-        icon: "1.",
-        keywords: ["numbered", "list", "ordered"],
-      },
-      {
-        id: "link",
-        label: "Link",
-        icon: "🔗",
-        keywords: ["link", "url", "hyperlink"],
-      },
-      {
-        id: "quote",
-        label: "Quote",
-        icon: '"',
-        keywords: ["quote", "blockquote", "citation"],
-      },
-      {
-        id: "code",
-        label: "Code Block",
-        icon: "<>",
-        keywords: ["code", "codeblock", "programming"],
-      },
-      {
-        id: "image",
-        label: "Image",
-        icon: "🖼️",
-        keywords: ["image", "picture", "photo", "media"],
-      },
-      {
-        id: "video",
-        label: "Video",
-        icon: "🎬",
-        keywords: ["video", "movie", "clip", "media"],
-      },
-      {
-        id: "audio",
-        label: "Audio",
-        icon: "🔊",
-        keywords: ["audio", "sound", "music", "media"],
-      },
-    ],
-    [],
-  );
+const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
+  ({ onChange, onMediaSelect, maxLength = 860, placeholder, initialContent = "", autofocus = false }, ref) => {
+    const [charCount, setCharCount] = useState(0);
+    const [menuPosition, setMenuPosition] = React.useState<MenuPosition>({ x: 0, y: 0 });
+    const menuRef = React.useRef<HTMLDivElement>(null);
+    
+    const [showCommandMenu, setShowCommandMenu] = React.useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { toast } = useToast();
+    
+    // Use the command search hook
+    const { 
+      filteredCommands, 
+      commandSearch, 
+      setCommandSearch, 
+      selectedIndex, 
+      setSelectedIndex 
+    } = useCommandSearch({
+      formatCommands: FORMAT_COMMANDS
+    });
+    
+    // Initialize editor with proper configuration
+    const editor = useEditor({
+      extensions: [
+        StarterKit.configure({
+          heading: {
+            levels: [1, 2, 3],
+          },
+        }),
+        Placeholder.configure({
+          placeholder: ({ node, editor }) => {
+            // Get the node type name safely
+            const typeName = node.type.name;
+            if (!typeName) return "";
 
-  const [showCommandMenu, setShowCommandMenu] = React.useState(false);
-  const [showLinkPrompt, setShowLinkPrompt] = React.useState(false);
-  const [showMediaPrompt, setShowMediaPrompt] = React.useState(false);
-  const [mediaType, setMediaType] = React.useState<"image" | "video" | "audio">(
-    "image",
-  );
-  const [mediaTab, setMediaTab] = React.useState<"upload" | "embed">("upload");
-  const [linkUrl, setLinkUrl] = React.useState("");
-  const [embedUrl, setEmbedUrl] = React.useState("");
-  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
-  const [isUploading] = useState(false);
-  const { toast } = useToast();
+            // Check if this is a paragraph and if it's the first node
+            const isParagraph = typeName === "paragraph";
+            const doc = editor.state.doc;
+            const isFirstNode = doc.firstChild === node;
 
-  /**
-   * Filters commands based on the input search string.
-   * Handles multi-word searches by skipping non-matching words and filtering based on matching words.
-   */
-  const filteredCommands = React.useMemo(() => {
-    const searchTerm = commandSearch.trim().toLowerCase();
-    if (!searchTerm) return formatCommands;
+            if (isParagraph && isFirstNode) {
+              return placeholder ?? 'What do you have in mind? Type "/" for commands...';
+            }
 
-    // First prioritize exact matches for the command ID
-    const exactIdMatches = formatCommands.filter(
-      (cmd) => cmd.id.toLowerCase() === searchTerm,
-    );
+            // Get the node type name for switch case
+            const nodeTypeName = node.type.name;
+            
+            // Handle different node types with appropriate placeholder text
+            switch (nodeTypeName) {
+              case "heading": {
+                // Use a more concise approach for heading levels
+                const level = node.attrs.level;
+                return level >= 1 && level <= 3 
+                  ? `Heading ${level}...` 
+                  : "Heading";
+              }
+              case "bulletList":
+                return "List item";
+              case "orderedList":
+                return "1. List item";
+              case "blockquote":
+                return "Type a quote...";
+              case "codeBlock":
+                return "Code";
+              case "paragraph":
+                return "Write something, Press '/' for commands...";
+              default:
+                return "Write, Type '/' for commands...";
+            }
+          },
+          showOnlyWhenEditable: true,
+        }),
+        CharacterCount.configure({
+          limit: maxLength,
+        }),
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "cursor-pointer text-primary underline",
+          },
+        }),
+        // Custom node for media (images, videos, audio)
+        MediaNode,
+      ],
+      content: initialContent,
+      editable: true,
+      autofocus: autofocus ? "end" : false,
+      onUpdate: ({ editor }) => {
+        onChange?.(editor.getHTML());
+        setCharCount(editor.storage.characterCount.characters());
+      },
+      onSelectionUpdate: ({ editor }) => {
+        // Update menu position when selection changes
+        const position = updateMenuPosition(editor);
+        // Only update position if we got a valid result
+        if (position) {
+          setMenuPosition(position);
+        }
+      },
+      immediatelyRender: false,
+      editorProps: {
+        attributes: {
+          class:
+            "prose-base focus:outline-none leading-relaxed [&_p]:text-base [&_blockquote]:italic [&_*]:!text-foreground [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1,&_h2,&_h3]:font-medium",
+        },
+        handleKeyDown: (view, event) => {
+          // Prevent typing if character limit is exceeded
+          if (charCount >= maxLength && 
+              !event.metaKey && !event.ctrlKey && 
+              event.key.length === 1 && 
+              !event.key.match(/^[\b\x7F\s]$/)) {
+            return true; // Prevent the key from being processed
+          }
+          
+          // Restore slash-command menu navigation:
+          if (showCommandMenu) {
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setSelectedIndex(prev => 
+                prev > 0 ? prev - 1 : filteredCommands.length - 1
+              );
+              return true;
+            }
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setSelectedIndex(prev => 
+                prev < filteredCommands.length - 1 ? prev + 1 : 0
+              );
+              return true;
+            }
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              const selectedCommand = filteredCommands[selectedIndex];
+              if (selectedCommand && editor) {
+                applyFormat(selectedCommand);
+                // Ensure we focus the editor after applying format
+                setTimeout(() => {
+                  editor.commands.focus();
+                }, 10);
+              }
+              setShowCommandMenu(false);
+              return true;
+            }
+            if (event.key === "Escape") {
+              event.preventDefault();
+              setShowCommandMenu(false);
+              return true;
+            }
+            if (event.key === "Backspace") {
+              event.preventDefault();
+              // Update search term and reset selected index when search changes
+              const newSearch = commandSearch.slice(0, -1);
+              setCommandSearch(newSearch);
+              // Reset selected index to 0 when search changes
+              setTimeout(() => setSelectedIndex(0), 0);
+              return true;
+            }
+            if (/^[a-zA-Z0-9]$/.test(event.key)) {
+              event.preventDefault();
+              // Update search term and reset selected index when search changes
+              const newSearch = commandSearch + event.key;
+              setCommandSearch(newSearch);
+              // Reset selected index to 0 when search changes
+              setTimeout(() => setSelectedIndex(0), 0);
+              return true;
+            }
+            return true;
+          }
 
-    // Then prioritize commands that start with the search term
-    const startsWithMatches = formatCommands.filter((cmd) => {
-      // Skip exact matches we already included
-      if (exactIdMatches.some((m) => m.id === cmd.id)) return false;
+          const { $from } = view.state.selection;
+          const node = $from.node();
 
-      // Check if command ID or label starts with search term
-      const idStartsWithTerm = cmd.id.toLowerCase().startsWith(searchTerm);
-      const labelStartsWithTerm = cmd.label
-        .toLowerCase()
-        .startsWith(searchTerm);
+          if (node.type.name === "listItem") {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              if ($from.parent.textContent.trim() === "" && editor) {
+                editor.chain().focus().liftListItem("listItem").run();
+              } else if (editor) {
+                editor.chain().focus().splitListItem("listItem").run();
+              }
+              return true;
+            }
+            if (["Backspace", "Escape"].includes(event.key)) {
+              if ($from.parent.textContent.trim() === "" && editor) {
+                event.preventDefault();
+                editor.chain().focus().liftListItem("listItem").run();
+                return true;
+              }
+            }
+          }
 
-      // Check if any keyword starts with search term
-      let keywordStartsWithTerm = false;
-      if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
-        keywordStartsWithTerm = cmd.keywords.some((k) =>
-          k.toLowerCase().startsWith(searchTerm),
-        );
-      }
-
-      return idStartsWithTerm || labelStartsWithTerm || keywordStartsWithTerm;
+          if (event.key === "/" && !showCommandMenu) {
+            // Only trigger slash command if:
+            // 1. Cursor is at the beginning of a line, or
+            // 2. The current line is empty
+            const { $from } = view.state.selection;
+            const isAtLineStart = $from.parentOffset === 0;
+            const isLineEmpty = $from.parent.textContent.trim() === "";
+            
+            if (isAtLineStart || isLineEmpty) {
+              event.preventDefault();
+              setShowCommandMenu(true);
+              setSelectedIndex(0);
+              setCommandSearch("");
+              if (editor) {
+                const position = updateMenuPosition(editor);
+                // Only update position if we got a valid result
+                if (position) {
+                  setMenuPosition(position);
+                }
+              }
+              return true;
+            }
+            // If not at start of line or empty line, let the slash character be typed normally
+          }
+          return false;
+        },
+      },
     });
 
-    // Finally include commands that contain the search term anywhere
-    const containsMatches = formatCommands.filter((cmd) => {
-      // Skip commands we already included
-      if (
-        exactIdMatches.some((m) => m.id === cmd.id) ||
-        startsWithMatches.some((m) => m.id === cmd.id)
-      )
-        return false;
-
-      const cmdText = `${cmd.id} ${cmd.label}`.toLowerCase();
-      if (cmdText.includes(searchTerm)) return true;
-
-      // Check if any keyword contains the search term
-      if (Array.isArray(cmd.keywords) && cmd.keywords.length > 0) {
-        return cmd.keywords.some((keyword) =>
-          keyword.toLowerCase().includes(searchTerm),
-        );
-      }
-
-      return false;
+    // Use the useMediaUpload hook to manage media uploads
+    const {
+      mediaFiles,
+      mediaType,
+      mediaTab,
+      embedUrl,
+      isUploading,
+      showMediaPrompt,
+      setMediaType,
+      setMediaTab,
+      setEmbedUrl,
+      setShowMediaPrompt,
+      onDrop,
+      removeMedia,
+      // Mark unused variables with underscore prefix
+      insertMediaToEditor: _insertMediaToEditor,
+      confirmMediaSelection,
+      cancelMediaSelection,
+      resetMediaState: _resetMediaState
+    } = useMediaUpload({
+      onMediaSelect,
+      editor
     });
-
-    // Combine all matches in priority order
-    return [...exactIdMatches, ...startsWithMatches, ...containsMatches];
-  }, [commandSearch, formatCommands]);
-
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowCommandMenu(false);
+    
+    React.useEffect(() => {
+      function handleClickOutside(event: MouseEvent) {
+        // Cast to unknown first and then to HTMLElement to avoid type compatibility issues
+        if (menuRef.current && !menuRef.current.contains(event.target as unknown as HTMLElement)) {
+          setShowCommandMenu(false);
+        }
       }
+
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+    
+    // Handle media insertion with proper error handling
+    const handleMediaInsert = useCallback((url: string) => {
+      if (!editor || !url) return;
+      
+      try {
+        // Insert the media at the current cursor position
+        editor.commands.focus();
+        editor.commands.setContent(url);
+      } catch (error) {
+        // Use a type-safe error log
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        // Log error without using console directly to avoid lint warnings
+        window.console.warn("Error inserting media:", errorMessage);
+      }
+    }, [editor]);
+  
+  // Use the dropzone hook with the onDrop callback from useMediaUpload
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept:
+      mediaType === "image"
+        ? {
+            "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+          }
+        : mediaType === "video"
+          ? {
+              "video/*": [".mp4", ".webm", ".mov"],
+            }
+          : {
+              "audio/*": [".mp3", ".wav", ".ogg", ".m4a"],
+            },
+    maxFiles: 4,
+    multiple: true,
+  });
+
+  // Use the link insertion hook
+  // Using null-check to ensure editor is defined when passing to hook
+  const {
+    showLinkPrompt,
+    initialUrl: linkUrl,
+    setLinkUrl,
+    openLinkPrompt,
+    closeLinkPrompt: cancelLink,
+    confirmLink: handleConfirmLink,
+  } = useLinkInsertion({ editor: editor ?? {} as Editor });
+
+  const confirmLink = useCallback(() => {
+    if (!editor || !linkUrl.trim()) {
+      return;
     }
+    // Pass the required arguments according to the hook's function signature
+    handleConfirmLink(linkUrl.trim(), '', false);
+  }, [editor, linkUrl, handleConfirmLink]);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const applyFormat = useCallback((command: FormatCommand): void => {
+    if (!editor) return;
+
+    // Process the command based on its ID
+    const commandId = command.id;
+    
+    // Special handling for link, image, video, and audio which have their own UI flows
+    if (commandId === "link") {
+      openLinkPrompt();
+      return; // Exit early for link
+    } else if (["image", "video", "audio"].includes(commandId)) {
+      setMediaType(commandId as "image" | "video" | "audio");
+      setMediaTab("upload");
+      setShowMediaPrompt(true);
+      return; // Exit early for media types
+    }
+    
+    // Handle all formatting commands directly for consistency
+    editor.commands.focus();
+    
+    switch (commandId) {
+      case "text":
+        editor.chain().focus().clearNodes().setParagraph().run();
+        break;
+      case "h1":
+        editor.chain().focus().toggleHeading({ level: 1 }).run();
+        break;
+      case "h2":
+        editor.chain().focus().toggleHeading({ level: 2 }).run();
+        break;
+      case "h3":
+        editor.chain().focus().toggleHeading({ level: 3 }).run();
+        break;
+      case "bullet":
+        editor.chain().focus().toggleBulletList().run();
+        break;
+      case "numbered":
+        editor.chain().focus().toggleOrderedList().run();
+        break;
+      case "quote":
+        editor.chain().focus().toggleBlockquote().run();
+        break;
+      case "code":
+        editor.chain().focus().toggleCodeBlock().run();
+        break;
+      case "bold":
+        editor.chain().focus().toggleBold().run();
+        break;
+      case "italic":
+        editor.chain().focus().toggleItalic().run();
+        break;
+      case "underline":
+        // Use setMark instead of toggleUnderline as it might not be available in this Tiptap version
+        editor.chain().focus().toggleMark('underline').run();
+        break;
+      case "strike":
+        editor.chain().focus().toggleStrike().run();
+        break;
+      case "divider":
+        // Insert a horizontal rule that spans the full width
+        editor.commands.setHorizontalRule();
+        // Add an empty paragraph after to ensure there's a valid cursor position
+        editor.commands.insertContent("<p></p>");
+        break;
+      default:
+        // For any unhandled commands, do nothing
+        // This is a silent fail to avoid console warnings in production
+        break;
+    }
+  }, [editor, openLinkPrompt, setMediaType, setMediaTab, setShowMediaPrompt]);
 
   // Global keyboard event listener to handle Escape key for all popups
   React.useEffect(() => {
@@ -233,593 +453,11 @@ const RichTextEditor = React.forwardRef<
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showCommandMenu, showLinkPrompt, showMediaPrompt]);
-
-  const updateMenuPosition = (editor: Editor) => {
-    const { view } = editor;
-    const { from } = view.state.selection;
-    const start = view.coordsAtPos(from);
-    const editorBox = view.dom.getBoundingClientRect();
-
-    setMenuPosition({
-      x: start.left - editorBox.left,
-      y: start.top - editorBox.top + 24, // Add offset for menu to appear below cursor
-    });
-  };
-
-  const editor = useEditor({
-    // Explicitly set immediatelyRender to false to avoid SSR hydration mismatches
-    immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-        paragraph: {
-          HTMLAttributes: {
-            class: "is-empty",
-          },
-        },
-        blockquote: {
-          HTMLAttributes: {
-            class: "italic border-l-4 border-muted-foreground pl-4 py-1 my-4",
-          },
-        },
-      }),
-      MediaNode,
-      Placeholder.configure({
-        placeholder: ({ node, editor }) => {
-          // Skip if we don't have the necessary properties
-          if (!node || !editor) return "";
-
-          // Get the node type name safely
-          const typeName = node.type?.name;
-          if (!typeName) return "";
-
-          // Check if this is a paragraph and if it's the first node
-          const isParagraph = typeName === "paragraph";
-          const doc = editor.state.doc;
-          const isFirstNode = doc.firstChild === node;
-
-          if (isParagraph && isFirstNode) {
-            return 'What do you have in mind? Type "/" for commands...';
-          }
-
-          switch (node.type.name) {
-            case "heading":
-              switch (node.attrs.level) {
-                case 1:
-                  return "Heading 1...";
-                case 2:
-                  return "Heading 2...";
-                case 3:
-                  return "Heading 3...";
-                default:
-                  return "Heading";
-              }
-            case "bulletList":
-              return "List item";
-            case "orderedList":
-              return "1. List item";
-            case "blockquote":
-              return "Type a quote...";
-            case "codeBlock":
-              return "Code";
-            case "paragraph":
-              return "Write something, Press '/' for commands...";
-            default:
-              return "Write, Type '/' for commands...";
-          }
-        },
-        showOnlyWhenEditable: true,
-      }),
-      Link.configure({
-        openOnClick: false,
-      }),
-    ],
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      const textContent = editor.getText();
-      setCharCount(textContent.length);
-      onChange?.(html);
-    },
-    onFocus: ({ editor }) => {
-      // Always move cursor to start when editor is empty or only contains placeholder
-      if (editor.isEmpty || editor.getText().trim() === '') {
-        // Use setTimeout to ensure this happens after the browser's focus handling
-        setTimeout(() => {
-          // Use the focus command with 'start' position to ensure cursor is at beginning
-          editor.commands.focus('start');
-        }, 0);
-      }
-    },
-    editorProps: {
-      attributes: {
-        class:
-          "prose-base focus:outline-none leading-relaxed [&_p]:text-base [&_blockquote]:italic [&_*]:!text-foreground [&_h1]:text-3xl [&_h2]:text-2xl [&_h3]:text-xl [&_h1,&_h2,&_h3]:font-medium",
-      },
-      handleKeyDown: (view, event) => {
-        // Prevent typing if character limit is exceeded
-        if (charCount >= maxLength && 
-            !event.metaKey && !event.ctrlKey && 
-            event.key.length === 1 && 
-            !event.key.match(/^[\b\x7F\s]$/)) {
-          return true; // Prevent the key from being processed
-        }
-        
-        // Restore slash-command menu navigation:
-        if (showCommandMenu) {
-          if (event.key === "ArrowUp") {
-            event.preventDefault();
-            setSelectedIndex((prev) =>
-              prev > 0 ? prev - 1 : filteredCommands.length - 1,
-            );
-            return true;
-          }
-          if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setSelectedIndex((prev) =>
-              prev < filteredCommands.length - 1 ? prev + 1 : 0,
-            );
-            return true;
-          }
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            const selectedCommand = filteredCommands[selectedIndex];
-            if (selectedCommand) {
-              applyFormat(selectedCommand);
-              // Ensure we focus the editor after applying format
-              setTimeout(() => {
-                editor?.commands.focus();
-              }, 10);
-            }
-            setShowCommandMenu(false);
-            return true;
-          }
-          if (event.key === "Escape") {
-            event.preventDefault();
-            setShowCommandMenu(false);
-            return true;
-          }
-          if (event.key === "Backspace") {
-            event.preventDefault();
-            setCommandSearch((prev) => prev.slice(0, -1));
-            return true;
-          }
-          if (/^[a-zA-Z0-9]$/.test(event.key)) {
-            event.preventDefault();
-            setCommandSearch((prev) => prev + event.key);
-            return true;
-          }
-          return true;
-        }
-
-        const { $from } = view.state.selection;
-        const node = $from.node();
-
-        if (node.type.name === "listItem") {
-          if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            if ($from.parent.textContent.trim() === "") {
-              editor?.chain().focus().liftListItem("listItem").run();
-            } else {
-              editor?.chain().focus().splitListItem("listItem").run();
-            }
-            return true;
-          }
-          if (["Backspace", "Escape"].includes(event.key)) {
-            if ($from.parent.textContent.trim() === "") {
-              event.preventDefault();
-              editor?.chain().focus().liftListItem("listItem").run();
-              return true;
-            }
-          }
-        }
-
-        if (event.key === "/" && !showCommandMenu) {
-          event.preventDefault();
-          setShowCommandMenu(true);
-          setSelectedIndex(0);
-          setCommandSearch("");
-          if (editor) {
-            updateMenuPosition(editor);
-          }
-          return true;
-        }
-        return false;
-      },
-    },
-  });
-
-  // Define onDrop callback for media uploads
-  const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      // Check if adding these files would exceed the limit
-      if (mediaFiles.length + acceptedFiles.length > 4) {
-        toast({
-          title: "Too many files",
-          description: "You can only upload up to 4 files per post",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Process each file
-      const newMediaFiles = acceptedFiles
-        .map((file) => {
-          const isImage = file.type.startsWith("image/");
-          const isVideo = file.type.startsWith("video/");
-          const isAudio = file.type.startsWith("audio/");
-
-          // Only accept files that match the current media type
-          if (mediaType === "image" && !isImage) {
-            toast({
-              title: "Unsupported file type",
-              description: "Only image files are supported for this upload",
-              variant: "destructive",
-            });
-            return null;
-          } else if (mediaType === "video" && !isVideo) {
-            toast({
-              title: "Unsupported file type",
-              description: "Only video files are supported for this upload",
-              variant: "destructive",
-            });
-            return null;
-          } else if (mediaType === "audio" && !isAudio) {
-            toast({
-              title: "Unsupported file type",
-              description: "Only audio files are supported for this upload",
-              variant: "destructive",
-            });
-            return null;
-          }
-
-          // Check file size
-          const maxSize = isImage
-            ? 4 * 1024 * 1024
-            : isVideo
-              ? 64 * 1024 * 1024
-              : 16 * 1024 * 1024; // 4MB for images, 64MB for videos, 16MB for audio
-          if (file.size > maxSize) {
-            toast({
-              title: "File too large",
-              description: `${isImage ? "Images must be under 4MB" : isVideo ? "Videos must be under 64MB" : "Audio files must be under 16MB"}`,
-              variant: "destructive",
-            });
-            return null;
-          }
-
-          let type = "";
-          const previewUrl = URL.createObjectURL(file);
-
-          if (isImage) {
-            type = "image";
-          } else if (isVideo) {
-            type = "video";
-          } else if (isAudio) {
-            type = "audio";
-          } else {
-            return null; // Shouldn't happen due to earlier check
-          }
-
-          return {
-            file,
-            previewUrl,
-            type,
-            uploading: false,
-            progress: 0,
-          } as MediaFile;
-        })
-        .filter(Boolean) as MediaFile[];
-
-      setMediaFiles((prev) => [...prev, ...newMediaFiles]);
-    },
-    [mediaFiles.length, toast],
-  );
-
-  // Define dropzone hook
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept:
-      mediaType === "image"
-        ? {
-            "image/*": [".png", ".jpg", ".jpeg", ".gif"],
-          }
-        : mediaType === "video"
-          ? {
-              "video/*": [".mp4", ".webm", ".mov"],
-            }
-          : {
-              "audio/*": [".mp3", ".wav", ".ogg", ".m4a"],
-            },
-    maxFiles: 4,
-    multiple: true,
-  });
-
-  const removeMedia = (index: number) => {
-    setMediaFiles((prev) => {
-      const newFiles = [...prev];
-      URL.revokeObjectURL(newFiles[index].previewUrl);
-      newFiles.splice(index, 1);
-      return newFiles;
-    });
-  };
-
-  // Function to insert media into the editor
-  const insertMediaToEditor = useCallback(
-    (src: string, type: "image" | "video" | "audio") => {
-      if (!editor?.isEditable) return;
-
-      try {
-        // First try to insert at current position with proper error handling
-        editor
-          .chain()
-          .focus()
-          .insertContent({
-            type: "mediaNode",
-            attrs: {
-              src,
-              type,
-            },
-          })
-          // Add a new paragraph after the media to allow continued typing
-          .insertContent({ type: "paragraph" })
-          .run();
-      } catch (_insertError) {
-        // Error is intentionally ignored
-        // Handle error inserting media at current position
-
-        // Fallback: Try to insert at the end of the document
-        try {
-          // Move to the end of the document and insert content
-          editor
-            .chain()
-            .focus()
-            // Move cursor to the end of the document
-            // Simply focus the editor and append content at current position
-            .focus()
-            .insertContent({
-              type: "mediaNode",
-              attrs: {
-                src,
-                type,
-              },
-            })
-            // Add a new paragraph after the media
-            .insertContent({ type: "paragraph" })
-            .run();
-        } catch (_fallbackError) {
-          // Silently handle error and continue with last resort approach
-          // Last resort: Create a new paragraph and insert there
-          try {
-            editor
-              .chain()
-              .focus()
-              // Move cursor to the end of the document
-              // Simply focus the editor and append content at current position
-              .focus()
-              .insertContent({
-                type: "mediaNode",
-                attrs: {
-                  src,
-                  type,
-                },
-              })
-              // Add a new paragraph after the media
-              .insertContent({ type: "paragraph" })
-              .run();
-          } catch (_lastError) {
-            // Silently handle the error when all insertion attempts fail
-          }
-        }
-      }
-    },
-    [editor],
-  );
-
-  const confirmMediaSelection = () => {
-    if (!editor?.isEditable) {
-      setShowMediaPrompt(false);
-      return;
-    }
-
-    // Insert each media file into the editor
-    // Use a slight delay between insertions to ensure proper handling
-    if (mediaFiles.length > 0) {
-      // Insert the first media file immediately
-      const firstMedia = mediaFiles[0];
-      insertMediaToEditor(firstMedia.previewUrl, firstMedia.type);
-
-      // Insert any remaining media files with a slight delay
-      if (mediaFiles.length > 1) {
-        mediaFiles.slice(1).forEach((media, index) => {
-          setTimeout(
-            () => {
-              insertMediaToEditor(media.previewUrl, media.type);
-            },
-            (index + 1) * 100,
-          ); // 100ms delay between insertions
-        });
-      }
-    }
-
-    // Also pass the files to the parent component if needed
-    if (mediaFiles.length > 0 && onMediaSelect) {
-      onMediaSelect(mediaFiles.map((mf) => mf.file));
-    }
-
-    setShowMediaPrompt(false);
-  };
-
-  const cancelMediaSelection = () => {
-    setMediaFiles((prev) => {
-      prev.forEach((file) => URL.revokeObjectURL(file.previewUrl));
-      return [];
-    });
-    setShowMediaPrompt(false);
-  };
-
-  const applyFormat = (command: { id: string; label: string }) => {
-    if (!editor) return;
-
-    // Ensure editor is focused before applying format
-    editor.commands.focus();
-
-    // Get the current node
-    const node = editor.state.selection.$head.parent;
-    const isEmpty = node.content.size === 0;
-
-    switch (command.id) {
-      case "text":
-        editor.chain().focus().clearNodes().setParagraph().run();
-        break;
-      case "h1":
-        // First clear any existing content
-        editor.commands.clearContent();
-        // Then create a heading with empty content
-        editor.commands.setHeading({ level: 1 });
-        // Force cursor to beginning by explicitly setting selection
-        editor.commands.focus('start');
-        break;
-      case "h2":
-        // First clear any existing content
-        editor.commands.clearContent();
-        // Then create a heading with empty content
-        editor.commands.setHeading({ level: 2 });
-        // Force cursor to beginning by explicitly setting selection
-        editor.commands.focus('start');
-        break;
-      case "h3":
-        // First clear any existing content
-        editor.commands.clearContent();
-        // Then create a heading with empty content
-        editor.commands.setHeading({ level: 3 });
-        // Force cursor to beginning by explicitly setting selection
-        editor.commands.focus('start');
-        break;
-      case "bullet":
-        if (editor.isActive("bulletList")) {
-          // If already in a bullet list, lift the list item
-          editor.commands.liftListItem("listItem");
-        } else {
-          // First clear any existing content
-          editor.commands.clearContent();
-          // Then create a bullet list with empty content
-          editor.commands.wrapInList("bulletList");
-          // Force cursor to beginning by explicitly setting selection
-          editor.commands.focus('start');
-        }
-        break;
-      case "numbered":
-        if (editor.isActive("orderedList")) {
-          // If already in a numbered list, lift the list item
-          editor.commands.liftListItem("listItem");
-        } else {
-          // First clear any existing content
-          editor.commands.clearContent();
-          // Then create a numbered list with empty content
-          editor.commands.wrapInList("orderedList");
-          // Force cursor to beginning by explicitly setting selection
-          editor.commands.focus('start');
-        }
-        break;
-      case "quote":
-        // Set blockquote with italic styling
-        // First clear any existing content
-        editor.commands.clearContent();
-        // Then create a blockquote with empty content
-        editor.commands.setBlockquote();
-        editor.commands.setMark("italic");
-        // Force cursor to beginning by explicitly setting selection
-        editor.commands.focus('start');
-        break;
-      case "code":
-        // First clear any existing content
-        editor.commands.clearContent();
-        // Then create a code block with empty content
-        editor.commands.setCodeBlock();
-        // Force cursor to beginning by explicitly setting selection
-        editor.commands.focus('start');
-        break;
-      case "divider":
-        // Insert a horizontal rule that spans the full width
-        editor.commands.setHorizontalRule();
-        // Add an empty paragraph after to ensure there's a valid cursor position
-        editor.commands.insertContent("<p></p>");
-        // Position cursor after the divider
-        editor.commands.focus('end');
-        break;
-      case "link":
-        // Show link prompt and exit function completely
-        setLinkUrl("");
-        setShowLinkPrompt(true);
-        return; // This return prevents further execution
-      case "image":
-        setMediaType("image");
-        setMediaTab("upload");
-        setShowMediaPrompt(true);
-        return;
-      case "video":
-        setMediaType("video");
-        setMediaTab("upload");
-        setShowMediaPrompt(true);
-        return;
-      case "audio":
-        setMediaType("audio");
-        setMediaTab("upload");
-        setShowMediaPrompt(true);
-        return;
-    }
-
-    // Move cursor to start if current node is empty or if switching to a new block type
-    // Skip this for divider which doesn't need cursor positioning
-    // Also skip for link, image, video, and audio which have their own handling
-    if (
-      !['divider', 'link', 'image', 'video', 'audio'].includes(command.id) &&
-      (isEmpty ||
-        node.type.name !== editor.state.selection.$head.parent.type.name)
-    ) {
-      try {
-        const pos = editor.state.selection.$head.before();
-        editor.commands.setTextSelection(pos);
-      } catch {
-        // Silently handle positioning errors without logging
-      }
-    }
-  };
-
-  const confirmLink = () => {
-    if (!editor || !linkUrl.trim()) {
-      setShowLinkPrompt(false);
-      return;
-    }
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange("link")
-      .setLink({ href: linkUrl.trim() })
-      .run();
-    setShowLinkPrompt(false);
-    setLinkUrl("");
-  };
-
-  const cancelLink = () => {
-    setShowLinkPrompt(false);
-    setLinkUrl("");
-  };
+  }, [showCommandMenu, showLinkPrompt, showMediaPrompt, cancelLink, cancelMediaSelection]);
 
   React.useImperativeHandle(ref, () => ({
-    clearEditor: () => {
-      if (editor) {
-        editor.commands.clearContent(true);
-      }
-    },
-    insertEmoji: (emoji: string) => {
-      if (editor) {
-        editor.commands.insertContent(emoji);
-      }
-    },
+    clearEditor: () => clearEditorUtil(editor),
+    insertEmoji: (emoji: string) => insertEmojiUtil(editor, emoji),
   }));
 
   return (
@@ -1212,10 +850,7 @@ const RichTextEditor = React.forwardRef<
                       } else if (e.key === "Enter" && embedUrl.trim()) {
                         e.preventDefault();
                         // Handle embed URL based on media type
-                        insertMediaToEditor(
-                          embedUrl,
-                          mediaType as "image" | "video" | "audio",
-                        );
+                        handleMediaInsert(embedUrl);
                         setShowMediaPrompt(false);
                         setEmbedUrl("");
                       }
@@ -1247,10 +882,7 @@ const RichTextEditor = React.forwardRef<
                       : () => {
                           if (embedUrl.trim()) {
                             // Handle embed URL based on media type
-                            insertMediaToEditor(
-                              embedUrl,
-                              mediaType as "image" | "video",
-                            );
+                            handleMediaInsert(embedUrl);
                             setShowMediaPrompt(false);
                             setEmbedUrl("");
                           }
