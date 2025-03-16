@@ -8,6 +8,7 @@ import { Progress } from "@/components/feedback/progress";
 import { useToast } from "@/components/feedback/use-toast";
 import { EmojiPickerButton } from "@/features/social/posts/components/emoji-picker";
 import RichTextEditor from "@/features/social/posts/components/rich-text-editor";
+// import { RichTextEditor } from "@/features/social/posts/components/rich-text-editor/index";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
 import type { PostsPage } from "@/lib/types";
 import { useUploadThing } from "@/lib/uploadthing-client";

@@ -5,6 +5,39 @@ import type { FormatCommand } from '../types';
 /**
  * Hook to handle formatting operations in the rich text editor
  */
+// Define the format commands available in the editor
+const formatCommands: FormatCommand[] = [
+  // Text styles
+  { id: 'text', label: 'Normal Text', icon: 'text' },
+  { id: 'h1', label: 'Heading 1', icon: 'h1' },
+  { id: 'h2', label: 'Heading 2', icon: 'h2' },
+  { id: 'h3', label: 'Heading 3', icon: 'h3' },
+  
+  // Text formatting
+  { id: 'bold', label: 'Bold', icon: 'bold' },
+  { id: 'italic', label: 'Italic', icon: 'italic' },
+  { id: 'underline', label: 'Underline', icon: 'underline' },
+  { id: 'strike', label: 'Strikethrough', icon: 'strike' },
+  
+  // Lists
+  { id: 'bulletList', label: 'Bullet List', icon: 'bulletList' },
+  { id: 'orderedList', label: 'Numbered List', icon: 'orderedList' },
+  
+  // Special elements
+  { id: 'blockquote', label: 'Quote', icon: 'quote' },
+  { id: 'codeBlock', label: 'Code Block', icon: 'code' },
+  { id: 'horizontalRule', label: 'Horizontal Line', icon: 'horizontalRule' },
+  
+  // Media
+  { id: 'link', label: 'Link', icon: 'link' },
+  { id: 'image', label: 'Image', icon: 'image' },
+  { id: 'video', label: 'Video', icon: 'video' },
+  { id: 'audio', label: 'Audio', icon: 'audio' },
+];
+
+/**
+ * Hook to handle formatting operations in the rich text editor
+ */
 export function useFormatCommands({
   editor,
   setShowLinkPrompt,
@@ -20,6 +53,7 @@ export function useFormatCommands({
   setMediaTab: (tab: "upload" | "embed") => void;
   setShowMediaPrompt: (show: boolean) => void;
 }) {
+  // Apply a formatting command to the editor
   const applyFormat = useCallback(
     (command: FormatCommand) => {
       if (!editor) return;
@@ -191,5 +225,9 @@ export function useFormatCommands({
     [editor, setLinkUrl, setMediaTab, setMediaType, setShowLinkPrompt, setShowMediaPrompt],
   );
 
-  return { applyFormat };
+  // Return both the applyFormat function and a method to get the commands
+  return { 
+    applyFormat,
+    getCommands: () => formatCommands 
+  };
 }

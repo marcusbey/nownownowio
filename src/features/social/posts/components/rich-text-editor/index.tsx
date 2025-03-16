@@ -156,36 +156,6 @@ const RichTextEditor = React.forwardRef<
     setMenuPosition(position);
   }, []);
 
-  // Get format commands
-  const formatCommands = useFormatCommands();
-  
-  // Handle command search
-  const { 
-    filteredCommands, 
-    commandSearch, 
-    setCommandSearch: setCommandSearchState, 
-    selectedIndex, 
-    setSelectedIndex: setSelectedIndexState 
-  } = useCommandSearch({ formatCommands });
-  
-  // Create wrapper functions to handle state updates
-  const setCommandSearch = useCallback((value: React.SetStateAction<string>) => {
-    setCommandSearchState(value);
-  }, [setCommandSearchState]);
-  
-  const setSelectedIndex = useCallback((value: React.SetStateAction<number>) => {
-    setSelectedIndexState(value);
-  }, [setSelectedIndexState]);
-
-  // Handle link insertion
-  const { 
-    showLinkPrompt, 
-    initialUrl, 
-    openLinkPrompt, 
-    closeLinkPrompt, 
-    confirmLink 
-  } = useLinkInsertion({ editor: editor ?? null });
-
   // Handle media upload
   const {
     mediaFiles,
@@ -200,18 +170,55 @@ const RichTextEditor = React.forwardRef<
     setEmbedUrl,
     onDrop,
     removeMedia,
-    // The insertMediaToEditor function is used internally in the hook
     insertMediaToEditor: _insertMediaToEditor,
     confirmMediaSelection,
     cancelMediaSelection,
   } = useMediaUpload({ 
-    editor: editor ?? null, 
+    editor: editor ?? null,
     onMediaSelect
   });
+
+  // Handle link insertion
+  const { 
+    showLinkPrompt, 
+    initialUrl: linkUrl,
+    setLinkUrl,
+    openLinkPrompt,
+    closeLinkPrompt, 
+    confirmLink 
+  } = useLinkInsertion({ editor: editor as Editor });
+
+  // Get format commands with proper parameters
+  const { applyFormat: formatCommand, getCommands } = useFormatCommands({
+    editor,
+    setShowLinkPrompt: openLinkPrompt,
+    setLinkUrl,
+    setMediaType,
+    setMediaTab,
+    setShowMediaPrompt
+  });
+  
+  // Handle command search
+  const { 
+    filteredCommands, 
+    commandSearch, 
+    setCommandSearch: setCommandSearchState, 
+    selectedIndex, 
+    setSelectedIndex: setSelectedIndexState 
+  } = useCommandSearch({ formatCommands: getCommands() });
+  
+  // Create wrapper functions to handle state updates
+  const setCommandSearch = useCallback((value: React.SetStateAction<string>) => {
+    setCommandSearchState(value);
+  }, [setCommandSearchState]);
+  
+  const setSelectedIndex = useCallback((value: React.SetStateAction<number>) => {
+    setSelectedIndexState(value);
+  }, [setSelectedIndexState]);
   
   // Handle media insertion from URL - using the insertMediaToEditor function from useMediaUpload
   const handleMediaInsert = useCallback((url: string) => {
-    if (!url) return;
+    if (!url || !editor) return;
     
     try {
       // Use the insertMediaToEditor function from useMediaUpload
@@ -220,7 +227,7 @@ const RichTextEditor = React.forwardRef<
       const errorMessage = error instanceof Error ? error.message : String(error);
       window.console.warn("Error inserting media:", errorMessage);
     }
-  }, [_insertMediaToEditor, mediaType]);
+  }, [_insertMediaToEditor, mediaType, editor]);
 
   // Dropzone configuration
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -258,7 +265,9 @@ const RichTextEditor = React.forwardRef<
       }
 
       // Apply the format using the utility function
-      applyFormatCommand(editor, command.id);
+      if (editor) {
+        applyFormatCommand(editor, command.id);
+      }
     },
     [editor, openLinkPrompt, setShowMediaPrompt, setMediaType]
   );
@@ -307,9 +316,13 @@ const RichTextEditor = React.forwardRef<
 
   // Expose methods via ref
   React.useImperativeHandle(ref, () => ({
-    clearEditor: () => clearEditor(editor),
-    insertEmoji: (emoji: string) => insertEmoji(editor, emoji),
-  }));
+    clearEditor: () => {
+      if (editor) clearEditor(editor);
+    },
+    insertEmoji: (emoji: string) => {
+      if (editor) insertEmoji(editor, emoji);
+    },
+  }), [editor]);
 
   if (!editor) {
     return null;
@@ -377,7 +390,7 @@ const RichTextEditor = React.forwardRef<
               setSelectedIndex={setSelectedIndex}
               filteredCommands={filteredCommands}
               applyFormat={(command) => {
-                applyFormat(command);
+                formatCommand(command);
                 setShowCommandMenu(false);
               }}
             />
@@ -387,7 +400,7 @@ const RichTextEditor = React.forwardRef<
         {/* Link prompt */}
         {showLinkPrompt && (
           <LinkPrompt
-            initialUrl={initialUrl}
+            initialUrl={linkUrl}
             confirmLink={confirmLink}
             cancelLink={closeLinkPrompt}
           />
