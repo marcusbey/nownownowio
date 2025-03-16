@@ -114,7 +114,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   }
 
   // Handle video media type
-  if (media.type === "VIDEO" && mediaUrl) {
+  if (media.type === "VIDEO") {
     return (
       <div className="relative overflow-hidden rounded-lg">
         {isLoading && (
