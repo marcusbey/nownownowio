@@ -14,10 +14,28 @@ import { auth } from "./helper";
 import { logger } from '@/lib/logger';
 
 export async function handleAuthRedirect() {
-    const user = await auth();
+    let user;
+    
+    try {
+        // Get both the session and user to check for orphaned sessions
+        const session = await import('./auth').then(m => m.baseAuth());
+        user = await auth();
 
-    if (!user) {
-        logger.debug('[Auth] No user found, skipping redirect');
+        // Check for orphaned or invalid sessions (session exists but no user data)
+        if (session && !user) {
+            logger.warn('[Auth] Possible orphaned session detected - session exists but no user found');
+            // Return null to show landing page with AuthCheck component that will handle this case
+            return null;
+        }
+
+        // No user found - normal unauthenticated state
+        if (!user) {
+            logger.debug('[Auth] No user found, skipping redirect');
+            return null;
+        }
+    } catch (error) {
+        // Log any errors but continue to show landing page
+        logger.error('[Auth] Error checking session state', { error });
         return null;
     }
 
@@ -53,7 +71,7 @@ export async function handleAuthRedirect() {
             membershipCount: memberships.length 
         });
 
-        if (memberships.length > 0 && memberships[0].organization) {
+        if (memberships.length > 0) {
             const org = memberships[0].organization;
             logger.debug('[Auth] Redirecting to organization', { 
                 userId: user.id,

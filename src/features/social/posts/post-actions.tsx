@@ -94,14 +94,24 @@ export function BookmarkButton({
     queryKey,
     queryFn: async () => {
       try {
-        // Use a simple timeout option instead of AbortController to avoid signal abort errors
-        const response = await kyInstance
-          .get(`/api/v1/posts/${postId}/bookmark`, {
-            retry: { limit: 2, methods: ['get'] },
-            timeout: 5000 // 5 second timeout
-          })
-          .json<{ isBookmarkedByUser: boolean }>();
-        return response;
+        // Use AbortController with a longer timeout to prevent quick failures
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        
+        try {
+          const response = await kyInstance
+            .get(`/api/v1/posts/${postId}/bookmark`, {
+              retry: { limit: 3, methods: ['get'], maxRetryAfter: 2000 },
+              signal: controller.signal
+            })
+            .json<{ isBookmarkedByUser: boolean }>();
+          
+          clearTimeout(timeoutId);
+          return response;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
+        }
       } catch (error) {
         console.error("Failed to fetch bookmark status:", error);
         // Don't show error toast for timeout/network errors to avoid spamming the user
@@ -118,21 +128,41 @@ export function BookmarkButton({
   const { mutate: toggleBookmark } = useMutation({
     mutationFn: async () => {
       // Ensure data exists with default fallback
-      const bookmarkStatus = data?.isBookmarkedByUser ?? false;
+      // Use definite assignment to avoid unnecessary optional chaining
+      const bookmarkStatus = data.isBookmarkedByUser;
       
       try {
         if (bookmarkStatus) {
-          // Use timeout option instead of AbortController
-          await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`, {
-            retry: { limit: 2, methods: ['delete'] },
-            timeout: 5000 // 5 second timeout
-          });
+          // Use AbortController with a longer timeout for better reliability
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+          
+          try {
+            await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`, {
+              retry: { limit: 3, methods: ['delete'], maxRetryAfter: 2000 },
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+          } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+          }
           return { isBookmarkedByUser: false };
         } else {
-          await kyInstance.post(`/api/v1/posts/${postId}/bookmark`, {
-            retry: { limit: 2, methods: ['post'] },
-            timeout: 5000 // 5 second timeout
-          });
+          // Use AbortController with a longer timeout for better reliability
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+          
+          try {
+            await kyInstance.post(`/api/v1/posts/${postId}/bookmark`, {
+              retry: { limit: 3, methods: ['post'], maxRetryAfter: 2000 },
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+          } catch (error) {
+            clearTimeout(timeoutId);
+            throw error;
+          }
           return { isBookmarkedByUser: true };
         }
       } catch (error) {

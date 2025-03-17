@@ -64,7 +64,16 @@ export default async function RootLayout({
           data-domain="nownownow.io"
           src="https://datafa.st/js/script.js"
         />
-<script defer type="module" src="http://localhost:5173/dist/now-widget.js" data-org-id="67tiEuEkC3G" data-token="Njd0aUV1RWtDM0cuMTc0MjE1NDU0NTE3OC5kZWZhdWx0LXdpZGdldC1zZWNyZXQ=" data-theme="dark" data-position="left" data-button-color="#1a73e8" data-button-size="90"></script>
+        <script 
+          defer 
+          type="module" 
+          src="http://localhost:5173/dist/now-widget.js" 
+          data-org-id="67tiEuEkC3G" 
+          data-token="Njd0aUV1RWtDM0cuMTc0MjE1NDU0NTE3OC5kZWZhdWx0LXdpZGdldC1zZWNyZXQ=" 
+          data-theme="dark" 
+          data-position="left" 
+          data-button-color="#1a73e8" 
+          data-button-size="90"></script>
         </body>
       </html>
     </>

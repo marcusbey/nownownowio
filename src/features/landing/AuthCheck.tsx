@@ -2,12 +2,24 @@
 
 import { SignUpProviders } from "../../../app/auth/signup/SignUpProviders";
 import { useSession, signOut } from "next-auth/react";
+import { auth } from "@/lib/auth/helper";
 
 export function AuthCheck() {
+  // Use useSession hook for client-side authentication
   const { data: session, status } = useSession();
   
-  // We have debug logging that can be uncommented when needed
-  // Session status and data are available for debugging
+  // Debug logging is commented out for production
+  // Uncomment when troubleshooting session issues
+  /*
+  console.log("AuthCheck - session data:", {
+    status,
+    hasSession: !!session,
+    hasUser: !!session?.user,
+    userEmail: session?.user?.email,
+    sessionKeys: session ? Object.keys(session) : [],
+    userKeys: session?.user ? Object.keys(session.user) : []
+  });
+  */
 
   if (status === "loading") {
     return (
@@ -120,7 +132,7 @@ export function AuthCheck() {
       </div>
     );
   }
-  
+
   if (!session) {
     // No session found, showing SignUpProviders
     return (

@@ -104,7 +104,7 @@ export function WidgetShowcase() {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_USER_ID" 
+      data-org-id="DEMO_USER_ID" 
       data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
@@ -136,7 +136,7 @@ export function WidgetShowcase() {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_USER_ID" 
+      data-org-id="DEMO_ORG_ID" 
       data-token="DEMO_TOKEN"
       data-theme="dark">
     </script>
