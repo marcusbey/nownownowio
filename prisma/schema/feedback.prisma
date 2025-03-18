@@ -1,0 +1,39 @@
+// Feedback model for widget panel feedback
+model WidgetFeedback {
+  id             String       @id @default(nanoid(11))
+  content        String
+  email          String?
+  votes          Int          @default(0)
+  status         FeedbackStatus @default(NEW)
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  voters         WidgetFeedbackVoter[]
+
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([votes])
+  @@index([status])
+}
+
+model WidgetFeedbackVoter {
+  id             String        @id @default(nanoid(11))
+  feedbackId     String
+  ipAddress      String
+  userAgent      String?
+  createdAt      DateTime      @default(now())
+  feedback       WidgetFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@unique([feedbackId, ipAddress])
+  @@index([feedbackId])
+  @@index([ipAddress])
+}
+
+enum FeedbackStatus {
+  NEW
+  ACKNOWLEDGED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}

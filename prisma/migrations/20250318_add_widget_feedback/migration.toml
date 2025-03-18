@@ -1,0 +1,4 @@
+# This is a manually created migration
+
+migration_name = "20250318_add_widget_feedback"
+checksum = "d2e8b4f6e3c7a9b5d1e0f2c3b4a5d6e7f8c9b0a1"

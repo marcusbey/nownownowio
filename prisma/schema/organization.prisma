@@ -18,6 +18,7 @@ model Organization {
   planHistory      OrganizationPlanHistory[]
   widgets          Widget[]
   posts            Post[]
+  feedback         WidgetFeedback[]
 
   @@index([slug])
   @@index([stripeCustomerId])
