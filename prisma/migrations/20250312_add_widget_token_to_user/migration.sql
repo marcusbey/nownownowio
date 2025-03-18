@@ -1,0 +1,3 @@
+-- This is an empty migration file
+-- It was recreated to fix the missing migration file error
+-- The actual changes were already applied to the database

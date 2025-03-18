@@ -8,9 +8,10 @@ import { z } from 'zod';
 // Define types for organization and plan data
 type OrganizationPlanDetails = {
   websiteUrl: string | null;
-  hasFeedbackFeature: boolean;
-  maxFeedbackItems: number;
-  planId: string;
+  plan: {
+    hasFeedbackFeature: boolean;
+    maxFeedbackItems: number;
+  } | null;
 }
 
 // Schema for validating feedback submission
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
           }
         }
       }
-    });
+    }) as OrganizationPlanDetails | null;
     
     // Extract domain from website URL
     let allowedDomain: string | null = null;
@@ -130,10 +131,9 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if the organization's plan allows feedback feature
-    if (!orgDetails.hasFeedbackFeature) {
+    if (!orgDetails?.plan?.hasFeedbackFeature) {
       logger.warn('Organization plan does not include feedback feature', { 
-        organizationId, 
-        planId: orgDetails.planId,
+        organizationId,
         origin
       });
       return NextResponse.json(
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     // Check if the organization has reached the maximum number of feedback items
     const feedbackCount = await prisma.widgetFeedback.countForOrganization(organizationId);
     
-    const maxItems = orgDetails.maxFeedbackItems || 0;
+    const maxItems = orgDetails?.plan?.maxFeedbackItems ?? 0;
     if (feedbackCount >= maxItems) {
       logger.warn('Organization has reached maximum feedback items limit', { 
         organizationId, 
@@ -302,7 +302,7 @@ export async function PUT(req: NextRequest) {
           }
         }
       }
-    });
+    }) as OrganizationPlanDetails | null;
     
     // Extract domain from website URL
     let allowedDomain: string | null = null;
@@ -521,7 +521,7 @@ export async function GET(req: NextRequest) {
           }
         }
       }
-    });
+    }) as OrganizationPlanDetails | null;
     
     // Extract domain from website URL
     let allowedDomain: string | null = null;

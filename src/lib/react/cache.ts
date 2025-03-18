@@ -7,6 +7,18 @@ import { cache } from "react";
 import { auth } from "../auth/helper";
 import { prisma } from "../prisma";
 
+/**
+ * Determines if an organization has access to feedback features based on plan type
+ * @param planType The organization's plan type
+ * @returns boolean indicating if feedback features are available
+ */
+function hasFeedbackFeature(planType?: string): boolean {
+  if (!planType) return false;
+  
+  // Only BASIC and PRO plans have feedback features
+  return planType === 'BASIC' || planType === 'PRO';
+}
+
 // Node-based cache for server-side caching
 const nodeCache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
 
@@ -33,25 +45,25 @@ export async function getCachedData<T>(key: string, fetchData: () => Promise<T>)
 }
 
 // Helper function to get org slug from URL
-const getOrgSlugFromUrl = async () => {
+const getOrgSlugFromUrl = async (): Promise<string | undefined> => {
     const headerList = await headers();
     const xURL = headerList.get("x-url");
 
     if (!xURL) {
-        return null;
+        return undefined;
     }
 
     // get the parameters after /orgs/ or /organizations/ and before a / or ? (if there are params)
     const match = xURL.match(/\/(?:orgs|organizations)\/([^/?]+)(?:[/?]|$)/);
 
     if (!match) {
-        return null;
+        return undefined;
     }
 
     const organizationSlug = match[1];
 
     if (!organizationSlug) {
-        return null;
+        return undefined;
     }
 
     return organizationSlug;
@@ -60,7 +72,7 @@ const getOrgSlugFromUrl = async () => {
 /**
  * Gets the current organization with caching
  */
-export const getCurrentOrgCache = cache(async (orgSlug?: string) => {
+export const getCurrentOrgCache = cache(async (orgSlug?: string | null) => {
     if (!orgSlug) {
         // Try to get from URL if not provided
         orgSlug = await getOrgSlugFromUrl();
@@ -70,6 +82,14 @@ export const getCurrentOrgCache = cache(async (orgSlug?: string) => {
     try {
         const session = await auth();
         if (!session?.id) return null;
+
+        // Validate orgSlug to prevent unexpected errors
+        if (!orgSlug || typeof orgSlug !== 'string' || orgSlug.trim() === '') {
+            if (process.env.NODE_ENV !== 'production') {
+                console.error('Invalid organization slug');
+            }
+            return null;
+        }
 
         const org = await prisma.organization.findFirst({
             where: {
@@ -103,7 +123,9 @@ export const getCurrentOrgCache = cache(async (orgSlug?: string) => {
 
         return org;
     } catch (error) {
-        console.error("Error in getCurrentOrgCache:", error);
+        if (process.env.NODE_ENV !== 'production') {
+            console.error("Error in getCurrentOrgCache:", error);
+        }
         return null;
     }
 });
@@ -116,14 +138,26 @@ export const getRequiredCurrentOrgCache = cache(
         try {
             // Get the current organization
             const session = await auth();
+            if (!session) {
+                throw new Error("User not authenticated");
+            }
+            
             const org = await getRequiredCurrentOrg(orgSlug, roles);
+            
+            // Ensure org and members array exists and has items before accessing
+            if (!org || !org.members || org.members.length === 0) {
+                throw new Error("No membership information found for this organization");
+            }
+            
             return {
                 org,
                 user: session,
                 roles: org.members[0].roles
             };
         } catch (error) {
-            console.error(`Error accessing organization ${orgSlug}:`, error);
+            if (process.env.NODE_ENV !== 'production') {
+                console.error(`Error accessing organization ${orgSlug}:`, error);
+            }
             // Re-throw the error to be handled by the calling component
             throw error;
         }
@@ -131,9 +165,40 @@ export const getRequiredCurrentOrgCache = cache(
 );
 
 /**
+ * Organization with membership information type
+ */
+type OrganizationWithMembers = {
+    id: string;
+    name: string;
+    slug: string;
+    email: string | null;
+    image: string | null;
+    bio: string | null;
+    websiteUrl: string | null;
+    stripeCustomerId: string | null;
+    plan: {
+        id: string;
+        name: string;
+        type: string;
+    } | null;
+    members: {
+        roles: OrganizationMembershipRole[];
+    }[];
+    // Other optional fields
+    createdAt?: Date;
+    updatedAt?: Date;
+    planId?: string;
+    previousPlanId?: string | null;
+    planChangedAt?: Date | null;
+    
+    // Virtual property - computed based on plan type
+    hasFeedbackFeature?: boolean;
+};
+
+/**
  * Gets the current organization with required roles
  */
-async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMembershipRole[]) {
+async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMembershipRole[]): Promise<OrganizationWithMembers> {
     const session = await auth();
 
     if (!session?.id) {
@@ -142,17 +207,23 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
     
     // Validate orgSlug to prevent unexpected errors
     if (!orgSlug) {
-        console.error('Missing organization slug');
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('Missing organization slug');
+        }
         throw new Error("Missing organization slug");
     }
     
     if (typeof orgSlug !== 'string') {
-        console.error(`Invalid organization slug type: ${typeof orgSlug}`);
+        if (process.env.NODE_ENV !== 'production') {
+            console.error(`Invalid organization slug type: ${typeof orgSlug}`);
+        }
         throw new Error("Invalid organization slug format");
     }
     
     if (orgSlug.trim() === '') {
-        console.error('Empty organization slug');
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('Empty organization slug');
+        }
         throw new Error("Invalid organization slug");
     }
 
@@ -163,7 +234,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
             members: {
                 some: {
                     userId: session.id,
-                    ...(roles && roles.length > 0 ? { roles: { hasSome: roles } } : {}),
+                    ...(roles?.length ? { roles: { hasSome: roles } } : {}),
                 },
             },
         },
@@ -176,7 +247,16 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
             bio: true,
             websiteUrl: true,
             stripeCustomerId: true,
-            plan: true,
+            planId: true,
+            previousPlanId: true,
+            planChangedAt: true,
+            plan: {
+                select: {
+                    id: true,
+                    name: true,
+                    type: true,
+                }
+            },
             members: {
                 where: {
                     userId: session.id,
@@ -192,7 +272,9 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
         try {
             // Validate the orgSlug format first
             if (!orgSlug || typeof orgSlug !== 'string' || orgSlug.trim() === '') {
-                console.error(`Invalid organization slug format: '${orgSlug}'`);
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error(`Invalid organization slug format: '${orgSlug}'`);
+                }
                 throw new Error(`Invalid organization slug format`);
             }
 
@@ -203,11 +285,15 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
             });
             
             if (orgExists) {
-                console.error(`User ${session.id} doesn't have access to organization ${orgSlug} (${orgExists.name})`);
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error(`User ${session.id} doesn't have access to organization ${orgSlug} (${orgExists.name})`);
+                }
                 throw new Error(`You don't have access to this organization`);
             } else {
                 // Log detailed error for debugging but provide a more generic user-facing message
-                console.error(`Organization with slug '${orgSlug}' not found in database`);
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error(`Organization with slug '${orgSlug}' not found in database`);
+                }
                 
                 // Check if this might be a typo or case sensitivity issue
                 const similarOrgs = await prisma.organization.findMany({
@@ -221,7 +307,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
                     select: { slug: true, name: true }
                 });
                 
-                if (similarOrgs.length > 0) {
+                if (similarOrgs.length > 0 && process.env.NODE_ENV !== 'production') {
                     console.info(`Found similar organizations: ${JSON.stringify(similarOrgs)}`);
                 }
                 
@@ -230,15 +316,25 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
         } catch (error) {
             // Check if this is already an enhanced error to prevent recursive wrapping
             if (error instanceof Error && error.message.includes('Error accessing organization')) {
-                console.error(error);
+                if (process.env.NODE_ENV !== 'production') {
+                    console.error(error);
+                }
                 throw error;
             }
             
             // Add context to the error but keep the message clean
-            console.error(`Error accessing organization ${orgSlug}:`, error);
+            if (process.env.NODE_ENV !== 'production') {
+                console.error(`Error accessing organization ${orgSlug}:`, error);
+            }
             throw new Error('Organization not found. Please check the URL or contact support if the issue persists.');
         }
     }
 
+    // Add virtual property for feedback feature access
+    if (org) {
+        const orgWithFeedback = org as OrganizationWithMembers;
+        orgWithFeedback.hasFeedbackFeature = hasFeedbackFeature(org.plan?.type);
+    }
+    
     return org;
 }
