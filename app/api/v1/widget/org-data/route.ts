@@ -22,6 +22,8 @@ export async function GET(request: Request) {
         name: true,
         slug: true,
         websiteUrl: true,
+        image: true,
+        bannerImage: true,
       },
     });
 
@@ -36,6 +38,8 @@ export async function GET(request: Request) {
         name: organization.name,
         slug: organization.slug,
         websiteUrl: organization.websiteUrl,
+        image: organization.image,
+        bannerImage: organization.bannerImage,
       },
     });
   } catch (error) {

@@ -54,6 +54,7 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
           name: data.data.name,
           email: data.data.email ?? "",
           image: data.data.image,
+          bannerImage: data.data.bannerImage,
           bio: data.data.bio ?? "",
           websiteUrl: data.data.websiteUrl ?? "",
         };

@@ -46,6 +46,7 @@ export async function GET(req: NextRequest) {
                 id: true,
                 name: true,
                 image: true,
+                bannerImage: true,
                 bio: true,
                 websiteUrl: true,
                 _count: {
@@ -149,6 +150,7 @@ export async function GET(req: NextRequest) {
                     id: orgDetails.id,
                     name: orgDetails.name,
                     image: orgDetails.image,
+                    bannerImage: orgDetails.bannerImage,
                     bio: orgDetails.bio,
                     websiteUrl: orgDetails.websiteUrl,
                     membersCount: orgDetails._count.members || 0

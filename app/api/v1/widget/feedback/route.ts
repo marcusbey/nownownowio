@@ -1,5 +1,6 @@
 import { verifyWidgetToken, validateWidgetOrigin, getWidgetCorsHeaders } from '@/lib/now-widget';
 import { prisma } from '@/lib/prisma';
+import { feedbackExtensions } from '@/lib/prisma/prisma.feedback.extends';
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -559,14 +560,14 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
     
     // Get the feedback for the organization, sorted by votes (descending)
-    const feedback = await prisma.widgetFeedback.findForOrganization(organizationId, {
+    const feedback = await feedbackExtensions.findForOrganization(organizationId, {
       limit,
       skip,
       orderBy: [{ votes: 'desc' }]
     });
     
     // Get the total count for pagination
-    const totalCount = await prisma.widgetFeedback.countForOrganization(organizationId);
+    const totalCount = await feedbackExtensions.countForOrganization(organizationId);
     
     // Check if the user has voted for any of the feedback items
     const ipAddress = req.headers.get('x-forwarded-for') || 
