@@ -102,6 +102,7 @@ export async function GET(req: NextRequest) {
 
     try {
         // Find organization members to get their posts
+        // Get organization members to fetch their posts
         const members = await prisma.organizationMembership.findMany({
             where: { organizationId: orgId },
             select: { userId: true }
@@ -109,10 +110,26 @@ export async function GET(req: NextRequest) {
         
         const memberIds = members.map((member: { userId: string }) => member.userId);
         
+        // Get only the plan type from the organization to determine post limits
+        const orgPlan = await prisma.organization.findUnique({
+            where: { id: orgId },
+            select: {
+                planId: true
+            }
+        });
+
+        // Determine if the organization has a paid plan (BASIC or PRO)
+        // FREE plans are limited to 5 posts, while BASIC and PRO plans have no limit
+        const planId = orgPlan?.planId ?? 'FREE';
+        const isPaidPlan = planId.startsWith('BASIC') || planId.startsWith('PRO');
+        
+        // Only limit posts for free plans
+        const postLimit = isPaidPlan ? undefined : 5;
+        
         const posts = await prisma.post.findMany({
             where: { userId: { in: memberIds } },
             orderBy: { createdAt: 'desc' },
-            take: 5, // Limit to the latest 5 posts
+            ...(postLimit ? { take: postLimit } : {}), // Only limit posts for free plans
             select: {
                 id: true,
                 content: true,
