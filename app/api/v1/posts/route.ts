@@ -132,16 +132,23 @@ export async function POST(request: Request) {
               // Get a direct URL for UploadThing
               const directUrl = getDirectUploadthingUrl(url);
 
-              // Ensure the URL is absolute
+              // Ensure the URL is absolute while preserving the original domain (8s2dp0f8rl.ufs.sh)
               let absoluteUrl = directUrl;
-              if (!absoluteUrl.startsWith('http://') && !absoluteUrl.startsWith('https://')) {
+              
+              // If the URL already contains 8s2dp0f8rl.ufs.sh, use it as is
+              if (url.includes('8s2dp0f8rl.ufs.sh')) {
+                absoluteUrl = url.startsWith('http') ? url : `https://${url}`;
+                console.log('[POST_DEBUG] Preserving original UploadThing URL format:', absoluteUrl);
+              }
+              // Otherwise, ensure the URL has a proper protocol
+              else if (!absoluteUrl.startsWith('http://') && !absoluteUrl.startsWith('https://')) {
                 if (absoluteUrl.startsWith('utfs.io/') || absoluteUrl.includes('.utfs.io/')) {
                   absoluteUrl = `https://${absoluteUrl}`;
                 } else if (absoluteUrl.includes('/f/') || absoluteUrl.match(/\/[a-zA-Z0-9_-]{20,}/)) {
                   const fileId = absoluteUrl.split('/').pop();
                   if (fileId && fileId.length > 20) {
-                    // Use the public endpoint (/p/) instead of the private one (/f/)
-                    absoluteUrl = `https://utfs.io/p/${fileId}`;
+                    // For non-8s2dp0f8rl URLs, use the app ID to construct the proper URL format
+                    absoluteUrl = `https://8s2dp0f8rl.ufs.sh/f/${fileId}`;
                   }
                 }
               }

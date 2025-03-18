@@ -1,18 +1,67 @@
 import type { Media } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { env } from "@/lib/env";
+// We're using this import for type checking only, actual function is server-side only
 
 // Helper function to convert a direct URL to a proxied URL
 function getProxiedMediaUrl(url: string): string {
+  // Safety check for empty or invalid URLs
+  if (!url || typeof url !== 'string') {
+    console.log('[MediaPreview] Empty or invalid URL:', url);
+    return '';
+  }
+
+  console.log('[MediaPreview] Processing URL:', url);
+
   // If the URL already includes our domain or is already proxied, return it as is
   if (url.includes("/api/v1/media-proxy")) {
+    console.log('[MediaPreview] URL is already proxied');
     return url;
+  }
+  
+  // Get the app ID from environment variables
+  // Using the env module to ensure proper access to environment variables
+  const appId = env.NEXT_PUBLIC_UPLOADTHING_ID;
+  console.log('[MediaPreview] Using app ID:', appId);
+  
+  let processedUrl = url;
+  
+  // Simplified URL handling for UploadThing URLs
+  if (url.includes('utfs.io')) {
+    console.log('[MediaPreview] Found utfs.io URL, extracting file key');
+    // Extract the file key from legacy utfs.io URLs
+    // Use a more permissive regex pattern to handle longer file keys
+    const matches = url.match(/\/[pf]\/([\w-]+[\w\d]+)/);
+    
+    console.log('[MediaPreview] Regex matches:', matches);
+    
+    if (matches?.[1] && appId) {
+      // Convert to the new format with the correct app ID
+      // Trim any whitespace or unexpected characters from the file key
+      const fileKey = matches[1].trim();
+      
+      // Create a proxied URL that will go through our media-proxy endpoint
+      processedUrl = `/api/v1/media-proxy?url=${encodeURIComponent(`https://${appId}.ufs.sh/f/${fileKey}`)}`;
+      console.log('[MediaPreview] Created proxied URL:', processedUrl);
+    } else {
+      // If we couldn't extract the file key, use the original URL but proxied
+      processedUrl = `/api/v1/media-proxy?url=${encodeURIComponent(url)}`;
+      console.log('[MediaPreview] Using original URL with proxy:', processedUrl);
+    }
+  } else if (!url.includes('.ufs.sh/f/') && !url.includes('picsum.photos')) {
+    // For non-UploadThing and non-placeholder URLs, ensure they have proper protocol
+    processedUrl = url.startsWith('http') ? url : `https://${url}`;
+    console.log('[MediaPreview] Added protocol to URL:', processedUrl);
   }
   
   // Add a cache-busting parameter to prevent stale images
   const timestamp = Date.now();
-  return `/api/v1/media-proxy?url=${encodeURIComponent(url)}&t=${timestamp}`;
+  const finalUrl = `/api/v1/media-proxy?url=${encodeURIComponent(processedUrl)}&t=${timestamp}`;
+  console.log('[MediaPreview] Final proxied URL:', finalUrl);
+  
+  return finalUrl;
 }
 
 // Helper to check if we're in development mode
@@ -39,24 +88,42 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [mediaUrl, setMediaUrl] = useState<string>("");
   
-  // Set up the media URL with development mode handling
-  useEffect(() => {
-    // Safety check - if URL is empty or undefined, use a placeholder
-    if (!media.url || media.url === "") {
+  // Process media URL and handle errors
+  const processMediaUrl = useCallback((mediaObj: Media) => {
+    // Reset states when processing a new URL
+    setIsLoading(true);
+    setHasError(false);
+    
+    // Safety check - if URL is empty, undefined, or not a string
+    if (!mediaObj.url || typeof mediaObj.url !== 'string' || mediaObj.url === "") {
       // Use a placeholder instead of empty string
-      setMediaUrl(getPlaceholderUrl(media));
+      setMediaUrl(getPlaceholderUrl(mediaObj));
       return;
     }
 
-    // In development mode with test data, use placeholder images instead of real URLs
-    if (isDevelopment && media.url.includes("utfs.io/p/32NrzzTW2")) {
-      setMediaUrl(getPlaceholderUrl(media));
+    // In development mode with test data, use placeholder images
+    if (isDevelopment && mediaObj.url.includes("utfs.io/p/32NrzzTW2")) {
+      setMediaUrl(getPlaceholderUrl(mediaObj));
       return;
     }
     
-    // For real media or production, use the proxied URL
-    setMediaUrl(getProxiedMediaUrl(media.url));
-  }, [media]);
+    // For real media, use the proxied URL
+    const processedUrl = getProxiedMediaUrl(mediaObj.url);
+    
+    // Validate the URL is not empty after processing
+    if (!processedUrl) {
+      // Use a placeholder if processing resulted in empty URL
+      setMediaUrl(getPlaceholderUrl(mediaObj));
+      return;
+    }
+    
+    setMediaUrl(processedUrl);
+  }, []);
+  
+  // Set up the media URL with development mode handling
+  useEffect(() => {
+    processMediaUrl(media);
+  }, [media, processMediaUrl]);
   
   // Error handler for media loading failures
   const handleError = () => {
@@ -66,78 +133,57 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     setIsLoading(false);
   };
   
-  // Loading complete handler
+  // Loading handler
   const handleLoad = () => {
     setIsLoading(false);
   };
   
-  // If there was an error loading the media, show a fallback
-  if (hasError) {
+  if (media.type === "IMAGE") {
     return (
-      <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
-        <p className="text-sm text-muted-foreground">Media unavailable</p>
+      <div className={cn(
+        "relative w-full overflow-hidden rounded-md bg-muted",
+        hasError ? "aspect-square" : "aspect-square" // Force aspect-square to fix height issues
+      )}>
+        {mediaUrl && (
+          <Image
+            src={mediaUrl}
+            alt="Post image"
+            fill
+            className={cn(
+              "object-cover transition-opacity duration-300",
+              isLoading ? "opacity-0" : "opacity-100",
+              hasError ? "hidden" : "block"
+            )}
+            onError={handleError}
+            onLoad={handleLoad}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
+          />
+        )}
+        
+        {/* Loading state */}
+        {isLoading && !hasError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        )}
+        
+        {/* Error state */}
+        {hasError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-4 text-center">
+            <span className="text-sm text-muted-foreground">Image could not be loaded</span>
+          </div>
+        )}
       </div>
     );
   }
   
-  // Handle different media types based on the type field
-  if (media.type === "IMAGE" || !media.type) {
-    return (
-      <div className="relative overflow-hidden rounded-lg">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
-            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          </div>
-        )}
-        {mediaUrl ? (
-          <Image
-            src={mediaUrl}
-            alt="Media preview"
-            width={500}
-            height={500}
-            className={cn(
-              "mx-auto size-fit max-h-[30rem] rounded-lg object-cover",
-              isLoading && "opacity-0"
-            )}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            onError={handleError}
-            onLoad={handleLoad}
-            priority={true}
-          />
-        ) : (
-          <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
-            <p className="text-sm text-muted-foreground">Media unavailable</p>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Handle video media type
-  if (media.type === "VIDEO") {
-    return (
-      <div className="relative overflow-hidden rounded-lg">
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
-            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          </div>
-        )}
-        <video
-          src={mediaUrl}
-          controls
-          className={cn(
-            "mx-auto size-fit max-h-[30rem] rounded-lg",
-            isLoading && "opacity-0"
-          )}
-          onError={handleError}
-          onLoadedData={handleLoad}
-        />
-      </div>
-    );
-  }
-
-  // Fallback for unsupported media types
-  return <p className="text-destructive">Unsupported media type</p>;
+  // For other media types (like VIDEO), we could add support here
+  return (
+    <div className="flex aspect-video w-full items-center justify-center rounded-md bg-muted">
+      <span className="text-sm text-muted-foreground">Unsupported media type</span>
+    </div>
+  );
 }
 
 export type MediaPreviewsProps = {
@@ -145,14 +191,13 @@ export type MediaPreviewsProps = {
 }
 
 export function MediaPreviews({ attachments }: MediaPreviewsProps) {
+  if (!attachments || attachments.length === 0) {
+    return null;
+  }
+  
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-3",
-        attachments.length > 1 && "sm:grid sm:grid-cols-2"
-      )}
-    >
-      {attachments.slice(0, 4).map((media) => (
+    <div className="mt-3 grid grid-cols-1 gap-2">
+      {attachments.map((media) => (
         <MediaPreview key={media.id} media={media} />
       ))}
     </div>

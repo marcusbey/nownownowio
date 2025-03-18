@@ -9,10 +9,8 @@ const utapi = new UTApi();
 export function getDirectUploadthingUrl(url: string): string {
     if (!url) return '';
 
-    // Convert problematic URLs to utfs.io
-    if (url.includes('8s2dp0f8rl.ufs.sh')) {
-        url = url.replace('8s2dp0f8rl.ufs.sh', 'utfs.io');
-    }
+    // We want to preserve the original URL format with 8s2dp0f8rl.ufs.sh domain
+    // DO NOT convert 8s2dp0f8rl.ufs.sh URLs to utfs.io
     
     // Check if this is an UploadThing file URL that needs transformation
     if (url.includes('utfs.io/f/')) {

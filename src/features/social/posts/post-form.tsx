@@ -25,6 +25,7 @@ import { useDropzone } from "react-dropzone";
 // Extended type for UploadThing response
 type UploadThingResponse = {
   url: string;
+  ufsUrl?: string; // New property in UploadThing v9
   mediaId: string;
   type: "IMAGE" | "VIDEO";
   // Include other properties from the standard response
@@ -263,8 +264,13 @@ export function PostForm({
             const mediaUrls = uploadResult
               .map((file) => {
                 try {
-                  // Safely access properties with fallbacks
-                  const url = file.url;
+                  // Use ufsUrl (new property) with fallback to url (deprecated)
+                  // First convert to unknown to avoid type errors
+                  const fileData = file as unknown;
+                  // Then safely access properties with proper typing
+                  const uploadResult = fileData as { ufsUrl: string; url: string };
+                  // Prioritize ufsUrl as url is deprecated
+                  const url = uploadResult.ufsUrl || uploadResult.url;
                   if (url) {
                     console.log(`Extracted URL for file ${file.name}: ${url}`);
                     return url;
