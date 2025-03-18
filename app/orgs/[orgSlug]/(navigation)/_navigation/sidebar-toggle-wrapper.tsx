@@ -1,7 +1,8 @@
 "use client";
 
+import { useSidebar } from "@/components/layout/sidebar";
 import { cn } from "@/lib/utils";
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 type SidebarToggleWrapperProps = {
   children: [ReactNode, ReactNode, ReactNode?]; // Third child is optional
@@ -12,30 +13,9 @@ export function SidebarToggleWrapper({
   children,
   className,
 }: SidebarToggleWrapperProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  useEffect(() => {
-    // Function to handle sidebar toggle
-    const handleSidebarToggle = () => {
-      setSidebarOpen((prev) => !prev);
-    };
-
-    // Get the toggle button
-    const toggleButton = document.querySelector('[data-sidebar="trigger"]');
-
-    // Add event listeners
-    if (toggleButton) {
-      toggleButton.addEventListener("click", handleSidebarToggle);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (toggleButton) {
-        toggleButton.removeEventListener("click", handleSidebarToggle);
-      }
-    };
-  }, []);
-
+  // Use the sidebar context instead of local state
+  const { open: sidebarOpen } = useSidebar();
+  
   return (
     <div
       className={cn("mx-auto flex h-dvh w-full max-w-screen-2xl", className)}
@@ -46,6 +26,7 @@ export function SidebarToggleWrapper({
           "relative h-full overflow-y-auto transition-all duration-300 ease-in-out",
           sidebarOpen ? "w-[368px] min-w-[368px]" : "w-0 min-w-0 opacity-0",
         )}
+        data-state={sidebarOpen ? "expanded" : "collapsed"}
       >
         {children[0]}
       </div>

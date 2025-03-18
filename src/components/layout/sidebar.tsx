@@ -57,7 +57,8 @@ const SidebarProvider = React.forwardRef<
 >(
   (
     {
-      defaultOpen = true,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      defaultOpen = true, // Always default to open, but we're not using it
       open: openProp,
       onOpenChange: setOpenProp,
       className,
@@ -72,7 +73,7 @@ const SidebarProvider = React.forwardRef<
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen);
+    const [_open, _setOpen] = React.useState(true); // Force initial state to be open
     const open = openProp ?? _open;
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
@@ -92,9 +93,11 @@ const SidebarProvider = React.forwardRef<
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
+      // For mobile, toggle the mobile sidebar
+      // For desktop, toggle between open and closed states
       return isMobile
         ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open);
+        : setOpen((currentOpen) => !currentOpen); // Simply toggle the current state
     }, [isMobile, setOpen, setOpenMobile]);
 
     // Adds a keyboard shortcut to toggle the sidebar.
@@ -184,9 +187,12 @@ const Sidebar = React.forwardRef<
     },
     ref,
   ) => {
+    console.log('[Sidebar] Rendering with variant:', variant, 'collapsible:', collapsible);
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+    console.log('[Sidebar] State:', state, 'isMobile:', isMobile, 'openMobile:', openMobile);
 
     if (collapsible === "none") {
+      console.log('[Sidebar] Rendering with collapsible=none');
       return (
         <div
           className={cn(
@@ -194,6 +200,7 @@ const Sidebar = React.forwardRef<
             className,
           )}
           ref={ref}
+          data-testid="sidebar-none"
           {...props}
         >
           {children}

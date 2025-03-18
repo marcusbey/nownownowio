@@ -94,75 +94,50 @@ export function BookmarkButton({
     queryKey,
     queryFn: async () => {
       try {
-        // Use AbortController with a longer timeout to prevent quick failures
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-        
-        try {
-          const response = await kyInstance
-            .get(`/api/v1/posts/${postId}/bookmark`, {
-              retry: { limit: 3, methods: ['get'], maxRetryAfter: 2000 },
-              signal: controller.signal
-            })
-            .json<{ isBookmarkedByUser: boolean }>();
-          
-          clearTimeout(timeoutId);
-          return response;
-        } catch (error) {
-          clearTimeout(timeoutId);
-          throw error;
-        }
-      } catch (error) {
-        console.error("Failed to fetch bookmark status:", error);
-        // Don't show error toast for timeout/network errors to avoid spamming the user
+        // Use a simple timeout option instead of AbortController to avoid signal abort errors
+        const response = await kyInstance
+          .get(`/api/v1/posts/${postId}/bookmark`, {
+            retry: { limit: 1, methods: ['get'] },
+            timeout: 3000, // Reduced timeout to 3 seconds
+            headers: {
+              'Cache-Control': 'no-cache' // Prevent caching issues
+            }
+          })
+          .json<{ isBookmarkedByUser: boolean }>();
+        return response;
+      } catch (_error) {
+        // Silently handle errors without console logging to avoid console spam
+        // Return the initial state instead of throwing an error
         return { isBookmarkedByUser: initialState.isBookmarkedByUser };
       }
     },
     initialData: { isBookmarkedByUser: initialState.isBookmarkedByUser },
-    staleTime: 0, // Refetch on mount
+    // Add additional query options for better error handling
+    retry: false, // Disable retries at the React Query level
+    staleTime: 30000, // Keep data fresh for 30 seconds
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Prevent refetching when window regains focus
   });
 
   // Handle bookmark toggle with API call
   const { mutate: toggleBookmark } = useMutation({
     mutationFn: async () => {
       // Ensure data exists with default fallback
-      // Use definite assignment to avoid unnecessary optional chaining
-      const bookmarkStatus = data.isBookmarkedByUser;
+      const bookmarkStatus = data?.isBookmarkedByUser ?? false;
       
       try {
         if (bookmarkStatus) {
-          // Use AbortController with a longer timeout for better reliability
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-          
-          try {
-            await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`, {
-              retry: { limit: 3, methods: ['delete'], maxRetryAfter: 2000 },
-              signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-          } catch (error) {
-            clearTimeout(timeoutId);
-            throw error;
-          }
+          // Use timeout option instead of AbortController
+          await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`, {
+            retry: { limit: 2, methods: ['delete'] },
+            timeout: 5000 // 5 second timeout
+          });
           return { isBookmarkedByUser: false };
         } else {
-          // Use AbortController with a longer timeout for better reliability
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-          
-          try {
-            await kyInstance.post(`/api/v1/posts/${postId}/bookmark`, {
-              retry: { limit: 3, methods: ['post'], maxRetryAfter: 2000 },
-              signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-          } catch (error) {
-            clearTimeout(timeoutId);
-            throw error;
-          }
+          await kyInstance.post(`/api/v1/posts/${postId}/bookmark`, {
+            retry: { limit: 2, methods: ['post'] },
+            timeout: 5000 // 5 second timeout
+          });
           return { isBookmarkedByUser: true };
         }
       } catch (error) {

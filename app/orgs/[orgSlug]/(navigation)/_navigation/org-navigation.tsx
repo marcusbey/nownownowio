@@ -8,12 +8,12 @@ import { OrgSidebar } from "./org-sidebar";
 import { LayoutStructure } from "./layout-structure";
 
 type OrgNavigationProps = PropsWithChildren & {
-  params: Promise<{ orgSlug: string }>
+  params: Promise<{ orgSlug: string }> | { orgSlug: string }
 }
 
 export async function OrgNavigation({ children, params }: OrgNavigationProps) {
-  // Await params before using its properties (Next.js 15 requirement)
-  const { orgSlug } = await params;
+  // Handle both Promise and non-Promise params (for flexibility with Next.js 15)
+  const { orgSlug } = params instanceof Promise ? await params : params;
   
   const { org, roles } = await getRequiredCurrentOrgCache(orgSlug);
   const userOrganizations = await getUsersOrgs();
