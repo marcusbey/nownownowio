@@ -4,6 +4,14 @@ import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+// Define types for organization and plan data
+type OrganizationPlanDetails = {
+  websiteUrl: string | null;
+  hasFeedbackFeature: boolean;
+  maxFeedbackItems: number;
+  planId: string;
+};
+
 // Schema for validating feedback submission
 const feedbackSchema = z.object({
   content: z.string().min(1).max(1000),
@@ -121,10 +129,10 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if the organization's plan allows feedback feature
-    if (!orgDetails?.plan?.hasFeedbackFeature) {
+    if (!orgDetails.hasFeedbackFeature) {
       logger.warn('Organization plan does not include feedback feature', { 
         organizationId, 
-        planId: orgDetails?.planId,
+        planId: orgDetails.planId,
         origin
       });
       return NextResponse.json(
@@ -134,15 +142,14 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if the organization has reached the maximum number of feedback items
-    const feedbackCount = await prisma.widgetFeedback.count({
-      where: { organizationId }
-    });
+    const feedbackCount = await prisma.widgetFeedback.countForOrganization(organizationId);
     
-    if (feedbackCount >= (orgDetails.plan.maxFeedbackItems ?? 0)) {
+    const maxItems = orgDetails.maxFeedbackItems || 0;
+    if (feedbackCount >= maxItems) {
       logger.warn('Organization has reached maximum feedback items limit', { 
         organizationId, 
         feedbackCount,
-        maxItems: orgDetails.plan.maxFeedbackItems,
+        maxItems,
         origin
       });
       return NextResponse.json(
@@ -151,15 +158,22 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Create the feedback
-    const feedback = await prisma.widgetFeedback.create({
-      data: {
-        content,
-        email,
-        organizationId,
-        votes: 1, // Start with 1 vote (the submitter)
-      }
-    });
+    // Create the feedback using the extension method
+    const feedbackResult = await prisma.$queryRaw<{
+      id: string;
+      content: string;
+      email: string | null;
+      votes: number;
+      status: string;
+      organizationId: string;
+      createdAt: Date;
+    }[]>`
+      INSERT INTO "WidgetFeedback" ("content", "email", "organizationId", "votes", "status")
+      VALUES (${content}, ${email}, ${organizationId}, 1, 'NEW')
+      RETURNING *
+    `;
+    
+    const feedback = feedbackResult[0];
     
     // Record the voter using their IP address
     const ipAddress = req.headers.get('x-forwarded-for') || 
@@ -172,6 +186,7 @@ export async function POST(req: NextRequest) {
       data: {
         feedbackId: feedback.id,
         ipAddress: ipAddress.split(',')[0].trim(), // Use the first IP if multiple are provided
+        email: email || undefined,
         userAgent
       }
     });
@@ -311,14 +326,13 @@ export async function PUT(req: NextRequest) {
     }
     
     // Check if the feedback exists and belongs to the organization
-    const feedback = await prisma.widgetFeedback.findFirst({
-      where: {
-        id: feedbackId,
-        organizationId
-      }
-    });
+    const feedbackResult = await prisma.$queryRaw<{ id: string; content: string; votes: number; createdAt: Date }[]>`
+      SELECT id, content, votes, "createdAt" FROM "WidgetFeedback"
+      WHERE id = ${feedbackId} AND "organizationId" = ${organizationId}
+      LIMIT 1
+    `;
     
-    if (!feedback) {
+    if (feedbackResult.length === 0) {
       logger.warn('Feedback not found or does not belong to organization', { 
         organizationId, 
         feedbackId,
@@ -339,14 +353,9 @@ export async function PUT(req: NextRequest) {
     const voterIp = ipAddress.split(',')[0].trim(); // Use the first IP if multiple are provided
     
     // Check if the voter has already voted for this feedback
-    const existingVote = await prisma.widgetFeedbackVoter.findFirst({
-      where: {
-        feedbackId,
-        ipAddress: voterIp
-      }
-    });
+    const hasVoted = await prisma.widgetFeedbackVoter.hasVotedByIp(feedbackId, voterIp);
     
-    if (existingVote) {
+    if (hasVoted) {
       logger.info('Voter has already voted for this feedback', { 
         organizationId, 
         feedbackId,
@@ -358,42 +367,47 @@ export async function PUT(req: NextRequest) {
           success: false, 
           message: 'You have already voted for this feedback',
           feedback: {
-            id: feedback.id,
-            content: feedback.content,
-            votes: feedback.votes,
-            createdAt: feedback.createdAt
+            id: feedbackResult[0].id,
+            content: feedbackResult[0].content,
+            votes: feedbackResult[0].votes,
+            createdAt: feedbackResult[0].createdAt
           }
         },
         { status: 409, headers }
       );
     }
     
-    // Record the vote
-    await prisma.$transaction([
+    // Record the vote using a transaction function
+    await prisma.$transaction(async (tx) => {
       // Increment the vote count
-      prisma.widgetFeedback.update({
+      await tx.widgetFeedback.update({
         where: { id: feedbackId },
         data: { votes: { increment: 1 } }
-      }),
+      });
+      
       // Record the voter
-      prisma.widgetFeedbackVoter.create({
+      await tx.widgetFeedbackVoter.create({
         data: {
           feedbackId,
           ipAddress: voterIp,
           userAgent
         }
-      })
-    ]);
+      });
+    });
     
     // Get the updated feedback
-    const updatedFeedback = await prisma.widgetFeedback.findUnique({
-      where: { id: feedbackId }
-    });
+    const updatedFeedbackResult = await prisma.$queryRaw<{ id: string; content: string; votes: number; createdAt: Date }[]>`
+      SELECT id, content, votes, "createdAt" FROM "WidgetFeedback"
+      WHERE id = ${feedbackId}
+      LIMIT 1
+    `;
+    
+    const updatedFeedback = updatedFeedbackResult[0];
     
     logger.info('Vote recorded successfully', { 
       organizationId, 
       feedbackId,
-      votes: updatedFeedback?.votes,
+      votes: updatedFeedback.votes,
       origin
     });
     
@@ -401,10 +415,10 @@ export async function PUT(req: NextRequest) {
       { 
         success: true, 
         feedback: {
-          id: updatedFeedback?.id,
-          content: updatedFeedback?.content,
-          votes: updatedFeedback?.votes,
-          createdAt: updatedFeedback?.createdAt
+          id: updatedFeedback.id,
+          content: updatedFeedback.content,
+          votes: updatedFeedback.votes,
+          createdAt: updatedFeedback.createdAt
         }
       },
       { headers }
@@ -535,29 +549,14 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
     
     // Get the feedback for the organization, sorted by votes (descending)
-    const feedback = await prisma.widgetFeedback.findMany({
-      where: { organizationId },
-      orderBy: { votes: 'desc' },
-      take: limit,
+    const feedback = await prisma.widgetFeedback.findForOrganization(organizationId, {
+      limit,
       skip,
-      select: {
-        id: true,
-        content: true,
-        votes: true,
-        status: true,
-        createdAt: true,
-        _count: {
-          select: {
-            voters: true
-          }
-        }
-      }
+      orderBy: [{ votes: 'desc' }]
     });
     
     // Get the total count for pagination
-    const totalCount = await prisma.widgetFeedback.count({
-      where: { organizationId }
-    });
+    const totalCount = await prisma.widgetFeedback.countForOrganization(organizationId);
     
     // Check if the user has voted for any of the feedback items
     const ipAddress = req.headers.get('x-forwarded-for') || 
@@ -565,22 +564,28 @@ export async function GET(req: NextRequest) {
                       'unknown';
     const voterIp = ipAddress.split(',')[0].trim();
     
-    const feedbackIds = feedback.map(f => f.id);
+    const feedbackIds = feedback.map((f: { id: string }) => f.id);
     
-    const userVotes = await prisma.widgetFeedbackVoter.findMany({
-      where: {
-        feedbackId: { in: feedbackIds },
-        ipAddress: voterIp
-      },
-      select: {
-        feedbackId: true
-      }
-    });
+    // Use raw query to find votes by IP address
+    const userVotes = await prisma.$queryRaw<{ feedbackId: string }[]>`
+      SELECT "feedbackId" FROM "WidgetFeedbackVoter"
+      WHERE "feedbackId" IN (${feedbackIds.join(',')}) AND "ipAddress" = ${voterIp}
+    `;
     
-    const userVotedFeedbackIds = new Set(userVotes.map(v => v.feedbackId));
+    const userVotedFeedbackIds = new Set(userVotes.map((v: { feedbackId: string }) => v.feedbackId));
     
     // Add hasVoted flag to each feedback item
-    const feedbackWithVoteStatus = feedback.map(f => ({
+    // Define a proper type for the feedback item
+    type FeedbackItem = {
+      id: string;
+      content: string;
+      votes: number;
+      status: string;
+      createdAt: Date;
+      _count?: { voters: number };
+    };
+    
+    const feedbackWithVoteStatus = feedback.map((f: FeedbackItem) => ({
       ...f,
       hasVoted: userVotedFeedbackIds.has(f.id)
     }));
