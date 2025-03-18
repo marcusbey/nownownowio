@@ -1,5 +1,6 @@
 import { verifyWidgetToken, validateWidgetOrigin, getWidgetCorsHeaders } from '@/lib/now-widget';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -10,7 +11,7 @@ type OrganizationPlanDetails = {
   hasFeedbackFeature: boolean;
   maxFeedbackItems: number;
   planId: string;
-};
+}
 
 // Schema for validating feedback submission
 const feedbackSchema = z.object({
@@ -182,14 +183,23 @@ export async function POST(req: NextRequest) {
     
     const userAgent = req.headers.get('user-agent') || undefined;
     
-    await prisma.widgetFeedbackVoter.create({
-      data: {
+    try {
+      await prisma.widgetFeedbackVoter.create({
+        data: {
+          feedbackId: feedback.id,
+          ipAddress: ipAddress.split(',')[0].trim(), // Use the first IP if multiple are provided
+          email: email ?? null,
+          userAgent: userAgent ?? undefined
+        }
+      });
+    } catch (error) {
+      logger.error('Error recording voter', {
+        error: error instanceof Error ? error.message : String(error),
         feedbackId: feedback.id,
-        ipAddress: ipAddress.split(',')[0].trim(), // Use the first IP if multiple are provided
-        email: email || undefined,
-        userAgent
-      }
-    });
+        ipAddress: ipAddress.split(',')[0].trim()
+      });
+      // Continue even if voter recording fails
+    }
     
     logger.info('Feedback submitted successfully', { 
       organizationId, 
@@ -566,11 +576,26 @@ export async function GET(req: NextRequest) {
     
     const feedbackIds = feedback.map((f: { id: string }) => f.id);
     
-    // Use raw query to find votes by IP address
-    const userVotes = await prisma.$queryRaw<{ feedbackId: string }[]>`
-      SELECT "feedbackId" FROM "WidgetFeedbackVoter"
-      WHERE "feedbackId" IN (${feedbackIds.join(',')}) AND "ipAddress" = ${voterIp}
-    `;
+    // Initialize userVotes as an empty array
+    let userVotes: { feedbackId: string }[] = [];
+    
+    // Only query for votes if there are feedback items
+    if (feedbackIds.length > 0) {
+      try {
+        // Use raw query to find votes by IP address
+        userVotes = await prisma.$queryRaw<{ feedbackId: string }[]>`
+          SELECT "feedbackId" FROM "WidgetFeedbackVoter"
+          WHERE "feedbackId" IN (${Prisma.join(feedbackIds)}) AND "ipAddress" = ${voterIp}
+        `;
+      } catch (error) {
+        logger.error('Error fetching user votes', {
+          error: error instanceof Error ? error.message : String(error),
+          feedbackIds,
+          voterIp
+        });
+        // Continue with empty userVotes array
+      }
+    }
     
     const userVotedFeedbackIds = new Set(userVotes.map((v: { feedbackId: string }) => v.feedbackId));
     
