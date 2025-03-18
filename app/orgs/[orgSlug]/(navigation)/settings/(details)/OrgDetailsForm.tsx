@@ -113,7 +113,7 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
           name="image"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Organization Image</FormLabel>
+              <FormLabel>Organization Logo</FormLabel>
               <FormControl>
                 <ImageFormItem
                   className="size-24 rounded-lg"
@@ -123,6 +123,27 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
               </FormControl>
               <FormDescription>
                 Recommended size: 256x256px. Maximum size: 5MB
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="bannerImage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organization Banner</FormLabel>
+              <FormControl>
+                <ImageFormItem
+                  className="h-32 w-full rounded-lg object-cover"
+                  onChange={(url) => field.onChange(url)}
+                  imageUrl={field.value ?? defaultValues.bannerImage ?? undefined}
+                />
+              </FormControl>
+              <FormDescription>
+                Recommended size: 1200x300px. Maximum size: 5MB
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -10,6 +10,7 @@ type OrganizationWithPlan = {
   name: string;
   email: string | null;
   image: string | null;
+  bannerImage: string | null;
   bio: string | null;
   websiteUrl: string | null;
   slug: string;
@@ -39,13 +40,15 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
   );
   
   // Always use owner's profile image if organization image is not set
-  const defaultImage = organization.image ?? ownerMember?.user.image ?? null;
+  const defaultImage = organization.image ?? (ownerMember ? ownerMember.user?.image : null) ?? null;
+  const defaultBannerImage = organization.bannerImage ?? null;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
     name: organization.name,
     email: organization.email ?? "",
     image: defaultImage,
+    bannerImage: defaultBannerImage,
     bio: organization.bio ?? "",
     websiteUrl: organization.websiteUrl ?? "",
   };

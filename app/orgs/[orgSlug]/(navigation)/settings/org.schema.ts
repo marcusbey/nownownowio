@@ -33,6 +33,17 @@ export const OrgDetailsFormSchema = z.object({
   }, {
     message: "Please provide a valid image URL",
   }),
+  bannerImage: z.string().nullable().refine((val) => {
+    if (!val) return true;
+    try {
+      const url = new URL(val);
+      return url.protocol === 'https:' || url.protocol === 'http:';
+    } catch {
+      return false;
+    }
+  }, {
+    message: "Please provide a valid banner image URL",
+  }),
   bio: z.string().max(500, {
     message: "Bio must be less than 500 characters",
   }).optional(),

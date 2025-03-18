@@ -106,6 +106,8 @@ export const getCurrentOrgCache = cache(async (orgSlug?: string | null) => {
                 slug: true,
                 email: true,
                 image: true,
+                bannerImage: true,
+                bio: true,
                 websiteUrl: true,
                 stripeCustomerId: true,
                 planChangedAt: true,
@@ -173,6 +175,7 @@ type OrganizationWithMembers = {
     slug: string;
     email: string | null;
     image: string | null;
+    bannerImage: string | null;
     bio: string | null;
     websiteUrl: string | null;
     stripeCustomerId: string | null;

@@ -7,6 +7,7 @@ model Organization {
   stripeCustomerId String?
   planId           String                    @default("FREE")
   image            String?
+  bannerImage      String?
   bio              String?
   createdAt        DateTime                  @default(now())
   updatedAt        DateTime                  @updatedAt
