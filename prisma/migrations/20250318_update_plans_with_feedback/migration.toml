@@ -1,0 +1,4 @@
+# This is a manually created migration
+
+migration_name = "20250318_update_plans_with_feedback"
+checksum = "f3e7d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5"

@@ -78,6 +78,8 @@ model OrganizationPlan {
   canSchedulePosts  Boolean                   @default(false)
   canPinPosts       Boolean                   @default(false)
   hasAnalytics      Boolean                   @default(false)
+  hasFeedbackFeature Boolean                  @default(false)
+  maxFeedbackItems  Int                       @default(0)
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
   billingCycle      BillingCycle              @default(MONTHLY)

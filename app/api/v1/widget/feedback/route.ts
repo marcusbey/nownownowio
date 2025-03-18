@@ -76,11 +76,17 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Get the organization details to extract the website URL
+    // Get the organization details to extract the website URL and check plan
     const orgDetails = await prisma.organization.findUnique({
       where: { id: organizationId },
       select: {
-        websiteUrl: true
+        websiteUrl: true,
+        plan: {
+          select: {
+            hasFeedbackFeature: true,
+            maxFeedbackItems: true
+          }
+        }
       }
     });
     
@@ -112,6 +118,37 @@ export async function POST(req: NextRequest) {
           { status: 403, headers }
         );
       }
+    }
+    
+    // Check if the organization's plan allows feedback feature
+    if (!orgDetails?.plan?.hasFeedbackFeature) {
+      logger.warn('Organization plan does not include feedback feature', { 
+        organizationId, 
+        planId: orgDetails?.planId,
+        origin
+      });
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'Feedback feature not available in your current plan' },
+        { status: 403, headers }
+      );
+    }
+    
+    // Check if the organization has reached the maximum number of feedback items
+    const feedbackCount = await prisma.widgetFeedback.count({
+      where: { organizationId }
+    });
+    
+    if (feedbackCount >= (orgDetails.plan.maxFeedbackItems ?? 0)) {
+      logger.warn('Organization has reached maximum feedback items limit', { 
+        organizationId, 
+        feedbackCount,
+        maxItems: orgDetails.plan.maxFeedbackItems,
+        origin
+      });
+      return NextResponse.json(
+        { error: 'Limit Exceeded', message: 'You have reached the maximum number of feedback items for your plan' },
+        { status: 403, headers }
+      );
     }
     
     // Create the feedback
@@ -228,11 +265,17 @@ export async function PUT(req: NextRequest) {
       );
     }
     
-    // Get the organization details to extract the website URL
+    // Get the organization details to extract the website URL and check plan
     const orgDetails = await prisma.organization.findUnique({
       where: { id: organizationId },
       select: {
-        websiteUrl: true
+        websiteUrl: true,
+        plan: {
+          select: {
+            hasFeedbackFeature: true,
+            maxFeedbackItems: true
+          }
+        }
       }
     });
     
@@ -442,11 +485,17 @@ export async function GET(req: NextRequest) {
       );
     }
     
-    // Get the organization details to extract the website URL
+    // Get the organization details to extract the website URL and check plan
     const orgDetails = await prisma.organization.findUnique({
       where: { id: organizationId },
       select: {
-        websiteUrl: true
+        websiteUrl: true,
+        plan: {
+          select: {
+            hasFeedbackFeature: true,
+            maxFeedbackItems: true
+          }
+        }
       }
     });
     
