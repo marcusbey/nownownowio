@@ -351,7 +351,10 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
     handleConfirmLink(linkUrl.trim(), '', false);
   }, [linkUrl, handleConfirmLink]);
 
-  const applyFormat = useCallback((command: FormatCommand): void => {
+  const applyFormat = useCallback((command: FormatCommand | undefined): void => {
+    // Early return if editor or command is not available
+    if (!editor || !command) return;
+    
     // Editor is guaranteed to exist here
     const safeEditor = editor as Editor;
     
