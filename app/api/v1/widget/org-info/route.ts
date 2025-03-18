@@ -48,6 +48,11 @@ export async function GET(req: NextRequest) {
                 image: true,
                 bio: true,
                 websiteUrl: true,
+                _count: {
+                    select: {
+                        members: true
+                    }
+                },
                 members: {
                     where: { roles: { has: 'OWNER' } },
                     take: 1,
@@ -145,7 +150,8 @@ export async function GET(req: NextRequest) {
                     name: orgDetails.name,
                     image: orgDetails.image,
                     bio: orgDetails.bio,
-                    websiteUrl: orgDetails.websiteUrl
+                    websiteUrl: orgDetails.websiteUrl,
+                    membersCount: orgDetails._count.members || 0
                 },
                 user: owner 
             },

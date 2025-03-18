@@ -1,4 +1,5 @@
 import { verifyWidgetToken, validateWidgetOrigin, getWidgetCorsHeaders } from '@/lib/now-widget';
+import { formatTimeAgo } from '@/lib/format/date';
 import { prisma } from '@/lib/prisma';
 import { widgetExtensions } from '@/lib/prisma/prisma.widget.extends';
 import { logger } from '@/lib/logger';
@@ -139,8 +140,35 @@ export async function GET(req: NextRequest) {
                         likes: true,
                     },
                 },
+                comments: {
+                    take: 3, // Limit to 3 most recent comments per post
+                    orderBy: { createdAt: 'desc' },
+                    select: {
+                        id: true,
+                        content: true,
+                        createdAt: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                displayName: true,
+                                image: true
+                            }
+                        }
+                    }
+                },
             },
         });
+
+        // Transform the posts to include a formatted createdAt time
+        const formattedPosts = posts.map(post => ({
+            ...post,
+            formattedCreatedAt: formatTimeAgo(post.createdAt),
+            // Sort comments to show oldest first (conversation order)
+            comments: post.comments.sort((a, b) => 
+                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            )
+        }));
 
         // Log successful request
         logger.info('Widget org-posts request successful', { 
@@ -150,7 +178,7 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(
-            { posts },
+            { posts: formattedPosts },
             { headers }
         );
     } catch (error) {
