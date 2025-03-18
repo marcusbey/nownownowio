@@ -1,4 +1,6 @@
-import type { PrismaClient, OrganizationPlanType, BillingCycle } from "@prisma/client";
+import type { PrismaClient, OrganizationPlanType, BillingCycle, Prisma } from "@prisma/client";
+import { FeedbackStatus } from "@prisma/client";
+import { logger } from '@/lib/logger';
 
 // Define extended OrganizationPlan type with feedback fields
 export type ExtendedOrganizationPlan = {
@@ -69,24 +71,51 @@ export const feedbackExtensions = {
   ): Promise<WidgetFeedback[]> {
     const prisma = await getPrismaClient();
     
-    // Build the query parts
-    const whereClause = `WHERE "organizationId" = ${organizationId}${options?.status ? ` AND "status" = '${options.status}'` : ''}`;
-    const orderByClause = options?.orderBy 
-      ? `ORDER BY ${options.orderBy.map(o => Object.entries(o).map(([k, v]) => `"${k}" ${v}`).join(', ')).join(', ')}`
-      : `ORDER BY "status" ASC, "votes" DESC, "createdAt" DESC`;
-    const limitClause = options?.limit ? `LIMIT ${options.limit}` : '';
-    const offsetClause = options?.skip ? `OFFSET ${options.skip}` : '';
-    
-    // Use raw query since WidgetFeedback model might not be recognized by TypeScript
-    const feedback = await prisma.$queryRaw<WidgetFeedback[]>`
-      SELECT * FROM "WidgetFeedback"
-      ${whereClause}
-      ${orderByClause}
-      ${limitClause}
-      ${offsetClause}
-    `;
-    
-    return feedback;
+    try {
+      // Use Prisma's built-in query builder instead of raw SQL
+      const query: Prisma.WidgetFeedbackFindManyArgs = {
+        where: {
+          organizationId: organizationId
+        },
+        orderBy: [
+          { status: 'asc' as const },
+          { votes: 'desc' as const },
+          { createdAt: 'desc' as const }
+        ]
+      };
+      
+      // Add status filter if provided
+      if (options?.status && query.where) {
+        // Ensure status is a valid FeedbackStatus enum value
+        if (Object.values(FeedbackStatus).includes(options.status as FeedbackStatus)) {
+          query.where.status = options.status as FeedbackStatus;
+        } else {
+          logger.warn(`Invalid feedback status: ${options.status}`);
+        }
+      }
+      
+      // Add custom order by if provided
+      if (options?.orderBy && options.orderBy.length > 0) {
+        query.orderBy = options.orderBy;
+      }
+      
+      // Add pagination if provided
+      if (options?.limit) {
+        query.take = options.limit;
+      }
+      
+      if (options?.skip) {
+        query.skip = options.skip;
+      }
+      
+      // Use Prisma's findMany method
+      const feedback = await prisma.widgetFeedback.findMany(query);
+      return feedback;
+    } catch (error) {
+      // Log error to server logs
+      logger.error('Error finding feedback for organization', { organizationId, error });
+      return [];
+    }
   },
   
   /**
@@ -95,16 +124,33 @@ export const feedbackExtensions = {
   async countForOrganization(organizationId: string, status?: string): Promise<number> {
     const prisma = await getPrismaClient();
     
-    // Build the query parts
-    const whereClause = `WHERE "organizationId" = ${organizationId}${status ? ` AND "status" = '${status}'` : ''}`;
-    
-    // Use raw query since WidgetFeedback model might not be recognized by TypeScript
-    const result = await prisma.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(*) as count FROM "WidgetFeedback"
-      ${whereClause}
-    `;
-    
-    return result[0].count;
+    try {
+      // Use Prisma's built-in query builder instead of raw SQL
+      const whereCondition: Prisma.WidgetFeedbackWhereInput = {
+        organizationId: organizationId
+      };
+      
+      // Add status filter if provided
+      if (status) {
+        // Ensure status is a valid FeedbackStatus enum value
+        if (Object.values(FeedbackStatus).includes(status as FeedbackStatus)) {
+          whereCondition.status = status as FeedbackStatus;
+        } else {
+          logger.warn(`Invalid feedback status: ${status}`);
+        }
+      }
+      
+      // Use Prisma's count method
+      const count = await prisma.widgetFeedback.count({
+        where: whereCondition
+      });
+      
+      return count;
+    } catch (error) {
+      // Log error to server logs
+      logger.error('Error counting feedback for organization', { organizationId, error });
+      return 0;
+    }
   },
   
   /**
