@@ -10,12 +10,15 @@ export type { PrismaClient } from "@prisma/client";
 // Determine if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
-// Import widget extensions type
+// Import widget and feedback extensions types
 import type { widgetExtensions } from "./prisma/prisma.widget.extends";
+import type { feedbackExtensions, feedbackVoterExtensions } from "./prisma/prisma.feedback.extends";
 
 // Type for our singleton instance with extensions
 type ExtendedPrismaClient = PrismaClient & {
   widget: typeof widgetExtensions;
+  widgetFeedback: typeof feedbackExtensions;
+  widgetFeedbackVoter: typeof feedbackVoterExtensions;
 };
 
 // Create a function to initialize the base Prisma client without extensions
@@ -66,6 +69,7 @@ export async function applyPrismaExtensions() {
   const orgExtends = await import("./prisma/prisma.org.extends");
   const userExtends = await import("./prisma/prisma.user.extends");
   const widgetExtends = await import("./prisma/prisma.widget.extends");
+  const feedbackExtends = await import("./prisma/prisma.feedback.extends");
   
   // Create extended client with all extensions
   const extended = basePrisma.$extends({
@@ -79,8 +83,10 @@ export async function applyPrismaExtensions() {
     },
   }) as unknown as ExtendedPrismaClient;
   
-  // Manually add the widget extensions
+  // Manually add the widget and feedback extensions
   extended.widget = widgetExtends.widgetExtensions;
+  extended.widgetFeedback = feedbackExtends.feedbackExtensions;
+  extended.widgetFeedbackVoter = feedbackExtends.feedbackVoterExtensions;
   
   // Store in global for singleton pattern
   globalForPrisma.extendedPrisma = extended;
