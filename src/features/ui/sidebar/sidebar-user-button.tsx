@@ -30,8 +30,8 @@ export const SidebarUserButton = () => {
       try {
         localStorage.removeItem('cachedUserData');
         setCachedUserData(null);
-      } catch (error) {
-        console.error('Error clearing cached user data:', error);
+      } catch (_error) {
+        // Silent error handling
       }
       return;
     }
@@ -43,8 +43,8 @@ export const SidebarUserButton = () => {
         if (cachedData) {
           setCachedUserData(JSON.parse(cachedData));
         }
-      } catch (error) {
-        console.error('Error loading cached user data:', error);
+      } catch (_error) {
+        // Silent error handling
       }
     }
     
@@ -63,8 +63,8 @@ export const SidebarUserButton = () => {
       
       try {
         localStorage.setItem('cachedUserData', JSON.stringify(userData));
-      } catch (error) {
-        console.error('Error caching user data:', error);
+      } catch (_error) {
+        // Silent error handling
       }
     }
   }, [session.status, session.data]);
@@ -104,7 +104,7 @@ export const SidebarUserButton = () => {
           )}
         </Avatar>
         <span className="ml-2 truncate">
-          {userData.name || userData.email || "User"}
+          {userData.name ?? userData.email ?? "User"}
         </span>
       </Button>
     </UserDropdown>

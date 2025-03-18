@@ -53,7 +53,7 @@ export function OrgSidebar({
   const pathname = usePathname();
 
   return (
-    <Sidebar variant="inset" className="shrink-0">
+    <Sidebar variant="inset" className="!visible !block shrink-0" data-testid="org-sidebar">
       <SidebarHeader className="flex flex-col gap-4 px-3 py-4">
         <OrgsSelect orgs={userOrgs} currentOrgSlug={slug} />
         <OrgCommand />
@@ -122,7 +122,10 @@ export function OrgSidebar({
       </SidebarContent>
       <SidebarFooter className="mt-auto flex flex-col gap-4 p-4">
         <UpgradeCard />
-        <SidebarUserButton />
+        <div className="sidebar-user-button-wrapper">
+          {/* Debug log for SidebarUserButton */}
+          <SidebarUserButton />
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

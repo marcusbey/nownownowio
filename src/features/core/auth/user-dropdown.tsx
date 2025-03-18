@@ -68,10 +68,13 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
   const session = useSession();
   const theme = useTheme();
   
+  console.log('[UserDropdown] Session status:', session.status, session.data ? 'with data' : 'no data');
+  
 
   
   // Get user data if available
   const user = session.data as SessionUser | undefined;
+  console.log('[UserDropdown] User data:', user);
   
   type SessionUser = {
     name?: string | null;
@@ -80,10 +83,21 @@ export const UserDropdown = ({ children }: PropsWithChildren) => {
     [key: string]: any; // Allow for other session properties
   }
 
+  useEffect(() => {
+    console.log('[UserDropdown] Component mounted');
+    return () => {
+      console.log('[UserDropdown] Component unmounted');
+    };
+  }, []);
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
+      <DropdownMenuTrigger asChild>
+        {/* Log when trigger renders */}
+        {children}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" data-testid="user-dropdown-content">
+        {/* Log when content renders */}
         <DropdownMenuLabel>
           <Typography variant="small">
             {user?.name ?? user?.email ?? (session.status === 'loading' ? "Loading..." : "Sign In")}
