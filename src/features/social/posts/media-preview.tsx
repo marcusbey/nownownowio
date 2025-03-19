@@ -164,7 +164,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
         {/* Loading state */}
         {isLoading && !hasError && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         )}
         
@@ -178,10 +178,45 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     );
   }
   
-  // For other media types (like VIDEO), we could add support here
+  // Handle VIDEO media type
+  if (media.type === "VIDEO") { // We need this condition for TypeScript type checking
+    return (
+      <div className={cn(
+        "relative w-full overflow-hidden rounded-md bg-muted",
+        "aspect-video" // Use aspect-video for videos
+      )}>
+        {mediaUrl && (
+          <video 
+            src={mediaUrl}
+            className="size-full object-contain"
+            controls
+            preload="metadata"
+            onError={handleError}
+            onLoadedData={handleLoad}
+          />
+        )}
+        
+        {/* Loading state */}
+        {isLoading && !hasError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        )}
+        
+        {/* Error state */}
+        {hasError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-4 text-center">
+            <span className="text-sm text-muted-foreground">Video could not be loaded</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+  
+  // For other media types we don't yet support
   return (
     <div className="flex aspect-video w-full items-center justify-center rounded-md bg-muted">
-      <span className="text-sm text-muted-foreground">Unsupported media type</span>
+      <span className="text-sm text-muted-foreground">Unsupported media type: {media.type}</span>
     </div>
   );
 }
