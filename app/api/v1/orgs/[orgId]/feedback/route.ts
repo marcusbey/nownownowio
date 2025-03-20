@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import { auth } from '@/src/lib/auth/auth';
+import { auth } from '@/lib/auth/helper';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import type { FeedbackStatus } from '@prisma/client';
