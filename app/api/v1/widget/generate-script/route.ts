@@ -20,14 +20,14 @@ function generateWidgetScript(orgId: string, token: string, domain: string, sett
         }, { status: 500 });
     }
 
-    // Build the script tag with attributes
+    // Build the script tag with attributes (prefixed with 'now-')
     const scriptAttributes = [
-        `data-org-id="${orgId}"`,
-        `data-token="${token}"`,
-        `data-theme="${settings?.theme ?? 'dark'}"`,
-        `data-position="${settings?.position ?? 'left'}"`,
-        `data-button-color="${settings?.buttonColor ?? '#1a73e8'}"`,
-        `data-button-size="${settings?.buttonSize ?? '90'}"`,
+        `now-data-org-id="${orgId}"`,
+        `now-now-data-token="${token}"`,
+        `now-data-theme="${settings?.theme ?? 'dark'}"`,
+        `now-data-position="${settings?.position ?? 'left'}"`,
+        `now-data-button-color="${settings?.buttonColor ?? '#1a73e8'}"`,
+        `now-data-button-size="${settings?.buttonSize ?? '90'}"`,
     ].join(' ');
 
     const script = `<script defer type="module" src="${process.env.NEXT_PUBLIC_WIDGET_URL}/now-widget.js" ${scriptAttributes}></script>`;

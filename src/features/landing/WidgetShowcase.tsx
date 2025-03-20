@@ -104,8 +104,8 @@ export function WidgetShowcase() {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-org-id="DEMO_USER_ID" 
-      data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
+      now-data-org-id="DEMO_USER_ID" 
+      now-data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
       data-button-color="#1a73e8" 
@@ -136,8 +136,8 @@ export function WidgetShowcase() {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-org-id="DEMO_ORG_ID" 
-      data-token="DEMO_TOKEN"
+      now-data-org-id="DEMO_ORG_ID" 
+      now-data-token="DEMO_TOKEN"
       data-theme="dark">
     </script>
 </body>

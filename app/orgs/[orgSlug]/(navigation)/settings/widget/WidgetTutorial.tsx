@@ -39,8 +39,8 @@ export function WidgetTutorial() {
     `}<span className="rounded bg-amber-100/30 px-1 py-0.5 font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{`<script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-org-id="DEMO_ORGANIZATION_ID" 
-      data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
+      now-data-org-id="DEMO_ORGANIZATION_ID" 
+      now-data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
       data-button-color="#1a73e8" 
@@ -72,8 +72,8 @@ export function WidgetTutorial() {
     `}<span className="rounded bg-amber-100/30 px-1 py-0.5 font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{`<script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-org-id="DEMO_ORGANIZATION_ID" 
-      data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
+      now-data-org-id="DEMO_ORGANIZATION_ID" 
+      now-data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
       data-button-color="#1a73e8" 
@@ -91,11 +91,11 @@ export function WidgetTutorial() {
             <h4 className="text-sm font-medium">Script Attributes</h4>
             <ul className="space-y-2 text-sm">
               <li className="flex gap-2">
-                <code className="shrink-0 rounded bg-muted px-1 py-0.5 text-xs">data-org-id</code>
+                <code className="shrink-0 rounded bg-muted px-1 py-0.5 text-xs">now-data-org-id</code>
                 <span className="text-muted-foreground">Your unique NowNowNow org ID (automatically included in generated script)</span>
               </li>
               <li className="flex gap-2">
-                <code className="shrink-0 rounded bg-muted px-1 py-0.5 text-xs">data-token</code>
+                <code className="shrink-0 rounded bg-muted px-1 py-0.5 text-xs">now-data-token</code>
                 <span className="text-muted-foreground">Authentication token for your widget (automatically included in generated script)</span>
               </li>
               <li className="flex gap-2">
