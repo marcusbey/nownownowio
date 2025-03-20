@@ -68,12 +68,12 @@ export default async function RootLayout({
           defer 
           type="module" 
           src="http://localhost:5173/dist/now-widget.js" 
-          data-org-id="67tiEuEkC3G" 
-          data-token="Njd0aUV1RWtDM0cuMTc0MjE1NDU0NTE3OC5kZWZhdWx0LXdpZGdldC1zZWNyZXQ=" 
-          data-theme="dark" 
-          data-position="left" 
-          data-button-color="#1a73e8" 
-          data-button-size="90"></script>
+          now-data-org-id="67tiEuEkC3G" 
+          now-data-token="Njd0aUV1RWtDM0cuMTc0MjE1NDU0NTE3OC5kZWZhdWx0LXdpZGdldC1zZWNyZXQ=" 
+          now-data-theme="dark" 
+          now-data-position="left" 
+          now-data-button-color="#1a73e8" 
+          now-data-button-size="90"></script>
         </body>
       </html>
     </>

@@ -4,12 +4,14 @@ import { NextResponse } from "next/server";
 import { createBulkPromotionCode, getPromotionCodeStats } from "@/lib/stripe";
 import { z } from "zod";
 
-export type PromotionCodeInput = z.object({
+export type PromotionCodeInput = z.infer<typeof promotionCodeSchema>;
+
+const promotionCodeSchema = z.object({
   couponId: z.string(),
   count: z.number().min(1),
   prefix: z.string().optional(),
   expiresInDays: z.number().optional(),
-}).infer;
+});
 
 async function createPromotionCode(input: PromotionCodeInput) {
 
