@@ -179,34 +179,46 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   }
   
   // Handle VIDEO media type
-  if (media.type === "VIDEO") { // We need this condition for TypeScript type checking
+  if (media.type === "VIDEO") {
     return (
       <div className={cn(
-        "relative w-full overflow-hidden rounded-md bg-muted",
-        "aspect-video" // Use aspect-video for videos
+        "relative w-full overflow-hidden rounded-md",
+        "aspect-video shadow-sm border border-border/20 bg-black/5" // Enhanced styling for videos
       )}>
         {mediaUrl && (
-          <video 
-            src={mediaUrl}
-            className="size-full object-contain"
-            controls
-            preload="metadata"
-            onError={handleError}
-            onLoadedData={handleLoad}
-          />
+          <div className="relative size-full group">
+            <video 
+              src={mediaUrl}
+              className="size-full object-contain"
+              controls
+              preload="metadata"
+              playsInline
+              controlsList="nodownload"
+              onError={handleError}
+              onLoadedData={handleLoad}
+              poster={getPlaceholderUrl(media)}
+            />
+          </div>
         )}
         
         {/* Loading state */}
         {isLoading && !hasError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-2">
+              <div className="size-10 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+              <p className="text-xs font-medium text-muted-foreground animate-pulse">Loading video...</p>
+            </div>
           </div>
         )}
         
         {/* Error state */}
         {hasError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-4 text-center">
-            <span className="text-sm text-muted-foreground">Video could not be loaded</span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/90 backdrop-blur-sm p-4 text-center">
+            <div className="rounded-full bg-destructive/10 p-3">
+              <span className="text-destructive text-xl">!</span>
+            </div>
+            <p className="text-sm font-medium text-foreground">Video failed to load</p>
+            <p className="text-xs text-muted-foreground">Please try again later</p>
           </div>
         )}
       </div>

@@ -2,8 +2,10 @@
 
 import { generateReactHelpers } from "@uploadthing/react";
 
+import { env } from "./env";
+
 // Get the UploadThing app ID from environment variables
-const UPLOADTHING_APP_ID = process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID || '';
+const UPLOADTHING_APP_ID = env.NEXT_PUBLIC_UPLOADTHING_ID;
 
 // CLIENT-SIDE EXPORTS
 // This file should only be imported in client components
@@ -17,8 +19,8 @@ export function getDirectUploadthingUrl(url: string): string {
     if (!url) return '';
 
     // Convert problematic URLs to utfs.io
-    if (url.includes('8s2dp0f8rl.ufs.sh')) {
-        url = url.replace('8s2dp0f8rl.ufs.sh', 'utfs.io');
+    if (url.includes(`${UPLOADTHING_APP_ID}.ufs.sh`)) {
+        url = url.replace(`${UPLOADTHING_APP_ID}.ufs.sh`, 'utfs.io');
     }
 
     // Check if this is an UploadThing file URL that needs transformation
