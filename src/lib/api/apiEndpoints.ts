@@ -35,6 +35,7 @@ export const ENDPOINTS = {
   POSTS_EXPLORE: `${API_BASE_URL}/posts/explore`,
   POST_DETAIL: (postId: string) => `${API_BASE_URL}/posts/${postId}`,
   POST_VIEWS: (postId: string) => `${API_BASE_URL}/posts/${postId}/views`,
+  TRACK_VIEW: `${API_BASE_URL}/posts/track-view`,
   POST_LIKE: (postId: string) => `${API_BASE_URL}/posts/${postId}/like`,
   POST_BOOKMARK: (postId: string) => `${API_BASE_URL}/posts/${postId}/bookmark`,
   POST_COMMENTS: (postId: string) => `${API_BASE_URL}/posts/${postId}/comments`,

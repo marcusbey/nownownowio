@@ -7,7 +7,7 @@ import { usePostViews } from "@/hooks/use-post-views";
 import type { PostData } from "@/lib/types";
 import { cn, extractUserFromSession, formatRelativeDate } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { motion, MotionProps } from "framer-motion";
+import { motion } from "framer-motion";
 import { Eye, MessageSquare, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -18,6 +18,9 @@ import {
   useEffect,
   useMemo,
   useState,
+  Component,
+  type ReactNode,
+  type ErrorInfo,
 } from "react";
 import LikeButton from "./like-button";
 import { useDeletePostMutation, useTogglePinPostMutation } from "./mutations";
@@ -26,12 +29,39 @@ import { BookmarkButton, PostMoreButton } from "./post-actions";
 // Import the MediaPreview component directly
 import { MediaPreview } from "./media-preview";
 
-// Keep the lazy import for backward compatibility
-const LazyMediaPreviews = lazy(async () =>
-  import("../components/media-preview").then((mod) => ({
-    default: mod.MediaPreviews,
-  })),
-);
+// Simple error boundary component to catch media rendering errors
+type ErrorBoundaryProps = {
+  children: ReactNode;
+  fallback: ReactNode;
+};
+
+type ErrorBoundaryState = {
+  hasError: boolean;
+};
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(_: Error): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(_error: Error, _errorInfo: ErrorInfo): void {
+    // Error logging is disabled in production
+    // Error is already handled by showing the fallback UI
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+
+    return this.props.children;
+  }
+}
 const Comments = lazy(async () =>
   import("@/components/composite/comments/Comments").then((mod) => ({
     default: mod.default,
@@ -55,8 +85,9 @@ export default function Post({ post }: PostProps) {
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [firstMount, setFirstMount] = useState(true);
-  const { views, isLoading } = usePostViews(post.id);
+  const [_firstMount, setFirstMount] = useState(true);
+  const [viewTracked, setViewTracked] = useState(false);
+  const { views, trackView } = usePostViews(post.id);
   const deletePostMutation = useDeletePostMutation();
   const togglePinPostMutation = useTogglePinPostMutation();
 
@@ -74,6 +105,15 @@ export default function Post({ post }: PostProps) {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Track view when the post is displayed
+  useEffect(() => {
+    if (isClient && !viewTracked) {
+      // Track the view with source="app"
+      trackView("app");
+      setViewTracked(true);
+    }
+  }, [isClient, viewTracked, trackView]);
 
   // Simple comment click handler that prevents default and toggles comments
   const handleCommentClick = useCallback(
@@ -131,13 +171,35 @@ export default function Post({ post }: PostProps) {
     return post.user.displayName ?? post.user.name ?? "unknown";
   }, [post.user]);
 
-  // Process media items
+  // Process media items with validation
   const mediaItems = useMemo(() => {
-    // Process media items from the post
-    const items = Array.isArray(post.media) ? post.media : [];
-    return items;
+    // Debug logging for post and media
+    console.log('Post data:', JSON.stringify(post, null, 2));
+    console.log('Raw media items:', post.media);
+    
+    // Ensure media is an array and filter out invalid items
+    if (!post.media || !Array.isArray(post.media)) {
+      console.log('No media items found or not an array');
+      return [];
+    }
+    
+    // Filter out invalid media items (missing required properties)
+    const validMedia = post.media.filter(media => {
+      // Ensure each media item has an id and is a valid object
+      const isValid = media && typeof media === 'object' && media.id;
+      if (!isValid) {
+        console.log('Invalid media item:', media);
+      } else {
+        console.log('Valid media item:', media);
+      }
+      return isValid;
+    });
+    
+    console.log('Filtered media items:', validMedia);
+    return validMedia;
   }, [post.media]);
   
+  // Only consider attachments valid if they have proper media items
   const hasAttachments = mediaItems.length > 0;
 
   return (
@@ -221,11 +283,19 @@ export default function Post({ post }: PostProps) {
               <div className="h-48 animate-pulse rounded-lg bg-muted" />
             }
           >
-            {/* Render media items directly */}
+            {/* Render media items directly with error boundary */}
             <div className="flex flex-col gap-2">
               {mediaItems.map((media) => (
                 <div key={media.id} className="overflow-hidden rounded-lg">
-                  <MediaPreview media={media} />
+                  <ErrorBoundary
+                    fallback={
+                      <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
+                        <p className="text-sm text-muted-foreground">Media unavailable</p>
+                      </div>
+                    }
+                  >
+                    <MediaPreview media={media} />
+                  </ErrorBoundary>
                 </div>
               ))}
             </div>
@@ -272,13 +342,17 @@ export default function Post({ post }: PostProps) {
                   e.stopPropagation();
                 }
               }
-              navigator
-                .share({
-                  url: `${window.location.origin}/posts/${post.id}`,
-                  title: `Post by ${post.user?.displayName ?? post.user?.name ?? "Unknown User"}`,
-                  text: post.content,
-                })
-                .catch((error) => console.error("Share failed:", error));
+              // Create share data with proper null checks
+              const shareData = {
+                url: `${window.location.origin}/posts/${post.id}`,
+                title: `Post by ${post.user?.displayName ?? post.user?.name ?? "Unknown User"}`,
+                text: post.content,
+              };
+              
+              // Share content and silently handle errors
+              navigator.share(shareData).catch(() => {
+                // Silently handle share errors
+              });
 
               // Return false to prevent any potential page reload
               return false;

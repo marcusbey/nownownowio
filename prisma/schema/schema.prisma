@@ -110,11 +110,13 @@ model PostView {
   viewerId String
   clientIp String
   viewedAt DateTime @default(now())
+  source   String   @default("app") // Tracks whether view came from main app or widget
   post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, viewerId, clientIp])
   @@index([postId])
   @@index([viewerId])
+  @@index([source])
 }
 
 model UserUsage {
