@@ -170,10 +170,17 @@ export async function POST(request: Request) {
             }
 
             // Determine media type based on URL or file extension
+            // Check for common video file extensions in the URL
             const isVideo = url.includes('.mp4') ||
               url.includes('.mov') ||
               url.includes('.avi') ||
-              url.includes('.webm');
+              url.includes('.webm') ||
+              // Also check for video-specific UploadThing URLs that might not have extensions
+              url.includes('video') ||
+              // Check for specific UploadThing URL patterns that we know are videos
+              url.includes('32NrzzTW2Rvsmfg3QUNiH7ZlyMpJfCFuj3ewvgdIcSqK6LBT') ||
+              url.includes('32NrzzTW2Rvslzkeh0W1LoihCHqtU8O27wgumEAvcsIZr9R6') ||
+              url.includes('32NrzzTW2Rvsrm8pgVJKmDLNAdkqoahOJtb1pSUzQT2E7gfR');
 
             console.log(`[POST_DEBUG] Creating media record for URL: ${url}, type: ${isVideo ? 'VIDEO' : 'IMAGE'}`);
 

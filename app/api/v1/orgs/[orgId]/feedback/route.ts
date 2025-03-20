@@ -1,11 +1,11 @@
-import { getServerSession } from 'next-auth';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/src/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { FeedbackStatus } from '@prisma/client';
+import type { FeedbackStatus } from '@prisma/client';
 
 // Validate the update feedback request
 const updateFeedbackSchema = z.object({
@@ -19,7 +19,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { orgId: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   const { orgId } = params;
 
   if (!session?.user) {
@@ -131,7 +131,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { orgId: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   const { orgId } = params;
 
   if (!session?.user) {
@@ -251,7 +251,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { orgId: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   const { orgId } = params;
 
   if (!session?.user) {
