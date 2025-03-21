@@ -1,7 +1,9 @@
-import { verifyWidgetToken, getWidgetCorsHeaders } from '@/lib/now-widget';
 import { getClientIp } from '@/lib/api/ip';
-import { prisma } from '@/lib/prisma';
+import { queuePostView } from "@/lib/api/view-tracker";
 import { logger } from '@/lib/logger';
+import { getWidgetCorsHeaders } from '@/lib/now-widget';
+import { prisma } from '@/lib/prisma';
+import type { Prisma } from "@prisma/client";
 import { type NextRequest, NextResponse } from 'next/server';
 
 // Make it fully dynamic
@@ -12,7 +14,7 @@ export const revalidate = 0;
 export async function OPTIONS(req: NextRequest) {
   const origin = req.headers.get('origin') ?? '*';
   const headers = getWidgetCorsHeaders(origin);
-  
+
   return new NextResponse(null, {
     status: 204,
     headers: {
@@ -23,77 +25,75 @@ export async function OPTIONS(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const origin = req.headers.get('origin') ?? '*';
-  const headers = getWidgetCorsHeaders(origin);
-
   try {
-    // Parse the request body
+    const origin = req.headers.get('origin') ?? '*';
+    const corsHeaders = getWidgetCorsHeaders(origin);
+
+    // Handle preflight request
+    if (req.method === "OPTIONS") {
+      return new NextResponse(null, {
+        status: 204,
+        headers: corsHeaders
+      });
+    }
+
+    // Parse request body to get post ID
     const body = await req.json();
-    const { postId, viewerId, orgId } = body;
-    const token = req.headers.get('Authorization')?.split(' ')[1];
+    const { postId } = body;
 
-    // Log the incoming request
-    logger.info('Widget track-view request received', { 
-      postId, 
-      orgId,
-      origin,
-      hasToken: !!token 
-    });
-
-    // Validate required parameters
-    if (!postId || !orgId || !token) {
-      logger.warn('Missing required parameters', { postId, orgId, hasToken: !!token });
+    if (!postId) {
       return NextResponse.json(
-        { error: 'Invalid request', message: 'Post ID, organization ID, and token are required' },
-        { status: 400, headers }
+        {
+          success: false,
+          error: "Missing postId"
+        },
+        {
+          status: 400,
+          headers: corsHeaders
+        }
       );
     }
 
-    // Verify the widget token
-    const isTokenValid = verifyWidgetToken(token, orgId);
-    if (!isTokenValid) {
-      logger.warn('Invalid widget token', { orgId, origin });
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'Invalid or expired token' },
-        { status: 401, headers }
-      );
-    }
+    // Get client IP address
+    const clientIp = getClientIp(req) ?? "unknown";
 
-    // Generate a viewer ID if not provided
-    const actualViewerId = viewerId || `widget-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-    const clientIp = getClientIp(req);
+    // Get or generate viewer ID
+    const headers = new Headers(corsHeaders);
+    const viewerId = req.headers.get("x-viewer-id") ?? generateWidgetViewerId();
+    headers.set("x-viewer-id", viewerId);
 
-    // Track the view
-    await trackView(postId, actualViewerId, clientIp);
-
-    // Get the updated view count
-    const count = await getViewCount(postId);
-
-    // Log successful request
-    logger.info('Widget track-view request successful', { 
-      postId,
-      orgId,
-      origin
-    });
+    // Queue view for batch processing
+    queuePostView(postId, viewerId, clientIp);
 
     return NextResponse.json(
-      { views: count },
-      { headers }
+      {
+        success: true,
+        message: "View queued for processing",
+        viewerId
+      },
+      {
+        status: 202,
+        headers
+      }
     );
+
   } catch (error) {
-    // Log the error
-    logger.error('Error in widget track-view', {
-      error: error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-      } : error,
+    logger.error("Error in widget track-view:", {
+      error: error instanceof Error ? error.message : String(error)
     });
 
-    // Return a more specific error message if possible
-    const message = error instanceof Error ? error.message : "Failed to track view";
+    const origin = req.headers.get('origin') ?? '*';
+    const corsHeaders = getWidgetCorsHeaders(origin);
+
     return NextResponse.json(
-      { error: 'Server error', message },
-      { status: 500, headers }
+      {
+        success: false,
+        error: "Failed to track view"
+      },
+      {
+        status: 500,
+        headers: corsHeaders
+      }
     );
   }
 }
@@ -111,6 +111,21 @@ async function trackView(postId: string, viewerId: string, clientIp: string) {
       throw new Error(`Post ${postId} not found`);
     }
 
+    // Define update and create objects to handle missing source column
+    const updateData: Prisma.PostViewUpdateInput = {
+      viewedAt: new Date(),
+    };
+
+    const createData: Prisma.PostViewCreateInput = {
+      post: { connect: { id: postId } },
+      viewerId,
+      clientIp,
+    };
+
+    // Once the migration has been applied, uncomment the following lines:
+    updateData.source = "widget";
+    createData.source = "widget";
+
     // Then try to upsert the view
     await prisma.postView.upsert({
       where: {
@@ -120,24 +135,17 @@ async function trackView(postId: string, viewerId: string, clientIp: string) {
           clientIp,
         },
       },
-      update: {
-        viewedAt: new Date(),
-        source: "widget", // Set source as widget
-      },
-      create: {
-        postId,
-        viewerId,
-        clientIp,
-        source: "widget", // Set source as widget
-      },
+      update: updateData,
+      create: createData,
     });
   } catch (error) {
     logger.error("Error tracking view:", {
       error,
       postId,
       viewerId,
-      clientIp,
-      source: "widget"
+      clientIp
+      // Add source back when migration is applied:
+      // source: "widget"
     });
     throw error;
   }
@@ -154,4 +162,11 @@ async function getViewCount(postId: string) {
     logger.error("Error getting view count:", { error, postId });
     return 0;
   }
+}
+
+/**
+ * Generate a random viewer ID for widget views
+ */
+function generateWidgetViewerId(): string {
+  return `widget-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 }

@@ -1,9 +1,10 @@
+import { env } from "@/lib/env";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { env } from "@/lib/env";
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
+export const runtime = 'nodejs';
 
 // Define allowed domains for media sources
 const ALLOWED_DOMAINS = [
@@ -40,23 +41,23 @@ export async function GET(request: NextRequest) {
       }
       return new NextResponse("Invalid URL source", { status: 400 });
     }
-    
+
     // Handle UploadThing URL formats
     let processedUrl = url;
-    
+
     // Get the app ID from environment variables
     const appId = env.NEXT_PUBLIC_UPLOADTHING_ID;
-    
+
     // Simplified URL handling for UploadThing URLs
     if (url.includes('utfs.io') && appId) {
       // Extract the file key from legacy utfs.io URLs
       // Try a more permissive regex pattern first
       const matches = url.match(/\/[pf]\/([\w-]+[\w\d]+)/);
-      
+
       // If the first regex doesn't match, try a more generic one that captures everything after /p/ or /f/
       if (!matches) {
         const fullKeyMatches = url.match(/\/[pf]\/(.+)$/);
-        
+
         if (fullKeyMatches?.[1]) {
           // Convert to the new format with the correct app ID
           processedUrl = `https://${appId}.ufs.sh/f/${fullKeyMatches[1]}`;
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
             console.log(`[MEDIA_PROXY] Converted legacy URL (full key) to: ${processedUrl}`);
           }
         }
-      } else if (matches?.[1]) {
+      } else if (matches[1]) {
         // Convert to the new format with the correct app ID
         processedUrl = `https://${appId}.ufs.sh/f/${matches[1]}`;
         // Only log in development to avoid cluttering production logs
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-    
+
     // Ensure URL has proper protocol
     if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
       processedUrl = `https://${processedUrl}`;
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
     if (token) {
       headers.Authorization = `Bearer ${token}`;
       headers["x-uploadthing-auth"] = token;
-      
+
       // Add uploadthing ID if available
       if (appId) {
         headers["x-uploadthing-id"] = appId;
@@ -105,13 +106,13 @@ export async function GET(request: NextRequest) {
     // Fetch the media with a timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-    
+
     const response = await fetch(processedUrl, {
       headers,
       signal: controller.signal,
       cache: "no-store", // Ensure we don't use a cached response
     });
-    
+
     clearTimeout(timeoutId);
 
     if (!response.ok) {
@@ -119,12 +120,12 @@ export async function GET(request: NextRequest) {
       if (process.env.NODE_ENV === 'development') {
         console.error(`[MEDIA_PROXY] Failed to fetch media: ${response.status} ${response.statusText}`);
       }
-      
+
       // Return a more descriptive error based on the status code
       if (response.status === 404) {
         return new NextResponse("Media file not found", { status: 404 });
       }
-      
+
       return new NextResponse(`Failed to fetch media: ${response.statusText}`, {
         status: response.status
       });
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
     if (process.env.NODE_ENV === 'development') {
       console.log(`[MEDIA_PROXY] Successfully fetched media from: ${processedUrl}`);
     }
-    
+
     // Return the media with appropriate headers
     return new NextResponse(buffer, {
       headers: {
@@ -160,14 +161,14 @@ export async function GET(request: NextRequest) {
         }
         return new NextResponse("Request timed out", { status: 504 });
       }
-      
+
       // Only log in development to avoid cluttering production logs
       if (process.env.NODE_ENV === 'development') {
         console.error(`[MEDIA_PROXY] Error fetching media: ${error.message}`);
       }
       return new NextResponse(`Error fetching media: ${error.message}`, { status: 500 });
     }
-    
+
     // Generic error handling
     // Only log in development to avoid cluttering production logs
     if (process.env.NODE_ENV === 'development') {

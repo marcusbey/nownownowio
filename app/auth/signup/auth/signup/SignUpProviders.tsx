@@ -1,14 +1,13 @@
 "use client";
 
-import { ProviderButton } from "@/app/auth/ProviderButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Divider } from "@/components/ui/divider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Typography } from "@/components/ui/typography";
+import { ProviderButton } from "@/src/components/composite/auth/ProviderButton";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
 export const SignUpProviders = () => {
   const {
@@ -16,7 +15,8 @@ export const SignUpProviders = () => {
     isPending,
     error,
   } = useQuery({
-    queryFn: async () => fetch(`/api/auth/providers`).then(async (res) => res.json()),
+    queryFn: async () =>
+      fetch(`/api/auth/providers`).then(async (res) => res.json()),
     queryKey: ["providers"],
   });
 

@@ -1,9 +1,9 @@
 import { getClientIp } from "@/lib/api/ip";
-import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { getWidgetCorsHeaders } from "@/lib/now-widget";
-import { type NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { type NextRequest, NextResponse } from "next/server";
 
 // Helper function to track a new view
 async function trackView(postId: string, viewerId: string, clientIp: string) {
@@ -23,16 +23,18 @@ async function trackView(postId: string, viewerId: string, clientIp: string) {
     const updateData: Prisma.PostViewUpdateInput = {
       viewedAt: new Date(),
     };
-    
+
     const createData: Prisma.PostViewCreateInput = {
       post: { connect: { id: postId } },
       viewerId,
       clientIp,
     };
-    
-    // Source field is commented out until a migration is run
-    // Note: The schema defines source but the database doesn't have this column yet
-    
+
+    // NOTE: The source field is defined in the schema but hasn't been added to the database yet
+    // Once the migration has been applied, uncomment the following lines:
+    updateData.source = "app";
+    createData.source = "app";
+
     await prisma.postView.upsert({
       where: {
         postId_viewerId_clientIp: {
@@ -68,11 +70,12 @@ export const dynamic = "force-dynamic";
 export const dynamicParams = true;
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
 
 export async function OPTIONS(req: NextRequest) {
   const origin = req.headers.get("origin") ?? "*";
   const headers = getWidgetCorsHeaders(origin);
-  
+
   return new NextResponse(null, {
     status: 204,
     headers: {
@@ -90,7 +93,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     // Properly await params in Next.js 15
     // This is required even if we're not using any specific parameter from it
     await params;
-    
+
     // Safely parse the request body with error handling
     let body: { postId?: string; viewerId?: string } = {};
     try {
@@ -104,7 +107,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
         { status: 400, headers }
       );
     }
-    
+
     const { postId, viewerId } = body;
 
     if (!postId) {
@@ -117,7 +120,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     // Use provided viewerId or generate an anonymous one
     const actualViewerId = viewerId ?? `anon-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
     const clientIp = getClientIp(request);
-    
+
     const viewCount = await trackView(postId, actualViewerId, clientIp);
 
     return NextResponse.json({ viewCount }, { headers });
@@ -126,7 +129,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     logger.error("Error in POST /api/v1/posts/track-view:", {
       error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error || 'Unknown error')
     });
-    
+
     return NextResponse.json(
       { error: "Something went wrong" },
       { status: 500, headers }
