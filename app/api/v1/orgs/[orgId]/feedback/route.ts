@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import { auth } from '@/lib/auth/helper';
+import { auth } from '@/lib/auth/auth';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import type { FeedbackStatus } from '@prisma/client';
+
 
 // Validate the update feedback request
 const updateFeedbackSchema = z.object({
@@ -17,10 +18,10 @@ const updateFeedbackSchema = z.object({
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  { params }: { params: Promise<{ orgId: string }> }
 ) {
   const session = await auth();
-  const { orgId } = params;
+  const { orgId } = await params;
 
   if (!session?.user) {
     return NextResponse.json(
@@ -129,10 +130,10 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  { params }: { params: Promise<{ orgId: string }> }
 ) {
   const session = await auth();
-  const { orgId } = params;
+  const { orgId } = await params;
 
   if (!session?.user) {
     return NextResponse.json(
@@ -249,10 +250,10 @@ export async function PUT(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  { params }: { params: Promise<{ orgId: string }> }
 ) {
   const session = await auth();
-  const { orgId } = params;
+  const { orgId } = await params;
 
   if (!session?.user) {
     return NextResponse.json(

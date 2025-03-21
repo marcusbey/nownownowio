@@ -1,11 +1,9 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { getUserDataSelect, UserData } from "@/lib/types";
+import { getUserDataSelect } from "@/lib/types";
 import type { Metadata } from "next";
 import { cache } from "react";
-import UserPosts from "./UserPosts";
 import { getCurrentOrgCache } from "@/lib/react/cache";
-import ProfileHeader from "./ProfileHeader";
 import ClientProfile from "./ClientProfile";
 
 type PageProps = {
@@ -39,8 +37,8 @@ export async function generateMetadata(
   if (!user) return {};
 
   return {
-    title: `${user.displayName || user.name} (@${user.name})`,
-    description: user.bio || `Check out ${user.name}'s profile on GoNow`,
+    title: `${user.displayName ?? user.name} (@${user.name})`,
+    description: user.bio ?? `Check out ${user.name}'s profile on GoNow`,
   };
 }
 

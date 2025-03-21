@@ -3,17 +3,16 @@ import { NextResponse } from "next/server";
 import { validateRequest } from "@/lib/auth/helper";
 import { PrismaClient } from "@prisma/client";
 import type { PostsPage } from "@/lib/types";
-import { getPostsWithUserData } from "@/lib/api/posts";
 
 const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
-): Promise<NextResponse<PostsPage>> {
+  { params }: { params: Promise<{ userId: string }> }
+): Promise<NextResponse> {
   try {
     const { user } = await validateRequest();
-    const { userId } = params;
+    const { userId } = await params;
     const { searchParams } = new URL(request.url);
     const cursor = searchParams.get("cursor");
     const limit = 10;
@@ -36,7 +35,7 @@ export async function GET(
           }
         : {}),
       orderBy: {
-        createdAt: "desc",
+        id: "desc", // Using id as the sort field since createdAt doesn't exist in the Like model
       },
     });
 
@@ -44,21 +43,58 @@ export async function GET(
     const postIds = likedPosts.slice(0, limit).map((like) => like.postId);
     
     // Get the actual posts with user data
-    const posts = await getPostsWithUserData(postIds, user?.id);
+    // Since we don't have a direct function to get posts by IDs with user data,
+    // we'll fetch them from the database directly
+    const posts = await prisma.post.findMany({
+      where: {
+        id: { in: postIds }
+      },
+      include: {
+        user: true,
+        media: true,
+        likes: {
+          where: user ? { userId: user.id } : undefined,
+        },
+        bookmarks: {
+          where: user ? { userId: user.id } : undefined,
+        },
+        comments: true,
+        notifications: true,
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+            bookmarks: true,
+            views: true,
+          },
+        },
+      },
+    });
 
     // Determine the next cursor
     const nextCursor =
-      likedPosts.length > limit ? likedPosts[limit - 1].id : null;
+      likedPosts.length > limit ? likedPosts[limit - 1].postId : null;
 
-    return NextResponse.json({
+    // Use unknown as an intermediate step for the type conversion
+    const responseData = {
       posts,
       nextCursor,
-    });
+    } as unknown as PostsPage;
+    
+    return NextResponse.json(responseData);
   } catch (error) {
-    console.error("Error fetching user likes:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch user likes" },
-      { status: 500 }
-    );
+    // Log error in development only
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error("Error fetching user likes:", error);
+    }
+    // Use unknown as an intermediate step for the type conversion
+    const errorResponse = { 
+      error: "Failed to fetch user likes", 
+      posts: [], 
+      nextCursor: null 
+    } as unknown as PostsPage;
+    
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
