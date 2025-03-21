@@ -18,7 +18,9 @@ import Link from "next/link";
 import { getError } from "./auth-error-mapping";
 
 export default async function AuthErrorPage(props: PageParams) {
-  const { errorMessage, error } = getError(props.searchParams.error);
+  // In Next.js 15, searchParams is a Promise that needs to be awaited
+  const searchParams = await props.searchParams;
+  const { errorMessage, error } = getError(searchParams.error);
 
   return (
     <div className="flex h-full flex-col">

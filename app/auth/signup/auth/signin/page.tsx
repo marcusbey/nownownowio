@@ -10,12 +10,15 @@ import { getError } from "../error/auth-error-mapping";
 import { SignInProviders } from "./SignInProviders";
 
 export default async function AuthSignInPage(props: PageParams) {
-  const { errorMessage, error } = getError(props.searchParams.error);
+  // In Next.js 15, searchParams is a Promise that needs to be awaited
+  const searchParams = await props.searchParams;
+  const { errorMessage, error } = getError(searchParams.error);
 
   const user = await auth();
 
   if (user) {
-    redirect("/account", { scroll: false });
+    // In Next.js 15, redirect doesn't accept a second options parameter
+    redirect("/account");
   }
 
   return (

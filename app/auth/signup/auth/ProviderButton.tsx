@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/ui/loader";
+import { Button } from "@/components/core/button";
+import { Loader2 } from "lucide-react";
 import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";
 import { clsx } from "clsx";
@@ -100,11 +100,22 @@ export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
       }),
   });
 
+  // Ensure the provider exists in our supported providers list
   const data = ProviderData[providerId];
-
+  
+  // If somehow we get an unsupported provider (should never happen in production),
+  // return a fallback UI with an appropriate message
   if (!data) {
-    console.error(`Provider data not found for providerId: ${providerId}`);
-    return null; // or return a fallback UI
+    // Only log in development environment
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.error(`Provider data not found for providerId: ${providerId}`);
+    }
+    return (
+      <Button disabled className="w-full" size="lg">
+        <span className="ml-2 text-base">Unsupported provider</span>
+      </Button>
+    );
   }
   const buttonText = action === "signin" ? "Sign in with" : "Sign up with";
 
@@ -123,7 +134,7 @@ export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
         providerAuthMutation.mutate();
       }}
     >
-      {providerAuthMutation.isPending ? <Loader size={16} /> : data.icon}
+      {providerAuthMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : data.icon}
       <span className="ml-2 text-base">
         {buttonText} {data.name}
       </span>
