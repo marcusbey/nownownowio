@@ -1,8 +1,12 @@
 // import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth from "next-auth";
+import VerifyEmail from "@/emails/verify-email.email";
+import { SiteConfig } from "@/site-config";
+import { nanoid } from "nanoid";
 import type { Session } from "next-auth";
+import NextAuth from "next-auth";
 import { env } from "../env";
 import { logger } from "../logger";
+import { sendEmail } from "../mail/sendEmail";
 import { prisma } from "../prisma";
 import {
   setupDefaultOrganizationsOrInviteUser,
@@ -12,13 +16,9 @@ import {
   credentialsOverrideJwt,
   credentialsSignInCallback,
 } from "./credentials-provider";
+import { CustomPrismaAdapter } from "./custom-prisma-adapter";
 import { getNextAuthConfigProviders } from "./getNextAuthConfigProviders";
 import { setupUserDisplayName } from "./user-setup";
-import { sendEmail } from "../mail/sendEmail";
-import VerifyEmail from "@/emails/verify-email.email";
-import { SiteConfig } from "@/site-config";
-import { CustomPrismaAdapter } from "./custom-prisma-adapter";
-import { nanoid } from "nanoid";
 
 export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   prefix: "/api/v1",
@@ -73,10 +73,10 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         if (!session.user) {
           logger.info("Session callback - Initializing missing session.user");
           // Create a minimal user object that meets the type requirements
-          session.user = { 
+          session.user = {
             id: "", // Required by AdapterUser
             name: null,
-            email: "", 
+            email: "",
             image: null,
             emailVerified: null // Required by AdapterUser
           };
@@ -87,7 +87,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         session.user.email = user.email;
         session.user.name = user.name;
         session.user.image = user.image;
-        
+
         // We need the passwordHash property to determine if a password is set
         // @ts-expect-error - NextAuth doesn't know about this property
         session.user.passwordHash = user.passwordHash;
@@ -118,12 +118,12 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
           await callback(message);
         }
       }
-      
+
       // Then check if we need to send a verification email
       const { user, account } = message;
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!user?.email || !user?.id) return;
-      
+
       // Only proceed for credentials provider and if email isn't verified
       if (account?.provider === 'credentials') {
         // Get the user with emailVerified status
@@ -131,14 +131,14 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
           where: { id: user.id },
           select: { emailVerified: true, email: true }
         });
-        
+
         // If email is not verified, send verification email
         if (dbUser && !dbUser.emailVerified) {
           try {
             // Generate verification token
             const token = nanoid(32);
             const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-            
+
             // Create verification token in database
             await prisma.verificationToken.create({
               data: {
@@ -147,10 +147,10 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
                 expires,
               },
             });
-            
+
             // Create verification URL
             const verificationUrl = `${env.NEXT_PUBLIC_BASE_URL}/auth/verify/${token}`;
-            
+
             // Send verification email
             await sendEmail({
               to: dbUser.email || user.email,
@@ -173,7 +173,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
 
       // Get the organization slug for the new user
       const orgSlug = await setupDefaultOrganizationsOrInviteUser(user);
-      
+
       // If we have an organization slug, store it in a verification token to use for redirection
       if (orgSlug) {
         // Store the redirect URL in NextAuth's internal state
@@ -202,12 +202,12 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
       } = {
         resendContactId,
       };
-      
+
       // Set emailVerified to true for OAuth providers (Google, Twitter, etc.)
-      const hasOAuthAccount = accounts.some(account => 
+      const hasOAuthAccount = accounts.some(account =>
         account.provider !== 'credentials'
       );
-      
+
       if (hasOAuthAccount) {
         updateData.emailVerified = new Date();
       }
@@ -219,7 +219,7 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         },
         data: updateData,
       });
-      
+
       // Set up the user's display name
       if (user.id) {
         await setupUserDisplayName(user.id);

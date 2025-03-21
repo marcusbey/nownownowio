@@ -1,5 +1,7 @@
 import { TailwindIndicator } from "@/components/data-display/tailwind-indicator";
 import { NextTopLoader } from "@/features/core/next-top-loader";
+import { auth } from "@/lib/auth/helper";
+import { logger } from "@/lib/logger";
 import { getServerUrl } from "@/lib/server-url";
 import { cn } from "@/lib/utils";
 import { SiteConfig } from "@/site-config";
@@ -11,8 +13,6 @@ import { Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.scss";
 import { Providers } from "./providers";
-import { auth } from "@/lib/auth/helper";
-import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = {
   title: SiteConfig.title,
@@ -31,12 +31,12 @@ export default async function RootLayout({
 }: LayoutParams & { modal?: ReactNode }) {
   // Debug auth state at the root level
   const session = await auth();
-  logger.debug('[RootLayout] Server-side session:', { 
+  logger.debug("[RootLayout] Server-side session:", {
     hasSession: !!session,
     userId: session?.id,
-    userEmail: session?.email
+    userEmail: session?.email,
   });
-  
+
   return (
     <>
       <html lang="en" className="h-full" suppressHydrationWarning>
@@ -60,20 +60,21 @@ export default async function RootLayout({
             <TailwindIndicator />
           </Providers>
           <script
-          defer
-          data-domain="nownownow.io"
-          src="https://datafa.st/js/script.js"
-        />
-        <script 
-          defer 
-          type="module" 
-          src="http://localhost:5173/dist/now-widget.js" 
-          now-data-org-id="67tiEuEkC3G" 
-          now-data-token="Njd0aUV1RWtDM0cuMTc0MjE1NDU0NTE3OC5kZWZhdWx0LXdpZGdldC1zZWNyZXQ=" 
-          now-data-theme="dark" 
-          now-data-position="left" 
-          now-data-button-color="#1a73e8" 
-          now-data-button-size="90"></script>
+            defer
+            data-domain="nownownow.io"
+            src="https://datafa.st/js/script.js"
+          />
+          <script
+            defer
+            type="module"
+            src="http://localhost:5173/dist/now-widget.js"
+            now-data-org-id="67tiEuEkC3G"
+            now-data-token="Njd0aUV1RWtDM0cuMTc0MjE1NDU0NTE3OC5kZWZhdWx0LXdpZGdldC1zZWNyZXQ="
+            now-data-theme="dark"
+            now-data-position="left"
+            now-data-button-color="#1a73e8"
+            now-data-button-size="90"
+          ></script>
         </body>
       </html>
     </>
