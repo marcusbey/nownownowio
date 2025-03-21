@@ -55,7 +55,7 @@ export const MagicLinkForm = () => {
             </FormItem>
           )}
         />
-        <LoadingButton loading={mutation.isPending} type="submit" size="sm">
+        <LoadingButton loading={mutation.isPending} type="submit">
           Sign in
         </LoadingButton>
       </Form>

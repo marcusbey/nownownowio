@@ -12,10 +12,13 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
-      // validateRequest will throw if no user
+      // Check if user exists
+      if (!user) {
+        throw new Error('Unauthorized: User not authenticated');
+      }
       return { userId: user.id };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
+    .onUploadComplete(async ({ file }) => {
       // Create a media record in the database
       const media = await prisma.media.create({
         data: {
@@ -25,7 +28,11 @@ export const fileRouter = {
         },
       });
 
-      console.log(`[UPLOADTHING] Created media record with ID: ${media.id} for file: ${file.name}`);
+      // Log in development environment only
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(`[UPLOADTHING] Created media record with ID: ${media.id} for file: ${file.name}`);
+      }
 
       // Return the media ID directly in the response
       return {
@@ -40,6 +47,9 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
+      if (!user) {
+        throw new Error('Unauthorized: User not authenticated');
+      }
       return { user };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -70,6 +80,9 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
+      if (!user) {
+        throw new Error('Unauthorized: User not authenticated');
+      }
       return { user };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -100,6 +113,9 @@ export const fileRouter = {
   })
     .middleware(async () => {
       const { user } = await validateRequest();
+      if (!user) {
+        throw new Error('Unauthorized: User not authenticated');
+      }
       return { userId: user.id };
     })
     .onUploadComplete(async ({ file }) => {
