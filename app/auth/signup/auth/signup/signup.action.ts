@@ -13,7 +13,7 @@ import {
 } from "@/lib/auth/credentials-provider";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+// import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { LoginCredentialsFormScheme } from "./signup.schema";
 import { logger } from "@/lib/logger";
@@ -30,7 +30,7 @@ export const signUpAction = action
     try {
       const userData = {
         email,
-        passwordHash: hashStringWithSalt(password, env.NEXTAUTH_SECRET),
+        passwordHash: hashStringWithSalt(password, env.AUTH_SECRET),
         name,
         displayName,
       };
@@ -52,12 +52,8 @@ export const signUpAction = action
           token: crypto.randomUUID(),
           expires: new Date(Date.now() + 900_000), // 15 minutes
           data: { 
-            signupStage: 'user_created'
-          },
-          user: {
-            connect: {
-              id: user.id
-            }
+            signupStage: 'user_created',
+            userId: user.id
           }
         }
       });
@@ -76,11 +72,11 @@ export const signUpAction = action
         const resendClient = await getResendInstance();
         
         // Validate environment variables
-        if (!env.RESEND_API_KEY || !env.RESEND_EMAIL_FROM || !env.NEXTAUTH_URL) {
+        if (!env.RESEND_API_KEY || !env.RESEND_EMAIL_FROM || !env.NEXT_PUBLIC_BASE_URL) {
           logger.error('Missing required environment variables for email sending', {
             hasApiKey: !!env.RESEND_API_KEY,
             hasEmailFrom: !!env.RESEND_EMAIL_FROM,
-            hasNextAuthUrl: !!env.NEXTAUTH_URL
+            hasNextAuthUrl: !!env.NEXT_PUBLIC_BASE_URL
           });
           throw new Error('Email configuration is incomplete');
         }
@@ -89,11 +85,10 @@ export const signUpAction = action
         logger.info('Attempting to send verification email', { 
           to: user.email,
           from: env.RESEND_EMAIL_FROM,
-          nextAuthUrl: env.NEXTAUTH_URL
-        });
+          nextAuthUrl: env.NEXT_PUBLIC_BASE_URL });
 
         // Use proper email template
-        const verifyUrl = `${env.NEXTAUTH_URL}/auth/verify?token=${token.token}`;
+        const verifyUrl = `${env.NEXT_PUBLIC_BASE_URL}/auth/verify?token=${token.token}`;
         
         const emailResult = await resendClient.emails.send({
           from: `NowNowNow <${env.RESEND_EMAIL_FROM}>`,
@@ -102,7 +97,7 @@ export const signUpAction = action
           react: VerifyEmail({ url: verifyUrl }),
           text: `Welcome to NowNowNow! Please verify your email address by clicking this link: ${verifyUrl} (expires in 15 minutes)`,
           headers: {
-            'List-Unsubscribe': `<${env.NEXTAUTH_URL}/auth/unsubscribe?email=${encodeURIComponent(user.email)}>`,
+            'List-Unsubscribe': `<${env.NEXT_PUBLIC_BASE_URL}/auth/unsubscribe?email=${encodeURIComponent(user.email)}>`,
             'X-Entity-Ref-ID': user.id
           }
         }).catch(error => {
@@ -110,13 +105,9 @@ export const signUpAction = action
           throw new ActionError('Failed to send verification email. Please try again or contact support.');
         });
         
-        if (!emailResult?.id) {
-          logger.error('No email ID returned from Resend', { email: user.email });
-          throw new ActionError('Failed to send verification email. Please try again or contact support.');
-        }
-        
+        // Log successful email sending
         logger.info('Verification email sent successfully', { 
-          emailId: emailResult.id,
+          emailResult,
           userId: user.id, 
           to: user.email,
           from: env.RESEND_EMAIL_FROM
@@ -127,8 +118,7 @@ export const signUpAction = action
           userId: user.id,
           to: user.email,
           from: env.RESEND_EMAIL_FROM,
-          nextAuthUrl: env.NEXTAUTH_URL
-        });
+          nextAuthUrl: env.NEXT_PUBLIC_BASE_URL });
         throw new ActionError('Failed to send verification email. Please try again or contact support.');
       }
 
@@ -136,7 +126,7 @@ export const signUpAction = action
       await setupDefaultOrganizationsOrInviteUser(user);
 
       // Redirect to verification pending page with email
-      redirect(`/auth/verify-request?email=${encodeURIComponent(email)}`, { scroll: false });
+      redirect(`/auth/verify-request?email=${encodeURIComponent(email)}`);
 
       return user;
     } catch (error) {

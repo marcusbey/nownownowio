@@ -3,9 +3,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/core/button';
+import { Input } from '@/components/core/input';
+import { Alert } from '@/components/feedback/alert';
 import { emailSchema } from './email.schema';
 import type { EmailSchema } from './email.schema';
 
