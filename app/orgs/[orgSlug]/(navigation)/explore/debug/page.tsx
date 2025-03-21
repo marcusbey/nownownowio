@@ -1,18 +1,25 @@
 "use client";
 
 import { Button } from "@/components/core/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/data-display/card";
-import { Input } from "@/components/core/input";
 import { Label } from "@/components/core/label";
 import { Textarea } from "@/components/core/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/data-display/card";
 import { Skeleton } from "@/components/feedback/skeleton";
 import kyInstance from "@/lib/ky";
-import { getAvailableTopics, getTopicDisplayInfo } from "@/lib/topic-detection";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 export default function TopicDebugPage() {
-  const { data: session, status: sessionStatus } = useSession({ required: true });
+  const { data: session, status: sessionStatus } = useSession({
+    required: true,
+  });
   const [content, setContent] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -27,11 +34,13 @@ export default function TopicDebugPage() {
     try {
       setIsAnalyzing(true);
       setError(null);
-      
-      const response = await kyInstance.post("/api/v1/topics/detect", {
-        json: { content },
-      }).json();
-      
+
+      const response = await kyInstance
+        .post("/api/v1/topics/detect", {
+          json: { content },
+        })
+        .json();
+
       setResult(response);
     } catch (err) {
       console.error("Error analyzing content:", err);
@@ -63,14 +72,12 @@ export default function TopicDebugPage() {
                 className="resize-none"
               />
             </div>
-            
-            {error && (
-              <div className="text-sm text-red-500">{error}</div>
-            )}
+
+            {error && <div className="text-sm text-red-500">{error}</div>}
           </CardContent>
           <CardFooter>
-            <Button 
-              onClick={analyzeContent} 
+            <Button
+              onClick={analyzeContent}
               disabled={isAnalyzing || !content.trim()}
             >
               {isAnalyzing ? "Analyzing..." : "Analyze Content"}
@@ -100,8 +107,9 @@ export default function TopicDebugPage() {
               <div>
                 <h3 className="text-sm font-medium">Detected Topic</h3>
                 <p className="text-lg font-bold">
-                  {result.detectedTopic 
-                    ? result.detectedTopic.charAt(0).toUpperCase() + result.detectedTopic.slice(1)
+                  {result.detectedTopic
+                    ? result.detectedTopic.charAt(0).toUpperCase() +
+                      result.detectedTopic.slice(1)
                     : "No specific topic detected"}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -112,26 +120,31 @@ export default function TopicDebugPage() {
               <div>
                 <h3 className="text-sm font-medium">Topic Scores</h3>
                 <div className="mt-2 space-y-2">
-                  {Object.entries(result.scores || {}).map(([topic, score]: [string, any]) => (
-                    <div key={topic} className="flex items-center justify-between">
-                      <span className="text-sm">
-                        {topic.charAt(0).toUpperCase() + topic.slice(1)}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-32 overflow-hidden rounded-full bg-secondary">
-                          <div 
-                            className="h-full bg-primary" 
-                            style={{ 
-                              width: `${Math.min(100, Math.round((score / Math.max(...Object.values(result.scores))) * 100))}%` 
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {score.toFixed(2)}
+                  {Object.entries(result.scores || {}).map(
+                    ([topic, score]: [string, any]) => (
+                      <div
+                        key={topic}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-sm">
+                          {topic.charAt(0).toUpperCase() + topic.slice(1)}
                         </span>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-32 overflow-hidden rounded-full bg-secondary">
+                            <div
+                              className="h-full bg-primary"
+                              style={{
+                                width: `${Math.min(100, Math.round((score / Math.max(...Object.values(result.scores))) * 100))}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {score.toFixed(2)}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -139,24 +152,25 @@ export default function TopicDebugPage() {
                 <div>
                   <h3 className="text-sm font-medium">Keyword Matches</h3>
                   <div className="mt-2 space-y-2">
-                    {Object.entries(result.keywordMatches).map(([topic, keywords]: [string, any]) => 
-                      keywords.length > 0 ? (
-                        <div key={topic} className="rounded-md border p-2">
-                          <h4 className="text-xs font-medium">
-                            {topic.charAt(0).toUpperCase() + topic.slice(1)}
-                          </h4>
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {keywords.map((keyword: string, i: number) => (
-                              <span 
-                                key={`${topic}-${keyword}-${i}`}
-                                className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs"
-                              >
-                                {keyword}
-                              </span>
-                            ))}
+                    {Object.entries(result.keywordMatches).map(
+                      ([topic, keywords]: [string, any]) =>
+                        keywords.length > 0 ? (
+                          <div key={topic} className="rounded-md border p-2">
+                            <h4 className="text-xs font-medium">
+                              {topic.charAt(0).toUpperCase() + topic.slice(1)}
+                            </h4>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {keywords.map((keyword: string, i: number) => (
+                                <span
+                                  key={`${topic}-${keyword}-${i}`}
+                                  className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs"
+                                >
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ) : null
+                        ) : null,
                     )}
                   </div>
                 </div>
@@ -168,7 +182,8 @@ export default function TopicDebugPage() {
                   {result.content}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Length: {result.contentLength} characters, {result.wordCount} words
+                  Length: {result.contentLength} characters, {result.wordCount}{" "}
+                  words
                 </p>
               </div>
             </CardContent>
