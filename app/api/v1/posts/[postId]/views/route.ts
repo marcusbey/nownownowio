@@ -1,5 +1,5 @@
 import { getClientIp } from "@/lib/api/ip";
-import { queuePostView } from "@/lib/api/view-tracker";
+import { getPostViewCount, queuePostView } from "@/lib/api/view-tracker";
 import { logger } from "@/lib/logger";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -15,16 +15,49 @@ function generateViewerId(): string {
 }
 
 type PostIdParams = {
-    params: {
+    params: Promise<{
         postId: string;
-    };
+    }>;
+}
+
+/**
+ * Gets the view count for a post
+ */
+export async function GET(request: NextRequest, { params }: PostIdParams) {
+    // Await the params in Next.js 15
+    const { postId } = await params;
+
+    try {
+        // Get the view count for the post
+        const viewCount = await getPostViewCount(postId);
+
+        return NextResponse.json(
+            { views: viewCount },
+            { status: 200 }
+        );
+    } catch (error) {
+        logger.error("Error getting post view count:", {
+            error: error instanceof Error ? error.message : String(error),
+            postId
+        });
+
+        return NextResponse.json(
+            {
+                error: "Failed to get view count",
+            },
+            {
+                status: 500
+            }
+        );
+    }
 }
 
 /**
  * Tracks a view for a post and returns a success response
  */
 export async function POST(request: NextRequest, { params }: PostIdParams) {
-    const { postId } = params;
+    // Await the params in Next.js 15
+    const { postId } = await params;
 
     try {
         // Extract the client IP address
