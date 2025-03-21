@@ -4,13 +4,20 @@ import type { Prisma } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+// Balance between freshness and performance
+// Using force-dynamic ensures we always get fresh data
+// But we'll add client-side caching through Cache-Control headers
 export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const revalidate = 60;
 
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
+  // Optimize caching strategy with shorter max-age but longer stale-while-revalidate
+  // This allows browsers to use cached data immediately while fetching fresh data in background
   const headers = {
-    'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=59'
+    'Cache-Control': 'public, max-age=5, stale-while-revalidate=30',
+    'Surrogate-Control': 'public, max-age=10',
+    'CDN-Cache-Control': 'public, max-age=10'
   };
 
   try {

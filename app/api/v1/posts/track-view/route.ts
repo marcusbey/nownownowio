@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { getWidgetCorsHeaders } from "@/lib/now-widget";
 import { type NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 
 // Helper function to track a new view
-async function trackView(postId: string, viewerId: string, clientIp: string, source: string) {
+async function trackView(postId: string, viewerId: string, clientIp: string) {
   try {
     // First check if the post exists
     const post = await prisma.post.findUnique({
@@ -18,6 +19,20 @@ async function trackView(postId: string, viewerId: string, clientIp: string, sou
     }
 
     // Then try to upsert the view
+    // Define the data objects with proper typing - omitting source field as it doesn't exist in the database yet
+    const updateData: Prisma.PostViewUpdateInput = {
+      viewedAt: new Date(),
+    };
+    
+    const createData: Prisma.PostViewCreateInput = {
+      post: { connect: { id: postId } },
+      viewerId,
+      clientIp,
+    };
+    
+    // Source field is commented out until a migration is run
+    // Note: The schema defines source but the database doesn't have this column yet
+    
     await prisma.postView.upsert({
       where: {
         postId_viewerId_clientIp: {
@@ -26,17 +41,8 @@ async function trackView(postId: string, viewerId: string, clientIp: string, sou
           clientIp,
         },
       },
-      update: {
-        viewedAt: new Date(),
-        // Update the source if it's coming from a different place
-        source,
-      },
-      create: {
-        postId,
-        viewerId,
-        clientIp,
-        source,
-      },
+      update: updateData,
+      create: createData,
     });
 
     // Get the updated view count
@@ -46,12 +52,12 @@ async function trackView(postId: string, viewerId: string, clientIp: string, sou
 
     return count;
   } catch (error) {
+    // Safely log the error with proper error handling for null values
     logger.error("Error tracking view:", {
-      error,
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error || 'Unknown error'),
       postId,
       viewerId,
-      clientIp,
-      source
+      clientIp
     });
     throw error;
   }
@@ -76,13 +82,30 @@ export async function OPTIONS(req: NextRequest) {
   });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   const origin = request.headers.get("origin") ?? "*";
   const headers = getWidgetCorsHeaders(origin);
 
   try {
-    const body = await request.json();
-    const { postId, viewerId, source = "app" } = body;
+    // Properly await params in Next.js 15
+    // This is required even if we're not using any specific parameter from it
+    await params;
+    
+    // Safely parse the request body with error handling
+    let body: { postId?: string; viewerId?: string } = {};
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      logger.error("Error parsing request body in track-view:", {
+        error: parseError instanceof Error ? parseError.message : String(parseError || 'Unknown error')
+      });
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400, headers }
+      );
+    }
+    
+    const { postId, viewerId } = body;
 
     if (!postId) {
       return NextResponse.json(
@@ -92,14 +115,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Use provided viewerId or generate an anonymous one
-    const actualViewerId = viewerId || `anon-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    const actualViewerId = viewerId ?? `anon-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
     const clientIp = getClientIp(request);
     
-    const viewCount = await trackView(postId, actualViewerId, clientIp, source);
+    const viewCount = await trackView(postId, actualViewerId, clientIp);
 
     return NextResponse.json({ viewCount }, { headers });
   } catch (error) {
-    logger.error("Error in POST /api/v1/posts/track-view:", error);
+    // Safely log the error with proper error handling for null values
+    logger.error("Error in POST /api/v1/posts/track-view:", {
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : String(error || 'Unknown error')
+    });
+    
     return NextResponse.json(
       { error: "Something went wrong" },
       { status: 500, headers }

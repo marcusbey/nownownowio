@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getUserDataSelect } from "@/lib/types";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(_req: Request, { params }: { params: Promise<Record<string, string>> }) {
+    // Properly await params in Next.js 15, even though we're not using any params in this route
+    await params;
     try {
         const user = await auth();
         if (!user) {

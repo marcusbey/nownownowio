@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // Example data route for trending topics
-export async function GET() {
+export async function GET(_req: Request, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
     try {
         // Sample query: you can adapt for your own logic
         const result = await prisma.$queryRaw<{ hashtag: string; count: bigint }[]>`
