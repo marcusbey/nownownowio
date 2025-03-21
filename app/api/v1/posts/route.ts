@@ -27,7 +27,9 @@ const createPostWithMediaSchema = z.object({
   path: ["content"],
 });
 
-export async function GET(request: Request) {
+export async function GET(request: Request, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   try {
     // Authentication
     const session = await baseAuth();
@@ -51,11 +53,11 @@ export async function GET(request: Request) {
     const validatedParams = getFeedPostsSchema.parse(params);
     const posts = await getFeedPosts(validatedParams);
 
-    // Format response as PostsPage
-    const response: PostsPage = {
+    // Use type assertion to match the expected PostsPage type
+    const response = {
       posts,
       nextCursor: posts.length === params.limit ? posts[posts.length - 1].id : null,
-    };
+    } as PostsPage;
 
     return NextResponse.json(response);
   } catch (error) {
@@ -82,7 +84,9 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   try {
     // Authentication
     const session = await baseAuth();

@@ -8,13 +8,18 @@ import { type NextRequest, NextResponse } from 'next/server';
 // Define types for organization and plan data
 type OrganizationPlanDetails = {
   websiteUrl: string | null;
+  name: string | null;
+  image: string | null;
+  bannerImage: string | null;
   plan: {
     hasFeedbackFeature: boolean;
     maxFeedbackItems: number;
   } | null;
 }
 
-export async function OPTIONS(req: NextRequest): Promise<NextResponse> {
+export async function OPTIONS(req: NextRequest, { params }: { params: Promise<Record<string, string>> }): Promise<NextResponse> {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   const origin = req.headers.get('origin') ?? '*';
   const headers = getWidgetCorsHeaders(origin);
   
@@ -30,7 +35,9 @@ export async function OPTIONS(req: NextRequest): Promise<NextResponse> {
 /**
  * GET handler for retrieving feedback for an organization
  */
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(req: NextRequest, { params }: { params: Promise<Record<string, string>> }): Promise<NextResponse> {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   const origin = req.headers.get('origin') ?? '*';
   const headers = getWidgetCorsHeaders(origin);
   const token = req.headers.get('Authorization')?.split(' ')[1];

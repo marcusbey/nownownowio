@@ -28,7 +28,9 @@ const voteSchema = z.object({
   organizationId: z.string().min(1)
 });
 
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(req: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   const origin = req.headers.get('origin') ?? '*';
   const headers = getWidgetCorsHeaders(origin);
   
@@ -44,7 +46,9 @@ export async function OPTIONS(req: NextRequest) {
 /**
  * POST handler for submitting new feedback
  */
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   const origin = req.headers.get('origin') ?? '*';
   const headers = getWidgetCorsHeaders(origin);
   const token = req.headers.get('Authorization')?.split(' ')[1];
@@ -189,7 +193,6 @@ export async function POST(req: NextRequest) {
         data: {
           feedbackId: feedback.id,
           ipAddress: ipAddress.split(',')[0].trim(), // Use the first IP if multiple are provided
-          email: email ?? null,
           userAgent: userAgent ?? undefined
         }
       });
@@ -248,7 +251,9 @@ export async function POST(req: NextRequest) {
 /**
  * PUT handler for voting on existing feedback
  */
-export async function PUT(req: NextRequest) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   const origin = req.headers.get('origin') ?? '*';
   const headers = getWidgetCorsHeaders(origin);
   const token = req.headers.get('Authorization')?.split(' ')[1];

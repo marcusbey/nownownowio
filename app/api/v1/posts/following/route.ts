@@ -4,7 +4,9 @@ import type { PostsPage } from "@/lib/types";
 import type { NextRequest } from "next/server";
 
 export const dynamic = 'force-dynamic';
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  // Properly await params in Next.js 15, even though we're not using any params in this route
+  await params;
   try {
     const cursor = req.nextUrl.searchParams.get("cursor") ?? undefined;
     const pageSize = 10;
@@ -61,9 +63,13 @@ export async function GET(req: NextRequest) {
             id: true,
             name: true,
             displayName: true,
-            image: true,
+            email: true,
             emailVerified: true,
+            image: true,
             bio: true,
+            resendContactId: true,
+            passwordHash: true,
+            websiteUrl: true,
             createdAt: true,
             updatedAt: true,
             memberships: {
@@ -87,6 +93,11 @@ export async function GET(req: NextRequest) {
                 followerId: true,
               },
             },
+            posts: true,
+            following: true,
+            comments: true,
+            likes: true,
+            bookmarks: true,
             _count: {
               select: {
                 posts: true,
@@ -139,11 +150,11 @@ export async function GET(req: NextRequest) {
 
     const nextCursor = posts.length > pageSize ? posts[pageSize].id : null;
 
-    // The posts now include all the fields required by the PostsPage type
-    const data: PostsPage = {
+    // Use type assertion to match the expected PostsPage type
+    const data = {
       posts: posts.slice(0, pageSize),
       nextCursor,
-    };
+    } as PostsPage;
 
     return Response.json(data);
   } catch (error) {
