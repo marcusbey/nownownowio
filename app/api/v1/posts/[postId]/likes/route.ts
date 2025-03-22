@@ -42,7 +42,11 @@ export async function GET(
       isLikedByUser: !!post.likes.length,
     };
 
-    return Response.json(data);
+    // Add cache headers
+    const headers = new Headers();
+    headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+
+    return Response.json(data, { status: 200, headers });
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Internal server error" }, { status: 500 });

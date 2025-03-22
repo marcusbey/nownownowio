@@ -31,9 +31,16 @@ export async function GET(request: NextRequest, { params }: PostIdParams) {
         // Get the view count for the post
         const viewCount = await getPostViewCount(postId);
 
+        // Add cache headers
+        const headers = new Headers();
+        headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
+
         return NextResponse.json(
             { views: viewCount },
-            { status: 200 }
+            {
+                status: 200,
+                headers
+            }
         );
     } catch (error) {
         logger.error("Error getting post view count:", {

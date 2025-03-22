@@ -26,8 +26,10 @@ export default function LikeButton({
   const queryClient = useQueryClient();
 
   // Validate postId to prevent 404 errors
-  const isValidPostId = Boolean(postId && postId !== 'undefined' && postId.trim() !== '');
-  
+  const isValidPostId = Boolean(
+    postId && postId !== "undefined" && postId.trim() !== "",
+  );
+
   const queryKey: QueryKey = ["like-info", postId];
 
   const { data } = useQuery({
@@ -37,15 +39,17 @@ export default function LikeButton({
       if (!isValidPostId) {
         return initialState;
       }
-      
+
       return kyInstance
         .get(`/api/v1/posts/${postId}/likes`)
         .json<typeof initialState>();
     },
     initialData: initialState,
-    staleTime: 0, // Set to 0 to refetch on mount
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    // Improved caching settings to prevent repeated fetches
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: false, // Don't refetch each time component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     // Disable the query if postId is invalid
     enabled: isValidPostId,
   });
@@ -54,16 +58,16 @@ export default function LikeButton({
     mutationFn: async () => {
       // Validate postId and ensure data exists
       if (!isValidPostId) {
-        throw new Error('Invalid post ID');
+        throw new Error("Invalid post ID");
       }
-      
+
       if (!data) {
-        throw new Error('Like data is not available');
+        throw new Error("Like data is not available");
       }
-      
+
       const currentLikes = data.likes ?? 0;
       const isCurrentlyLiked = data.isLikedByUser ?? false;
-      
+
       try {
         if (isCurrentlyLiked) {
           await kyInstance.delete(`/api/v1/posts/${postId}/likes`);
@@ -79,8 +83,8 @@ export default function LikeButton({
     },
     onMutate: async () => {
       // Ensure data exists and has required properties
-      const isCurrentlyLiked = data?.isLikedByUser ?? false;
-      
+      const isCurrentlyLiked = data.isLikedByUser ?? false;
+
       toast({
         description: `Post ${isCurrentlyLiked ? "un" : ""}liked`,
       });

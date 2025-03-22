@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 type PostViews = {
   views: number;
@@ -27,20 +27,25 @@ async function trackPostView(params: TrackViewParams): Promise<PostViews> {
     },
     body: JSON.stringify({ postId, source }),
   });
-  
+
   if (!response.ok) {
     throw new Error("Failed to track post view");
   }
-  
+
   return response.json();
 }
 
 export function usePostViews(postId: string) {
   const queryClient = useQueryClient();
-  
+
   const { data, isLoading } = useQuery({
     queryKey: ["postViews", postId],
     queryFn: async () => getPostViews(postId),
+    // Optimize cache settings for view counts which don't change often
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const { mutate: trackView, isPending: isTrackingView } = useMutation({
