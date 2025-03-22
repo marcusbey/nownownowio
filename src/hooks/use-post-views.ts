@@ -41,11 +41,6 @@ export function usePostViews(postId: string) {
   const { data, isLoading } = useQuery({
     queryKey: ["postViews", postId],
     queryFn: async () => getPostViews(postId),
-    // Optimize cache settings for view counts which don't change often
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
   });
 
   const { mutate: trackView, isPending: isTrackingView } = useMutation({

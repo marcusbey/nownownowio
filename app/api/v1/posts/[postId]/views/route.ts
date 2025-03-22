@@ -15,32 +15,24 @@ function generateViewerId(): string {
 }
 
 type PostIdParams = {
-    params: Promise<{
+    params: {
         postId: string;
-    }>;
+    };
 }
 
 /**
  * Gets the view count for a post
  */
 export async function GET(request: NextRequest, { params }: PostIdParams) {
-    // Await the params in Next.js 15
-    const { postId } = await params;
+    const { postId } = params;
 
     try {
         // Get the view count for the post
         const viewCount = await getPostViewCount(postId);
 
-        // Add cache headers
-        const headers = new Headers();
-        headers.set("Cache-Control", "public, max-age=60, s-maxage=300");
-
         return NextResponse.json(
             { views: viewCount },
-            {
-                status: 200,
-                headers
-            }
+            { status: 200 }
         );
     } catch (error) {
         logger.error("Error getting post view count:", {
@@ -63,8 +55,7 @@ export async function GET(request: NextRequest, { params }: PostIdParams) {
  * Tracks a view for a post and returns a success response
  */
 export async function POST(request: NextRequest, { params }: PostIdParams) {
-    // Await the params in Next.js 15
-    const { postId } = await params;
+    const { postId } = params;
 
     try {
         // Extract the client IP address

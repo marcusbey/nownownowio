@@ -1,12 +1,11 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { usePostViews } from "@/hooks/use-post-views";
 import type { Post } from "@prisma/client";
 import { formatDistance } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 type PostWithAuthor = Post & {
   author: {
@@ -28,19 +27,31 @@ type PostCardProps = {
 
 export function PostCard({ post, hideAuthor = false }: PostCardProps) {
   const router = useRouter();
-  const hasTracked = useRef(false);
-  const { trackView } = usePostViews(post.id);
 
   // Track post view when the component mounts
   useEffect(() => {
-    if (hasTracked.current) return;
+    const trackView = async () => {
+      try {
+        const response = await fetch(`/api/v1/posts/${post.id}/views`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          console.error("Failed to track post view");
+        }
+      } catch (error) {
+        console.error("Error tracking post view:", error);
+      }
+    };
 
     // Only track view if the post is actually visible on screen for a bit
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && entries[0].intersectionRatio >= 0.5) {
           trackView();
-          hasTracked.current = true;
           observer.disconnect();
         }
       },
@@ -55,7 +66,7 @@ export function PostCard({ post, hideAuthor = false }: PostCardProps) {
     return () => {
       observer.disconnect();
     };
-  }, [post.id, trackView]);
+  }, [post.id]);
 
   // Format the date for display
   const formattedDate = formatDistance(new Date(post.createdAt), new Date(), {

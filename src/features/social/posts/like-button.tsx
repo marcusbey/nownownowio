@@ -45,11 +45,9 @@ export default function LikeButton({
         .json<typeof initialState>();
     },
     initialData: initialState,
-    // Improved caching settings to prevent repeated fetches
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnMount: false, // Don't refetch each time component mounts
-    refetchOnWindowFocus: false, // Don't refetch on window focus
+    staleTime: 0, // Set to 0 to refetch on mount
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     // Disable the query if postId is invalid
     enabled: isValidPostId,
   });
