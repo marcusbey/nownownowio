@@ -3,7 +3,7 @@
 import { ActionError, action } from "@/lib/actions/safe-actions";
 import { getResendInstance } from "@/lib/mail/resend";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+// Removed unused Prisma import
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
@@ -115,12 +115,8 @@ export const resendVerificationEmail = action
           token: `${Math.random().toString(36).substring(2)}${Date.now()}`,
           expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
           data: { 
-            stage: 'resend_verification'
-          },
-          user: {
-            connect: {
-              id: user.id
-            }
+            stage: 'resend_verification',
+            userId: user.id
           }
         },
       }).catch(error => {
@@ -180,7 +176,7 @@ export const resendVerificationEmail = action
       });
 
       logger.info('Verification email resent successfully', {
-        emailId: emailResult?.id,
+        emailId: emailResult.id || 'unknown',
         to: email,
       });
       } catch (error) {
