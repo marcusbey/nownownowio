@@ -1,7 +1,7 @@
 "use client";
 
 import { ProviderButton } from "@/components/composite/auth/ProviderButton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/feedback/alert";
+import { Alert, AlertTitle } from "@/components/feedback/alert";
 import { Divider } from "@/components/layout/divider";
 import { Skeleton } from "@/components/feedback/skeleton";
 import { Typography } from "@/components/data-display/typography";
@@ -46,10 +46,10 @@ export const SignUpProviders = () => {
   }
 
   return (
-    <div className="flex min-w-96 flex-col gap-8">
+    <div className="flex min-w-96 flex-col items-center gap-4">
       {providers.credentials ? (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex w-full flex-col gap-3">
             {providers.google ? (
               <ProviderButton providerId="google" action="signup" />
             ) : null}
@@ -60,27 +60,29 @@ export const SignUpProviders = () => {
               <ProviderButton providerId="github" action="signup" />
             ) : null}
           </div>
-          <Divider>or</Divider>
+          <div className="my-2 flex w-full items-center justify-center">
+            <div className="rounded bg-slate-700 px-4 py-1 text-sm text-white">
+              or
+            </div>
+          </div>
         </>
       ) : null}
-      <Link href="/auth/signup">
-        <button type="submit" className="w-full">
+      <Link href="/auth/signup" className="w-full">
+        <button 
+          type="submit" 
+          className="w-full rounded-md bg-slate-900 py-3 font-medium text-white transition-colors hover:bg-slate-800"
+        >
           Create account
         </button>
       </Link>
 
       {providers.credentials ? (
-        <Typography variant="small" className="flex justify-center">
-          Already have an account?{" "}
-          <Typography
-            variant="link"
-            as={Link}
-            href="/auth/signin"
-            className="pl-2"
-          >
+        <div className="mt-4 flex justify-center text-sm">
+          <span className="text-slate-300">Already have an account?</span>
+          <Link href="/auth/signin" className="ml-2 text-amber-400 hover:text-amber-300">
             Sign in
-          </Typography>
-        </Typography>
+          </Link>
+        </div>
       ) : null}
     </div>
   );

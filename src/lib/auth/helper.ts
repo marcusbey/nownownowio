@@ -11,8 +11,18 @@ export class AuthError extends Error {}
  * Cached authentication function that retrieves the current user session
  * This is the single source of truth for authentication in the application
  * Using React's cache function to avoid multiple database requests
+ * @param bustCache Optional parameter to clear the cache when true
  */
-export const auth = cache(async (): Promise<User | null> => {
+export const auth = cache(async (bustCache = false): Promise<User | null> => {
+  // Clear the cache if requested (used during sign-out)
+  if (bustCache) {
+    // @ts-expect-error - Accessing internal cache property
+    if (auth.cache instanceof Map) {
+      // @ts-expect-error - Accessing internal cache property
+      auth.cache.clear();
+      logger.info('Auth helper - cache cleared');
+    }
+  }
   try {
     const session = await baseAuth() as Session | null;
     
@@ -63,10 +73,31 @@ export const auth = cache(async (): Promise<User | null> => {
 /**
  * Get the full session object including user data
  * This is cached to prevent multiple database queries
+ * @param bustCache Optional parameter to clear the cache when true
  */
-export const getSession = cache(async () => {
+export const getSession = cache(async (bustCache = false) => {
+  // Clear the cache if requested (used during sign-out)
+  if (bustCache) {
+    // @ts-expect-error - Accessing internal cache property
+    if (getSession.cache instanceof Map) {
+      // @ts-expect-error - Accessing internal cache property
+      getSession.cache.clear();
+      logger.info('GetSession helper - cache cleared');
+    }
+  }
+  
   try {
     const session = await baseAuth();
+    
+    // Log session details for debugging
+    logger.info('GetSession helper - retrieved session', { 
+      hasSession: !!session,
+      // Use type-safe property access
+      userId: session?.user?.id,
+      // Check for custom property added in auth.ts
+      isOrphanedSession: session ? 'isOrphanedSession' in session : false
+    });
+    
     return session;
   } catch (error) {
     logger.error('Session retrieval error:', { error });
@@ -91,10 +122,22 @@ export const requiredAuth = async (): Promise<User> => {
 /**
  * Validate the current request and return the user
  * This is used in server actions and API routes
+ * @param bustCache Optional parameter to clear the cache when true
  */
-export const validateRequest = cache(async (): Promise<{ user: User } | { user: null }> => {
+export const validateRequest = cache(async (bustCache = false): Promise<{ user: User } | { user: null }> => {
+  // Clear the cache if requested (used during sign-out)
+  if (bustCache) {
+    // @ts-expect-error - Accessing internal cache property
+    if (validateRequest.cache instanceof Map) {
+      // @ts-expect-error - Accessing internal cache property
+      validateRequest.cache.clear();
+      logger.info('ValidateRequest helper - cache cleared');
+    }
+  }
+  
   try {
-    const user = await auth();
+    // Pass the bustCache parameter to auth() to ensure cache consistency
+    const user = await auth(bustCache);
     
     if (!user) {
       return { user: null };

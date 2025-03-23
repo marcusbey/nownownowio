@@ -13,18 +13,20 @@ type ProviderButtonProps = {
 
 const providerIcons = {
   google: "/icons/google.svg",
-  twitter: "/icons/twitter.svg",
+  twitter: "/icons/x.svg",
   github: "/icons/github.svg",
 };
 
 const providerNames = {
   google: "Google",
-  twitter: "Twitter",
+  twitter: "X",
   github: "GitHub",
 };
 
 export function ProviderButton({
   providerId,
+  // action parameter is used in the type definition but not in the component
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   action,
   className,
 }: ProviderButtonProps) {
@@ -35,7 +37,8 @@ export function ProviderButton({
         callbackUrl: "/orgs",
       });
     } catch (error) {
-      console.error("Error signing in:", error);
+      // Silent fail - errors will be handled by NextAuth's built-in error handling
+      // We don't need to log here as NextAuth will show appropriate errors
     }
   };
 
@@ -45,8 +48,8 @@ export function ProviderButton({
       variant="outline"
       onClick={handleSignIn}
       className={cn(
-        "relative flex w-full items-center justify-start gap-3 px-4",
-        "bg-white text-gray-700 transition-colors",
+        "relative flex w-full items-center justify-center gap-2 px-4 py-3",
+        "bg-white text-gray-800 font-medium transition-colors rounded-md",
         "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
         className,
       )}
@@ -54,11 +57,11 @@ export function ProviderButton({
       <Image
         src={providerIcons[providerId]}
         alt={`${providerNames[providerId]} logo`}
-        width={16}
-        height={16}
-        className="size-4 shrink-0"
+        width={20}
+        height={20}
+        className="size-5 shrink-0"
       />
-      <span className="text-sm">{providerNames[providerId]}</span>
+      <span>Sign up with {providerNames[providerId]}</span>
     </Button>
   );
 }
