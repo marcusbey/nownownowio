@@ -19,7 +19,8 @@ export async function POST() {
     });
 
     // Get all cookies to find auth-related ones
-    const cookieStore = cookies();
+    // In Next.js 15, cookies() returns a Promise that resolves to ReadonlyRequestCookies
+    const cookieStore = await cookies();
     const cookieNames = cookieStore.getAll().map(cookie => cookie.name);
     
     // Create a response that will clear auth cookies
