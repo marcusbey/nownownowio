@@ -24,7 +24,7 @@ export const resendVerificationEmail = action
       logger.info('Checking environment configuration', {
         hasApiKey: !!env.RESEND_API_KEY,
         emailFrom: env.RESEND_EMAIL_FROM,
-        nextAuthUrl: env.NEXTAUTH_URL
+        baseUrl: env.NEXT_PUBLIC_BASE_URL
       });
 
       // Find the user with robust connection handling
@@ -136,7 +136,7 @@ export const resendVerificationEmail = action
 
       // Send verification email
       const resendClient = await getResendInstance();
-      const verifyUrl = `${env.NEXTAUTH_URL}/auth/verify?token=${token.token}`;
+      const verifyUrl = `${env.NEXT_PUBLIC_BASE_URL}/auth/verify?token=${token.token}`;
 
       logger.info('Sending verification email', { email, verifyUrl });
 
