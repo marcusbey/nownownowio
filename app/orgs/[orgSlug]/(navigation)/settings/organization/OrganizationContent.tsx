@@ -48,7 +48,9 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
   const defaultBannerImage = organization.bannerImage ?? null;
 
   // Check if user has PRO plan to create new organizations
-  const canCreateNewOrg = organization.plan.name === PLAN_TYPES.PRO;
+  // Convert plan name to uppercase for case-insensitive comparison
+  const planName = organization.plan.name.toUpperCase();
+  const canCreateNewOrg = planName === PLAN_TYPES.PRO;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
@@ -78,7 +80,7 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
           </Button>
         ) : (
           <Button asChild size="sm" variant="outline">
-            <Link href="/settings/billing">
+            <Link href={`/orgs/${organization.slug}/settings/plan`}>
               <Plus className="mr-2 size-4" />
               Upgrade to PRO
             </Link>
