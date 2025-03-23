@@ -24,6 +24,7 @@ type OrganizationWithPlan = {
     createdAt: Date;
     name: string;
     updatedAt: Date;
+    type: string;
     maximumMembers: number;
   };
   members: {
@@ -44,13 +45,25 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
   );
   
   // Always use owner's profile image if organization image is not set
-  const defaultImage = organization.image ?? (ownerMember ? ownerMember.user?.image : null) ?? null;
+  // Safely access user image with proper null checks
+  const ownerImage = ownerMember && ownerMember.user ? ownerMember.user.image : null;
+  const defaultImage = organization.image ?? ownerImage ?? null;
   const defaultBannerImage = organization.bannerImage ?? null;
 
-  // Check if user has PRO plan to create new organizations
-  // Convert plan name to uppercase for case-insensitive comparison
-  const planName = organization.plan.name.toUpperCase();
-  const canCreateNewOrg = planName === PLAN_TYPES.PRO;
+  // Extract the plan details from the organization plan object
+  // Note: The plan object structure is different from settings-plan-content.tsx
+  const planId = organization.plan.id;
+  const planType = organization.plan.type;
+  
+  // Check if the current plan is a PRO plan using multiple methods
+  // 1. Check if the plan ID contains 'PRO'
+  // 2. Check if the plan type equals 'PRO'
+  const isPro = 
+    planId.toUpperCase().includes('PRO') || 
+    planType.toUpperCase() === PLAN_TYPES.PRO;
+  
+  // Allow creating new organizations for PRO users
+  const canCreateNewOrg = isPro;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
