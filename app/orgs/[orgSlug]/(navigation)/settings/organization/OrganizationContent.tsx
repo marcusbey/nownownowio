@@ -7,7 +7,6 @@ import type { OrganizationMembershipRole, User } from "@prisma/client";
 import type { OrgDetailsFormSchemaType } from "../org.schema";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { PLAN_TYPES } from "@/features/billing/plans/fallback-prices";
 
 type OrganizationWithPlan = {
   id: string;
@@ -47,9 +46,7 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
   const defaultImage = organization.image ?? (ownerMember ? ownerMember.user?.image : null) ?? null;
   const defaultBannerImage = organization.bannerImage ?? null;
 
-  // Check if user can create new organizations based on plan
-  // Only PRO plan users can create new organizations
-  const canCreateNewOrg = organization.plan.name === PLAN_TYPES.PRO;
+  // All users can create new organizations
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
@@ -70,14 +67,12 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
             Manage your organization's details and appearance
           </p>
         </div>
-        {canCreateNewOrg && (
-          <Button asChild size="sm">
-            <Link href="/orgs/new">
-              <Plus className="mr-2 size-4" />
-              New Organization
-            </Link>
-          </Button>
-        )}
+        <Button asChild size="sm">
+          <Link href="/orgs/new">
+            <Plus className="mr-2 size-4" />
+            New Organization
+          </Link>
+        </Button>
       </div>
 
       <Card className="border shadow-sm">
