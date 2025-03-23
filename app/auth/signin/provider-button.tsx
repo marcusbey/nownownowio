@@ -103,11 +103,11 @@ export const ProviderButton = (props: ProviderButtonProps) => {
   return (
     <Button
       className={clsx({
-        "border-gray-500 bg-white text-black hover:bg-white":
+        "border-gray-500 bg-white text-black hover:bg-gray-100 hover:text-black":
           data.name === "Google",
-        "border-gray-400 bg-white text-black hover:bg-white":
-          data.name === "Twitter",
-        "border-gray-500 bg-black text-white hover:bg-gray-950":
+        "border-gray-400 bg-white text-black hover:bg-gray-100 hover:text-black":
+          data.name === "Twitter" || data.name === "X",
+        "border-gray-500 bg-black text-white hover:bg-gray-800 hover:text-white":
           data.name === "Github",
       })}
       size="lg"

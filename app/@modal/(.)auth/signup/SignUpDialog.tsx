@@ -28,7 +28,7 @@ export function SignUpDialog() {
       }}
     >
       <DialogContent
-        className="bg-card"
+        className="bg-card mx-auto w-[95%] max-w-md"
         onOpenAutoFocus={(e) => e.preventDefault()}
         // Disable default escape key handling and handle it ourselves
         onEscapeKeyDown={(e) => {

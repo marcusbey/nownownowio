@@ -70,7 +70,7 @@ export const SignUpProviders = () => {
       <Link href="/auth/signup" className="w-full">
         <button 
           type="submit" 
-          className="w-full rounded-md bg-slate-900 py-3 font-medium text-white transition-colors hover:bg-slate-800"
+          className="block w-full rounded-md bg-blue-600 px-4 py-3 text-center text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
         >
           Create account
         </button>
