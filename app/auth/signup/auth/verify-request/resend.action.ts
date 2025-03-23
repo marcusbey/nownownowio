@@ -176,7 +176,7 @@ export const resendVerificationEmail = action
       });
 
       logger.info('Verification email resent successfully', {
-        emailId: emailResult.id || 'unknown',
+        emailId: 'error' in emailResult ? 'failed' : (emailResult as { id: string }).id,
         to: email,
       });
       } catch (error) {
