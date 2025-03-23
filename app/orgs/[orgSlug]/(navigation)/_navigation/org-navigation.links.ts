@@ -85,6 +85,7 @@ export const ORGANIZATION_LINKS: NavigationGroup[] = [
         roles: ["OWNER", "ADMIN"],
         disabled: true,
       },
+      // New Organization link removed - now available in settings/organization
       {
         href: prependOrgPath("/settings"),
         icon: "Settings",

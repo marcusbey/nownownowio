@@ -34,6 +34,7 @@ import { OrgCommand } from "./org-command";
 import { getOrganizationNavigation } from "./org-navigation.links";
 import { OrgsSelect } from "./orgs-select";
 import { UpgradeCard } from "./upgrade-org-card";
+import { FeedbackButton } from "./feedback-button";
 
 export function OrgSidebar({
   slug,
@@ -122,6 +123,7 @@ export function OrgSidebar({
       </SidebarContent>
       <SidebarFooter className="mt-auto flex flex-col gap-4 p-4">
         <UpgradeCard />
+        <FeedbackButton />
         <div className="sidebar-user-button-wrapper">
           {/* Debug log for SidebarUserButton */}
           <SidebarUserButton />

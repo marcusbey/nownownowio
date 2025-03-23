@@ -1,9 +1,13 @@
 "use client";
 
+import { Button } from "@/components/core/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
 import { OrgDetailsForm } from "../(details)/OrgDetailsForm";
 import type { OrganizationMembershipRole, User } from "@prisma/client";
 import type { OrgDetailsFormSchemaType } from "../org.schema";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { PLAN_TYPES } from "@/features/billing/plans/fallback-prices";
 
 type OrganizationWithPlan = {
   id: string;
@@ -43,6 +47,10 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
   const defaultImage = organization.image ?? (ownerMember ? ownerMember.user?.image : null) ?? null;
   const defaultBannerImage = organization.bannerImage ?? null;
 
+  // Check if user can create new organizations based on plan
+  // Only PRO plan users can create new organizations
+  const canCreateNewOrg = organization.plan.name === PLAN_TYPES.PRO;
+
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
     name: organization.name,
@@ -55,11 +63,21 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
 
   return (
     <div className="mx-auto max-w-4xl py-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold">Organization Settings</h2>
-        <p className="text-sm text-muted-foreground">
-          Manage your organization's details and appearance
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold">Organization Settings</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage your organization's details and appearance
+          </p>
+        </div>
+        {canCreateNewOrg && (
+          <Button asChild size="sm">
+            <Link href="/orgs/new">
+              <Plus className="mr-2 size-4" />
+              New Organization
+            </Link>
+          </Button>
+        )}
       </div>
 
       <Card className="border shadow-sm">
