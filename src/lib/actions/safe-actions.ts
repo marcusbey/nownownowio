@@ -115,8 +115,8 @@ export const orgAction = createSafeActionClient({
       }
 
       // Check roles if required
-      if (metadata.roles && metadata.roles.length > 0) {
-        const userRoles = organization.members[0]?.roles || [];
+      if (metadata.roles.length > 0) {
+        const userRoles = organization.members[0]?.roles ?? [];
         const hasRequiredRole = metadata.roles.some(role => userRoles.includes(role));
 
         if (!hasRequiredRole) {
@@ -131,7 +131,7 @@ export const orgAction = createSafeActionClient({
 
       return {
         ...organization,
-        roles: organization.members[0]?.roles || []
+        roles: organization.members[0]?.roles ?? []
       };
     };
 

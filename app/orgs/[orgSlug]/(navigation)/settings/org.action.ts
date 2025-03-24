@@ -383,11 +383,47 @@ export const updateOrganizationDetailsAction = orgAction
         // Perform the update
         try {
           console.log("⭐️ Attempting database update with data:", JSON.stringify(updateData));
+
+          // Create a clean update data object without the orgSlug field
+          // as it's not a column in the database table
+          const cleanUpdateData = { ...updateData };
+
+          // Remove fields that shouldn't be passed to Prisma
+          if ('orgSlug' in cleanUpdateData) {
+            delete cleanUpdateData.orgSlug;
+          }
+
+          if (Object.keys(cleanUpdateData).length === 0) {
+            console.warn("⭐️ No valid fields to update");
+
+            // If there's nothing to update, just fetch the current org and return it
+            const currentOrgDetails = await prisma.organization.findUnique({
+              where: {
+                id: orgContext.id,
+              },
+              include: {
+                plan: true,
+                members: {
+                  include: {
+                    user: true
+                  }
+                }
+              }
+            });
+
+            if (!currentOrgDetails) {
+              throw new Error("Organization not found");
+            }
+
+            return { data: currentOrgDetails };
+          }
+
+          // Ensure update data is a valid object
           const updatedOrganization = await prisma.organization.update({
             where: {
               id: orgContext.id,
             },
-            data: updateData,
+            data: cleanUpdateData,
             include: {
               plan: true,
               members: {
