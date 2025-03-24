@@ -144,9 +144,6 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
             }
           },
           showOnlyWhenEditable: true,
-          includeChildren: false,
-          emptyEditorClass: "is-editor-empty",
-          emptyNodeClass: "is-empty",
         }),
         CharacterCount.configure({
           limit: maxLength,
@@ -647,46 +644,28 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
                 "[&_h1]:leading-8",
                 "[&_h2]:leading-7",
                 "[&_h3]:leading-6",
-                // Modified placeholder styles for better cursor positioning
+                // Placeholder styles (kept distinct)
                 "[&_.ProseMirror_p.is-empty::before]:content-[attr(data-placeholder)]",
                 "[&_.ProseMirror_p.is-empty::before]:text-gray-500",
                 "[&_.ProseMirror_p.is-empty::before]:dark:text-gray-400",
-                "[&_.ProseMirror_p.is-empty::before]:absolute", // Change from float to absolute
+                "[&_.ProseMirror_p.is-empty::before]:float-left",
                 "[&_.ProseMirror_p.is-empty::before]:pointer-events-none",
-                "[&_.ProseMirror_p.is-empty::before]:opacity-80", // Add opacity for better UX
-                "[&_.ProseMirror_p.is-empty]:relative", // Add relative to parent for absolute positioning
-                "[&_.ProseMirror_p.is-empty]:min-h-[1.5em]", // Ensure empty paragraphs have height
-
+                "[&_.ProseMirror_p.is-empty::before]:h-0",
                 "[&_.ProseMirror_h1.is-empty::before]:content-[attr(data-placeholder)]",
                 "[&_.ProseMirror_h1.is-empty::before]:text-gray-500",
                 "[&_.ProseMirror_h1.is-empty::before]:dark:text-gray-400",
-                "[&_.ProseMirror_h1.is-empty::before]:absolute", // Change from float to absolute
+                "[&_.ProseMirror_h1.is-empty::before]:float-left",
                 "[&_.ProseMirror_h1.is-empty::before]:pointer-events-none",
-                "[&_.ProseMirror_h1.is-empty::before]:opacity-80", // Add opacity for better UX
-                "[&_.ProseMirror_h1.is-empty]:relative", // Add relative to parent for absolute positioning
-                "[&_.ProseMirror_h1.is-empty]:min-h-[1.5em]", // Ensure empty headings have height
-
                 "[&_.ProseMirror_h2.is-empty::before]:content-[attr(data-placeholder)]",
                 "[&_.ProseMirror_h2.is-empty::before]:text-gray-500",
                 "[&_.ProseMirror_h2.is-empty::before]:dark:text-gray-400",
-                "[&_.ProseMirror_h2.is-empty::before]:absolute", // Change from float to absolute
+                "[&_.ProseMirror_h2.is-empty::before]:float-left",
                 "[&_.ProseMirror_h2.is-empty::before]:pointer-events-none",
-                "[&_.ProseMirror_h2.is-empty::before]:opacity-80", // Add opacity for better UX
-                "[&_.ProseMirror_h2.is-empty]:relative", // Add relative to parent for absolute positioning
-                "[&_.ProseMirror_h2.is-empty]:min-h-[1.5em]", // Ensure empty headings have height
-
                 "[&_.ProseMirror_h3.is-empty::before]:content-[attr(data-placeholder)]",
                 "[&_.ProseMirror_h3.is-empty::before]:text-gray-500",
                 "[&_.ProseMirror_h3.is-empty::before]:dark:text-gray-400",
-                "[&_.ProseMirror_h3.is-empty::before]:absolute", // Change from float to absolute
+                "[&_.ProseMirror_h3.is-empty::before]:float-left",
                 "[&_.ProseMirror_h3.is-empty::before]:pointer-events-none",
-                "[&_.ProseMirror_h3.is-empty::before]:opacity-80", // Add opacity for better UX
-                "[&_.ProseMirror_h3.is-empty]:relative", // Add relative to parent for absolute positioning
-                "[&_.ProseMirror_h3.is-empty]:min-h-[1.5em]", // Ensure empty headings have height
-
-                // Specific styles for editor when completely empty
-                "[&_.ProseMirror.is-editor-empty]:min-h-[120px]",
-                "[&_.ProseMirror.is-editor-empty_p]:min-h-[1.5em]", // Ensure empty paragraphs have min height
               )}
             />
           </div>

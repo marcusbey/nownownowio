@@ -7,6 +7,11 @@ import {
 } from "@/components/composite/dropdown-menu";
 import { Button } from "@/components/core/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/data-display/tooltip";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -22,6 +27,19 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark, Heart, MoreHorizontal, Pin, Trash2 } from "lucide-react";
 import { useState } from "react";
+
+// Define types for post feed data structure
+type PostFeedData = {
+  [key: string]: unknown;
+  pages: {
+    [key: string]: unknown;
+    posts: {
+      id: string;
+      bookmarks?: { userId: string }[];
+      [key: string]: unknown;
+    }[];
+  }[];
+};
 
 type LikeButtonProps = {
   postId: string;
@@ -75,7 +93,7 @@ type BookmarkButtonProps = {
     isBookmarkedByUser: boolean;
   };
   onBookmark?: (postId: string) => void;
-  className?: string;
+  size?: "default" | "icon";
 };
 
 // Bookmark Button Component
@@ -83,130 +101,189 @@ export function BookmarkButton({
   postId,
   initialState = { isBookmarkedByUser: false },
   onBookmark,
-  className,
+  size = "default",
 }: BookmarkButtonProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const queryKey = ["bookmark-info", postId];
 
   // Get the current bookmark status
-  const { data } = useQuery({
-    queryKey,
-    queryFn: async () => {
-      try {
-        // Use a simple timeout option instead of AbortController to avoid signal abort errors
-        const response = await kyInstance
-          .get(`/api/v1/posts/${postId}/bookmark`, {
-            retry: { limit: 1, methods: ['get'] },
-            timeout: 3000, // Reduced timeout to 3 seconds
-            headers: {
-              'Cache-Control': 'no-cache' // Prevent caching issues
-            }
-          })
-          .json<{ isBookmarkedByUser: boolean }>();
-        return response;
-      } catch (_error) {
-        // Silently handle errors without console logging to avoid console spam
-        // Return the initial state instead of throwing an error
-        return { isBookmarkedByUser: initialState.isBookmarkedByUser };
-      }
-    },
-    initialData: { isBookmarkedByUser: initialState.isBookmarkedByUser },
-    // Add additional query options for better error handling
-    retry: false, // Disable retries at the React Query level
-    staleTime: 30000, // Keep data fresh for 30 seconds
-    refetchOnMount: true,
-    refetchOnWindowFocus: false, // Prevent refetching when window regains focus
-  });
+  const { data = { isBookmarkedByUser: initialState.isBookmarkedByUser } } =
+    useQuery({
+      queryKey,
+      queryFn: async () => {
+        try {
+          return await kyInstance
+            .get(`/api/v1/posts/${postId}/bookmark`, {
+              timeout: 3000,
+              retry: 1,
+            })
+            .json<{ isBookmarkedByUser: boolean }>();
+        } catch (error) {
+          console.error("Error fetching bookmark status:", error);
+          return { isBookmarkedByUser: initialState.isBookmarkedByUser };
+        }
+      },
+      initialData: { isBookmarkedByUser: initialState.isBookmarkedByUser },
+      staleTime: 60 * 1000, // 1 minute
+      gcTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    });
 
   // Handle bookmark toggle with API call
   const { mutate: toggleBookmark } = useMutation({
     mutationFn: async () => {
-      // Ensure data exists with default fallback
-      const bookmarkStatus = data?.isBookmarkedByUser ?? false;
-      
+      const bookmarkStatus = data.isBookmarkedByUser;
+
       try {
         if (bookmarkStatus) {
-          // Use timeout option instead of AbortController
+          // If already bookmarked, remove bookmark
           await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`, {
-            retry: { limit: 2, methods: ['delete'] },
-            timeout: 5000 // 5 second timeout
+            timeout: 5000,
+            retry: 1,
           });
           return { isBookmarkedByUser: false };
         } else {
+          // If not bookmarked, add bookmark
           await kyInstance.post(`/api/v1/posts/${postId}/bookmark`, {
-            retry: { limit: 2, methods: ['post'] },
-            timeout: 5000 // 5 second timeout
+            timeout: 5000,
+            retry: 1,
           });
           return { isBookmarkedByUser: true };
         }
       } catch (error) {
-        console.error('Error toggling bookmark:', error);
-        // Return the opposite of current state as fallback
-        return { isBookmarkedByUser: !bookmarkStatus };
+        console.error("Error toggling bookmark:", error);
+        throw error; // Let the error handler catch this
       }
     },
-    onMutate: async () => {
-      // Show toast message
+    onSuccess: (result) => {
+      // Show toast notification
       toast({
-        description: `Post ${data.isBookmarkedByUser ? "removed from" : "added to"} bookmarks`,
+        title: `Bookmark ${result.isBookmarkedByUser ? "Added" : "Removed"}`,
+        description: `Post ${result.isBookmarkedByUser ? "added to" : "removed from"} bookmarks`,
+        duration: 2000,
       });
 
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey });
-
-      // Save previous state
-      const previousState = queryClient.getQueryData(queryKey);
-
-      // Optimistically update to the new value
-      queryClient.setQueryData(queryKey, {
-        isBookmarkedByUser: !data.isBookmarkedByUser,
-      });
-
+      // Call the onBookmark callback if provided
       if (onBookmark) {
         onBookmark(postId);
       }
-
-      return { previousState };
     },
-    onSuccess: (result) => {
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData<{
+        isBookmarkedByUser: boolean;
+      }>(queryKey);
+
+      // Optimistically update the bookmark status
+      queryClient.setQueryData<{ isBookmarkedByUser: boolean }>(
+        queryKey,
+        (old) => ({
+          isBookmarkedByUser: !old?.isBookmarkedByUser,
+        }),
+      );
+
+      // Also update any post feeds that contain this post
+      queryClient.setQueriesData<PostFeedData | undefined>(
+        { queryKey: ["post-feed"] },
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          // This works for the infinite query data structure
+          if (oldData.pages) {
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page) => ({
+                ...page,
+                posts: page.posts.map((post) => {
+                  if (post.id === postId) {
+                    // Update the bookmarks array optimistically
+                    const currentBookmarked = previousData?.isBookmarkedByUser;
+
+                    if (currentBookmarked) {
+                      // Remove the bookmark
+                      return {
+                        ...post,
+                        bookmarks: (post.bookmarks ?? []).filter(
+                          (b) => b.userId !== "current-user",
+                        ),
+                      };
+                    } else {
+                      // Add the bookmark
+                      return {
+                        ...post,
+                        bookmarks: [
+                          ...(post.bookmarks ?? []),
+                          { userId: "current-user" },
+                        ],
+                      };
+                    }
+                  }
+                  return post;
+                }),
+              })),
+            };
+          }
+
+          return oldData;
+        },
+      );
+
+      return { previousData };
+    },
+    onError: (error, _, context) => {
+      // Revert to the previous value if mutation fails
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+
+      console.error("Bookmark error:", error);
+
+      toast({
+        title: "Error",
+        description: "Failed to update bookmark. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
       // Update the bookmark info cache with the result
-      queryClient.setQueryData(queryKey, result);
+      void queryClient.invalidateQueries({ queryKey });
 
       // Invalidate related queries to ensure bookmarks page is updated
       void queryClient.invalidateQueries({
         queryKey: ["post-feed", "bookmarks"],
       });
     },
-    onError: (error, variables, context) => {
-      // Revert to previous state on error
-      queryClient.setQueryData(queryKey, context?.previousState);
-      console.error("Bookmark error:", error);
-      toast({
-        variant: "destructive",
-        description: "Failed to update bookmark. Please try again.",
-      });
-    },
   });
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className={cn(
-        "flex items-center gap-2 hover:text-primary",
-        data.isBookmarkedByUser && "text-primary",
-        className,
-      )}
-      onClick={() => {
-        toggleBookmark();
-      }}
-    >
-      <Bookmark
-        className={cn("h-4 w-4", data.isBookmarkedByUser && "fill-current")}
-      />
-      <span className="text-sm">Save</span>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size={size}
+          className={cn(
+            "gap-1.5",
+            data.isBookmarkedByUser && "text-primary",
+            size === "icon" && "h-8 w-8",
+          )}
+          onClick={() => toggleBookmark()}
+        >
+          <Bookmark
+            className={cn("h-4 w-4", data.isBookmarkedByUser && "fill-current")}
+          />
+          {size !== "icon" && (
+            <span className="text-xs font-medium">Bookmark</span>
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {data.isBookmarkedByUser ? "Remove bookmark" : "Add bookmark"}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

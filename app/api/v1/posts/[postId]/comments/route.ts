@@ -1,8 +1,8 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import type { CommentsPage} from "@/lib/types";
+import type { CommentsPage } from "@/lib/types";
 import { getCommentDataInclude } from "@/lib/types";
-import type { NextRequest} from "next/server";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 export async function GET(
@@ -63,6 +63,7 @@ export async function POST(
       );
     }
 
+    // Create comment
     const comment = await prisma.comment.create({
       data: {
         content: content.trim(),
@@ -71,6 +72,24 @@ export async function POST(
       },
       include: getCommentDataInclude(user.id),
     });
+
+    // Get post owner to create notification
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { userId: true }
+    });
+
+    // Create notification for post owner (if not the same as commenter)
+    if (post && post.userId !== user.id) {
+      await prisma.notification.create({
+        data: {
+          type: "COMMENT",
+          issuerId: user.id,
+          recipientId: post.userId,
+          postId,
+        }
+      });
+    }
 
     return NextResponse.json(comment);
   } catch (error) {

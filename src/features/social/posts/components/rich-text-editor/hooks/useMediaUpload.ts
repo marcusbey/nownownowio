@@ -1,9 +1,8 @@
-import { useCallback, useState } from "react";
-import { useToast } from "@/components/feedback/use-toast";
-import type React from "react";
+import { useUploadThing } from "@/lib/uploadthing-client";
 import type { Editor } from "@tiptap/react";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import type { MediaFile } from "../types";
-import { MAX_MEDIA_FILES } from "../constants";
 
 type UseMediaUploadOptions = {
   onMediaSelect?: (files: File[]) => void;
@@ -36,94 +35,124 @@ export function useMediaUpload({
   onMediaSelect,
   editor,
 }: UseMediaUploadOptions): UseMediaUploadReturn {
-  const { toast } = useToast();
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [mediaType, setMediaType] = useState<"image" | "video" | "audio">("image");
   const [mediaTab, setMediaTab] = useState<"upload" | "embed">("upload");
   const [isUploading, setIsUploading] = useState(false);
   const [embedUrl, setEmbedUrl] = useState("");
   const [showMediaPrompt, setShowMediaPrompt] = useState(false);
+  const [uploadInProgress, setUploadInProgress] = useState(false);
+  const [uploadAttempts, setUploadAttempts] = useState(0);
+
+  // Initialize UploadThing
+  const { startUpload, isUploading: isUploadingFile } = useUploadThing("postMedia", {
+    onClientUploadComplete: (res) => {
+      if (!res[0]) return;
+
+      // Update the media file with the uploaded URL
+      setMediaFiles((prev) =>
+        prev.map((file, index) => {
+          if (index === 0) { // Update only the first file as UploadThing processes one at a time
+            return {
+              ...file,
+              previewUrl: res[0].url,
+              uploading: false,
+              progress: 100
+            };
+          }
+          return file;
+        })
+      );
+
+      setUploadInProgress(false);
+      setUploadAttempts(0);
+    },
+    onUploadError: (error) => {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload media. Please try again.");
+      setUploadInProgress(false);
+
+      // Increment upload attempts
+      setUploadAttempts((prev) => prev + 1);
+
+      // If we've tried 3 times, show a different error
+      if (uploadAttempts >= 2) {
+        toast.error("Multiple upload attempts failed. Please try again later.");
+        resetMediaState();
+      }
+    },
+    onUploadProgress: (progress) => {
+      // Update progress for the current file
+      setMediaFiles((prev) =>
+        prev.map((file, index) => {
+          if (index === 0) { // Update only the first file
+            return {
+              ...file,
+              progress: progress
+            };
+          }
+          return file;
+        })
+      );
+    },
+  });
 
   /**
-   * Handle file drop for media uploads
+   * Handle file drop for media uploads with better de-duplication
    */
   const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
-      // Check if adding these files would exceed the limit
-      if (mediaFiles.length + acceptedFiles.length > MAX_MEDIA_FILES) {
-        toast({
-          title: "Too many files",
-          description: `You can only upload up to ${MAX_MEDIA_FILES} files per post`,
-          variant: "destructive",
-        });
+    async (acceptedFiles: File[]) => {
+      // Validate file types
+      const validFiles = acceptedFiles.filter((file) => {
+        const isImage = file.type.startsWith("image/");
+        const isVideo = file.type.startsWith("video/");
+        const isAudio = file.type.startsWith("audio/");
+
+        // Check if file type matches selected media type
+        switch (mediaType) {
+          case "image":
+            return isImage;
+          case "video":
+            return isVideo;
+          case "audio":
+            return isAudio;
+          default:
+            return false;
+        }
+      });
+
+      if (validFiles.length === 0) {
+        toast.error(`Please select valid ${mediaType} files. The selected files do not match the required format.`);
         return;
       }
 
-      // Process each file
-      const newMediaFiles = acceptedFiles
-        .filter((file) => {
-          const isImage = file.type.startsWith("image/");
-          const isVideo = file.type.startsWith("video/");
-          const isAudio = file.type.startsWith("audio/");
+      // Create preview URLs and add files to state
+      const newMediaFiles = validFiles.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        type: mediaType,
+        uploading: true,
+        progress: 0,
+      }));
 
-          // Only accept files that match the current media type
-          if (mediaType === "image" && !isImage) {
-            toast({
-              title: "Unsupported file type",
-              description: "Only image files are supported for this upload",
-              variant: "destructive",
-            });
-            return false;
-          } else if (mediaType === "video" && !isVideo) {
-            toast({
-              title: "Unsupported file type",
-              description: "Only video files are supported for this upload",
-              variant: "destructive",
-            });
-            return false;
-          } else if (mediaType === "audio" && !isAudio) {
-            toast({
-              title: "Unsupported file type",
-              description: "Only audio files are supported for this upload",
-              variant: "destructive",
-            });
-            return false;
-          }
+      setMediaFiles((prev) => [...prev, ...newMediaFiles]);
 
-          // Check file size
-          const maxSize = 10 * 1024 * 1024; // 10MB
-          if (file.size > maxSize) {
-            toast({
-              title: "File too large",
-              description: "Files must be less than 10MB",
-              variant: "destructive",
-            });
-            return false;
-          }
+      // Start uploading files
+      setUploadInProgress(true);
+      try {
+        await startUpload(validFiles);
+      } catch (error) {
+        console.error("Error starting upload:", error);
+        toast.error("Failed to start upload. Please try again.");
+        setUploadInProgress(false);
+      }
 
-          return true;
-        })
-        .map((file) => {
-          const isImage = file.type.startsWith("image/");
-          const isVideo = file.type.startsWith("video/");
-
-          return {
-            file,
-            previewUrl: URL.createObjectURL(file),
-            type: isImage ? "image" : isVideo ? "video" : "audio",
-            uploading: false,
-            progress: 0,
-          } as MediaFile;
-        });
-
-      if (newMediaFiles.length > 0) {
-        setMediaFiles((prev) => [...prev, ...newMediaFiles]);
-        if (onMediaSelect) {
-          onMediaSelect(newMediaFiles.map((media) => media.file));
-        }
+      // Call onMediaSelect if provided
+      if (onMediaSelect) {
+        onMediaSelect(validFiles);
       }
     },
-    [mediaFiles, mediaType, onMediaSelect, toast]
+    [mediaType, onMediaSelect, startUpload],
   );
 
   /**
@@ -133,7 +162,7 @@ export function useMediaUpload({
     (index: number) => {
       setMediaFiles((prev) => {
         const newFiles = [...prev];
-        // Revoke the object URL to prevent memory leaks
+        // Revoke object URL to prevent memory leaks
         URL.revokeObjectURL(newFiles[index].previewUrl);
         newFiles.splice(index, 1);
         return newFiles;
@@ -146,75 +175,60 @@ export function useMediaUpload({
    * Insert media into the editor
    */
   const insertMediaToEditor = useCallback(
-    (src: string, type: "image" | "video" | "audio") => {
-      if (!editor?.isEditable) return;
+    (url: string, type: "image" | "video" | "audio" = "image") => {
+      if (!editor || !url) return;
 
-      // We've already checked that editor exists and is editable above
-      // TypeScript needs assurance that editor is not null here
-      const safeEditor = editor as Editor;
-      
-      // Insert at current cursor position
-      safeEditor.commands.focus();
+      try {
+        // Focus the editor
+        editor.commands.focus();
 
-      if (type === "image") {
+        // Process the URL to ensure it works with our media proxy
+        const processedUrl = url.includes("/api/v1/media-proxy")
+          ? url
+          : `/api/v1/media-proxy?url=${encodeURIComponent(url)}&t=${Date.now()}`;
+
+        // Insert the media node
         editor.commands.insertContent({
           type: "mediaNode",
           attrs: {
-            src,
-            alt: "Uploaded image",
-            type: "image",
+            src: processedUrl,
+            alt: type === "image" ? "User uploaded media" : undefined,
+            type,
           },
         });
-      } else if (type === "video") {
-        editor.commands.insertContent({
-          type: "mediaNode",
-          attrs: {
-            src,
-            alt: "Uploaded video",
-            type: "video",
-          },
-        });
-      } else {
-        // This is the audio case
-        editor.commands.insertContent({
-          type: "mediaNode",
-          attrs: {
-            src,
-            alt: "Uploaded audio",
-            type: "audio",
-          },
-        });
-      }
 
-      // Add a paragraph after the media if we're at the end of the document
-      const { state } = editor;
-      const { $anchor } = state.selection;
-      const isAtEnd = $anchor.pos === state.doc.content.size;
-
-      if (isAtEnd) {
+        // Insert a paragraph after the media
         editor.commands.insertContent("<p></p>");
+
+        // Place cursor at the end
+        editor.commands.focus("end");
+      } catch (error) {
+        console.error("Error inserting media:", error);
+        toast.error("Failed to insert media. There was an error adding the media to the editor.");
       }
     },
-    [editor]
+    [editor],
   );
 
   /**
-   * Reset media state
+   * Reset all media state
    */
   const resetMediaState = useCallback(() => {
     // Clean up object URLs to prevent memory leaks
     mediaFiles.forEach((media) => {
       URL.revokeObjectURL(media.previewUrl);
     });
-    
+
     setMediaFiles([]);
     setEmbedUrl("");
     setIsUploading(false);
-    setShowMediaPrompt(false); // Close the media prompt
+    setShowMediaPrompt(false);
+    setUploadInProgress(false);
+    setUploadAttempts(0);
   }, [mediaFiles]);
-  
+
   /**
-   * Cancel media selection
+   * Cancel media selection and clean up resources
    */
   const cancelMediaSelection = useCallback(() => {
     resetMediaState();
@@ -225,24 +239,43 @@ export function useMediaUpload({
    */
   const confirmMediaSelection = useCallback(() => {
     if (mediaTab === "upload") {
-      // Insert all uploaded media files
+      if (mediaFiles.length === 0) return;
+
+      // Check if any files are still uploading
+      const hasUploadingFiles = mediaFiles.some(file => file.uploading);
+      if (hasUploadingFiles) {
+        toast.error("Please wait for all files to finish uploading.");
+        return;
+      }
+
+      // Insert each media file
       mediaFiles.forEach((media) => {
         insertMediaToEditor(media.previewUrl, media.type);
       });
     } else if (embedUrl.trim()) {
-      // Insert embed URL (this is the embed case)
+      // Insert embed URL
       insertMediaToEditor(embedUrl.trim(), mediaType);
     }
 
-    // Reset state
+    // Clean up
+    mediaFiles.forEach((media) => {
+      URL.revokeObjectURL(media.previewUrl);
+    });
     resetMediaState();
-  }, [mediaTab, mediaFiles, embedUrl, mediaType, insertMediaToEditor, resetMediaState]);
+  }, [
+    mediaTab,
+    mediaFiles,
+    embedUrl,
+    mediaType,
+    insertMediaToEditor,
+    resetMediaState,
+  ]);
 
   return {
     mediaFiles,
     mediaType,
     mediaTab,
-    isUploading,
+    isUploading: isUploadingFile || uploadInProgress,
     embedUrl,
     showMediaPrompt,
     setShowMediaPrompt,

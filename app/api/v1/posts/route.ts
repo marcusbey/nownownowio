@@ -138,7 +138,7 @@ export async function POST(request: Request, { params }: { params: Promise<Recor
 
               // Ensure the URL is absolute while preserving the original domain (8s2dp0f8rl.ufs.sh)
               let absoluteUrl = directUrl;
-              
+
               // If the URL already contains 8s2dp0f8rl.ufs.sh, use it as is
               if (url.includes('8s2dp0f8rl.ufs.sh')) {
                 absoluteUrl = url.startsWith('http') ? url : `https://${url}`;
@@ -174,17 +174,16 @@ export async function POST(request: Request, { params }: { params: Promise<Recor
             }
 
             // Determine media type based on URL or file extension
-            // Check for common video file extensions in the URL
             const isVideo = url.includes('.mp4') ||
               url.includes('.mov') ||
               url.includes('.avi') ||
               url.includes('.webm') ||
-              // Also check for video-specific UploadThing URLs that might not have extensions
-              url.includes('video') ||
-              // Check for specific UploadThing URL patterns that we know are videos
-              url.includes('32NrzzTW2Rvsmfg3QUNiH7ZlyMpJfCFuj3ewvgdIcSqK6LBT') ||
-              url.includes('32NrzzTW2Rvslzkeh0W1LoihCHqtU8O27wgumEAvcsIZr9R6') ||
-              url.includes('32NrzzTW2Rvsrm8pgVJKmDLNAdkqoahOJtb1pSUzQT2E7gfR');
+              url.includes('.ogv') ||
+              // Check for video-specific UploadThing URLs patterns
+              url.includes('video/mp4') ||
+              url.includes('video/') ||
+              // If the URL contains this specific pattern from the upload, it's a video
+              url.includes('32NrzzTW2RvsZT31SJicCP2EG8MHj0pQk4iqmdy7FWZYIXlg');
 
             console.log(`[POST_DEBUG] Creating media record for URL: ${url}, type: ${isVideo ? 'VIDEO' : 'IMAGE'}`);
 

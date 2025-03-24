@@ -1,50 +1,68 @@
 import { validateRequest } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
 import type { PostsPage } from "@/lib/types";
-import { getPostDataInclude } from "@/lib/types";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
-    const cursor = req.nextUrl.searchParams.get("cursor") || undefined;
-
-    const pageSize = 10;
-
     const { user } = await validateRequest();
 
     if (!user) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const cursor = req.nextUrl.searchParams.get("cursor") ?? undefined;
+    const pageSize = 20; // Increased page size to show more bookmarks
+
+    // Get bookmarks for the current user with pagination
     const bookmarks = await prisma.bookmark.findMany({
       where: {
         userId: user.id,
       },
       include: {
         post: {
-          include: getPostDataInclude(user.id),
+          include: {
+            user: true,
+            media: true,
+            likes: true,
+            bookmarks: true,
+            comments: true,
+            _count: {
+              select: {
+                likes: true,
+                comments: true,
+                bookmarks: true,
+                views: true,
+              },
+            },
+          },
         },
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "desc", // Show newest bookmarks first
       },
-      take: pageSize + 1,
+      take: pageSize + 1, // Take one extra to determine if there's more
       cursor: cursor ? { id: cursor } : undefined,
     });
 
+    // Check if there are more results
     const nextCursor =
       bookmarks.length > pageSize ? bookmarks[pageSize].id : null;
 
-    const data: PostsPage = {
+    // Map the data to the expected format
+    const postsPage: PostsPage = {
       posts: bookmarks.slice(0, pageSize).map((bookmark) => bookmark.post),
       nextCursor,
     };
 
-    return Response.json(data);
+    return NextResponse.json(postsPage);
   } catch (error) {
-    // Safely log the error
     console.error("Error in bookmarked posts:", error instanceof Error ? error.message : String(error));
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch bookmarked posts" },
+      { status: 500 }
+    );
   }
 }

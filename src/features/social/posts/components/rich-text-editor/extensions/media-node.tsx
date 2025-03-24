@@ -1,16 +1,59 @@
 import { mergeAttributes, Node } from "@tiptap/core";
-import { ReactNodeViewRenderer, NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
-import { FilmIcon, Volume2 } from "lucide-react";
+import {
+  NodeViewWrapper,
+  ReactNodeViewRenderer,
+  type NodeViewProps,
+} from "@tiptap/react";
+import { FilmIcon, Loader2, Volume2 } from "lucide-react";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
+
+// Helper function to process media URL
+function processMediaUrl(url: string, type: string): string {
+  if (!url) return url;
+
+  // If it's already a proxied URL, return as is but add a fresh timestamp
+  if (url.includes("/api/v1/media-proxy")) {
+    // Remove any existing timestamp and add a fresh one
+    const baseUrl = url.split("&t=")[0];
+    return `${baseUrl}&t=${Date.now()}`;
+  }
+
+  // For videos, always use the media proxy
+  if (type === "video") {
+    return `/api/v1/media-proxy?url=${encodeURIComponent(url)}&t=${Date.now()}`;
+  }
+
+  // For other media types, use the original URL
+  return url;
+}
 
 // React component for rendering the media node
 const MediaNodeView: React.FC<NodeViewProps> = (props) => {
-  // Cast the node attrs to the expected type
-  const { src, alt, type } = props.node.attrs as { 
-    src: string; 
-    alt?: string; 
-    type: "image" | "video" | "audio" 
+  const { src, alt, type } = props.node.attrs as {
+    src: string;
+    alt?: string;
+    type: "image" | "video" | "audio";
+  };
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [processedSrc, setProcessedSrc] = useState(src);
+
+  useEffect(() => {
+    // Process the URL based on media type
+    setProcessedSrc(processMediaUrl(src, type));
+  }, [src, type]);
+
+  const handleLoad = () => {
+    setIsLoading(false);
+    setHasError(false);
+  };
+
+  const handleError = () => {
+    setIsLoading(false);
+    setHasError(true);
+    console.error(`Failed to load ${type}:`, processedSrc);
   };
 
   return (
@@ -23,24 +66,33 @@ const MediaNodeView: React.FC<NodeViewProps> = (props) => {
       {type === "image" ? (
         <div className="relative size-full">
           <Image
-            src={src}
+            src={processedSrc}
             alt={alt || ""}
             fill
             className="object-cover"
             draggable={false}
+            onLoad={handleLoad}
+            onError={handleError}
           />
         </div>
       ) : type === "video" ? (
         <div className="relative size-full">
           <video
-            src={src}
+            src={processedSrc}
             className="size-full object-cover"
             controls
             draggable={false}
-          />
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0">
-            <FilmIcon className="size-8 text-white opacity-70" />
-          </div>
+            onLoadedData={handleLoad}
+            onError={handleError}
+            crossOrigin="anonymous"
+          >
+            Your browser does not support video playback.
+          </video>
+          {!hasError && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <FilmIcon className="size-8 text-white opacity-70" />
+            </div>
+          )}
         </div>
       ) : (
         <div className="relative flex w-full items-center rounded-md bg-gray-100 p-4 dark:bg-gray-800">
@@ -48,25 +100,41 @@ const MediaNodeView: React.FC<NodeViewProps> = (props) => {
             <Volume2 className="size-6 text-primary" />
           </div>
           <audio
-            src={src}
+            src={processedSrc}
             className="w-full"
             controls
             draggable={false}
+            onLoadedData={handleLoad}
+            onError={handleError}
+            crossOrigin="anonymous"
           />
+        </div>
+      )}
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-destructive/10">
+          <div className="text-sm text-destructive">Failed to load {type}</div>
         </div>
       )}
     </NodeViewWrapper>
   );
 };
 
-// Define the Media extension
-export const MediaNode = Node.create({
+// Create the extension
+export default Node.create({
   name: "mediaNode",
   group: "block",
-  selectable: true,
+  atom: true,
   draggable: true,
-  
-  // Define the attributes for the media node
+
   addAttributes() {
     return {
       src: {
@@ -75,87 +143,31 @@ export const MediaNode = Node.create({
       alt: {
         default: null,
       },
+      title: {
+        default: null,
+      },
       type: {
         default: "image",
-        parseHTML: (element) => {
-          return element.getAttribute("data-type") || "image";
-        },
       },
     };
   },
 
-  // Define how the node should be parsed from HTML
   parseHTML() {
     return [
       {
-        tag: 'div[data-type="image"]',
-        getAttrs: (el) => {
-          if (typeof el === "string" || !(el instanceof HTMLElement)) return {};
-          
-          const img = el.querySelector("img");
-          return {
-            src: img?.getAttribute("src"),
-            alt: img?.getAttribute("alt"),
-            type: "image",
-          };
-        },
-      },
-      {
-        tag: 'div[data-type="video"]',
-        getAttrs: (el) => {
-          if (typeof el === "string" || !(el instanceof HTMLElement)) return {};
-          
-          const video = el.querySelector("video");
-          return {
-            src: video?.getAttribute("src"),
-            type: "video",
-          };
-        },
-      },
-      {
-        tag: 'div[data-type="audio"]',
-        getAttrs: (el) => {
-          if (typeof el === "string" || !(el instanceof HTMLElement)) return {};
-          
-          const audio = el.querySelector("audio");
-          return {
-            src: audio?.getAttribute("src"),
-            type: "audio",
-          };
-        },
+        tag: "div[data-type=mediaNode]",
       },
     ];
   },
 
-  // Define how the node should be rendered to HTML
   renderHTML({ HTMLAttributes }) {
-    const { type } = HTMLAttributes;
-    
-    if (type === "video") {
-      return [
-        "div",
-        { "data-type": "video", class: "media-node" },
-        ["video", { src: HTMLAttributes.src, controls: "true" }],
-      ];
-    } else if (type === "audio") {
-      return [
-        "div",
-        { "data-type": "audio", class: "media-node" },
-        ["audio", { src: HTMLAttributes.src, controls: "true" }],
-      ];
-    }
-    
     return [
       "div",
-      { "data-type": "image", class: "media-node" },
-      ["img", mergeAttributes({ src: HTMLAttributes.src, alt: HTMLAttributes.alt || "" })],
+      mergeAttributes(HTMLAttributes, { "data-type": "mediaNode" }),
     ];
   },
 
-  // Use React to render the node
   addNodeView() {
     return ReactNodeViewRenderer(MediaNodeView);
   },
 });
-
-export default MediaNode;

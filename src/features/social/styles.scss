@@ -9,3 +9,82 @@
 .tiptap.ProseMirror {
   outline: none;
 }
+
+/* Media nodes styling */
+.tiptap .media-wrapper {
+  margin: 1em 0;
+  position: relative;
+}
+
+.tiptap .media-wrapper.selected {
+  box-shadow: 0 0 0 3px theme("colors.blue.500");
+  border-radius: 4px;
+}
+
+.tiptap .image-wrapper img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 4px;
+}
+
+.tiptap .video-wrapper video {
+  width: 100%;
+  max-height: 400px;
+  display: block;
+  border-radius: 4px;
+}
+
+.tiptap .audio-wrapper audio {
+  width: 100%;
+  display: block;
+  margin: 0.5em 0;
+}
+
+/* Loading and error states for media */
+.tiptap .media-loading,
+.tiptap .media-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: theme("colors.gray.800");
+  color: theme("colors.gray.200");
+  border-radius: 4px;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.tiptap .media-error {
+  background-color: theme("colors.red.900");
+  color: theme("colors.red.200");
+}
+
+/* Add a subtle border around media elements for better visibility */
+.tiptap .media-wrapper img,
+.tiptap .media-wrapper video,
+.tiptap .media-wrapper audio {
+  border: 1px solid theme("colors.gray.700");
+}
+
+/* Fix headings placeholders */
+.tiptap h1.is-empty::before,
+.tiptap h2.is-empty::before,
+.tiptap h3.is-empty::before {
+  color: theme("colors.muted.foreground");
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Fix cursor position in placeholders */
+.tiptap .ProseMirror p.is-empty::before,
+.tiptap .ProseMirror h1.is-empty::before,
+.tiptap .ProseMirror h2.is-empty::before,
+.tiptap .ProseMirror h3.is-empty::before {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
