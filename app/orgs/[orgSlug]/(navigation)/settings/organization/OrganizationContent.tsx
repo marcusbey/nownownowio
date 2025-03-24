@@ -25,17 +25,17 @@ type OrganizationWithPlan = {
   websiteUrl: string | null;
   slug: string;
   stripeCustomerId: string | null;
-  plan: {
+  plan?: {
     id: string;
-    createdAt: Date;
-    name: string;
-    updatedAt: Date;
+    createdAt?: Date;
+    name?: string;
+    updatedAt?: Date;
     type: string;
-    maximumMembers: number;
-  };
+    maximumMembers?: number;
+  } | null;
   members: {
     roles: OrganizationMembershipRole[];
-    user: User;
+    user?: User;
   }[];
   planChangedAt?: Date | null;
 };
@@ -61,8 +61,8 @@ export function OrganizationContent({
 
   // Extract the plan details from the organization plan object
   // Note: The plan object structure is different from settings-plan-content.tsx
-  const planId = organization.plan.id || "";
-  const planType = organization.plan.type || "";
+  const planId = organization.plan?.id ?? "";
+  const planType = organization.plan?.type ?? "";
 
   // Log plan details for debugging
   console.log("📊 OrganizationContent - Plan details:", {
@@ -78,13 +78,20 @@ export function OrganizationContent({
   // 2. Check if the plan type equals 'PRO'
   // 3. Check if plan type contains 'PRO' as a fallback
   const isPro =
-    (planId && planId.toUpperCase().includes("PRO")) ||
-    (planType && planType.toUpperCase() === PLAN_TYPES.PRO) ||
-    (planType && planType.toUpperCase().includes("PRO")) ||
-    organization.planChangedAt !== null; // If planChangedAt is set, this indicates a paid plan
+    planId.toUpperCase().includes("PRO") ||
+    planType.toUpperCase() === PLAN_TYPES.PRO ||
+    planType.toUpperCase().includes("PRO") ||
+    (organization.planChangedAt !== null &&
+      organization.planChangedAt !== undefined); // If planChangedAt is set, this indicates a paid plan
 
-  // Allow creating new organizations for PRO users
-  const canCreateNewOrg = isPro;
+  // For BASIC plans, also treat them as Pro for UI purposes
+  // This allows creating new organization for any paid plan
+  const isBasic =
+    planType.toUpperCase() === PLAN_TYPES.BASIC ||
+    planId.toUpperCase().includes("BASIC");
+
+  // Allow creating new organizations for PRO or BASIC users
+  const canCreateNewOrg = isPro || isBasic;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
@@ -115,8 +122,8 @@ export function OrganizationContent({
     slug: organization.slug,
     organizationKeys: Object.keys(organization),
     planInfo: {
-      id: organization.plan.id,
-      type: organization.plan.type,
+      id: organization.plan?.id,
+      type: organization.plan?.type,
     },
   });
 
@@ -170,9 +177,9 @@ export function OrganizationContent({
           <div className="space-y-1">
             <div>Organization ID: {organization.id}</div>
             <div>Organization Name: {organization.name}</div>
-            <div>Plan ID: {organization.plan.id || "Not set"}</div>
-            <div>Plan Type: {organization.plan.type || "Not set"}</div>
-            <div>Plan Name: {organization.plan.name || "Not set"}</div>
+            <div>Plan ID: {organization.plan?.id ?? "Not set"}</div>
+            <div>Plan Type: {organization.plan?.type ?? "Not set"}</div>
+            <div>Plan Name: {organization.plan?.name ?? "Not set"}</div>
             <div>
               Plan Changed At:{" "}
               {organization.planChangedAt

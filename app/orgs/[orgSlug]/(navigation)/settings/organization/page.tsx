@@ -21,7 +21,7 @@ type OrganizationPageParams = PageParams<{
 async function getCurrentOrg(slug: string) {
   const session = await auth();
 
-  if (!session?.user?.id) {
+  if (!session?.id) {
     return null;
   }
 
@@ -30,24 +30,24 @@ async function getCurrentOrg(slug: string) {
     const organization = await prisma.organization.findUnique({
       where: { slug },
       include: {
-        memberships: {
+        members: {
           where: {
-            userId: session.user.id,
+            userId: session.id,
           },
           select: {
-            role: true,
+            roles: true,
           },
         },
       },
     });
 
-    if (!organization || organization.memberships.length === 0) {
+    if (!organization || organization.members.length === 0) {
       return null;
     }
 
     return {
       ...organization,
-      userRole: organization.memberships[0].role,
+      userRole: organization.members[0].roles,
     };
   } catch (error) {
     console.error("Error getting organization:", error);
