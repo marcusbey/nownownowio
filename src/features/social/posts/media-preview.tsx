@@ -134,6 +134,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     setIsLoading(false);
   };
 
+  // Handle IMAGE type
   if (media.type === "IMAGE") {
     return (
       <div
@@ -178,6 +179,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
     );
   }
 
+  // Handle VIDEO type specifically without using Next.js Image
   if (media.type === "VIDEO") {
     return (
       <div
@@ -187,7 +189,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
         )}
       >
         {mediaUrl && (
-          <div className="relative size-full group">
+          <div className="group relative size-full">
             <video
               src={mediaUrl}
               className="size-full object-contain"
@@ -207,7 +209,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2">
               <div className="size-10 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
-              <p className="text-xs font-medium text-muted-foreground animate-pulse">
+              <p className="animate-pulse text-xs font-medium text-muted-foreground">
                 Loading video...
               </p>
             </div>
@@ -216,9 +218,9 @@ export function MediaPreview({ media }: MediaPreviewProps) {
 
         {/* Error state */}
         {hasError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/90 backdrop-blur-sm p-4 text-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/90 p-4 text-center backdrop-blur-sm">
             <div className="rounded-full bg-destructive/10 p-3">
-              <span className="text-destructive text-xl">!</span>
+              <span className="text-xl text-destructive">!</span>
             </div>
             <p className="text-sm font-medium text-foreground">
               Video failed to load
