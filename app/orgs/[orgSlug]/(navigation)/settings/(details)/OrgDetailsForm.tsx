@@ -13,10 +13,10 @@ import {
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
 import { Textarea } from "@/components/core/textarea";
-import { ImageFormItem } from "@/features/ui/images/image-form-item";
+import { OrganizationImageUploader } from "@/features/ui/images/organization-image-uploader";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { updateOrganizationDetailsAction } from "../org.action";
@@ -33,78 +33,133 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
   const form = useZodForm({
     schema: OrgDetailsFormSchema,
     defaultValues,
+    mode: "onChange",
   });
+
   const router = useRouter();
   const queryClient = useQueryClient();
-  const isDirty = form.formState.isDirty;
+  const params = useParams();
+
+  // Extract organization slug from the URL parameters
+  const orgSlug = typeof params.orgSlug === "string" ? params.orgSlug : "";
+
+  // Get the form submit state
   const isPending = form.formState.isSubmitting;
-  const bioLength = form.watch("bio")?.length ?? 0;
+  const isDirty = Object.keys(form.formState.dirtyFields).length > 0;
 
-  const mutation = useMutation({
-    mutationFn: async (values: OrgDetailsFormSchemaType) => {
-      const result = await updateOrganizationDetailsAction(values);
-      return result;
-    },
-    onSuccess: (data) => {
-      if (data?.data) {
-        toast.success("Organization updated successfully");
+  // Calculate the bio length
+  const bioValue = form.watch("bio") || "";
+  const bioLength = bioValue.length;
 
-        // Create new values object from the server response
-        const newValues = {
-          name: data.data.name,
-          email: data.data.email ?? "",
-          image: data.data.image,
-          bannerImage: data.data.bannerImage,
-          bio: data.data.bio ?? "",
-          websiteUrl: data.data.websiteUrl ?? "",
-        };
-
-        // Log the values for debugging
-        console.log("Server returned values:", newValues);
-
-        // Update the form with new values
-        form.reset(newValues);
-
-        // Invalidate relevant queries to update UI without full page reload
-        queryClient
-          .invalidateQueries({ queryKey: ["organization"] })
-          .then(() => {
-            // No need to refresh the router as we've already updated the form
-          })
-          .catch((error) => {
-            console.error("Error invalidating queries:", error);
-          });
-      }
-    },
-    onError: (error) => {
-      console.error("Update failed:", error);
-      toast.error("Failed to update organization");
-    },
-  });
-
-  // Keep form in sync with defaultValues when they change
+  // Reset form when defaultValues change
   useEffect(() => {
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  // Debug the form values
-  useEffect(() => {
-    console.log("Current form values:", form.getValues());
-  }, [form]);
+  // Fix the linter error and properly extract organization data
+  const onSubmitSuccess = (data: unknown) => {
+    // Dismiss any loading toasts
+    toast.dismiss();
+
+    if (data && typeof data === "object" && "data" in data) {
+      toast.success("Organization updated successfully");
+
+      // Log the raw data for debugging
+      console.log("🔍 Raw server response:", JSON.stringify(data));
+
+      // Extract the organization data with type assertion
+      const orgData = data.data as {
+        name: string;
+        email: string | null;
+        image: string | null;
+        bannerImage: string | null;
+        bio: string | null;
+        websiteUrl: string | null;
+      };
+
+      // Create new values object from the server response
+      const newValues = {
+        name: orgData.name,
+        email: orgData.email ?? "",
+        image: orgData.image,
+        bannerImage: orgData.bannerImage,
+        bio: orgData.bio ?? "",
+        websiteUrl: orgData.websiteUrl ?? "",
+      };
+
+      // Log the values for debugging
+      console.log("🔍 Server returned values:", JSON.stringify(newValues));
+
+      // Forcefully set the image values to ensure they're recognized
+      form.setValue("image", newValues.image, { shouldDirty: false });
+      form.setValue("bannerImage", newValues.bannerImage, {
+        shouldDirty: false,
+      });
+
+      // Update the form with new values
+      form.reset(newValues);
+
+      // Invalidate relevant queries to update UI without full page reload
+      queryClient
+        .invalidateQueries({ queryKey: ["organization"] })
+        .then(() => {
+          router.refresh(); // Force a refresh to update any displayed images
+        })
+        .catch((error: Error) => {
+          console.error("Error invalidating queries:", error);
+        });
+    }
+  };
+
+  const mutation = useMutation({
+    mutationFn: async (values: OrgDetailsFormSchemaType) => {
+      console.log("🔍 Mutation submitting values:", JSON.stringify(values));
+
+      // Show toast to indicate saving is in progress
+      const toastId = toast.loading("Saving organization changes...");
+
+      try {
+        // Include orgSlug directly in the values object
+        const result = await updateOrganizationDetailsAction({
+          ...values,
+          orgSlug,
+        });
+
+        // Success handling moved to onSuccess callback
+        toast.dismiss(toastId);
+        return result;
+      } catch (error) {
+        // Error handling
+        toast.dismiss(toastId);
+        console.error("🔍 Action error:", error);
+        throw error;
+      }
+    },
+    onSuccess: onSubmitSuccess,
+    onError: (error) => {
+      console.error("Update failed:", error);
+      toast.error(
+        `Failed to update organization: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    },
+  });
 
   return (
     <Form
       form={form}
       onSubmit={async (values) => {
+        console.log("🔍 Submitting form with values:", {
+          ...values,
+          orgSlug,
+          hasImage: !!values.image,
+          imageValue: values.image,
+        });
+
         try {
           await mutation.mutateAsync(values);
         } catch (error) {
-          console.error("Update failed:", error);
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : "An unexpected error occurred. Please try again.",
-          );
+          // Error is already handled in the mutation's onError
+          console.error("Form submission failed:", error);
         }
       }}
     >
@@ -116,10 +171,31 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
             <FormItem>
               <FormLabel>Organization Logo</FormLabel>
               <FormControl>
-                <ImageFormItem
+                <OrganizationImageUploader
                   className="size-24 rounded-lg"
-                  onChange={(url) => field.onChange(url)}
-                  imageUrl={field.value ?? defaultValues.image ?? undefined}
+                  onChange={(url) => {
+                    console.log("🔍 Logo onChange called with URL:", url);
+                    // Force set the value and mark as dirty
+                    form.setValue("image", url, {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    });
+                    // Also trigger field.onChange for completeness
+                    field.onChange(url);
+
+                    // Debug check if it was set
+                    setTimeout(() => {
+                      console.log("🔍 After logo change - Form values:", {
+                        formImage: form.getValues("image"),
+                        isDirty: form.formState.isDirty,
+                        dirtyFields: Object.keys(form.formState.dirtyFields),
+                      });
+                    }, 100);
+                  }}
+                  imageUrl={field.value ?? undefined}
+                  type="logo"
+                  maxSizeMB={2}
                 />
               </FormControl>
               <FormDescription>
@@ -137,10 +213,31 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
             <FormItem>
               <FormLabel>Organization Banner</FormLabel>
               <FormControl>
-                <ImageFormItem
+                <OrganizationImageUploader
                   className="h-32 w-full rounded-lg object-cover"
-                  onChange={(url) => field.onChange(url)}
-                  imageUrl={field.value ?? defaultValues.bannerImage ?? undefined}
+                  onChange={(url) => {
+                    console.log("🔍 Banner onChange called with URL:", url);
+                    // Force set the value and mark as dirty
+                    form.setValue("bannerImage", url, {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    });
+                    // Also trigger field.onChange for completeness
+                    field.onChange(url);
+
+                    // Debug check if it was set
+                    setTimeout(() => {
+                      console.log("🔍 After banner change - Form values:", {
+                        formBannerImage: form.getValues("bannerImage"),
+                        isDirty: form.formState.isDirty,
+                        dirtyFields: Object.keys(form.formState.dirtyFields),
+                      });
+                    }, 100);
+                  }}
+                  imageUrl={field.value ?? undefined}
+                  type="banner"
+                  maxSizeMB={4}
                 />
               </FormControl>
               <FormDescription>
@@ -229,14 +326,14 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
           )}
         />
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-3">
           <Button
             type="submit"
             disabled={!isDirty || isPending}
             className="relative"
           >
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Save Changes
+            {isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>

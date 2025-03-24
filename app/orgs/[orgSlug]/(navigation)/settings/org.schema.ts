@@ -19,11 +19,15 @@ export const OrgDetailsFormSchema = z.object({
   email: z.union([
     z.string().email({
       message: "Please enter a valid email address",
-    }), 
+    }),
     z.string().length(0)
   ]).optional(),
   image: z.string().nullable().refine((val) => {
     if (!val) return true;
+
+    // Handle data URLs and UploadThing URLs
+    if (val.startsWith('data:image/')) return true;
+
     try {
       const url = new URL(val);
       return url.protocol === 'https:' || url.protocol === 'http:';
@@ -35,6 +39,10 @@ export const OrgDetailsFormSchema = z.object({
   }),
   bannerImage: z.string().nullable().refine((val) => {
     if (!val) return true;
+
+    // Handle data URLs and UploadThing URLs
+    if (val.startsWith('data:image/')) return true;
+
     try {
       const url = new URL(val);
       return url.protocol === 'https:' || url.protocol === 'http:';
@@ -62,6 +70,7 @@ export const OrgDetailsFormSchema = z.object({
     }),
     z.string().length(0)
   ]).optional(),
+  orgSlug: z.string().optional(),
 });
 
 export const OrgMemberFormSchema = z.object({
