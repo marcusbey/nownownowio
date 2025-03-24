@@ -28,7 +28,8 @@ export const createPostSchema = z.object({
 export const updateUserProfileSchema = z.object({
   displayName: requiredString,
   bio: z.string().max(1000, "Must be at most 1000 characters"),
-  bannerImage: z.string().nullable().optional(),
+  websiteUrl: z.string().url("Invalid URL").optional().nullable(),
+  bannerImage: z.string().url("Invalid URL").optional().nullable(),
 });
 
 export type UpdateUserProfileValues = z.infer<typeof updateUserProfileSchema>;

@@ -21,42 +21,22 @@ export function useUpdateProfileMutation() {
   const queryClient = useQueryClient();
 
   const { startUpload: startAvatarUpload } = useUploadThing("avatar");
-  const { startUpload: startBannerUpload } = useUploadThing("bannerImage");
 
   const mutation = useMutation({
     mutationFn: async ({
       values,
       avatar,
-      bannerImage,
     }: {
       values: UpdateUserProfileValues;
       avatar?: File;
-      bannerImage?: File;
     }) => {
-      const uploadPromises = [];
-
-      // Add profile update promise
-      uploadPromises.push(updateUserProfile(values));
-
-      // Add avatar upload if present
-      if (avatar) {
-        uploadPromises.push(startAvatarUpload([avatar]));
-      } else {
-        uploadPromises.push(null);
-      }
-
-      // Add banner upload if present
-      if (bannerImage) {
-        uploadPromises.push(startBannerUpload([bannerImage]));
-      } else {
-        uploadPromises.push(null);
-      }
-
-      return Promise.all(uploadPromises);
+      return Promise.all([
+        updateUserProfile(values),
+        avatar && startAvatarUpload([avatar]),
+      ]);
     },
-    onSuccess: async ([updatedUser, avatarResult, bannerResult]) => {
-      const newAvatarUrl = avatarResult?.[0]?.serverData?.avatarUrl;
-      const newBannerUrl = bannerResult?.[0]?.serverData?.bannerImageUrl;
+    onSuccess: async ([updatedUser, uploadResult]) => {
+      const newAvatarUrl = uploadResult?.[0].serverData.avatarUrl;
 
       const queryFilter: QueryFilters<InfiniteData<PostsPage, string | null>> = {
         queryKey: ["post-feed"],
@@ -80,7 +60,6 @@ export function useUpdateProfileMutation() {
                     user: {
                       ...updatedUser,
                       image: newAvatarUrl || updatedUser.image,
-                      bannerImage: newBannerUrl || updatedUser.bannerImage,
                     },
                   };
                 }

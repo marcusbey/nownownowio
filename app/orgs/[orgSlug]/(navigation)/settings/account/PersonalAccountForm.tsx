@@ -1,408 +1,304 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { formatDisplayName, generateUsername, isUsernameAvailable, isValidUsernameFormat } from "@/lib/format/display-name";
-import { Check } from "lucide-react";
-// import { User } from "@prisma/client";
-import { Save, KeyRound } from "lucide-react";
 import { Button } from "@/components/core/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/data-display/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/data-display/card";
-import { AlertTriangle } from "lucide-react";
-import Link from "next/link";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/core/form";
 import { Input } from "@/components/core/input";
+import { Textarea } from "@/components/core/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/data-display/card";
+import { updateUserProfileSchema } from "@/lib/validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { User } from "@prisma/client";
+import { Camera, ImageIcon, Loader2, X } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import type { z } from "zod";
 
 type PersonalAccountFormProps = {
-  user: {
-    id: string;
-    name: string | null;
-    displayName: string | null;
-    email: string | null;
-    emailVerified: Date | null;
-    image: string | null;
-    passwordHash?: string | null;
-  };
-  isEmailVerified?: boolean;
-}
+  user: User;
+  isEmailVerified: boolean;
+};
 
-export function PersonalAccountForm({ user, isEmailVerified = false }: PersonalAccountFormProps) {
+export function PersonalAccountForm({
+  user,
+  isEmailVerified,
+}: PersonalAccountFormProps) {
   const router = useRouter();
-  const [username, setUsername] = useState(user.name ?? "");
-  const [displayName, setDisplayName] = useState(user.displayName ?? "");
-  const [email, setEmail] = useState(user.email ?? "");
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [usernameError, setUsernameError] = useState("");
-  const [isUsernameValid, setIsUsernameValid] = useState(false);
-  const [hasBlurred, setHasBlurred] = useState(false);
-  const [isChanged, setIsChanged] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSetPassword, setShowSetPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
+  // Set initial avatar preview from user data
   useEffect(() => {
-    const hasUsernameChanged = username !== user.name && username.trim() !== "";
-    const hasDisplayNameChanged = displayName !== user.displayName && displayName.trim() !== "";
-    const hasEmailChanged = email !== user.email && email.trim() !== "";
-    setIsChanged(hasUsernameChanged || hasDisplayNameChanged || hasEmailChanged);
-  }, [username, displayName, email, user.name, user.displayName, user.email]);
-  
-  // Check if user has a password set
-  const hasPasswordSet = !!user.passwordHash;
+    if (user.image) {
+      setAvatarPreview(user.image);
+    }
+  }, [user.image]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isChanged) return;
-    
-    // Validate username format
-    if (displayName && !isValidUsernameFormat(displayName)) {
-      setUsernameError("Username must be 3-30 characters, start with a letter, and contain only letters, numbers, and underscores.");
-      return;
-    }
-    
-    // Check if username is available (only if it changed)
-    if (displayName && displayName !== user.displayName) {
-      setIsCheckingUsername(true);
-      try {
-        const available = await isUsernameAvailable(displayName);
-        if (!available) {
-          setUsernameError("This username is already taken. Please choose another one.");
-          setIsCheckingUsername(false);
-          return;
-        }
-      } catch (error) {
-        console.error("Error checking username availability:", error);
-        setUsernameError("An error occurred while checking username availability.");
-        setIsCheckingUsername(false);
-        return;
-      }
-      setIsCheckingUsername(false);
-    }
-    
-    setIsSubmitting(true);
-    
+  const form = useForm<z.infer<typeof updateUserProfileSchema>>({
+    resolver: zodResolver(updateUserProfileSchema),
+    defaultValues: {
+      displayName: user.displayName ?? "",
+      bio: user.bio ?? "",
+      websiteUrl: user.websiteUrl ?? "",
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof updateUserProfileSchema>) => {
     try {
       const response = await fetch("/api/v1/user/update", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: username.trim() !== user.name ? username : undefined,
-          displayName: displayName.trim() !== user.displayName ? displayName : undefined,
-          email: email.trim() !== user.email ? email : undefined,
-        }),
+        body: JSON.stringify(values),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to update account");
+        throw new Error(error.message || "Failed to update profile");
       }
-      
-      toast.success("Account updated successfully");
+
+      toast.success("Profile updated successfully");
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update account");
+      console.error(error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update profile",
+      );
+    }
+  };
+
+  const onDropAvatar = useCallback(
+    async (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+
+      try {
+        setIsUploading(true);
+
+        // Create a preview for immediate feedback
+        const objectUrl = URL.createObjectURL(file);
+        setAvatarPreview(objectUrl);
+
+        // Create FormData and append the file
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Use our dedicated endpoint for avatar uploads
+        const response = await fetch("/api/v1/user/avatarUpload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to upload profile image");
+        }
+
+        const { url } = await response.json();
+
+        // No need to update form - the API already updates the database
+        toast.success("Profile image updated successfully");
+
+        // Refresh the page to show updated data
+        router.refresh();
+      } catch (error) {
+        toast.error("Failed to upload profile image");
+        console.error(error);
+        setAvatarPreview(user.image ?? null);
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [user.image, router],
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: onDropAvatar,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"],
+    },
+    maxFiles: 1,
+    multiple: false,
+    maxSize: 512 * 1024, // 512KB
+  });
+
+  const handleRemoveAvatar = async () => {
+    try {
+      setIsUploading(true);
+      setAvatarPreview(null);
+
+      const response = await fetch("/api/v1/user/update", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: null,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to remove profile image");
+      }
+
+      toast.success("Profile image removed");
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to remove profile image");
+      setAvatarPreview(user.image ?? null);
     } finally {
-      setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
   return (
-    <Card className="border-border bg-background">
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-4">
-          <Avatar className="size-16">
-            {user.image ? (
-              <AvatarImage src={user.image} alt={user.name ?? "User"} />
-            ) : (
-              <AvatarFallback>{user.name?.charAt(0) ?? user.email?.charAt(0)}</AvatarFallback>
-            )}
-          </Avatar>
-          <div>
-            <CardTitle className="text-lg">{user.name}</CardTitle>
-            <CardDescription>
-              {formatDisplayName(user)}
-            </CardDescription>
-          </div>
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Personal Account</CardTitle>
+        <CardDescription>Update your personal account details</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="displayName" className="mb-2 block text-sm font-medium">
-              Username
-            </label>
-            <div className="relative">
-              <div className="flex items-center space-x-2">
-                <div className="relative w-full">
-                  <input 
-                    id="displayName"
-                    type="text" 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={displayName}
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      setDisplayName(newValue);
-                      setUsernameError("");
-                      setIsUsernameValid(isValidUsernameFormat(newValue));
-                    }}
-                    onBlur={async () => {
-                      setHasBlurred(true);
-                      if (displayName && displayName !== user.displayName) {
-                        if (!isValidUsernameFormat(displayName)) {
-                          setUsernameError("Username must be 3-30 characters, start with a letter, and contain only letters, numbers, and underscores.");
-                          setIsUsernameValid(false);
-                          return;
-                        }
-                        
-                        setIsCheckingUsername(true);
-                        try {
-                          const available = await isUsernameAvailable(displayName);
-                          setIsUsernameValid(available);
-                          if (!available) {
-                            setUsernameError("This username is already taken.");
-                          }
-                        } catch {
-                          setIsUsernameValid(false);
-                        } finally {
-                          setIsCheckingUsername(false);
-                        }
-                      }
-                    }}
-                    placeholder="Your public username"
-                    disabled={isCheckingUsername}
-                  />
-                  {isUsernameValid && hasBlurred && displayName && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
-                      <Check className="size-4" />
-                    </div>
-                  )}
+        <div className="mb-6">
+          <h3 className="mb-3 text-sm font-medium">Profile Photo</h3>
+          <div className="flex items-start gap-4">
+            <div
+              {...getRootProps()}
+              className={`relative size-24 overflow-hidden rounded-full ${
+                isDragActive
+                  ? "border-2 border-dashed border-primary bg-primary/5"
+                  : "border border-muted"
+              }`}
+            >
+              <input {...getInputProps()} />
+              {isUploading ? (
+                <div className="flex size-full flex-col items-center justify-center">
+                  <Loader2 className="size-8 animate-spin text-muted-foreground" />
                 </div>
+              ) : avatarPreview ? (
+                <Image
+                  src={avatarPreview}
+                  alt="Profile"
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex size-full flex-col items-center justify-center bg-muted/20">
+                  <ImageIcon className="size-8 text-muted-foreground" />
+                </div>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all hover:bg-black/50 hover:opacity-100">
+                <Camera className="size-6 text-white" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Upload a photo to personalize your account.
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                Maximum file size: 512KB
+              </p>
+              {avatarPreview && (
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 px-4"
-                  onClick={async () => {
-                    setIsCheckingUsername(true);
-                    try {
-                      // Generate a username based on the user's name or email
-                      const generatedUsername = generateUsername(user);
-                      
-                      // Check if the username is available
-                      const isAvailable = await isUsernameAvailable(generatedUsername);
-                      
-                      if (isAvailable) {
-                        setDisplayName(generatedUsername);
-                        setUsernameError("");
-                        setIsChanged(true);
-                        setIsUsernameValid(true);
-                        setHasBlurred(true);
-                      } else {
-                        // Try again with a different random number
-                        const retryUsername = `${generatedUsername.replace(/\d+$/, '')}${Math.floor(Math.random() * 900) + 100}`;
-                        const retryAvailable = await isUsernameAvailable(retryUsername);
-                        
-                        if (retryAvailable) {
-                          setDisplayName(retryUsername);
-                          setUsernameError("");
-                          setIsChanged(true);
-                          setIsUsernameValid(true);
-                          setHasBlurred(true);
-                        } else {
-                          setUsernameError("Could not generate a unique username. Please try a different name.");
-                          setIsUsernameValid(false);
-                        }
-                      }
-                    } catch {
-                      // Show user-friendly message on error
-                      setUsernameError("An error occurred while generating a username.");
-                      setIsUsernameValid(false);
-                    } finally {
-                      setIsCheckingUsername(false);
-                    }
-                  }}
-                  disabled={isCheckingUsername}
+                  size="sm"
+                  onClick={handleRemoveAvatar}
+                  disabled={isUploading}
                 >
-                  {isCheckingUsername ? "Generating..." : "Generate"}
+                  <X className="mr-1 size-4" />
+                  Remove photo
                 </Button>
-              </div>
-              {usernameError && (
-                <p className="mt-1 text-sm text-destructive">{usernameError}</p>
               )}
             </div>
           </div>
-          
-          <div>
-            <label htmlFor="username" className="mb-2 block text-sm font-medium">
-              Name
-            </label>
-            <div className="relative">
-              <input 
-                id="username"
-                type="text" 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Your real name"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-medium">
-              Email
-            </label>
-            <div className="relative">
-              <input 
-                id="email"
-                type="email" 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Your email"
-              />
-            </div>
-            {!isEmailVerified && !user.emailVerified && user.email && (
-              <div className="mt-2 flex items-center gap-2 rounded-md bg-amber-500/20 p-2 text-sm text-amber-600">
-                <AlertTriangle className="size-4" />
-                <span>Email not verified. Please verify your email.</span>
-                <Link 
-                  href="/account/verify-email" 
-                  className="ml-auto text-xs font-medium underline"
-                >
-                  Verify Email
-                </Link>
+        </div>
+
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Email field (read-only) */}
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Email</label>
+            <div className="flex items-center gap-2">
+              <Input value={user.email} disabled className="bg-muted" />
+              <div className="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                {isEmailVerified ? "Verified" : "Pending"}
               </div>
+            </div>
+          </div>
+
+          {/* Display Name */}
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Display Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your display name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
-          
-          <div className="flex justify-end pt-2">
-            <Button 
-              type="submit" 
-              disabled={!isChanged || isSubmitting}
-              className="flex w-40 items-center justify-center gap-2 bg-primary hover:bg-primary/90"
-            >
-              <Save className="size-4" />
-              Save Changes
-            </Button>
-          </div>
+          />
+
+          {/* Bio */}
+          <FormField
+            control={form.control}
+            name="bio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bio</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Tell us a little bit about yourself"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Website URL */}
+          <FormField
+            control={form.control}
+            name="websiteUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Website</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="https://example.com"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+          </Button>
         </form>
-
-        <div className="mt-6 border-t pt-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-medium">{hasPasswordSet ? 'Change Password' : 'Set Password'}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {hasPasswordSet 
-                    ? 'Update your password to keep your account secure' 
-                    : 'Set a password to also log in with email and password'}
-                </p>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowSetPassword(!showSetPassword)}
-                className="flex items-center gap-2"
-              >
-                <KeyRound className="size-4" />
-                {showSetPassword ? 'Cancel' : hasPasswordSet ? 'Change Password' : 'Set Password'}
-              </Button>
-            </div>
-
-            {showSetPassword && (
-              <form onSubmit={async (e) => {
-                e.preventDefault();
-                setPasswordError("");
-                
-                if (newPassword.length < 8) {
-                  setPasswordError("Password must be at least 8 characters");
-                  return;
-                }
-                
-                if (newPassword !== confirmPassword) {
-                  setPasswordError("Passwords don't match");
-                  return;
-                }
-                
-                setIsSubmitting(true);
-                
-                try {
-                  const response = await fetch("/api/v1/user/set-password", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      newPassword,
-                      confirmPassword,
-                    }),
-                  });
-                  
-                  if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || "Failed to set password");
-                  }
-                  
-                  toast.success("Password set successfully");
-                  setShowSetPassword(false);
-                  setNewPassword("");
-                  setConfirmPassword("");
-                  // Force a refresh to update the UI with the new password state
-                  router.refresh();
-                } catch (error) {
-                  toast.error(error instanceof Error ? error.message : "Failed to set password");
-                } finally {
-                  setIsSubmitting(false);
-                }
-              }} className="space-y-4">
-                <div>
-                  <label htmlFor="newPassword" className="mb-2 block text-sm font-medium">
-                    New Password
-                  </label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Enter new password"
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium">
-                    Confirm Password
-                  </label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm your password"
-                    className="w-full"
-                  />
-                </div>
-                
-                {passwordError && (
-                  <div className="text-sm text-red-500">{passwordError}</div>
-                )}
-                
-                <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting || !newPassword || !confirmPassword}
-                    className="flex items-center justify-center gap-2"
-                  >
-                    {user.passwordHash ? 'Change Password' : 'Set Password'}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
       </CardContent>
     </Card>
   );

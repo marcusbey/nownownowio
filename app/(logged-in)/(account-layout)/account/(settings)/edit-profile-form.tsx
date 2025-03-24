@@ -62,7 +62,6 @@ export const EditProfileCardForm = ({
       name: defaultValues.name,
       email: defaultValues.email,
       image: defaultValues.image,
-      bannerImage: defaultValues.bannerImage,
       displayName: defaultValues.displayName ?? displayName(defaultValues),
     },
   });
@@ -118,7 +117,6 @@ export const EditProfileCardForm = ({
 
   const email = form.watch("email");
   const image = form.watch("image");
-  const bannerImage = form.watch("bannerImage");
 
   return (
     <>
@@ -144,22 +142,7 @@ export const EditProfileCardForm = ({
               </CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col gap-6">
-            {/* Banner Image */}
-            <div className="space-y-2">
-              <FormLabel>Profile Banner</FormLabel>
-              <div className="relative w-full">
-                <ImageFormItem
-                  className="h-32 w-full rounded-md"
-                  onChange={(url) => form.setValue("bannerImage", url)}
-                  imageUrl={bannerImage}
-                />
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Recommended size: 1500 x 500 pixels
-                </div>
-              </div>
-            </div>
-
+          <CardContent className="flex flex-col gap-4">
             <FormField
               control={form.control}
               name="displayName"

@@ -23,7 +23,7 @@ import type { UserData } from "@/lib/types";
 import type { UpdateUserProfileValues } from "@/lib/validation";
 import { updateUserProfileSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, ImageIcon } from "lucide-react";
+import { Camera } from "lucide-react";
 import type { StaticImageData } from "next/image";
 import Image from "next/image";
 import { useRef, useState } from "react";
@@ -47,34 +47,26 @@ export default function EditProfileDialog({
     defaultValues: {
       displayName: user.displayName || undefined,
       bio: user.bio || "",
-      bannerImage: user.bannerImage || null,
     },
   });
 
   const mutation = useUpdateProfileMutation();
 
   const [croppedAvatar, setCroppedAvatar] = useState<Blob | null>(null);
-  const [croppedBanner, setCroppedBanner] = useState<Blob | null>(null);
 
   async function onSubmit(values: UpdateUserProfileValues) {
     const newAvatarFile = croppedAvatar
       ? new File([croppedAvatar], `avatar_${user.id}.webp`)
       : undefined;
 
-    const newBannerFile = croppedBanner
-      ? new File([croppedBanner], `banner_${user.id}.webp`)
-      : undefined;
-
     mutation.mutate(
       {
         values,
         avatar: newAvatarFile,
-        bannerImage: newBannerFile,
       },
       {
         onSuccess: () => {
           setCroppedAvatar(null);
-          setCroppedBanner(null);
           onOpenChange(false);
         },
       },
@@ -83,25 +75,10 @@ export default function EditProfileDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
         </DialogHeader>
-
-        {/* Banner Image */}
-        <div className="space-y-1.5">
-          <Label>Banner Image</Label>
-          <BannerInput
-            src={
-              croppedBanner
-                ? URL.createObjectURL(croppedBanner)
-                : user.bannerImage || ""
-            }
-            onImageCropped={setCroppedBanner}
-          />
-        </div>
-
-        {/* Avatar */}
         <div className="space-y-1.5">
           <Label>Avatar</Label>
           <AvatarInput
@@ -113,7 +90,6 @@ export default function EditProfileDialog({
             onImageCropped={setCroppedAvatar}
           />
         </div>
-
         <Form form={form} onSubmit={onSubmit}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <FormField
@@ -212,80 +188,6 @@ function AvatarInput({ src, onImageCropped }: AvatarInputProps) {
         <CropImageDialog
           src={URL.createObjectURL(imageToCrop)}
           cropAspectRatio={1}
-          onCropped={onImageCropped}
-          onClose={() => {
-            setImageToCrop(undefined);
-            if (fileInputRef.current) {
-              fileInputRef.current.value = "";
-            }
-          }}
-        />
-      )}
-    </>
-  );
-}
-
-type BannerInputProps = {
-  src: string | StaticImageData;
-  onImageCropped: (blob: Blob | null) => void;
-};
-
-function BannerInput({ src, onImageCropped }: BannerInputProps) {
-  const [imageToCrop, setImageToCrop] = useState<File>();
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  function onImageSelected(image: File | undefined) {
-    if (!image) return;
-
-    Resizer.imageFileResizer(
-      image,
-      1500,
-      500,
-      "WEBP",
-      90,
-      0,
-      (uri) => setImageToCrop(uri as File),
-      "file",
-    );
-  }
-
-  return (
-    <>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => onImageSelected(e.target.files?.[0])}
-        ref={fileInputRef}
-        className="sr-only hidden"
-      />
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        className="group relative block h-32 w-full overflow-hidden rounded-md border"
-      >
-        {src ? (
-          <img
-            src={src.toString()}
-            alt="Banner preview"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted/30">
-            <ImageIcon className="size-8 text-muted-foreground" />
-          </div>
-        )}
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 transition-all duration-200 group-hover:bg-opacity-30">
-          <Camera
-            size={24}
-            className="text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-          />
-        </div>
-      </button>
-      {imageToCrop && (
-        <CropImageDialog
-          src={URL.createObjectURL(imageToCrop)}
-          cropAspectRatio={3}
           onCropped={onImageCropped}
           onClose={() => {
             setImageToCrop(undefined);

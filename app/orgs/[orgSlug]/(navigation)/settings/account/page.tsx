@@ -1,15 +1,7 @@
-"use client";
-
-import { Separator } from "@/components/core/separator";
+import { Separator } from "@/components/ui/separator";
 import { requiredAuth } from "@/lib/auth/helper";
-import { combineWithParentMetadata } from "@/lib/metadata";
 import { BannerImageForm } from "./BannerImageForm";
 import { PersonalAccountForm } from "./PersonalAccountForm";
-
-export const generateMetadata = combineWithParentMetadata({
-  title: "Account Settings",
-  description: "Manage your account settings and preferences",
-});
 
 export default async function AccountSettingsPage({
   params,

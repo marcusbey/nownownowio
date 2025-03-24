@@ -1,6 +1,5 @@
 "use client";
 
-import BannerImage from "@/components/composite/BannerImage";
 import UserAvatar from "@/components/composite/UserAvatar";
 import { Button } from "@/components/core/button";
 import Linkify from "@/components/data-display/Linkify";
@@ -18,11 +17,37 @@ export default function ProfileHeader({ user, orgSlug }: ProfileHeaderProps) {
   return (
     <div className="relative w-full">
       {/* Banner Image */}
-      <div className="relative">
-        <BannerImage
-          imageUrl={user.bannerImage}
-          alt={`${user.name || user.displayName}'s profile banner`}
-        />
+      <div className="relative h-64 w-full overflow-hidden">
+        {user.bannerImage ? (
+          <div className="absolute inset-0">
+            <img
+              src={user.bannerImage}
+              alt="Profile banner"
+              className="size-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10"></div>
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-100 to-orange-50">
+            <svg
+              className="size-full"
+              viewBox="0 0 1000 200"
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0,100 C150,150 350,0 500,100 C650,200 850,50 1000,100 L1000,200 L0,200 Z"
+                fill="currentColor"
+                className="text-orange-200/30"
+              />
+              <path
+                d="M0,100 C200,150 300,50 500,100 C700,150 800,50 1000,100 L1000,200 L0,200 Z"
+                fill="currentColor"
+                className="text-orange-300/20"
+              />
+            </svg>
+          </div>
+        )}
 
         {/* Edit Banner Button */}
         <div className="absolute right-4 top-4">

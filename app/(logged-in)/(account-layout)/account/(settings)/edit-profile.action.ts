@@ -55,7 +55,6 @@ export const updateProfileAction = authAction
         displayName: input.displayName,
         email: input.email,
         image: input.image,
-        bannerImage: input.bannerImage,
         emailVerified: previousEmail === input.email ? undefined : null,
       },
     });
