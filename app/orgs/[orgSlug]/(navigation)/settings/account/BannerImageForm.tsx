@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/data-display/card";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { User } from "@prisma/client";
 import { ImageIcon, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -24,7 +23,13 @@ const BannerImageSchema = z.object({
 
 type BannerImageFormValues = z.infer<typeof BannerImageSchema>;
 
-export function BannerImageForm({ user }: { user: User }) {
+// Define a simplified user type with just the properties we need
+type BannerImageUser = {
+  id: string;
+  bannerImage: string | null;
+};
+
+export function BannerImageForm({ user }: { user: BannerImageUser }) {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const router = useRouter();
@@ -45,14 +50,29 @@ export function BannerImageForm({ user }: { user: User }) {
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) {
+        toast.error("No file selected");
+        return;
+      }
+
       const file = acceptedFiles[0];
+
+      if (!(file instanceof File) || !file.type.startsWith("image/")) {
+        toast.error("Invalid file type. Please select an image file.");
+        return;
+      }
 
       try {
         setIsUploading(true);
 
-        // Create a preview for immediate feedback
-        const objectUrl = URL.createObjectURL(file);
-        setPreview(objectUrl);
+        // Create a preview for immediate feedback - use try/catch to handle potential errors
+        try {
+          const objectUrl = URL.createObjectURL(file);
+          setPreview(objectUrl);
+        } catch (previewError) {
+          console.error("Error creating preview:", previewError);
+          // Continue with upload even if preview fails
+        }
 
         // Create FormData and append the file
         const formData = new FormData();
@@ -73,7 +93,6 @@ export function BannerImageForm({ user }: { user: User }) {
 
         // Update form value
         form.setValue("bannerImage", url);
-        setPreview(url);
 
         // No need to save immediately - the API already updates the database
         toast.success("Banner image updated successfully");
@@ -158,11 +177,11 @@ export function BannerImageForm({ user }: { user: User }) {
                 <p className="text-sm text-muted-foreground">Uploading...</p>
               </div>
             ) : preview ? (
-              <div className="relative h-full w-full">
+              <div className="relative size-full">
                 <img
                   src={preview}
                   alt="Banner preview"
-                  className="h-full w-full rounded-md object-cover"
+                  className="size-full rounded-md object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all hover:bg-black/40 hover:opacity-100">
                   <p className="text-sm font-medium text-white">

@@ -85,14 +85,29 @@ export function PersonalAccountForm({
 
   const onDropAvatar = useCallback(
     async (acceptedFiles: File[]) => {
+      if (acceptedFiles.length === 0) {
+        toast.error("No file selected");
+        return;
+      }
+
       const file = acceptedFiles[0];
+
+      if (!(file instanceof File) || !file.type.startsWith("image/")) {
+        toast.error("Invalid file type. Please select an image file.");
+        return;
+      }
 
       try {
         setIsUploading(true);
 
-        // Create a preview for immediate feedback
-        const objectUrl = URL.createObjectURL(file);
-        setAvatarPreview(objectUrl);
+        // Create a preview for immediate feedback - use try/catch to handle potential errors
+        try {
+          const objectUrl = URL.createObjectURL(file);
+          setAvatarPreview(objectUrl);
+        } catch (previewError) {
+          console.error("Error creating preview:", previewError);
+          // Continue with upload even if preview fails
+        }
 
         // Create FormData and append the file
         const formData = new FormData();

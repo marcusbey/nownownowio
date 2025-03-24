@@ -1,5 +1,5 @@
-import type { OrganizationMembershipRole} from "@prisma/client";
-import { OrganizationPlanType, BillingCycle, Prisma } from "@prisma/client";
+import type { OrganizationMembershipRole } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
   return Prisma.validator<Prisma.UserSelect>()({
@@ -13,6 +13,7 @@ export function getUserDataSelect(loggedInUserId: string) {
     resendContactId: true,
     passwordHash: true,
     websiteUrl: true,
+    bannerImage: true,
     createdAt: true,
     updatedAt: true,
     followers: {
@@ -200,6 +201,7 @@ export type User = Prisma.UserGetPayload<{
     resendContactId: true;
     passwordHash: true,
     websiteUrl: true,
+    bannerImage: true,
     createdAt: true,
     updatedAt: true,
     followers: true,
