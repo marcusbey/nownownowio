@@ -2,12 +2,12 @@
 
 import { auth } from "@/lib/auth/helper";
 import { logger } from "@/lib/logger";
+import { combineWithParentMetadata } from "@/lib/metadata";
 import { prisma } from "@/lib/prisma";
 import { getRequiredCurrentOrgCache } from "@/lib/react/cache";
 import type { PageParams } from "@/types/next";
 import { notFound } from "next/navigation";
 import { OrganizationContent } from "./OrganizationContent";
-import { combineWithParentMetadata } from "@/lib/metadata";
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Organization Settings",
@@ -74,7 +74,26 @@ export default async function OrganizationPage(props: OrganizationPageParams) {
     // getRequiredCurrentOrgCache expects just the orgSlug as the first param
     const { org: organization } = await getRequiredCurrentOrgCache(orgSlug);
 
-    return <OrganizationContent organization={organization} orgSlug={orgSlug} />;
+    // Debug plan information
+    logger.info("Organization plan info:", {
+      orgId: organization.id,
+      orgSlug: organization.slug,
+      planId: organization.plan?.id,
+      planType: organization.plan?.type,
+      hasPlanChangedAt: !!organization.planChangedAt,
+      planChangedAtValue: organization.planChangedAt,
+    });
+
+    // Ensure the organization object includes any necessary fields
+    return (
+      <OrganizationContent
+        organization={{
+          ...organization,
+          planChangedAt: organization.planChangedAt,
+        }}
+        orgSlug={orgSlug}
+      />
+    );
   } catch (error) {
     logger.error("Error accessing organization settings page:", error);
     notFound();
