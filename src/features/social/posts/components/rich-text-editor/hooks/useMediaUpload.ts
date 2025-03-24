@@ -182,8 +182,8 @@ export function useMediaUpload({
         // Focus the editor
         editor.commands.focus();
 
-        // Process the URL to ensure it works with our media proxy
-        const processedUrl = url.includes("/api/v1/media-proxy")
+        // For videos, ensure we're using the media proxy (even if it's a local blob URL)
+        const processedUrl = type === "video" || url.includes("/api/v1/media-proxy")
           ? url
           : `/api/v1/media-proxy?url=${encodeURIComponent(url)}&t=${Date.now()}`;
 

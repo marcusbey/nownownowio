@@ -12,15 +12,15 @@ import { Eye, MessageSquare, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
+  Component,
   lazy,
   Suspense,
   useCallback,
   useEffect,
   useMemo,
   useState,
-  Component,
-  type ReactNode,
   type ErrorInfo,
+  type ReactNode,
 } from "react";
 import LikeButton from "./like-button";
 import { useDeletePostMutation, useTogglePinPostMutation } from "./mutations";
@@ -173,32 +173,21 @@ export default function Post({ post }: PostProps) {
 
   // Process media items with validation
   const mediaItems = useMemo(() => {
-    // Debug logging for post and media
-    console.log('Post data:', JSON.stringify(post, null, 2));
-    console.log('Raw media items:', post.media);
-    
     // Ensure media is an array and filter out invalid items
     if (!post.media || !Array.isArray(post.media)) {
-      console.log('No media items found or not an array');
       return [];
     }
-    
+
     // Filter out invalid media items (missing required properties)
-    const validMedia = post.media.filter(media => {
+    const validMedia = post.media.filter((media) => {
       // Ensure each media item has an id and is a valid object
-      const isValid = media && typeof media === 'object' && media.id;
-      if (!isValid) {
-        console.log('Invalid media item:', media);
-      } else {
-        console.log('Valid media item:', media);
-      }
+      const isValid = media && typeof media === "object" && media.id;
       return isValid;
     });
-    
-    console.log('Filtered media items:', validMedia);
+
     return validMedia;
   }, [post.media]);
-  
+
   // Only consider attachments valid if they have proper media items
   const hasAttachments = mediaItems.length > 0;
 
@@ -216,16 +205,16 @@ export default function Post({ post }: PostProps) {
     >
       <div className="flex justify-between gap-3">
         <div className="flex items-start gap-3">
-          <UserTooltip user={post.user ?? { id: '', name: 'Unknown User' }}>
+          <UserTooltip user={post.user ?? { id: "", name: "Unknown User" }}>
             <Link href={userProfileLink} className="shrink-0">
               <UserAvatar
-                avatarUrl={post.user?.image ?? ''}
+                avatarUrl={post.user.image ?? ""}
                 className="size-10 ring-1 ring-primary/10 ring-offset-2 transition-all duration-200 hover:ring-primary/30"
               />
             </Link>
           </UserTooltip>
           <div className="flex min-w-0 flex-1 flex-col">
-            <UserTooltip user={post.user ?? { id: '', name: 'Unknown User' }}>
+            <UserTooltip user={post.user ?? { id: "", name: "Unknown User" }}>
               <Link
                 href={userProfileLink}
                 className="font-semibold decoration-primary/30 hover:underline"
@@ -290,7 +279,9 @@ export default function Post({ post }: PostProps) {
                   <ErrorBoundary
                     fallback={
                       <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted/20">
-                        <p className="text-sm text-muted-foreground">Media unavailable</p>
+                        <p className="text-sm text-muted-foreground">
+                          Media unavailable
+                        </p>
                       </div>
                     }
                   >
@@ -323,11 +314,11 @@ export default function Post({ post }: PostProps) {
           <LikeButton
             postId={post.id}
             initialState={{
-              likes: post._count?.likes ?? 0,
+              likes: post._count.likes ?? 0,
               isLikedByUser: Boolean(
                 post.likes &&
-                Array.isArray(post.likes) &&
-                post.likes.some((like) => like?.userId === user?.id)
+                  Array.isArray(post.likes) &&
+                  post.likes.some((like) => like.userId === user?.id),
               ),
             }}
             className="flex items-center gap-1.5 text-muted-foreground transition-colors duration-200 hover:text-primary"
@@ -345,10 +336,10 @@ export default function Post({ post }: PostProps) {
               // Create share data with proper null checks
               const shareData = {
                 url: `${window.location.origin}/posts/${post.id}`,
-                title: `Post by ${post.user?.displayName ?? post.user?.name ?? "Unknown User"}`,
+                title: `Post by ${post.user.displayName ?? post.user.name ?? "Unknown User"}`,
                 text: post.content,
               };
-              
+
               // Share content and silently handle errors
               navigator.share(shareData).catch(() => {
                 // Silently handle share errors
@@ -365,7 +356,7 @@ export default function Post({ post }: PostProps) {
                 navigator
                   .share({
                     url: `${window.location.origin}/posts/${post.id}`,
-                    title: `Post by ${post.user?.displayName ?? post.user?.name ?? "Unknown User"}`,
+                    title: `Post by ${post.user.displayName ?? post.user.name ?? "Unknown User"}`,
                     text: post.content,
                   })
                   .catch((error) => console.error("Share failed:", error));
@@ -432,8 +423,7 @@ type CommentButtonProps = {
 
 function CommentButton({ post, onClick }: CommentButtonProps) {
   // Handle both post._count.comments post._count?.comments !== undefinedser posts API)
-  const commentCount = post._count?.comments ?? 
-                      ((post as any).commentCount ?? 0);
+  const commentCount = post._count.comments ?? (post as any).commentCount ?? 0;
 
   // Simple click handler that just calls the onClick prop
   const handleClick = (e: React.MouseEvent) => {
