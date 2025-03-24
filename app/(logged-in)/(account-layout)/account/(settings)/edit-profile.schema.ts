@@ -5,6 +5,7 @@ export const ProfileFormSchema = z.object({
   displayName: z.string().min(1, "Display name is required"),
   email: z.string().email(),
   image: z.string().nullable(),
+  bannerImage: z.string().nullable(),
 });
 
 export const EditPasswordFormSchema = z.object({

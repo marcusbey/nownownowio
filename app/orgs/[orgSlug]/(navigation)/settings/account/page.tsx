@@ -1,17 +1,43 @@
+"use client";
+
+import { Separator } from "@/components/core/separator";
+import { requiredAuth } from "@/lib/auth/helper";
 import { combineWithParentMetadata } from "@/lib/metadata";
-import { redirect } from "next/navigation";
-import type { PageParams } from "@/types/next";
+import { BannerImageForm } from "./BannerImageForm";
+import { PersonalAccountForm } from "./PersonalAccountForm";
 
 export const generateMetadata = combineWithParentMetadata({
   title: "Account Settings",
-  description: "Manage your account settings.",
+  description: "Manage your account settings and preferences",
 });
 
-export default async function AccountPage({ params }: PageParams<{ orgSlug: string }>) {
-  // In Next.js 15, params is a Promise that needs to be properly awaited
-  const resolvedParams = await params;
-  const { orgSlug } = resolvedParams;
-  
-  // Redirect to the main settings page which now contains personal account settings
-  redirect(`/orgs/${orgSlug}/settings`);
+export default async function AccountSettingsPage({
+  params,
+}: {
+  params: { orgSlug: string };
+}) {
+  const user = await requiredAuth();
+
+  return (
+    <div className="mx-auto w-full max-w-5xl space-y-8 py-8">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Account Settings
+        </h2>
+        <p className="text-muted-foreground">
+          Manage your account details, profile picture, and banner image.
+        </p>
+      </div>
+
+      <Separator />
+
+      <div className="grid gap-8 md:grid-cols-2">
+        <BannerImageForm user={user} />
+        <PersonalAccountForm
+          user={user}
+          isEmailVerified={!!user.emailVerified}
+        />
+      </div>
+    </div>
+  );
 }

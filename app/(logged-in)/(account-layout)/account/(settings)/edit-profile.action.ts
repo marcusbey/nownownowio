@@ -1,5 +1,6 @@
 "use server";
 
+import { MarkdownEmail } from "@/emails/markdown.email";
 import { isActionSuccessful } from "@/lib/actions/actions-utils";
 import { ActionError, authAction } from "@/lib/actions/safe-actions";
 import {
@@ -10,7 +11,6 @@ import { requiredAuth } from "@/lib/auth/helper";
 import { env } from "@/lib/env";
 import { sendEmail } from "@/lib/mail/sendEmail";
 import { prisma } from "@/lib/prisma";
-import { MarkdownEmail } from "@/emails/markdown.email";
 import { addHours } from "date-fns";
 import { nanoid } from "nanoid";
 import { z } from "zod";
@@ -55,6 +55,7 @@ export const updateProfileAction = authAction
         displayName: input.displayName,
         email: input.email,
         image: input.image,
+        bannerImage: input.bannerImage,
         emailVerified: previousEmail === input.email ? undefined : null,
       },
     });

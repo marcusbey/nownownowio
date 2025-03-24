@@ -1,73 +1,55 @@
-import type { NextRequest} from "next/server";
-import { NextResponse } from "next/server";
+import { requiredAuth } from "@/lib/auth/helper";
 import { prisma } from "@/lib/prisma";
-import { validateRequest } from "@/lib/auth/helper";
-import { z } from "zod";
-
-const updateUserSchema = z.object({
-  name: z.string().min(1).optional(),
-  displayName: z.string().min(1).optional(),
-  email: z.string().email().optional(),
-});
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function PUT(request: NextRequest) {
   try {
-    const { user } = await validateRequest();
-    
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    
+    const user = await requiredAuth();
     const body = await request.json();
-    
-    const validationResult = updateUserSchema.safeParse(body);
-    
-    if (!validationResult.success) {
+
+    // Validate the inputs
+    const updates: Record<string, any> = {};
+
+    // Only allow specific fields to be updated
+    const allowedFields = ["name", "displayName", "bio", "image", "bannerImage", "websiteUrl"];
+
+    for (const field of allowedFields) {
+      if (field in body) {
+        updates[field] = body[field];
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { message: "Invalid request data", errors: validationResult.error.errors },
+        { error: "No valid fields to update" },
         { status: 400 }
       );
     }
-    
-    const { name, displayName, email } = validationResult.data;
-    
-    // Only update fields that were provided
-    const updateData: Record<string, any> = {};
-    if (name !== undefined) updateData.name = name;
-    if (displayName !== undefined) updateData.displayName = displayName;
-    if (email !== undefined) updateData.email = email;
-    
-    // Don't proceed if no fields to update
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ message: "No changes to apply" }, { status: 400 });
-    }
-    
-    // If email is being updated, reset emailVerified
-    if (email && email !== user.email) {
-      updateData.emailVerified = null;
-    }
-    
-    // Update the user
+
+    // Update user
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
-      data: updateData,
+      data: updates,
       select: {
         id: true,
         name: true,
         displayName: true,
         email: true,
-        emailVerified: true,
+        image: true,
+        bannerImage: true,
+        bio: true,
+        websiteUrl: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
-    
-    return NextResponse.json({ 
-      message: "User updated successfully", 
-      user: updatedUser 
-    });
+
+    return NextResponse.json({ success: true, user: updatedUser });
   } catch (error) {
-    console.error("Error updating user:", error instanceof Error ? error.message : error);
+    console.error("Error updating user:", error);
     return NextResponse.json(
-      { message: "Failed to update user" },
+      { error: "Failed to update user" },
       { status: 500 }
     );
   }

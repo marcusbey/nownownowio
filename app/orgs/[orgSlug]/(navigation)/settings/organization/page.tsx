@@ -21,7 +21,7 @@ type OrganizationPageParams = PageParams<{
 async function getCurrentOrg(slug: string) {
   const session = await auth();
 
-  if (!session?.id) {
+  if (!session?.user?.id) {
     return null;
   }
 
@@ -30,24 +30,24 @@ async function getCurrentOrg(slug: string) {
     const organization = await prisma.organization.findUnique({
       where: { slug },
       include: {
-        members: {
+        memberships: {
           where: {
-            userId: session.id,
+            userId: session.user.id,
           },
           select: {
-            roles: true,
+            role: true,
           },
         },
       },
     });
 
-    if (!organization || organization.members.length === 0) {
+    if (!organization || organization.memberships.length === 0) {
       return null;
     }
 
     return {
       ...organization,
-      userRole: organization.members[0].roles,
+      userRole: organization.memberships[0].role,
     };
   } catch (error) {
     console.error("Error getting organization:", error);
@@ -74,25 +74,8 @@ export default async function OrganizationPage(props: OrganizationPageParams) {
     // getRequiredCurrentOrgCache expects just the orgSlug as the first param
     const { org: organization } = await getRequiredCurrentOrgCache(orgSlug);
 
-    // Debug plan information
-    logger.info("Organization plan info:", {
-      orgId: organization.id,
-      orgSlug: organization.slug,
-      planId: organization.plan?.id,
-      planType: organization.plan?.type,
-      hasPlanChangedAt: !!organization.planChangedAt,
-      planChangedAtValue: organization.planChangedAt,
-    });
-
-    // Ensure the organization object includes any necessary fields
     return (
-      <OrganizationContent
-        organization={{
-          ...organization,
-          planChangedAt: organization.planChangedAt,
-        }}
-        orgSlug={orgSlug}
-      />
+      <OrganizationContent organization={organization} orgSlug={orgSlug} />
     );
   } catch (error) {
     logger.error("Error accessing organization settings page:", error);

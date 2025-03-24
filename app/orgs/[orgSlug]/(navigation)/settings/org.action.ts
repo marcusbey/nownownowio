@@ -202,7 +202,7 @@ export const updateOrganizationDetailsAction = orgAction
 
         console.log("⭐️ User authenticated:", {
           userId: session.id,
-          userEmail: session.email
+          userEmail: session.email ?? 'not available'
         });
 
         // Find the organization directly using the slug and user ID
@@ -383,66 +383,11 @@ export const updateOrganizationDetailsAction = orgAction
         // Perform the update
         try {
           console.log("⭐️ Attempting database update with data:", JSON.stringify(updateData));
-
-          // Create a clean update data object without the orgSlug field
-          // as it's not a column in the database table
-          const cleanUpdateData = { ...updateData };
-
-          // Remove fields that shouldn't be passed to Prisma
-          if ('orgSlug' in cleanUpdateData) {
-            delete cleanUpdateData.orgSlug;
-          }
-
-          console.log("⭐️ Clean update data after removing non-DB fields:",
-            JSON.stringify(cleanUpdateData),
-            "Keys:", Object.keys(cleanUpdateData)
-          );
-
-          // Safety check to ensure we have valid update data
-          if (!cleanUpdateData || Object.keys(cleanUpdateData).length === 0) {
-            console.warn("⭐️ No valid fields to update");
-
-            // If there's nothing to update, just fetch the current org and return it
-            const currentOrgDetails = await prisma.organization.findUnique({
-              where: {
-                id: orgContext.id,
-              },
-              include: {
-                plan: true,
-                members: {
-                  include: {
-                    user: true
-                  }
-                }
-              }
-            });
-
-            if (!currentOrgDetails) {
-              throw new Error("Organization not found");
-            }
-
-            return { data: currentOrgDetails };
-          }
-
-          // Ensure all image fields are strings or null, not undefined
-          if ('image' in cleanUpdateData && cleanUpdateData.image === undefined) {
-            cleanUpdateData.image = null;
-          }
-
-          if ('bannerImage' in cleanUpdateData && cleanUpdateData.bannerImage === undefined) {
-            cleanUpdateData.bannerImage = null;
-          }
-
-          console.log("⭐️ Final update data being sent to database:",
-            JSON.stringify(cleanUpdateData)
-          );
-
-          // Ensure update data is a valid object
           const updatedOrganization = await prisma.organization.update({
             where: {
               id: orgContext.id,
             },
-            data: cleanUpdateData,
+            data: updateData,
             include: {
               plan: true,
               members: {
@@ -499,6 +444,7 @@ export const inviteUserInOrganizationAction = orgAction
 
       // Get the plan ID safely
       const planId = typeof orgContext.plan === 'object' &&
+        orgContext.plan !== null &&
         'id' in orgContext.plan ?
         String(orgContext.plan.id) : '';
 

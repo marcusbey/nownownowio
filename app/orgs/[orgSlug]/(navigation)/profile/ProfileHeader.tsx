@@ -1,64 +1,40 @@
 "use client";
 
-import { Button } from "@/components/core/button";
+import BannerImage from "@/components/composite/BannerImage";
 import UserAvatar from "@/components/composite/UserAvatar";
-import type { UserData } from "@/lib/types";
-import { CalendarDays, Link2, MapPin } from "lucide-react";
-import Link from "next/link";
-import { format } from "date-fns";
+import { Button } from "@/components/core/button";
 import Linkify from "@/components/data-display/Linkify";
+import type { UserData } from "@/lib/types";
+import { format } from "date-fns";
+import { CalendarDays, Link2 } from "lucide-react";
+import Link from "next/link";
 
 type ProfileHeaderProps = {
   user: UserData & { bannerImage?: string | null };
   orgSlug: string;
-}
+};
 
 export default function ProfileHeader({ user, orgSlug }: ProfileHeaderProps) {
   return (
     <div className="relative w-full">
       {/* Banner Image */}
-      <div className="relative h-64 w-full overflow-hidden">
-        {user.bannerImage ? (
-          <div className="absolute inset-0">
-            <img 
-              src={user.bannerImage} 
-              alt="Profile banner" 
-              className="size-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/10"></div>
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-100 to-orange-50">
-            <svg
-              className="size-full"
-              viewBox="0 0 1000 200"
-              preserveAspectRatio="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M0,100 C150,150 350,0 500,100 C650,200 850,50 1000,100 L1000,200 L0,200 Z"
-                fill="currentColor"
-                className="text-orange-200/30"
-              />
-              <path
-                d="M0,100 C200,150 300,50 500,100 C700,150 800,50 1000,100 L1000,200 L0,200 Z"
-                fill="currentColor"
-                className="text-orange-300/20"
-              />
-            </svg>
-          </div>
-        )}
-        
+      <div className="relative">
+        <BannerImage
+          imageUrl={user.bannerImage}
+          alt={`${user.name || user.displayName}'s profile banner`}
+        />
+
         {/* Edit Banner Button */}
         <div className="absolute right-4 top-4">
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="bg-primary font-medium text-primary-foreground shadow-sm hover:bg-primary/90">
-            <Link href={`/orgs/${orgSlug}/settings`}>
+          <Link href={`/orgs/${orgSlug}/settings/account`}>
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-primary font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
+            >
               Edit Banner
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -76,7 +52,7 @@ export default function ProfileHeader({ user, orgSlug }: ProfileHeaderProps) {
               <Button variant="outline" size="sm">
                 Share Profile
               </Button>
-              <Link href={`/orgs/${orgSlug}/settings`}>
+              <Link href={`/orgs/${orgSlug}/settings/account`}>
                 <Button size="sm">Edit Profile</Button>
               </Link>
             </div>
@@ -85,17 +61,13 @@ export default function ProfileHeader({ user, orgSlug }: ProfileHeaderProps) {
           {/* User Info */}
           <div className="space-y-4">
             <div>
-              <h1 className="text-2xl font-bold">
-                {user.name}
-              </h1>
+              <h1 className="text-2xl font-bold">{user.name}</h1>
               <p className="text-muted-foreground">@{user.displayName}</p>
             </div>
 
             {user.bio && (
               <Linkify>
-                <p className="text-pretty text-muted-foreground">
-                  {user.bio}
-                </p>
+                <p className="text-pretty text-muted-foreground">{user.bio}</p>
               </Linkify>
             )}
 

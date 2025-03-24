@@ -25,19 +25,18 @@ type OrganizationWithPlan = {
   websiteUrl: string | null;
   slug: string;
   stripeCustomerId: string | null;
-  plan?: {
+  plan: {
     id: string;
-    createdAt?: Date;
-    name?: string;
-    updatedAt?: Date;
+    createdAt: Date;
+    name: string;
+    updatedAt: Date;
     type: string;
-    maximumMembers?: number;
-  } | null;
+    maximumMembers: number;
+  };
   members: {
     roles: OrganizationMembershipRole[];
-    user?: User;
+    user: User;
   }[];
-  planChangedAt?: Date | null;
 };
 
 type OrganizationContentProps = {
@@ -61,37 +60,18 @@ export function OrganizationContent({
 
   // Extract the plan details from the organization plan object
   // Note: The plan object structure is different from settings-plan-content.tsx
-  const planId = organization.plan?.id ?? "";
-  const planType = organization.plan?.type ?? "";
-
-  // Log plan details for debugging
-  console.log("📊 OrganizationContent - Plan details:", {
-    planId,
-    planType,
-    rawPlan: organization.plan,
-    hasPlanChangedAt: !!organization.planChangedAt,
-    planChangedAtValue: organization.planChangedAt,
-  });
+  const planId = organization.plan.id;
+  const planType = organization.plan.type;
 
   // Check if the current plan is a PRO plan using multiple methods
   // 1. Check if the plan ID contains 'PRO'
   // 2. Check if the plan type equals 'PRO'
-  // 3. Check if plan type contains 'PRO' as a fallback
   const isPro =
     planId.toUpperCase().includes("PRO") ||
-    planType.toUpperCase() === PLAN_TYPES.PRO ||
-    planType.toUpperCase().includes("PRO") ||
-    (organization.planChangedAt !== null &&
-      organization.planChangedAt !== undefined); // If planChangedAt is set, this indicates a paid plan
+    planType.toUpperCase() === PLAN_TYPES.PRO;
 
-  // For BASIC plans, also treat them as Pro for UI purposes
-  // This allows creating new organization for any paid plan
-  const isBasic =
-    planType.toUpperCase() === PLAN_TYPES.BASIC ||
-    planId.toUpperCase().includes("BASIC");
-
-  // Allow creating new organizations for PRO or BASIC users
-  const canCreateNewOrg = isPro || isBasic;
+  // Allow creating new organizations for PRO users
+  const canCreateNewOrg = isPro;
 
   // Transform organization data to match form schema
   const formDefaultValues: OrgDetailsFormSchemaType = {
@@ -122,8 +102,8 @@ export function OrganizationContent({
     slug: organization.slug,
     organizationKeys: Object.keys(organization),
     planInfo: {
-      id: organization.plan?.id,
-      type: organization.plan?.type,
+      id: organization.plan.id,
+      type: organization.plan.type,
     },
   });
 
@@ -169,34 +149,6 @@ export function OrganizationContent({
           <OrgDetailsForm defaultValues={formDefaultValues} />
         </CardContent>
       </Card>
-
-      {/* Debug panel - only visible in development */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mt-8 rounded-md border border-yellow-500/30 bg-yellow-500/10 p-4 text-xs text-yellow-700">
-          <h3 className="mb-2 font-semibold">Debug Information</h3>
-          <div className="space-y-1">
-            <div>Organization ID: {organization.id}</div>
-            <div>Organization Name: {organization.name}</div>
-            <div>Plan ID: {organization.plan?.id ?? "Not set"}</div>
-            <div>Plan Type: {organization.plan?.type ?? "Not set"}</div>
-            <div>Plan Name: {organization.plan?.name ?? "Not set"}</div>
-            <div>
-              Plan Changed At:{" "}
-              {organization.planChangedAt
-                ? new Date(organization.planChangedAt).toLocaleString()
-                : "Not set"}
-            </div>
-            <div>Is Pro: {isPro ? "Yes" : "No"}</div>
-            <div>Can Create New Org: {canCreateNewOrg ? "Yes" : "No"}</div>
-            <div>
-              <strong>Raw Plan Object:</strong>
-              <pre className="mt-1 overflow-auto rounded bg-black/10 p-2">
-                {JSON.stringify(organization.plan, null, 2)}
-              </pre>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

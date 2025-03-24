@@ -1,13 +1,6 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/data-display/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,7 +17,18 @@ import {
   useZodForm,
 } from "@/components/core/form";
 import { Input } from "@/components/core/input";
-import { InlineTooltip, TooltipTrigger, TooltipContent } from "@/components/data-display/tooltip";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/data-display/card";
+import {
+  InlineTooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/data-display/tooltip";
 import { Typography } from "@/components/data-display/typography";
 import { LoadingButton } from "@/features/ui/form/submit-button";
 import { ImageFormItem } from "@/features/ui/images/image-form-item";
@@ -58,6 +62,7 @@ export const EditProfileCardForm = ({
       name: defaultValues.name,
       email: defaultValues.email,
       image: defaultValues.image,
+      bannerImage: defaultValues.bannerImage,
       displayName: defaultValues.displayName ?? displayName(defaultValues),
     },
   });
@@ -113,6 +118,7 @@ export const EditProfileCardForm = ({
 
   const email = form.watch("email");
   const image = form.watch("image");
+  const bannerImage = form.watch("bannerImage");
 
   return (
     <>
@@ -138,7 +144,22 @@ export const EditProfileCardForm = ({
               </CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+          <CardContent className="flex flex-col gap-6">
+            {/* Banner Image */}
+            <div className="space-y-2">
+              <FormLabel>Profile Banner</FormLabel>
+              <div className="relative w-full">
+                <ImageFormItem
+                  className="h-32 w-full rounded-md"
+                  onChange={(url) => form.setValue("bannerImage", url)}
+                  imageUrl={bannerImage}
+                />
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Recommended size: 1500 x 500 pixels
+                </div>
+              </div>
+            </div>
+
             <FormField
               control={form.control}
               name="displayName"
@@ -187,7 +208,8 @@ export const EditProfileCardForm = ({
                           <BadgeCheck size={16} />
                         </TooltipTrigger>
                         <TooltipContent>
-                          Email verified. If you change your email, you will need to verify it again.
+                          Email verified. If you change your email, you will
+                          need to verify it again.
                         </TooltipContent>
                       </InlineTooltip>
                     ) : null}
