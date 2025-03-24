@@ -156,7 +156,11 @@ export function OrgDetailsForm({ defaultValues }: OrgDetailsFormProps) {
         });
 
         try {
-          await mutation.mutateAsync(values);
+          // Ensure orgSlug is always included from params
+          await mutation.mutateAsync({
+            ...values,
+            orgSlug,
+          });
         } catch (error) {
           // Error is already handled in the mutation's onError
           console.error("Form submission failed:", error);
