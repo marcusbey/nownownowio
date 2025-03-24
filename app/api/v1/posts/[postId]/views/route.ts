@@ -15,16 +15,17 @@ function generateViewerId(): string {
 }
 
 type PostIdParams = {
-    params: {
+    params: Promise<{
         postId: string;
-    };
+    }>;
 }
 
 /**
  * Gets the view count for a post
  */
 export async function GET(request: NextRequest, { params }: PostIdParams) {
-    const { postId } = params;
+    // Await params in Next.js 15
+    const { postId } = await params;
 
     try {
         // Get the view count for the post
@@ -55,7 +56,8 @@ export async function GET(request: NextRequest, { params }: PostIdParams) {
  * Tracks a view for a post and returns a success response
  */
 export async function POST(request: NextRequest, { params }: PostIdParams) {
-    const { postId } = params;
+    // Await params in Next.js 15
+    const { postId } = await params;
 
     try {
         // Extract the client IP address
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest, { params }: PostIdParams) {
 
         // Generate a unique viewer ID if not provided
         const headers = new Headers(request.headers);
-        const viewerId = headers.get("x-viewer-id") ?? generateViewerId();
+        const viewerId = headers.get("x-viewer-id") || generateViewerId();
 
         // Set the viewer ID in the response headers for future requests
         headers.set("x-viewer-id", viewerId);
