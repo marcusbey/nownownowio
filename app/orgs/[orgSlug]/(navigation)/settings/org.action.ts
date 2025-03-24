@@ -202,7 +202,7 @@ export const updateOrganizationDetailsAction = orgAction
 
         console.log("⭐️ User authenticated:", {
           userId: session.id,
-          userEmail: session.email ?? 'not available'
+          userEmail: session.email
         });
 
         // Find the organization directly using the slug and user ID
@@ -393,7 +393,13 @@ export const updateOrganizationDetailsAction = orgAction
             delete cleanUpdateData.orgSlug;
           }
 
-          if (Object.keys(cleanUpdateData).length === 0) {
+          console.log("⭐️ Clean update data after removing non-DB fields:",
+            JSON.stringify(cleanUpdateData),
+            "Keys:", Object.keys(cleanUpdateData)
+          );
+
+          // Safety check to ensure we have valid update data
+          if (!cleanUpdateData || Object.keys(cleanUpdateData).length === 0) {
             console.warn("⭐️ No valid fields to update");
 
             // If there's nothing to update, just fetch the current org and return it
@@ -417,6 +423,19 @@ export const updateOrganizationDetailsAction = orgAction
 
             return { data: currentOrgDetails };
           }
+
+          // Ensure all image fields are strings or null, not undefined
+          if ('image' in cleanUpdateData && cleanUpdateData.image === undefined) {
+            cleanUpdateData.image = null;
+          }
+
+          if ('bannerImage' in cleanUpdateData && cleanUpdateData.bannerImage === undefined) {
+            cleanUpdateData.bannerImage = null;
+          }
+
+          console.log("⭐️ Final update data being sent to database:",
+            JSON.stringify(cleanUpdateData)
+          );
 
           // Ensure update data is a valid object
           const updatedOrganization = await prisma.organization.update({
@@ -480,7 +499,6 @@ export const inviteUserInOrganizationAction = orgAction
 
       // Get the plan ID safely
       const planId = typeof orgContext.plan === 'object' &&
-        orgContext.plan !== null &&
         'id' in orgContext.plan ?
         String(orgContext.plan.id) : '';
 
