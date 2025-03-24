@@ -16,6 +16,12 @@ type FileRouterTypes = {
     image: { maxFileSize: string; maxFileCount: number };
     video: { maxFileSize: string; maxFileCount: number };
   };
+  orgLogo: {
+    image: { maxFileSize: string };
+  };
+  orgBanner: {
+    image: { maxFileSize: string };
+  };
 };
 
 // CLIENT-SIDE EXPORTS

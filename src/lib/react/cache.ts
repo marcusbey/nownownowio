@@ -13,10 +13,10 @@ import { prisma } from "../prisma";
  * @returns boolean indicating if feedback features are available
  */
 function hasFeedbackFeature(planType?: string): boolean {
-  if (!planType) return false;
-  
-  // Only BASIC and PRO plans have feedback features
-  return planType === 'BASIC' || planType === 'PRO';
+    if (!planType) return false;
+
+    // Only BASIC and PRO plans have feedback features
+    return planType === 'BASIC' || planType === 'PRO';
 }
 
 // Node-based cache for server-side caching
@@ -143,14 +143,14 @@ export const getRequiredCurrentOrgCache = cache(
             if (!session) {
                 throw new Error("User not authenticated");
             }
-            
+
             const org = await getRequiredCurrentOrg(orgSlug, roles);
-            
+
             // Ensure org and members array exists and has items before accessing
-            if (!org || !org.members || org.members.length === 0) {
+            if (!org.members || org.members.length === 0) {
                 throw new Error("No membership information found for this organization");
             }
-            
+
             return {
                 org,
                 user: session,
@@ -193,7 +193,7 @@ type OrganizationWithMembers = {
     planId?: string;
     previousPlanId?: string | null;
     planChangedAt?: Date | null;
-    
+
     // Virtual property - computed based on plan type
     hasFeedbackFeature?: boolean;
 };
@@ -207,7 +207,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
     if (!session?.id) {
         throw new Error("User not authenticated");
     }
-    
+
     // Validate orgSlug to prevent unexpected errors
     if (!orgSlug) {
         if (process.env.NODE_ENV !== 'production') {
@@ -215,14 +215,14 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
         }
         throw new Error("Missing organization slug");
     }
-    
+
     if (typeof orgSlug !== 'string') {
         if (process.env.NODE_ENV !== 'production') {
             console.error(`Invalid organization slug type: ${typeof orgSlug}`);
         }
         throw new Error("Invalid organization slug format");
     }
-    
+
     if (orgSlug.trim() === '') {
         if (process.env.NODE_ENV !== 'production') {
             console.error('Empty organization slug');
@@ -247,6 +247,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
             slug: true,
             email: true,
             image: true,
+            bannerImage: true,
             bio: true,
             websiteUrl: true,
             stripeCustomerId: true,
@@ -286,7 +287,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
                 where: { slug: orgSlug },
                 select: { id: true, name: true }
             });
-            
+
             if (orgExists) {
                 if (process.env.NODE_ENV !== 'production') {
                     console.error(`User ${session.id} doesn't have access to organization ${orgSlug} (${orgExists.name})`);
@@ -297,7 +298,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
                 if (process.env.NODE_ENV !== 'production') {
                     console.error(`Organization with slug '${orgSlug}' not found in database`);
                 }
-                
+
                 // Check if this might be a typo or case sensitivity issue
                 const similarOrgs = await prisma.organization.findMany({
                     where: {
@@ -309,11 +310,11 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
                     take: 3,
                     select: { slug: true, name: true }
                 });
-                
+
                 if (similarOrgs.length > 0 && process.env.NODE_ENV !== 'production') {
                     console.info(`Found similar organizations: ${JSON.stringify(similarOrgs)}`);
                 }
-                
+
                 throw new Error(`Organization not found. Please check the URL and try again.`);
             }
         } catch (error) {
@@ -324,7 +325,7 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
                 }
                 throw error;
             }
-            
+
             // Add context to the error but keep the message clean
             if (process.env.NODE_ENV !== 'production') {
                 console.error(`Error accessing organization ${orgSlug}:`, error);
@@ -336,8 +337,8 @@ async function getRequiredCurrentOrg(orgSlug: string, roles?: OrganizationMember
     // Add virtual property for feedback feature access
     if (org) {
         const orgWithFeedback = org as OrganizationWithMembers;
-        orgWithFeedback.hasFeedbackFeature = hasFeedbackFeature(org.plan?.type);
+        orgWithFeedback.hasFeedbackFeature = hasFeedbackFeature(org.plan.type);
     }
-    
+
     return org;
 }

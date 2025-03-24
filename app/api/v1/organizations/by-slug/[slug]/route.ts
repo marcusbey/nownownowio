@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { getCurrentOrgBySlug } from "@/lib/organizations/get-org";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
  * GET handler for organization data by slug
@@ -14,7 +14,7 @@ export async function GET(
     // In Next.js 15, params must be awaited before accessing properties
     const awaitedParams = await params;
     const { slug } = awaitedParams;
-    
+
     if (!slug) {
       return NextResponse.json(
         { error: "Organization slug is required" },
@@ -24,7 +24,7 @@ export async function GET(
 
     // Get organization by slug
     const organization = await getCurrentOrgBySlug(slug);
-    
+
     if (!organization) {
       return NextResponse.json(
         { error: "Organization not found" },

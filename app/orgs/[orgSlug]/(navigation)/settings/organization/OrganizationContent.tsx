@@ -74,6 +74,30 @@ export function OrganizationContent({ organization }: OrganizationContentProps) 
     bio: organization.bio ?? "",
     websiteUrl: organization.websiteUrl ?? "",
   };
+  
+  // Log the raw organization data and the form values for debugging
+  console.log("📊 OrganizationContent - Raw organization data:", {
+    id: organization.id,
+    name: organization.name,
+    email: organization.email,
+    rawImage: organization.image,
+    rawImageType: organization.image ? typeof organization.image : 'null',
+    rawBannerImage: organization.bannerImage,
+    rawBannerImageType: organization.bannerImage ? typeof organization.bannerImage : 'null',
+    defaultImage,
+    defaultBannerImage,
+    ownerImage,
+    bio: organization.bio,
+    websiteUrl: organization.websiteUrl,
+    slug: organization.slug,
+    organizationKeys: Object.keys(organization),
+    planInfo: {
+      id: organization.plan.id,
+      type: organization.plan.type
+    }
+  });
+  
+  console.log("📊 OrganizationContent - Form default values:", formDefaultValues);
 
   return (
     <div className="mx-auto max-w-4xl py-6">

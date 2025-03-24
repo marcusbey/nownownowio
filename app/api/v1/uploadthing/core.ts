@@ -6,6 +6,83 @@ import { UTApi } from "uploadthing/server";
 const f = createUploadthing();
 
 export const fileRouter = {
+  // Organization image uploads
+  orgLogo: f({
+    image: { maxFileSize: "2MB" },
+  })
+    .middleware(async () => {
+      try {
+        const { user } = await validateRequest();
+        if (!user) {
+          throw new Error('Unauthorized: User not authenticated');
+        }
+        console.log("🔍 Organization logo upload middleware - User:", user.id);
+        return { userId: user.id };
+      } catch (error) {
+        console.error("❌ Organization logo upload middleware error:", error);
+        throw error;
+      }
+    })
+    .onUploadComplete(async ({ file }) => {
+      try {
+        if (!file || !file.url) {
+          throw new Error('Invalid file data received from UploadThing');
+        }
+        
+        // Generate the URL with the proper app ID path
+        // Get the app ID from environment or use a fallback directly
+        const appId = process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID ?? 'nownownow';
+        
+        // Format the URL with the app ID
+        const url = file.url.replace("/f/", `/a/${appId}/`);
+        
+        console.log("🔍 Organization logo upload complete - URL:", url);
+        
+        return { url };
+      } catch (error) {
+        console.error("❌ Organization logo upload complete error:", error);
+        throw error;
+      }
+    }),
+
+  orgBanner: f({
+    image: { maxFileSize: "4MB" },
+  })
+    .middleware(async () => {
+      try {
+        const { user } = await validateRequest();
+        if (!user) {
+          throw new Error('Unauthorized: User not authenticated');
+        }
+        console.log("🔍 Organization banner upload middleware - User:", user.id);
+        return { userId: user.id };
+      } catch (error) {
+        console.error("❌ Organization banner upload middleware error:", error);
+        throw error;
+      }
+    })
+    .onUploadComplete(async ({ file }) => {
+      try {
+        if (!file || !file.url) {
+          throw new Error('Invalid file data received from UploadThing');
+        }
+        
+        // Generate the URL with the proper app ID path
+        // Get the app ID from environment or use a fallback directly
+        const appId = process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID ?? 'nownownow';
+        
+        // Format the URL with the app ID
+        const url = file.url.replace("/f/", `/a/${appId}/`);
+        
+        console.log("🔍 Organization banner upload complete - URL:", url);
+        
+        return { url };
+      } catch (error) {
+        console.error("❌ Organization banner upload complete error:", error);
+        throw error;
+      }
+    }),
+
   postMedia: f({
     image: { maxFileSize: "4MB", maxFileCount: 4 },
     video: { maxFileSize: "64MB", maxFileCount: 4 },

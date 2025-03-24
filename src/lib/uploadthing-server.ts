@@ -11,7 +11,7 @@ export function getDirectUploadthingUrl(url: string): string {
 
     // We want to preserve the original URL format with 8s2dp0f8rl.ufs.sh domain
     // DO NOT convert 8s2dp0f8rl.ufs.sh URLs to utfs.io
-    
+
     // Check if this is an UploadThing file URL that needs transformation
     if (url.includes('utfs.io/f/')) {
         // For publicly accessible files, we need to use the /p/ endpoint instead of /f/
@@ -45,7 +45,7 @@ export async function makeFilePublic(fileKey: string): Promise<string | null> {
         if (fileKey.includes('utfs.io/')) {
             fileKey = fileKey.split('/').pop() || fileKey;
         }
-        
+
         // Use the UploadThing API to make the file public
         const result = await utapi.makeFilePublic(fileKey);
         return result.data?.url || null;

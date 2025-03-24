@@ -3,6 +3,7 @@
 import UserAvatar from "@/components/composite/UserAvatar";
 import Skeleton from "@/components/core/skeleton";
 import { ENDPOINTS } from "@/lib/api/apiEndpoints";
+import { fetchWithTimeout } from "@/lib/api/fetchWithTimeout";
 import type { UserData } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -29,7 +30,6 @@ export function WhoToFollowSection() {
     required: false,
     onUnauthenticated() {
       // Do nothing, just silently handle the unauthenticated state
-      console.log("User is not authenticated for who-to-follow");
     },
   });
 
@@ -42,34 +42,22 @@ export function WhoToFollowSection() {
   } = useQuery<WhoToFollowUser[]>({
     queryKey: ["whoToFollow"],
     queryFn: async () => {
-      try {
-        const response = await fetch(ENDPOINTS.WHO_TO_FOLLOW, {
-          credentials: "include",
-        });
-
-        if (response.status === 401) {
-          // Just return empty array for unauthorized users
-          console.log("401 unauthorized when fetching who-to-follow");
-          return [];
-        }
-
-        if (!response.ok) {
-          console.error("Failed to fetch who to follow");
-          return [];
-        }
-        return response.json();
-      } catch (err) {
-        console.error("Error fetching who to follow:", err);
-        return [];
-      }
+      // Use our enhanced fetch utility with built-in error handling
+      const result = await fetchWithTimeout<WhoToFollowUser[]>(ENDPOINTS.WHO_TO_FOLLOW, {
+        timeout: 5000,
+        retries: 1
+      });
+      
+      // Return empty array if fetch failed
+      return result ?? [];
     },
     // Only run query if user is authenticated
     enabled: isAuthenticated,
-    // Don't keep retrying on error
+    // Don't keep retrying on error since our fetchWithTimeout already handles retries
     retry: 0,
-    // Use staleTime instead of keepPreviousData
-    staleTime: 0,
-    gcTime: 0,
+    // Increase stale time to reduce frequent refetches
+    staleTime: 60000, // 1 minute
+    gcTime: 300000, // 5 minutes
   });
 
   if (!isAuthenticated) {
