@@ -4,6 +4,7 @@ import { SiteConfig } from "@/site-config";
 import { nanoid } from "nanoid";
 import type { Session } from "next-auth";
 import NextAuth from "next-auth";
+import type { AdapterUser } from "next-auth/adapters";
 import { env } from "../env";
 import { logger } from "../logger";
 import { sendEmail } from "../mail/sendEmail";
@@ -36,7 +37,20 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
   providers: getNextAuthConfigProviders(),
   session: {
     strategy: "database",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+  debug: process.env.NODE_ENV === "development",
   secret: env.AUTH_SECRET,
   callbacks: {
     session: async ({ session, user }) => {
@@ -108,21 +122,34 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
         return session;
       }
     },
-  },
-  events: {
-    signIn: async (message) => {
+    signIn: async ({ user, account }) => {
       // First handle the standard credential sign-in callback
       if (typeof credentialsSignInCallback === 'function') {
         const callback = credentialsSignInCallback(req);
         if (typeof callback === 'function') {
-          await callback(message);
+          await callback({ user, account });
         }
       }
 
       // Then check if we need to send a verification email
-      const { user, account } = message;
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      if (!user?.email || !user?.id) return;
+      if (!user?.email || !user?.id) return false;
+
+      // For OAuth providers, we want to redirect to the org page if available
+      if (account?.provider !== 'credentials') {
+        const orgSlug = await setupDefaultOrganizationsOrInviteUser(user);
+        if (orgSlug) {
+          // Store the redirect URL in NextAuth's internal state
+          await prisma.verificationToken.create({
+            data: {
+              identifier: `${user.id}-redirect`,
+              token: nanoid(),
+              expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+              data: { redirectUrl: `/orgs/${orgSlug}` },
+            },
+          });
+        }
+      }
 
       // Only proceed for credentials provider and if email isn't verified
       if (account?.provider === 'credentials') {
@@ -163,8 +190,10 @@ export const { handlers, auth: baseAuth } = NextAuth((req) => ({
           }
         }
       }
+
+      return true;
     },
-    createUser: async ({ user }) => {
+    createUser: async ({ user }: { user: AdapterUser }) => {
       if (!user.email || !user.id) {
         return;
       }

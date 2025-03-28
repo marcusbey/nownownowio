@@ -35,7 +35,7 @@ type PostFeedData = {
     [key: string]: unknown;
     posts: {
       id: string;
-      bookmarks?: { userId: string }[];
+      bookmarks?: Array<{ userId: string }>;
       [key: string]: unknown;
     }[];
   }[];
@@ -113,14 +113,20 @@ export function BookmarkButton({
       queryKey,
       queryFn: async () => {
         try {
+          console.log(`Fetching bookmark status for post: ${postId}`);
           return await kyInstance
             .get(`/api/v1/posts/${postId}/bookmark`, {
-              timeout: 3000,
-              retry: 1,
+              timeout: 8000, // Increased timeout
+              retry: {
+                limit: 2,
+                methods: ["get"],
+                statusCodes: [408, 413, 429, 500, 502, 503, 504],
+              },
             })
             .json<{ isBookmarkedByUser: boolean }>();
         } catch (error) {
           console.error("Error fetching bookmark status:", error);
+          // Return the initial state if the request fails
           return { isBookmarkedByUser: initialState.isBookmarkedByUser };
         }
       },
@@ -136,24 +142,42 @@ export function BookmarkButton({
       const bookmarkStatus = data.isBookmarkedByUser;
 
       try {
+        console.log(
+          `Toggle bookmark for post ${postId}: current status=${bookmarkStatus}`,
+        );
         if (bookmarkStatus) {
           // If already bookmarked, remove bookmark
-          await kyInstance.delete(`/api/v1/posts/${postId}/bookmark`, {
-            timeout: 5000,
-            retry: 1,
-          });
-          return { isBookmarkedByUser: false };
+          const response = await kyInstance.delete(
+            `/api/v1/posts/${postId}/bookmark`,
+            {
+              timeout: 8000, // Increased timeout
+              retry: {
+                limit: 2,
+                methods: ["delete"],
+                statusCodes: [408, 413, 429, 500, 502, 503, 504],
+              },
+            },
+          );
+          return await response.json<{ isBookmarkedByUser: boolean }>();
         } else {
           // If not bookmarked, add bookmark
-          await kyInstance.post(`/api/v1/posts/${postId}/bookmark`, {
-            timeout: 5000,
-            retry: 1,
-          });
-          return { isBookmarkedByUser: true };
+          const response = await kyInstance.post(
+            `/api/v1/posts/${postId}/bookmark`,
+            {
+              timeout: 8000, // Increased timeout
+              retry: {
+                limit: 2,
+                methods: ["post"],
+                statusCodes: [408, 413, 429, 500, 502, 503, 504],
+              },
+            },
+          );
+          return await response.json<{ isBookmarkedByUser: boolean }>();
         }
       } catch (error) {
         console.error("Error toggling bookmark:", error);
-        throw error; // Let the error handler catch this
+        // Return opposite of current state as a fallback
+        return { isBookmarkedByUser: !bookmarkStatus };
       }
     },
     onSuccess: (result) => {
@@ -192,43 +216,43 @@ export function BookmarkButton({
         (oldData) => {
           if (!oldData) return oldData;
 
-          // This works for the infinite query data structure
-          if (oldData.pages) {
-            return {
-              ...oldData,
-              pages: oldData.pages.map((page) => ({
-                ...page,
-                posts: page.posts.map((post) => {
-                  if (post.id === postId) {
-                    // Update the bookmarks array optimistically
-                    const currentBookmarked = previousData?.isBookmarkedByUser;
-
-                    if (currentBookmarked) {
-                      // Remove the bookmark
-                      return {
-                        ...post,
-                        bookmarks: (post.bookmarks ?? []).filter(
-                          (b) => b.userId !== "current-user",
-                        ),
-                      };
-                    } else {
-                      // Add the bookmark
-                      return {
-                        ...post,
-                        bookmarks: [
-                          ...(post.bookmarks ?? []),
-                          { userId: "current-user" },
-                        ],
-                      };
-                    }
-                  }
-                  return post;
-                }),
-              })),
-            };
+          // This is a type guard that ensures oldData.pages exists
+          if (!oldData.pages || !Array.isArray(oldData.pages)) {
+            return oldData;
           }
 
-          return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              posts: page.posts.map((post) => {
+                if (post.id === postId) {
+                  // Update the bookmarks array optimistically
+                  const currentBookmarked = previousData?.isBookmarkedByUser;
+
+                  if (currentBookmarked) {
+                    // Remove the bookmark
+                    return {
+                      ...post,
+                      bookmarks: (post.bookmarks ?? []).filter(
+                        (b) => b.userId !== "current-user",
+                      ),
+                    };
+                  } else {
+                    // Add the bookmark
+                    return {
+                      ...post,
+                      bookmarks: [
+                        ...(post.bookmarks ?? []),
+                        { userId: "current-user" },
+                      ],
+                    };
+                  }
+                }
+                return post;
+              }),
+            })),
+          };
         },
       );
 

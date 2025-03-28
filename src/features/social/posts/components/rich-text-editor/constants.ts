@@ -1,4 +1,4 @@
-import type { FormatCommand, AcceptedFileTypes } from './types';
+import type { AcceptedFileTypes, FormatCommand } from './types';
 
 export const DEFAULT_MAX_LENGTH = 860;
 
@@ -67,12 +67,14 @@ export const FORMAT_COMMANDS: FormatCommand[] = [
     icon: "🖼️",
     keywords: ["image", "picture", "photo", "media"],
   },
+  /* Temporarily disabled video option
   {
     id: "video",
     label: "Video",
     icon: "🎬",
     keywords: ["video", "movie", "clip", "media"],
   },
+  */
   {
     id: "audio",
     label: "Audio",

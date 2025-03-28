@@ -180,7 +180,7 @@ export function MediaPreview({ media }: MediaPreviewProps) {
   }
 
   // Handle VIDEO type specifically without using Next.js Image
-  if (media.type === "VIDEO") {
+  if (media.type === "VIDEO" || media.type.toLowerCase() === "video") {
     return (
       <div
         className={cn(

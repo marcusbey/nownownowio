@@ -221,6 +221,13 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
               return true;
             }
             if (event.key === "Backspace") {
+              // If the search is empty and user presses backspace, close the menu
+              if (commandSearch === "") {
+                event.preventDefault();
+                setShowCommandMenu(false);
+                return true;
+              }
+
               event.preventDefault();
               // Update search term and reset selected index when search changes
               const newSearch = commandSearch.slice(0, -1);
@@ -229,7 +236,7 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
               setTimeout(() => setSelectedIndex(0), 0);
               return true;
             }
-            if (/^[a-zA-Z0-9]$/.test(event.key)) {
+            if (/^[a-zA-Z0-9\s]$/.test(event.key)) {
               event.preventDefault();
               // Update search term and reset selected index when search changes
               const newSearch = commandSearch + event.key;
@@ -711,8 +718,16 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
                       <CommandItem
                         key={command.id}
                         onMouseEnter={() => setSelectedIndex(index)}
+                        onClick={(e) => {
+                          // Stop event propagation
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Apply format and close menu when clicked
+                          applyFormat(command);
+                          setShowCommandMenu(false);
+                        }}
                         onSelect={() => {
-                          // Apply format and close menu when selected
+                          // Apply format and close menu when selected (keyboard or mouse)
                           applyFormat(command);
                           setShowCommandMenu(false);
                         }}
@@ -725,13 +740,24 @@ const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(
                             : "",
                         )}
                       >
-                        <span className="w-6 flex-none text-center">
-                          {command.icon}
-                        </span>
-                        <span>{command.label}</span>
-                        <kbd className="ml-auto text-xs text-gray-500 dark:text-gray-400">
-                          {command.id}
-                        </kbd>
+                        <div
+                          className="flex w-full items-center gap-2"
+                          onClick={(e) => {
+                            // Ensure clicks on child elements also trigger the action
+                            e.preventDefault();
+                            e.stopPropagation();
+                            applyFormat(command);
+                            setShowCommandMenu(false);
+                          }}
+                        >
+                          <span className="w-6 flex-none text-center">
+                            {command.icon}
+                          </span>
+                          <span>{command.label}</span>
+                          <kbd className="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                            {command.id}
+                          </kbd>
+                        </div>
                       </CommandItem>
                     ))}
                   </CommandGroup>
