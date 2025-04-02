@@ -18,12 +18,14 @@ export const Providers = ({ children }: PropsWithChildren) => {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Optimized cache settings
-            staleTime: 60 * 1000, // 1 minute
-            gcTime: 5 * 60 * 1000, // 5 minutes
-            // Don't retry on error by default
+            // --- ENHANCED CACHING SETTINGS ---
+            // Increase staleTime: Data is considered fresh for 5 minutes
+            staleTime: 5 * 60 * 1000,
+            // Increase gcTime: Keep unused data for 15 minutes
+            gcTime: 15 * 60 * 1000,
+            // Keep retry at 1 to avoid excessive retries on transient errors
             retry: 1,
-            // Don't refetch on window focus by default
+            // Keep refetchOnWindowFocus false unless specifically needed for a query
             refetchOnWindowFocus: false,
           },
         },

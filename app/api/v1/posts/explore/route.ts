@@ -16,13 +16,21 @@ const explorePostsSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  // --- ENHANCED CACHING STRATEGY ---
+  // Define cache headers for more aggressive caching
+  const headers = {
+    'Cache-Control': 'public, max-age=30, stale-while-revalidate=120', // Cache for 30s, revalidate for 2 mins
+    'CDN-Cache-Control': 'public, s-maxage=60', // CDN cache for 1 min
+    'Vercel-CDN-Cache-Control': 'public, s-maxage=60' // Vercel specific
+  };
+
   try {
     // Authentication
     const session = await baseAuth();
     if (!session?.user) {
       return NextResponse.json(
         { error: "You must be logged in to view posts" },
-        { status: 401 }
+        { status: 401, headers }
       );
     }
 
@@ -180,7 +188,7 @@ export async function GET(request: Request) {
         : null,
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { headers });
   } catch (error) {
     // Safe error logging
     console.error("[EXPLORE_POSTS_GET_ERROR]", error instanceof Error ? error.message : String(error));
@@ -188,20 +196,20 @@ export async function GET(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request parameters", details: error.errors },
-        { status: 400 }
+        { status: 400, headers }
       );
     }
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return NextResponse.json(
         { error: "Database error", message: error.message },
-        { status: 500 }
+        { status: 500, headers }
       );
     }
 
     return NextResponse.json(
       { error: "Internal server error", message: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 }

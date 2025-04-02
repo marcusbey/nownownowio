@@ -2,53 +2,39 @@ import type { OrganizationMembershipRole } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 export function getUserDataSelect(loggedInUserId: string) {
-  return Prisma.validator<Prisma.UserSelect>()({
+  return Prisma.validator<Prisma.UserSelect>()({    
     id: true,
     name: true,
     displayName: true,
-    email: true,
-    emailVerified: true,
+    email: true, // Keep email if needed for display/contact
     image: true,
-    bio: true,
-    resendContactId: true,
-    passwordHash: true,
-    websiteUrl: true,
-    bannerImage: true,
-    createdAt: true,
-    updatedAt: true,
+    bio: true, // Include bio if shown in tooltips/profiles
+    bannerImage: true, // Include banner if shown
+    createdAt: true, // Keep for 'Joined' date
+    // Select only necessary fields from relations
     followers: {
-      where: {
-        followerId: loggedInUserId,
-      },
-      select: {
-        followerId: true,
-      },
+      where: { followerId: loggedInUserId },
+      select: { followerId: true }, // Only need to know *if* followed
     },
-    posts: true,
-    following: true,
-    comments: true,
-    likes: true,
-    bookmarks: true,
-    memberships: {
-      select: {
-        organization: {
-          select: {
-            slug: true,
-            name: true,
-          },
-        },
-        roles: true,
-      },
-    },
-    _count: {
+    _count: { // Keep counts as they are efficient
       select: {
         posts: true,
         followers: true,
         following: true,
-        comments: true,
-        likes: true,
-        bookmarks: true,
       },
+    },
+    memberships: { // Fetch only necessary org info for context/links
+      select: {
+        organization: {
+          select: {
+            slug: true,
+            name: true, // Keep name for display
+            image: true, // Keep image for display
+          },
+        },
+        roles: true, // Keep roles for permissions
+      },
+      take: 5 // Limit memberships fetched if not all are needed immediately
     },
   });
 }
@@ -60,36 +46,33 @@ export type UserData = Prisma.UserGetPayload<{
 export function getPostDataInclude(loggedInUserId: string) {
   return {
     user: {
-      select: {
-        ...getUserDataSelect(loggedInUserId),
-        // Note: 'organizations' field was removed as it doesn't exist in the User model
-        // Instead, we already have memberships which contains organization info
+      select: { // Select only absolutely necessary user fields for a post card
+        id: true,
+        name: true,
+        displayName: true,
+        image: true,
+        memberships: { // Needed for profile link construction in Post component
+          select: {
+            organization: { select: { slug: true } }
+          },
+          take: 1 // Only need one for the link
+        }
       },
     },
-    media: true, // Using 'media' instead of 'attachments' as per the Prisma schema
+    media: true, // Keep media
     likes: {
-      where: {
-        userId: loggedInUserId,
-      },
-      select: {
-        userId: true,
-      },
+      where: { userId: loggedInUserId },
+      select: { userId: true }, // Only need to know if liked by current user
     },
     bookmarks: {
-      where: {
-        userId: loggedInUserId,
-      },
-      select: {
-        userId: true,
-      },
+      where: { userId: loggedInUserId },
+      select: { userId: true }, // Only need to know if bookmarked by current user
     },
-    comments: true,
-    notifications: true, // Added notifications as per the Prisma schema
-    _count: {
+    // Removed comments: true - fetch comments separately on demand
+    _count: { // Keep counts
       select: {
         likes: true,
         comments: true,
-        bookmarks: true,
         views: true,
       },
     },
@@ -108,9 +91,20 @@ export type PostsPage = {
 export function getCommentDataInclude(loggedInUserId: string) {
   return {
     user: {
-      select: getUserDataSelect(loggedInUserId),
+      select: { // Select minimal user info for comments
+        id: true,
+        name: true,
+        displayName: true,
+        image: true,
+        memberships: { // Needed for profile link construction in Comment component
+          select: {
+            organization: { select: { slug: true } }
+          },
+          take: 1
+        }
+      },
     },
-    post: true,
+    // Removed post: true - usually not needed when viewing comments under a post
   } satisfies Prisma.CommentInclude;
 }
 
@@ -130,20 +124,20 @@ export const notificationsInclude = {
       name: true,
       displayName: true,
       image: true,
+      // Only select minimal user fields needed for notification display
     },
   },
   recipient: {
     select: {
       id: true,
-      name: true,
-      displayName: true,
-      image: true,
+      // Minimal recipient info since we usually already have this context
     },
   },
   post: {
     select: {
       id: true,
       content: true,
+      // Only fetch minimal post data needed for notification context
     },
   },
 } satisfies Prisma.NotificationInclude;
@@ -188,46 +182,3 @@ export type NavigationLink = {
     roles?: OrganizationMembershipRole[];
   }[];
 };
-
-export type User = Prisma.UserGetPayload<{
-  select: {
-    id: true;
-    name: true;
-    displayName: true;
-    email: true;
-    emailVerified: true;
-    image: true;
-    bio: true;
-    resendContactId: true;
-    passwordHash: true,
-    websiteUrl: true,
-    bannerImage: true,
-    createdAt: true,
-    updatedAt: true,
-    followers: true,
-    following: true,
-    posts: true,
-    comments: true,
-    likes: true,
-    bookmarks: true,
-  };
-}>;
-
-export type Post = Prisma.PostGetPayload<{
-  include: {
-    user: true,
-    media: true, // Using 'media' instead of 'attachments' as per the Prisma schema
-    likes: true,
-    bookmarks: true,
-    comments: true,
-    notifications: true, // Added notifications as per the Prisma schema
-    _count: {
-      select: {
-        likes: true,
-        comments: true,
-        bookmarks: true,
-        views: true,
-      },
-    },
-  };
-}>;

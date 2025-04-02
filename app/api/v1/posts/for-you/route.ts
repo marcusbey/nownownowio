@@ -12,12 +12,12 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   // Properly await params in Next.js 15, even though we're not using any params in this route
   await params;
-  // Optimize caching strategy with shorter max-age but longer stale-while-revalidate
-  // This allows browsers to use cached data immediately while fetching fresh data in background
+  // --- ENHANCED CACHING STRATEGY ---
+  // Define cache headers for more aggressive caching
   const headers = {
-    'Cache-Control': 'public, max-age=5, stale-while-revalidate=30',
-    'Surrogate-Control': 'public, max-age=10',
-    'CDN-Cache-Control': 'public, max-age=10'
+    'Cache-Control': 'public, max-age=30, stale-while-revalidate=120', // Cache for 30s, revalidate for 2 mins
+    'CDN-Cache-Control': 'public, s-maxage=60', // CDN cache for 1 min
+    'Vercel-CDN-Cache-Control': 'public, s-maxage=60' // Vercel specific
   };
 
   try {

@@ -10,6 +10,14 @@ export async function GET(
     request: Request,
     context: { params: Promise<{ postId: string }> }
 ) {
+    // --- ENHANCED CACHING STRATEGY ---
+    // Define cache headers for more aggressive caching
+    const headers = {
+        'Cache-Control': 'public, max-age=30, stale-while-revalidate=120', // Cache for 30s, revalidate for 2 mins
+        'CDN-Cache-Control': 'public, s-maxage=60', // CDN cache for 1 min
+        'Vercel-CDN-Cache-Control': 'public, s-maxage=60' // Vercel specific
+    };
+
     try {
         const user = await auth();
         const { postId } = await context.params;
@@ -17,7 +25,7 @@ export async function GET(
         if (!postId) {
             return NextResponse.json(
                 { error: "Post ID is required" },
-                { status: 400 }
+                { status: 400, headers }
             );
         }
 
@@ -29,16 +37,16 @@ export async function GET(
         if (!post) {
             return NextResponse.json(
                 { error: "Post not found" },
-                { status: 404 }
+                { status: 404, headers }
             );
         }
 
-        return NextResponse.json(post);
+        return NextResponse.json(post, { headers });
     } catch (error) {
         console.error("[GET_POST_BY_ID]", error);
         return NextResponse.json(
             { error: "Internal server error" },
-            { status: 500 }
+            { status: 500, headers }
         );
     }
 }

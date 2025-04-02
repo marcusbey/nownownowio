@@ -1,6 +1,5 @@
 import { Button } from "@/components/core/button";
 import { Loader2 } from "lucide-react";
-import { getServerUrl } from "@/lib/server-url";
 import { useMutation } from "@tanstack/react-query";
 import { clsx } from "clsx";
 import { signIn } from "next-auth/react";
@@ -93,9 +92,7 @@ export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
   const providerAuthMutation = useMutation({
     mutationFn: async () =>
       signIn(providerId, {
-        callbackUrl:
-          searchParams.get("callbackUrl") ??
-          `${getServerUrl()}/?isNewUser=true`,
+        callbackUrl: searchParams?.get("callbackUrl") ?? '/?isNewUser=true', // Use '/' with query parameter as fallback
         action: action,
       }),
   });
@@ -106,11 +103,10 @@ export const ProviderButton = ({ providerId, action }: ProviderButtonProps) => {
   // If somehow we get an unsupported provider (should never happen in production),
   // return a fallback UI with an appropriate message
   if (!data) {
-    // Only log in development environment
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error(`Provider data not found for providerId: ${providerId}`);
-    }
+    // Log error in any environment (this is safe and won't cause issues)
+    // eslint-disable-next-line no-console
+    console.error(`Provider data not found for providerId: ${providerId}`);
+    
     return (
       <Button disabled className="w-full" size="lg">
         <span className="ml-2 text-base">Unsupported provider</span>

@@ -7,6 +7,7 @@ export const ENDPOINTS = {
   AUTH_SIGNOUT: `${API_BASE_URL}/auth/signout`,
   AUTH_VERIFY_REQUEST: `${API_BASE_URL}/auth/verify-request`,
   AUTH_PROVIDERS: `${API_BASE_URL}/auth/providers`,
+  AUTH_VALIDATE: `${API_BASE_URL}/auth/validate`,
   
   // Organizations
   ORGANIZATIONS: `${API_BASE_URL}/organizations`,

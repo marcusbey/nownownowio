@@ -71,6 +71,7 @@ export async function handleAuthRedirect() {
             membershipCount: memberships.length 
         });
 
+       // After successful organization check
         if (memberships.length > 0) {
             const org = memberships[0].organization;
             logger.debug('[Auth] Redirecting to organization', { 
@@ -78,16 +79,14 @@ export async function handleAuthRedirect() {
                 orgSlug: org.slug,
                 orgName: org.name
             });
-            redirect(`/orgs/${org.slug}`);
-            return null;
+            return redirect(`/orgs/${org.slug}`); // Add return here
         }
 
         // User has no organizations, redirect to create new
         logger.debug('[Auth] User has no organizations, redirecting to create new', { 
             userId: user.id 
         });
-        redirect('/orgs/new');
-        return null;
+        return redirect('/orgs/new'); // Add return here
 
     } catch (error) {
         logger.error('[Auth] Error in handleAuthRedirect', { 

@@ -40,6 +40,8 @@ model User {
   sessions              Session[]
 
   @@index([email, emailVerified])
+  @@index([displayName]) // If searching by display name is common
+  @@index([email]) // Already unique, implicitly indexed, but explicit doesn't hurt
   @@index([resendContactId])
   @@index([failedAttempts, lockedUntil])
   @@index([createdAt])
@@ -56,6 +58,7 @@ model Post {
   scheduledAt    DateTime?
   views          PostView[]
   bookmarks      Bookmark[]
+  hashtags       String[]
   comments       Comment[]
   likes          Like[]
   notifications  Notification[]
@@ -66,6 +69,7 @@ model Post {
   @@index([userId])
   @@index([organizationId])
   @@index([createdAt])
+  @@index([isPinned, createdAt]) // For fetching pinned posts first
   @@index([scheduledAt])
   @@map("posts")
 }
@@ -79,6 +83,8 @@ model Comment {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([postId, createdAt]) // For fetching comments by post efficiently
+  @@index([userId])
   @@map("comments")
 }
 
@@ -90,6 +96,8 @@ model Like {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId]) // For counting likes per post
+  @@index([userId]) // For finding user's likes
   @@map("likes")
 }
 
@@ -115,6 +123,7 @@ model PostView {
 
   @@unique([postId, viewerId, clientIp])
   @@index([postId])
+  @@index([postId, viewedAt]) // For analyzing view trends
   @@index([viewerId])
   @@index([source])
 }

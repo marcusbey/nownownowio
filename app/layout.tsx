@@ -13,6 +13,7 @@ import { Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.scss";
 import { Providers } from "./providers";
+import { AuthSessionHandler } from "@/features/core/auth/AuthSessionHandler";
 
 export const metadata: Metadata = {
   title: SiteConfig.title,
@@ -50,6 +51,7 @@ export default async function RootLayout({
           )}
         >
           <Providers>
+            <AuthSessionHandler />
             <NextTopLoader
               delay={100}
               showSpinner={false}

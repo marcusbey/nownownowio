@@ -21,6 +21,8 @@ model Notification {
   post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
   recipient   User             @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
 
+  @@index([recipientId, createdAt]) // For fetching user's notifications
+  @@index([recipientId, read]) // For counting unread notifications
   @@map("notifications")
 }
 
@@ -32,6 +34,8 @@ model Bookmark {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, createdAt]) // For fetching user's bookmarks efficiently
+  @@index([postId])
   @@unique([userId, postId])
   @@map("bookmarks")
 }

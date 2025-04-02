@@ -12,6 +12,9 @@ model WidgetFeedback {
   voters         WidgetFeedbackVoter[]
 
   @@index([organizationId])
+  @@index([organizationId, status]) // For filtering feedback by status within an org
+  @@index([organizationId, votes]) // For sorting feedback by votes within an org
+  @@index([organizationId, createdAt]) // For sorting feedback by date within an org
   @@index([createdAt])
   @@index([votes])
   @@index([status])
